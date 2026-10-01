@@ -1,24 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_theme.dart';
-
-class CartPage extends StatelessWidget {
-  const CartPage({super.key});
-  @override
-  Widget build(BuildContext context) => SafeArea(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Seu carrinho', style: Theme.of(context).textTheme.headlineMedium),
-        const Spacer(),
-        const Center(child: Column(children: [
-          Icon(Icons.shopping_bag_outlined, size: 72, color: AppColors.primary),
-          SizedBox(height: 18),
-          Text('Seu carrinho está vazio', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-          SizedBox(height: 8),
-          Text('Adicione suas bebidas favoritas para continuar.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.muted)),
-        ])),
-        const Spacer(),
-      ]),
-    ),
-  );
+import '../../../auth/presentation/pages/auth_page.dart';
+class CartPage extends StatelessWidget{const CartPage({super.key});
+ @override Widget build(BuildContext context)=>ListenableBuilder(listenable:AppState.instance,builder:(context,_){final s=AppState.instance;return SafeArea(child:ListView(padding:const EdgeInsets.fromLTRB(20,22,20,120),children:[
+ Text('Seu carrinho',style:Theme.of(context).textTheme.headlineMedium),const SizedBox(height:6),const Text('Revise seu pedido antes de finalizar.',style:TextStyle(color:AppColors.muted)),const SizedBox(height:22),
+ if(s.cart.isEmpty)Container(padding:const EdgeInsets.symmetric(vertical:70,horizontal:20),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(28)),child:const Column(children:[Icon(Icons.shopping_bag_outlined,size:64,color:AppColors.primary),SizedBox(height:16),Text('Seu carrinho está vazio',style:TextStyle(fontSize:18,fontWeight:FontWeight.w900)),SizedBox(height:7),Text('Escolha suas bebidas na página inicial.',style:TextStyle(color:AppColors.muted))]))
+ else ...[for(final line in s.cart)Container(margin:const EdgeInsets.only(bottom:10),padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(22)),child:Row(children:[Container(width:58,height:58,decoration:BoxDecoration(color:AppColors.canvas,borderRadius:BorderRadius.circular(16)),child:const Icon(Icons.local_drink_rounded,color:AppColors.primaryDark)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(line.product.name,style:const TextStyle(fontWeight:FontWeight.w800)),const SizedBox(height:4),Text('R\$ '+line.product.price.toStringAsFixed(2).replaceAll('.',','),style:const TextStyle(color:AppColors.primaryDark,fontWeight:FontWeight.w800))])),IconButton(onPressed:()=>s.changeQty(line.product,-1),icon:const Icon(Icons.remove_circle_outline)),Text(line.quantity.toString(),style:const TextStyle(fontWeight:FontWeight.w900)),IconButton(onPressed:()=>s.changeQty(line.product,1),icon:const Icon(Icons.add_circle,color:AppColors.primary))])),
+ const SizedBox(height:8),Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:const Color(0xFFFFF4D8),borderRadius:BorderRadius.circular(22)),child:Row(children:[const Expanded(child:Text('Total dos produtos',style:TextStyle(fontWeight:FontWeight.w700))),Text('R\$ '+s.cartTotal.toStringAsFixed(2).replaceAll('.',','),style:const TextStyle(fontSize:20,fontWeight:FontWeight.w900,color:AppColors.primaryDark))])),const SizedBox(height:16),FilledButton.icon(onPressed:()=>_checkout(context),icon:const Icon(Icons.lock_outline_rounded),label:const Text('Continuar para entrega',style:TextStyle(fontWeight:FontWeight.w900)),style:FilledButton.styleFrom(minimumSize:const Size.fromHeight(58)))]
+ ]));});
+ Future<void> _checkout(BuildContext context)async{final s=AppState.instance;if(s.user==null){await Navigator.push(context,MaterialPageRoute(builder:(_)=>const AuthPage()));if(s.user==null)return;}await s.loadAddresses();if(!context.mounted)return;String? addressId=s.addresses.isNotEmpty?s.addresses.first.id:null;if(addressId==null){addressId=await showDialog<String>(context:context,builder:(_)=>const _AddressDialog());}if(addressId==null||!context.mounted)return;try{await s.createOrder(addressId);if(context.mounted)showDialog(context:context,builder:(_)=>AlertDialog(icon:const Icon(Icons.check_circle_rounded,color:AppColors.primary,size:54),title:const Text('Pedido recebido!'),content:const Text('Seu pedido foi criado com sucesso e já está no fluxo da Porto Prime.'),actions:[FilledButton(onPressed:()=>Navigator.pop(context),child:const Text('Concluir'))]));}catch(e){if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));}}
 }
+class _AddressDialog extends StatefulWidget{const _AddressDialog();@override State<_AddressDialog> createState()=>_AddressDialogState();}
+class _AddressDialogState extends State<_AddressDialog>{final street=TextEditingController(),number=TextEditingController(),neighborhood=TextEditingController(),cep=TextEditingController(),complement=TextEditingController();bool busy=false;
+ @override Widget build(BuildContext context)=>AlertDialog(title:const Text('Onde vamos entregar?'),content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:street,decoration:const InputDecoration(labelText:'Rua')),const SizedBox(height:9),TextField(controller:number,decoration:const InputDecoration(labelText:'Número')),const SizedBox(height:9),TextField(controller:neighborhood,decoration:const InputDecoration(labelText:'Bairro')),const SizedBox(height:9),TextField(controller:cep,keyboardType:TextInputType.number,decoration:const InputDecoration(labelText:'CEP')),const SizedBox(height:9),TextField(controller:complement,decoration:const InputDecoration(labelText:'Complemento (opcional)'))])),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('Cancelar')),FilledButton(onPressed:busy?null:()async{setState(()=>busy=true);try{final a=await AppState.instance.createAddress(street:street.text,number:number.text,neighborhood:neighborhood.text,postalCode:cep.text,complement:complement.text);if(context.mounted)Navigator.pop(context,a.id);}catch(e){if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));setState(()=>busy=false);}},child:const Text('Usar endereço'))]);}
