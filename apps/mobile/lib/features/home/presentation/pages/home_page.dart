@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/state/app_state.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -18,7 +19,7 @@ class HomePage extends StatelessWidget {
       const SliverPadding(padding:EdgeInsets.fromLTRB(20,22,20,11),sliver:SliverToBoxAdapter(child:_Title('Seu momento','Ver tudo'))),
       SliverToBoxAdapter(child:SizedBox(height:96,child:ListView.separated(padding:const EdgeInsets.symmetric(horizontal:20),scrollDirection:Axis.horizontal,itemCount:cats.length,separatorBuilder:(_,__)=>const SizedBox(width:10),itemBuilder:(_,i)=>_Cat(cats[i])))),
       const SliverPadding(padding:EdgeInsets.fromLTRB(20,20,20,11),sliver:SliverToBoxAdapter(child:_Title('Gelou, chegou','Ver mais'))),
-      SliverToBoxAdapter(child:SizedBox(height:239,child:ListView.separated(padding:const EdgeInsets.symmetric(horizontal:20),scrollDirection:Axis.horizontal,itemCount:3,separatorBuilder:(_,__)=>const SizedBox(width:12),itemBuilder:(_,i)=>_Product(i)))),
+      SliverToBoxAdapter(child:AnimatedBuilder(animation:AppState.instance,builder:(_,__) { final ps=AppState.instance.products; return SizedBox(height:239,child:ps.isEmpty?const Center(child:Text('Carregando catálogo...')):ListView.separated(padding:const EdgeInsets.symmetric(horizontal:20),scrollDirection:Axis.horizontal,itemCount:ps.length>8?8:ps.length,separatorBuilder:(_,__)=>const SizedBox(width:12),itemBuilder:(_,i)=>_LiveProduct(ps[i])); })),
       const SliverPadding(padding:EdgeInsets.fromLTRB(20,23,20,11),sliver:SliverToBoxAdapter(child:_Title('Escolha pelo rolê',''))),
       const SliverToBoxAdapter(child:_Moments()),
       const SliverPadding(padding:EdgeInsets.fromLTRB(20,22,20,125),sliver:SliverToBoxAdapter(child:_PrimeCard())),
@@ -72,3 +73,5 @@ class _PrimeCard extends StatelessWidget{const _PrimeCard();@override Widget bui
  DecoratedBox(decoration:BoxDecoration(color:Color(0xFF263A34),borderRadius:BorderRadius.all(Radius.circular(17))),child:SizedBox(width:53,height:53,child:Icon(Icons.bolt_rounded,color:AppColors.sun,size:29))),SizedBox(width:13),
  Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Prime é chegar antes.',style:TextStyle(color:Colors.white,fontSize:15,fontWeight:FontWeight.w900)),SizedBox(height:3),Text('Uma experiência desenhada para não interromper seu momento.',style:TextStyle(color:Colors.white60,fontSize:10,height:1.35,fontWeight:FontWeight.w600))])),Icon(Icons.arrow_forward_rounded,color:Colors.white),
 ]));}
+
+class _LiveProduct extends StatelessWidget{const _LiveProduct(this.p);final dynamic p;@override Widget build(BuildContext context){final price=double.tryParse(p['price'].toString())??0;return Container(width:164,padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(24),border:Border.all(color:const Color(0xFFE8EBE6))),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Container(height:112,decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(19)),alignment:Alignment.center,child:p['imageUrl']!=null?ClipRRect(borderRadius:BorderRadius.circular(19),child:Image.network(p['imageUrl'],fit:BoxFit.cover,width:double.infinity,height:112,errorBuilder:(_,__,___)=>const Icon(Icons.local_drink_rounded,size:55))):const Icon(Icons.local_drink_rounded,size:55,color:AppColors.ink)),const SizedBox(height:9),Text(p['name']??'',maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:14,fontWeight:FontWeight.w900)),Text(p['category']?['name']??'Porto Prime',style:const TextStyle(fontSize:10,color:AppColors.muted)),const Spacer(),Row(children:[Expanded(child:Text('R\$ '+price.toStringAsFixed(2).replaceAll('.',','),style:const TextStyle(fontSize:15,fontWeight:FontWeight.w900))),InkWell(onTap:()=>AppState.instance.addProduct(p['id']),borderRadius:BorderRadius.circular(12),child:Container(width:35,height:35,decoration:BoxDecoration(color:AppColors.ink,borderRadius:BorderRadius.circular(12)),child:const Icon(Icons.add_rounded,color:Colors.white)))]) ]));}}
