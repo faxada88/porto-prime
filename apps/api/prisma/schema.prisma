@@ -1,0 +1,298 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  CUSTOMER
+  COURIER
+  PARTNER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  PENDING
+  SUSPENDED
+  BLOCKED
+}
+
+enum CourierStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY_FOR_PICKUP
+  COURIER_ASSIGNED
+  PICKED_UP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentMethod {
+  CARD
+  PIX
+}
+
+enum PixKeyType {
+  CPF
+  CNPJ
+  EMAIL
+  PHONE
+  RANDOM
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  PAID
+  REJECTED
+  CANCELED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  phone        String?    @unique
+  passwordHash String
+  role         UserRole
+  status       UserStatus @default(ACTIVE)
+
+  customerProfile CustomerProfile?
+  courierProfile  CourierProfile?
+  partnerProfile  PartnerProfile?
+
+  addresses Address[]
+  orders    Order[]  @relation("CustomerOrders")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+  @@index([status])
+}
+
+model CustomerProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CourierProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  approvalStatus CourierStatus @default(PENDING)
+  isOnline       Boolean       @default(false)
+
+  document       String?
+  pixKeyType     PixKeyType?
+  pixKey         String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  deliveries  Order[]            @relation("CourierOrders")
+  ledger      CourierLedgerEntry[]
+  withdrawals Withdrawal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([approvalStatus])
+  @@index([isOnline])
+}
+
+model PartnerProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  businessName String
+  document     String?
+  approved     Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Address {
+  id     String @id @default(cuid())
+  userId String
+
+  label        String?
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
+  postalCode   String
+  latitude     Decimal? @db.Decimal(10, 7)
+  longitude    Decimal? @db.Decimal(10, 7)
+  isDefault    Boolean  @default(false)
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Category {
+  id   String @id @default(cuid())
+  name String @unique
+  slug String @unique
+
+  imageUrl String?
+  active   Boolean @default(true)
+  position Int     @default(0)
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, position])
+}
+
+model Product {
+  id         String @id @default(cuid())
+  categoryId String
+
+  name        String
+  description String?
+  imageUrl    String?
+  price       Decimal @db.Decimal(10, 2)
+  active      Boolean @default(true)
+  stock       Int     @default(0)
+
+  category  Category    @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([active])
+}
+
+model Order {
+  id         String @id @default(cuid())
+  customerId String
+  courierId  String?
+  addressId  String
+
+  status        OrderStatus   @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING)
+  paymentMethod PaymentMethod?
+
+  subtotal    Decimal @db.Decimal(10, 2)
+  deliveryFee Decimal @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(10, 2)
+
+  stripePaymentIntentId String? @unique
+
+  customer User            @relation("CustomerOrders", fields: [customerId], references: [id])
+  courier  CourierProfile? @relation("CourierOrders", fields: [courierId], references: [id])
+  address  Address         @relation(fields: [addressId], references: [id])
+
+  items       OrderItem[]
+  courierLedger CourierLedgerEntry[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deliveredAt DateTime?
+  canceledAt  DateTime?
+
+  @@index([customerId])
+  @@index([courierId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  productId String
+
+  productName String
+  unitPrice   Decimal @db.Decimal(10, 2)
+  quantity    Int
+  total       Decimal @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model CourierLedgerEntry {
+  id        String @id @default(cuid())
+  courierId String
+  orderId   String?
+
+  amount      Decimal @db.Decimal(10, 2)
+  description String
+
+  courier CourierProfile @relation(fields: [courierId], references: [id])
+  order   Order?         @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([courierId])
+  @@index([orderId])
+  @@index([createdAt])
+}
+
+model Withdrawal {
+  id        String @id @default(cuid())
+  courierId String
+
+  amount Decimal          @db.Decimal(10, 2)
+  status WithdrawalStatus @default(PENDING)
+
+  pixKeyType PixKeyType
+  pixKey     String
+
+  receiptUrl String?
+  requestedAt DateTime @default(now())
+  processedAt DateTime?
+
+  courier CourierProfile @relation(fields: [courierId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courierId])
+  @@index([status])
+}
