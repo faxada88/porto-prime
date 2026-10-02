@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CourierStatus, UserRole, UserStatus } from '../generated/prisma/client.js';
+import { CourierStatus, OrderStatus, PaymentStatus, UserRole, UserStatus } from '../generated/prisma/client.js';
 import { AuthService } from '../auth/auth.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -95,5 +95,57 @@ export class AdminService {
       data: { status: UserStatus.BLOCKED },
       select: { id: true, name: true, email: true, role: true, status: true },
     });
+  }
+  async orders(authorization?: string) {
+    await this.requireAdmin(authorization);
+    return this.prisma.order.findMany({
+      where: { paymentStatus: PaymentStatus.PAID },
+      include: {
+        items: true,
+        address: true,
+        customer: { select: { id: true, name: true, phone: true } },
+        courier: { include: { user: { select: { name: true, phone: true } } } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async releaseOrder(orderId: string, authorization?: string) {
+    await this.requireAdmin(authorization);
+    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) throw new NotFoundException('Pedido não encontrado');
+    if (order.paymentStatus !== PaymentStatus.PAID) {
+      throw new ForbiddenException('O pedido precisa estar pago antes da liberação');
+    }
+    if (order.status !== OrderStatus.CONFIRMED && order.status !== OrderStatus.PREPARING) {
+      throw new ForbiddenException('Pedido não está aguardando liberação');
+    }
+
+    const courier = await this.prisma.courierProfile.findFirst({
+      where: {
+        isOnline: true,
+        approvalStatus: CourierStatus.APPROVED,
+        user: { status: UserStatus.ACTIVE },
+      },
+      orderBy: { updatedAt: 'asc' },
+    });
+
+    if (!courier) {
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { status: OrderStatus.READY_FOR_PICKUP },
+      });
+      return { assigned: false, status: OrderStatus.READY_FOR_PICKUP, message: 'Pedido liberado. Aguardando motoboy disponível.' };
+    }
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      await tx.courierProfile.update({ where: { id: courier.id }, data: { isOnline: false } });
+      return tx.order.update({
+        where: { id: orderId },
+        data: { courierId: courier.id, status: OrderStatus.COURIER_ASSIGNED },
+        include: { courier: { include: { user: { select: { name: true, phone: true } } } } },
+      });
+    });
+    return { assigned: true, order: updated };
   }
 }
