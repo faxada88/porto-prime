@@ -45,7 +45,67 @@ void _addresses(BuildContext context){showModalBottomSheet(context:context,isScr
 void _newAddress(BuildContext context){final st=TextEditingController(),no=TextEditingController(),ne=TextEditingController(),cep=TextEditingController();showDialog(context:context,builder:(c)=>AlertDialog(title:const Text('Novo endereço'),content:SingleChildScrollView(child:Column(children:[_field(st,'Rua',Icons.route),_field(no,'Número',Icons.numbers),_field(ne,'Bairro',Icons.map_outlined),_field(cep,'CEP',Icons.local_post_office_outlined)])),actions:[TextButton(onPressed:()=>Navigator.pop(c),child:const Text('Cancelar')),FilledButton(onPressed:()async{try{await AppState.instance.addAddress({'street':st.text,'number':no.text,'neighborhood':ne.text,'city':'Porto Seguro','state':'BA','postalCode':cep.text,'isDefault':true});if(c.mounted)Navigator.pop(c);}catch(e){if(c.mounted)ScaffoldMessenger.of(c).showSnackBar(SnackBar(content:Text(e.toString())));}},child:const Text('Salvar'))]));}
 
 
-void _payments(BuildContext context){final orders=AppState.instance.orders;showModalBottomSheet(context:context,isScrollControlled:true,builder:(c)=>SafeArea(child:Padding(padding:const EdgeInsets.all(20),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Pagamentos',style:TextStyle(fontSize:22,fontWeight:FontWeight.w900)),const SizedBox(height:4),const Text('Acompanhe o status financeiro dos seus pedidos.',style:TextStyle(color:AppColors.muted,fontSize:11)),const SizedBox(height:14),Expanded(child:orders.isEmpty?const Center(child:Text('Nenhum pagamento por aqui ainda.')):ListView.separated(itemCount:orders.length,separatorBuilder:(_,__)=>const Divider(),itemBuilder:(_,i){final o=orders[i],paid=o['paymentStatus']=='PAID';return ListTile(contentPadding:EdgeInsets.zero,leading:Container(width:42,height:42,decoration:BoxDecoration(color:paid?AppColors.mint:AppColors.sand,borderRadius:BorderRadius.circular(14)),child:Icon(paid?Icons.check_rounded:Icons.schedule_rounded,color:AppColors.oceanDeep)),title:Text('Pedido '+o['id'].toString().substring(0,8),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:13)),subtitle:Text(paid?'Pagamento confirmado':'Pagamento pendente',style:const TextStyle(fontSize:10)),trailing:Text('R\$ '+o['total'].toString(),style:const TextStyle(fontWeight:FontWeight.w900));}))]))));}
+void _payments(BuildContext context) {
+  final orders = AppState.instance.orders;
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (c) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Pagamentos', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 4),
+            const Text('Acompanhe o status financeiro dos seus pedidos.', style: TextStyle(color: AppColors.muted, fontSize: 11)),
+            const SizedBox(height: 14),
+            Expanded(
+              child: orders.isEmpty
+                  ? const Center(child: Text('Nenhum pagamento por aqui ainda.'))
+                  : ListView.separated(
+                      itemCount: orders.length,
+                      separatorBuilder: (_, __) => const Divider(),
+                      itemBuilder: (_, i) {
+                        final o = orders[i];
+                        final paid = o['paymentStatus'] == 'PAID';
+                        final id = o['id'].toString();
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: paid ? AppColors.mint : AppColors.sand,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Icon(
+                              paid ? Icons.check_rounded : Icons.schedule_rounded,
+                              color: AppColors.oceanDeep,
+                            ),
+                          ),
+                          title: Text(
+                            'Pedido ${id.length > 8 ? id.substring(0, 8) : id}',
+                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+                          ),
+                          subtitle: Text(
+                            paid ? 'Pagamento confirmado' : 'Pagamento pendente',
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                          trailing: Text(
+                            'R\$ ${o['total']}',
+                            style: const TextStyle(fontWeight: FontWeight.w900),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
 
 void _support(BuildContext context){showModalBottomSheet(context:context,builder:(c)=>SafeArea(child:Padding(padding:const EdgeInsets.all(20),child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Como podemos ajudar?',style:TextStyle(fontSize:22,fontWeight:FontWeight.w900)),const SizedBox(height:5),const Text('Escolha o assunto. O histórico do seu pedido fica disponível em Meus pedidos.',style:TextStyle(color:AppColors.muted,fontSize:11)),const SizedBox(height:15),_supportLine(Icons.receipt_long_rounded,'Problema com um pedido'),_supportLine(Icons.payments_outlined,'Pagamento ou cobrança'),_supportLine(Icons.person_outline_rounded,'Minha conta'),_supportLine(Icons.info_outline_rounded,'Dúvidas sobre a Porto Prime'),const SizedBox(height:8)]))));}
 Widget _supportLine(IconData i,String text)=>Container(margin:const EdgeInsets.only(bottom:8),decoration:BoxDecoration(color:AppColors.canvas,borderRadius:BorderRadius.circular(17)),child:ListTile(leading:Icon(i,color:AppColors.oceanDeep),title:Text(text,style:const TextStyle(fontWeight:FontWeight.w800,fontSize:12)),trailing:const Icon(Icons.chevron_right_rounded,size:18)));
