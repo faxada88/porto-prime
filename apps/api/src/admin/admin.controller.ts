@@ -11,18 +11,22 @@ export class AdminController {
   }
 
   @Patch('users/:id/approve')
-  approve(
-    @Param('id') id: string,
-    @Headers('authorization') authorization?: string,
-  ) {
+  approve(@Param('id') id: string,@Headers('authorization') authorization?: string) {
     return this.adminService.approve(id, authorization);
   }
 
   @Patch('users/:id/reject')
-  reject(
-    @Param('id') id: string,
-    @Headers('authorization') authorization?: string,
-  ) {
+  reject(@Param('id') id: string,@Headers('authorization') authorization?: string) {
     return this.adminService.reject(id, authorization);
+  }
+
+  @Get('orders')
+  orders(@Headers('authorization') authorization?: string) {
+    return this.adminService.orders(authorization);
+  }
+
+  @Patch('orders/:id/release')
+  releaseOrder(@Param('id') id: string,@Headers('authorization') authorization?: string) {
+    return this.adminService.releaseOrder(id, authorization);
   }
 }
