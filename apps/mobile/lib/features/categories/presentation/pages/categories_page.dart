@@ -1,64 +1,23 @@
 import 'package:flutter/material.dart';
+import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_theme.dart';
 
-class CategoriesPage extends StatelessWidget {
-  const CategoriesPage({super.key});
+class CategoriesPage extends StatefulWidget{const CategoriesPage({super.key});@override State<CategoriesPage> createState()=>_CategoriesPageState();}
+class _CategoriesPageState extends State<CategoriesPage>{
+ final search=TextEditingController();String selected='Todos';
+ @override void dispose(){search.dispose();super.dispose();}
+ @override Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(_,__){final s=AppState.instance;final names=<String>{'Todos',...s.products.map((p)=>(p['category']?['name']??'Outros').toString())}.toList();final q=search.text.toLowerCase().trim();final list=s.products.where((p){final cat=(p['category']?['name']??'Outros').toString();return(selected=='Todos'||cat==selected)&&(q.isEmpty||(p['name']??'').toString().toLowerCase().contains(q)||cat.toLowerCase().contains(q));}).toList();
+ return SafeArea(bottom:false,child:CustomScrollView(physics:const BouncingScrollPhysics(),slivers:[
+ SliverPadding(padding:const EdgeInsets.fromLTRB(20,22,20,0),sliver:SliverToBoxAdapter(child:Row(children:[Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Descobrir',style:Theme.of(context).textTheme.headlineLarge),const SizedBox(height:5),const Text('Encontre o que combina com agora.',style:TextStyle(color:AppColors.muted,fontWeight:FontWeight.w600))])),Container(width:45,height:45,decoration:BoxDecoration(color:AppColors.sand,borderRadius:BorderRadius.circular(16)),child:const Icon(Icons.auto_awesome_rounded))]))),
+ SliverPadding(padding:const EdgeInsets.fromLTRB(20,18,20,12),sliver:SliverToBoxAdapter(child:TextField(controller:search,onChanged:(_)=>setState((){}),decoration:InputDecoration(hintText:'Buscar bebida ou categoria',prefixIcon:const Icon(Icons.search_rounded),suffixIcon:q.isEmpty?null:IconButton(onPressed:(){search.clear();setState((){});},icon:const Icon(Icons.close_rounded)),filled:true,fillColor:Colors.white,border:OutlineInputBorder(borderRadius:BorderRadius.circular(19),borderSide:BorderSide.none),enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(19),borderSide:const BorderSide(color:Color(0xFFE7EBE7))))))),
+ SliverToBoxAdapter(child:SizedBox(height:42,child:ListView.separated(scrollDirection:Axis.horizontal,padding:const EdgeInsets.symmetric(horizontal:20),itemCount:names.length,separatorBuilder:(_,__)=>const SizedBox(width:8),itemBuilder:(_,i){final n=names[i],on=n==selected;return ChoiceChip(selected:on,onSelected:(_)=>setState(()=>selected=n),label:Text(n),showCheckmark:false,selectedColor:AppColors.oceanDeep,labelStyle:TextStyle(color:on?Colors.white:AppColors.ink,fontWeight:FontWeight.w800,fontSize:11),side:BorderSide.none,backgroundColor:Colors.white);}))),
+ SliverPadding(padding:const EdgeInsets.fromLTRB(20,22,20,10),sliver:SliverToBoxAdapter(child:Row(children:[Expanded(child:Text(selected=='Todos'?'Catálogo Porto Prime':selected,style:Theme.of(context).textTheme.titleLarge)),Text(list.length.toString()+' opções',style:const TextStyle(color:AppColors.muted,fontSize:11,fontWeight:FontWeight.w700))]))),
+ if(list.isEmpty)const SliverFillRemaining(hasScrollBody:false,child:Center(child:Text('Nenhum produto encontrado.')))else SliverPadding(padding:const EdgeInsets.fromLTRB(20,0,20,120),sliver:SliverGrid(delegate:SliverChildBuilderDelegate((_,i)=>_Product(p:list[i]),childCount:list.length),gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:2,crossAxisSpacing:12,mainAxisSpacing:12,childAspectRatio:.72))),
+ ]));});}
 
-  static const data = [
-    ('Cervejas','Geladas, packs e especiais',Icons.sports_bar_rounded,Color(0xFFFFE3A3)),
-    ('Whiskies','Clássicos & premium',Icons.liquor_rounded,Color(0xFFFFD8C5)),
-    ('Gin & Vodka','Para drinks perfeitos',Icons.local_bar_rounded,Color(0xFFD9F3ED)),
-    ('Vinhos','Brancos, tintos & rosés',Icons.wine_bar_rounded,Color(0xFFFFDEE5)),
-    ('Sem álcool','Refresque sem álcool',Icons.local_drink_rounded,Color(0xFFDDEEFF)),
-    ('Gelo & extras','Tudo para não parar',Icons.ac_unit_rounded,Color(0xFFE9E4FF)),
-  ];
+class _Product extends StatelessWidget{const _Product({required this.p});final dynamic p;@override Widget build(BuildContext context){final s=AppState.instance;final price=double.tryParse(p['price'].toString())??0;final id=p['id'].toString();final qty=s.cart[id]??0;return InkWell(onTap:()=>_details(context,p),borderRadius:BorderRadius.circular(24),child:Container(padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(24),border:Border.all(color:const Color(0xFFE8ECE8))),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+ Expanded(child:Stack(children:[Container(width:double.infinity,decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(19)),alignment:Alignment.center,child:p['imageUrl']!=null?ClipRRect(borderRadius:BorderRadius.circular(19),child:Image.network(p['imageUrl'],fit:BoxFit.cover,width:double.infinity,height:double.infinity,errorBuilder:(_,__,___)=>const Icon(Icons.local_drink_rounded,size:50))):const Icon(Icons.local_drink_rounded,size:50)),if(qty>0)Positioned(top:8,right:8,child:Container(padding:const EdgeInsets.symmetric(horizontal:8,vertical:5),decoration:BoxDecoration(color:AppColors.coral,borderRadius:BorderRadius.circular(12)),child:Text(qty.toString()+' na sacola',style:const TextStyle(color:Colors.white,fontSize:8,fontWeight:FontWeight.w900))))])),
+ const SizedBox(height:9),Text(p['name']??'',maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:13,fontWeight:FontWeight.w900,height:1.15)),const SizedBox(height:3),Text(p['category']?['name']??'Porto Prime',style:const TextStyle(fontSize:9,color:AppColors.muted,fontWeight:FontWeight.w600)),const Spacer(),Row(children:[Expanded(child:Text('R\$ '+price.toStringAsFixed(2).replaceAll('.',','),style:const TextStyle(fontSize:14,fontWeight:FontWeight.w900))),InkWell(onTap:()=>s.addProduct(id),child:Container(width:35,height:35,decoration:BoxDecoration(color:AppColors.ink,borderRadius:BorderRadius.circular(12)),child:const Icon(Icons.add_rounded,color:Colors.white,size:20)))])
+ ])));}}
 
-  @override
-  Widget build(BuildContext context) => SafeArea(bottom:false, child: CustomScrollView(
-    physics: const BouncingScrollPhysics(),
-    slivers:[
-      SliverPadding(padding:const EdgeInsets.fromLTRB(20,22,20,8),sliver:SliverToBoxAdapter(child:Row(children:[
-        Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-          Text('Descobrir',style:Theme.of(context).textTheme.headlineLarge),
-          const SizedBox(height:5),const Text('Seu clima, sua bebida.',style:TextStyle(color:AppColors.muted,fontWeight:FontWeight.w600)),
-        ])),
-        Container(width:46,height:46,decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(16)),child:const Icon(Icons.search_rounded)),
-      ]))),
-      const SliverPadding(padding:EdgeInsets.fromLTRB(20,14,20,18),sliver:SliverToBoxAdapter(child:_Occasions())),
-      SliverPadding(padding:const EdgeInsets.symmetric(horizontal:20),sliver:SliverGrid(
-        delegate:SliverChildBuilderDelegate((_,i)=>_Category(data:data[i]),childCount:data.length),
-        gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:2,crossAxisSpacing:12,mainAxisSpacing:12,childAspectRatio:.94),
-      )),
-      const SliverToBoxAdapter(child:SizedBox(height:120)),
-    ],
-  ));
-}
-
-class _Occasions extends StatelessWidget {
-  const _Occasions();
-  @override Widget build(BuildContext context)=>Container(
-    padding:const EdgeInsets.all(20),
-    decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF007C70),Color(0xFF12B5A3)]),borderRadius:BorderRadius.circular(28)),
-    child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-      const Text('COMBINA COM HOJE',style:TextStyle(color:Color(0xFFCFF8F0),fontSize:10,fontWeight:FontWeight.w900,letterSpacing:1)),
-      const SizedBox(height:8),const Text('Qual é o seu rolê?',style:TextStyle(color:Colors.white,fontSize:23,fontWeight:FontWeight.w900,letterSpacing:-.6)),
-      const SizedBox(height:16),Wrap(spacing:8,runSpacing:8,children:[
-        _chip('Praia',Icons.beach_access_rounded),_chip('Churrasco',Icons.outdoor_grill_rounded),_chip('Festa',Icons.celebration_rounded),_chip('Relax',Icons.nights_stay_rounded),
-      ]),
-    ]),
-  );
-  Widget _chip(String s,IconData i)=>Container(padding:const EdgeInsets.symmetric(horizontal:12,vertical:9),decoration:BoxDecoration(color:Colors.white.withValues(alpha:.14),borderRadius:BorderRadius.circular(14)),child:Row(mainAxisSize:MainAxisSize.min,children:[Icon(i,color:Colors.white,size:16),const SizedBox(width:6),Text(s,style:const TextStyle(color:Colors.white,fontSize:12,fontWeight:FontWeight.w800))]));
-}
-
-class _Category extends StatelessWidget {
-  const _Category({required this.data}); final (String,String,IconData,Color) data;
-  @override Widget build(BuildContext context)=>Container(
-    padding:const EdgeInsets.all(15),
-    decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(25),border:Border.all(color:const Color(0xFFE9ECE7))),
-    child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-      Expanded(child:Container(width:double.infinity,decoration:BoxDecoration(color:data.$4,borderRadius:BorderRadius.circular(20)),child:Icon(data.$3,size:48,color:AppColors.ink))),
-      const SizedBox(height:12),Text(data.$1,style:const TextStyle(fontSize:15,fontWeight:FontWeight.w900)),
-      const SizedBox(height:2),Text(data.$2,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,color:AppColors.muted,fontWeight:FontWeight.w600)),
-    ]),
-  );
-}
+void _details(BuildContext context,dynamic p){final price=double.tryParse(p['price'].toString())??0;showModalBottomSheet(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(c)=>Container(padding:const EdgeInsets.fromLTRB(20,12,20,26),decoration:const BoxDecoration(color:Colors.white,borderRadius:BorderRadius.vertical(top:Radius.circular(32))),child:SafeArea(top:false,child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[Center(child:Container(width:42,height:4,decoration:BoxDecoration(color:const Color(0xFFD9DEDA),borderRadius:BorderRadius.circular(10)))),const SizedBox(height:18),Container(height:180,width:double.infinity,decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(25)),alignment:Alignment.center,child:p['imageUrl']!=null?ClipRRect(borderRadius:BorderRadius.circular(25),child:Image.network(p['imageUrl'],fit:BoxFit.cover,width:double.infinity,height:180)):const Icon(Icons.local_drink_rounded,size:76)),const SizedBox(height:18),Text(p['name']??'',style:const TextStyle(fontSize:24,fontWeight:FontWeight.w900,letterSpacing:-.5)),const SizedBox(height:5),Text(p['description']??'Selecionado para chegar gelado e rápido até você.',style:const TextStyle(color:AppColors.muted,fontSize:12,height:1.4)),const SizedBox(height:18),Row(children:[Expanded(child:Text('R\$ '+price.toStringAsFixed(2).replaceAll('.',','),style:const TextStyle(fontSize:22,fontWeight:FontWeight.w900))),FilledButton.icon(style:FilledButton.styleFrom(backgroundColor:AppColors.oceanDeep,padding:const EdgeInsets.symmetric(horizontal:20,vertical:15)),onPressed:(){AppState.instance.addProduct(p['id']);Navigator.pop(c);},icon:const Icon(Icons.add_rounded),label:const Text('Adicionar',style:TextStyle(fontWeight:FontWeight.w900)))])]))));}
