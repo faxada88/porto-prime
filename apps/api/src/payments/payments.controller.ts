@@ -1,4 +1,5 @@
-import { Body, Controller, Headers, Post, RawBodyRequest, Req } from '@nestjs/common';
+import { Body, Controller, Headers, Post, Req } from '@nestjs/common';
+import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
 import { CreateCheckoutDto } from './dto/create-checkout.dto.js';
 import { PaymentsService } from './payments.service.js';
