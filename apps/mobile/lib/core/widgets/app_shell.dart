@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../navigation/app_nav.dart';
+import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../../features/cart/presentation/pages/cart_page.dart';
 import '../../features/categories/presentation/pages/categories_page.dart';
@@ -11,50 +13,44 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  int index = 0;
   static const pages = [HomePage(), CategoriesPage(), CartPage(), ProfilePage()];
+  @override void initState(){super.initState();AppNav.instance.index.addListener(_changed);}
+  @override void dispose(){AppNav.instance.index.removeListener(_changed);super.dispose();}
+  void _changed()=>setState((){});
 
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    extendBody: true,
-    body: IndexedStack(index: index, children: pages),
-    bottomNavigationBar: SafeArea(
-      minimum: const EdgeInsets.fromLTRB(18, 0, 18, 12),
-      child: Container(
-        height: 72,
-        padding: const EdgeInsets.symmetric(horizontal: 7),
-        decoration: BoxDecoration(
-          color: const Color(0xFF15211F).withValues(alpha: .96),
-          borderRadius: BorderRadius.circular(26),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .15), blurRadius: 30, offset: const Offset(0, 12))],
+  @override Widget build(BuildContext context) {
+    final index=AppNav.instance.index.value;
+    return Scaffold(
+      extendBody:true,
+      body:IndexedStack(index:index,children:pages),
+      bottomNavigationBar:SafeArea(
+        minimum:const EdgeInsets.fromLTRB(16,0,16,10),
+        child:Container(
+          height:74,padding:const EdgeInsets.all(7),
+          decoration:BoxDecoration(color:const Color(0xFF13221F),borderRadius:BorderRadius.circular(28),boxShadow:[BoxShadow(color:Colors.black.withValues(alpha:.16),blurRadius:32,offset:const Offset(0,12))]),
+          child:AnimatedBuilder(animation:AppState.instance,builder:(_,__)=>Row(children:[
+            _item(0,Icons.home_rounded,'Início',index),
+            _item(1,Icons.explore_rounded,'Descobrir',index),
+            _item(2,Icons.shopping_bag_rounded,'Sacola',index,badge:AppState.instance.cartCount),
+            _item(3,Icons.person_rounded,'Perfil',index),
+          ])),
         ),
-        child: Row(children: [
-          _item(0, Icons.home_rounded, 'Início'),
-          _item(1, Icons.grid_view_rounded, 'Descobrir'),
-          _item(2, Icons.shopping_bag_rounded, 'Sacola', badge: true),
-          _item(3, Icons.person_rounded, 'Perfil'),
-        ]),
       ),
-    ),
-  );
+    );
+  }
 
-  Widget _item(int value, IconData icon, String label, {bool badge = false}) {
-    final selected = index == value;
-    return Expanded(child: InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: () => setState(() => index = value),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 260),
-        curve: Curves.easeOutCubic,
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(color: selected ? Colors.white : Colors.transparent, borderRadius: BorderRadius.circular(19)),
-        child: Stack(alignment: Alignment.center, children: [
-          Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(icon, size: 22, color: selected ? AppColors.oceanDeep : Colors.white70),
-            const SizedBox(height: 3),
-            Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: selected ? AppColors.ink : Colors.white70)),
+  Widget _item(int value,IconData icon,String label,int current,{int badge=0}) {
+    final selected=current==value;
+    return Expanded(child:InkWell(
+      onTap:()=>AppNav.instance.go(value),borderRadius:BorderRadius.circular(21),
+      child:AnimatedContainer(duration:const Duration(milliseconds:240),curve:Curves.easeOutCubic,decoration:BoxDecoration(color:selected?Colors.white:Colors.transparent,borderRadius:BorderRadius.circular(21)),
+        child:Stack(clipBehavior:Clip.none,alignment:Alignment.center,children:[
+          Column(mainAxisAlignment:MainAxisAlignment.center,children:[
+            Icon(icon,size:22,color:selected?AppColors.oceanDeep:Colors.white60),
+            const SizedBox(height:3),
+            Text(label,style:TextStyle(fontSize:10,fontWeight:FontWeight.w800,color:selected?AppColors.ink:Colors.white60)),
           ]),
-          if (badge) Positioned(top: 8, right: 18, child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.coral, shape: BoxShape.circle))),
+          if(badge>0) Positioned(top:3,right:12,child:Container(constraints:const BoxConstraints(minWidth:18,minHeight:18),padding:const EdgeInsets.symmetric(horizontal:5),decoration:BoxDecoration(color:AppColors.coral,borderRadius:BorderRadius.circular(20),border:Border.all(color:const Color(0xFF13221F),width:2)),alignment:Alignment.center,child:Text(badge>9?'9+':'$badge',style:const TextStyle(color:Colors.white,fontSize:8,fontWeight:FontWeight.w900)))),
         ]),
       ),
     ));
