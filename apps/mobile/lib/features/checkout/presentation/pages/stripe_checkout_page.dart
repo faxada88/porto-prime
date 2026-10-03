@@ -55,8 +55,8 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
     body:Stack(children:[
       WebViewWidget(controller:controller!),
       if(pageLoading)const LinearProgressIndicator(minHeight:2),
-      if(confirming)Container(color:Colors.white.withValues(alpha:.96),alignment:Alignment.center,child:const Column(mainAxisSize:MainAxisSize.min,children:[
-        Container(width:68,height:68,decoration:BoxDecoration(color:AppColors.mint,shape:BoxShape.circle),child:Icon(Icons.check_rounded,color:AppColors.oceanDeep,size:38)),
+      if(confirming)Container(color:Colors.white.withValues(alpha:.96),alignment:Alignment.center,child:Column(mainAxisSize:MainAxisSize.min,children:[
+        const SizedBox(width:68,height:68,child:DecoratedBox(decoration:BoxDecoration(color:AppColors.mint,shape:BoxShape.circle),child:Icon(Icons.check_rounded,color:AppColors.oceanDeep,size:38))),
         SizedBox(height:17),Text('Pagamento confirmado!',style:TextStyle(fontSize:20,fontWeight:FontWeight.w900)),
         SizedBox(height:5),Text('Preparando o acompanhamento do seu pedido…',style:TextStyle(color:AppColors.muted,fontSize:11)),
       ])),
