@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Post } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { OrdersService } from './orders.service.js';
 
@@ -9,6 +9,11 @@ export class OrdersController {
   @Post()
   create(@Body() body: CreateOrderDto, @Headers('authorization') authorization?: string) {
     return this.ordersService.create(body, authorization);
+  }
+
+  @Delete('pending')
+  clearPending(@Headers('authorization') authorization?: string) {
+    return this.ordersService.clearPending(authorization);
   }
 
   @Get('mine')
