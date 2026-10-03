@@ -27,6 +27,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
   bool paying = false;
   String? error;
   Timer? _webPaymentPoll;
+  bool _finishingPayment = false;
 
   @override
   void initState() {
@@ -65,7 +66,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
       final paid = await AppState.instance.refreshPayment(widget.orderId);
       if (paid && mounted) {
         _webPaymentPoll?.cancel();
-        Navigator.pop(context, true);
+        await _finishPaidPayment();
       }
     } catch (_) {
       // Keep the Stripe form usable while the webhook is still settling.
@@ -104,7 +105,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
       if (!mounted) return;
 
       if (paid) {
-        Navigator.pop(context, true);
+        await _finishPaidPayment();
       } else {
         setState(() {
           paying = false;
@@ -126,6 +127,106 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
         });
       }
     }
+  }
+
+  Future<void> _finishPaidPayment() async {
+    if (_finishingPayment || !mounted) return;
+    _finishingPayment = true;
+    _webPaymentPoll?.cancel();
+    await Future.wait([
+      AppState.instance.loadOrders(),
+      AppState.instance.loadActiveOrder(),
+    ]);
+    if (!mounted) return;
+
+    dynamic order;
+    for (final item in AppState.instance.orders) {
+      if (item['id'].toString() == widget.orderId) {
+        order = item;
+        break;
+      }
+    }
+    final total = double.tryParse((order?['total'] ?? 0).toString()) ?? 0;
+    final shortId = widget.orderId.length > 8
+        ? widget.orderId.substring(0, 8).toUpperCase()
+        : widget.orderId.toUpperCase();
+
+    final track = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => TweenAnimationBuilder<double>(
+        tween: Tween(begin: .82, end: 1),
+        duration: const Duration(milliseconds: 520),
+        curve: Curves.easeOutBack,
+        builder: (_, scale, child) => Transform.scale(scale: scale, child: child),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(22, 14, 22, 26),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(36)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(width: 42, height: 4, decoration: BoxDecoration(color: const Color(0xFFDDE3DF), borderRadius: BorderRadius.circular(20))),
+                const SizedBox(height: 25),
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(width: 112, height: 112, decoration: BoxDecoration(color: AppColors.mint, shape: BoxShape.circle, boxShadow: [BoxShadow(color: AppColors.oceanDeep.withValues(alpha: .16), blurRadius: 34, spreadRadius: 6)])),
+                    Container(width: 76, height: 76, decoration: const BoxDecoration(color: AppColors.oceanDeep, shape: BoxShape.circle), child: const Icon(Icons.check_rounded, color: Colors.white, size: 46)),
+                  ],
+                ),
+                const SizedBox(height: 22),
+                const Text('Pagamento aprovado!', textAlign: TextAlign.center, style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -.9)),
+                const SizedBox(height: 7),
+                const Text('Recebemos a confirmação do Stripe. Seu pedido já entrou no fluxo da Porto Prime.', textAlign: TextAlign.center, style: TextStyle(fontSize: 11, height: 1.45, color: AppColors.muted, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF102D28), Color(0xFF08786D)]), borderRadius: BorderRadius.circular(22)),
+                  child: const Row(children: [
+                    Icon(Icons.storefront_rounded, color: Color(0xFF8CFFE4), size: 25),
+                    SizedBox(width: 12),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text('Pedido recebido', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900)),
+                      SizedBox(height: 3),
+                      Text('Agora a distribuidora confirma os itens e prepara a liberação para entrega.', style: TextStyle(color: Color(0xFFD4ECE7), fontSize: 9.5, height: 1.4, fontWeight: FontWeight.w600)),
+                    ])),
+                  ]),
+                ),
+                const SizedBox(height: 14),
+                Row(children: [
+                  Expanded(child: _PaidInfo(icon: Icons.credit_card_rounded, label: 'VALOR PAGO', value: 'R\$ ${total.toStringAsFixed(2).replaceAll('.', ',')}')),
+                  const SizedBox(width: 9),
+                  Expanded(child: _PaidInfo(icon: Icons.receipt_long_rounded, label: 'PEDIDO', value: '#$shortId')),
+                ]),
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  height: 58,
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(backgroundColor: AppColors.oceanDeep, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(19))),
+                    onPressed: () => Navigator.pop(sheetContext, true),
+                    icon: const Icon(Icons.route_rounded),
+                    label: const Text('Acompanhar meu pedido', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton(onPressed: () => Navigator.pop(sheetContext, false), child: const Text('Voltar para a loja', style: TextStyle(color: AppColors.muted, fontWeight: FontWeight.w800))),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (mounted) Navigator.pop(context, track == true ? 'track' : 'shop');
   }
 
   @override
@@ -272,4 +373,17 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
       ),
     );
   }
+}
+
+class _PaidInfo extends StatelessWidget {
+  const _PaidInfo({required this.icon, required this.label, required this.value});
+  final IconData icon;
+  final String label;
+  final String value;
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(13),
+    decoration: BoxDecoration(color: AppColors.canvas, borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFFE7ECE8))),
+    child: Row(children: [Icon(icon, color: AppColors.oceanDeep, size: 20), const SizedBox(width: 9), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: const TextStyle(fontSize: 7.5, color: AppColors.muted, fontWeight: FontWeight.w900, letterSpacing: .7)), Text(value, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900))]))]),
+  );
 }
