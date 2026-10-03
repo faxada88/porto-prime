@@ -57,7 +57,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
 
   Future<void> _pay()async{
     if(paying)return;
-    setState(()=>paying=true,error=null);
+    setState(() { paying=true; error=null; });
     try{
       if(kIsWeb){
         await Stripe.instance.confirmPayment(
@@ -75,14 +75,14 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
       if(paid){
         Navigator.pop(context,true);
       }else{
-        setState(()=>paying=false,error:'Pagamento processado. Aguardando confirmação segura do Stripe; tente atualizar em alguns segundos.');
+        setState(() { paying=false; error='Pagamento processado. Aguardando confirmação segura do Stripe; tente atualizar em alguns segundos.'; });
       }
     }on StripeException catch(e){
       if(!mounted)return;
       final canceled=e.error.code==FailureCode.Canceled;
-      setState(()=>paying=false,error:canceled?null:(e.error.localizedMessage??'Pagamento não concluído.'));
+      setState(() { paying=false; error=canceled?null:(e.error.localizedMessage??'Pagamento não concluído.'); });
     }catch(e){
-      if(mounted)setState(()=>paying=false,error=_message(e));
+      if(mounted)setState(() { paying=false; error=_message(e); });
     }
   }
 
