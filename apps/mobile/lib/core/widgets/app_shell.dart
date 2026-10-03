@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../navigation/app_nav.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
@@ -29,10 +30,10 @@ class _AppShellState extends State<AppShell> {
           height:74,padding:const EdgeInsets.all(7),
           decoration:BoxDecoration(color:const Color(0xFF13221F),borderRadius:BorderRadius.circular(28),boxShadow:[BoxShadow(color:Colors.black.withValues(alpha:.16),blurRadius:32,offset:const Offset(0,12))]),
           child:AnimatedBuilder(animation:AppState.instance,builder:(_,__)=>Row(children:[
-            _item(0,Icons.home_rounded,'Início',index),
-            _item(1,Icons.explore_rounded,'Descobrir',index),
-            _item(2,Icons.shopping_bag_rounded,'Sacola',index,badge:AppState.instance.cartCount),
-            _item(3,Icons.person_rounded,'Perfil',index),
+            _item(0,Symbols.home_rounded,'Início',index),
+            _item(1,Symbols.explore_rounded,'Descobrir',index),
+            _item(2,Symbols.shopping_bag_rounded,'Sacola',index,badge:AppState.instance.cartCount),
+            _item(3,Symbols.person_rounded,'Perfil',index),
           ])),
         ),
       ),
