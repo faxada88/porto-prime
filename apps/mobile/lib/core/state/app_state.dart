@@ -14,6 +14,7 @@ class AppState extends ChangeNotifier {
   final Map<String,int> cart={};
   bool loading=false;
   String? error;
+  String catalogCategory='Todos';
 
   bool get loggedIn=>user!=null;
   bool get isCustomer=>user?['role']=='CUSTOMER';
@@ -68,6 +69,7 @@ class AppState extends ChangeNotifier {
   void addProduct(String id){cart[id]=(cart[id]??0)+1;notifyListeners();}
   void changeQty(String id,int d){final n=(cart[id]??0)+d;if(n<=0)cart.remove(id);else cart[id]=n;notifyListeners();}
   void clearCart(){cart.clear();notifyListeners();}
+  void selectCatalogCategory(String name){catalogCategory=name;notifyListeners();}
   dynamic product(String id){for(final p in products){if(p['id']==id)return p;}return null;}
 
   Future<void> loadAddresses()async{if(!isCustomer)return;addresses=List<dynamic>.from(await api.request('GET','/addresses'));notifyListeners();}
