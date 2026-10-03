@@ -42,7 +42,7 @@ class AppState extends ChangeNotifier {
     loading=true;error=null;notifyListeners();
     try{
       final order=Map<String,dynamic>.from(await api.request('POST','/orders',body:{'addressId':addressId,'items':cart.entries.map((e)=>{'productId':e.key,'quantity':e.value}).toList()}));
-      cart.clear();await Future.wait([loadOrders(),loadActiveOrder()]);return order;
+      await Future.wait([loadOrders(),loadActiveOrder()]);return order;
     }catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}
   }
 
