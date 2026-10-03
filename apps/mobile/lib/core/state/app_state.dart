@@ -23,7 +23,47 @@ class AppState extends ChangeNotifier {
   Future<void> bootstrap()async{await loadProducts();if(loggedIn&&isCustomer){await Future.wait([loadAddresses(),loadOrders(),loadActiveOrder()]);}}
 
   Future<void> loadProducts()async{try{products=List<dynamic>.from(await api.request('GET','/products'));notifyListeners();}catch(e){error=e.toString();notifyListeners();}}
-  Future<Map<String,dynamic>> register([Map<String,dynamic>? data],{String? name,String? email,String? password,String? phone,String? role,String? businessName,String? document})async{final d=data??<String,dynamic>{'name':name,'email':email,'password':password,'phone':phone,'role':role,if(businessName!=null)'businessName':businessName,if(document!=null)'document':document};loading=true;error=null;notifyListeners();try{final created=Map<String,dynamic>.from(await api.request('POST','/auth/register',body:d));if(d['role']=='CUSTOMER')return await login(d['email'],d['password']);user=created;return created;}catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}}
+  Future<Map<String,dynamic>> register(
+    [Map<String,dynamic>? data], {
+    String? name,
+    String? email,
+    String? password,
+    String? phone,
+    String? role,
+    String? businessName,
+    String? document,
+  }) async {
+    final d = data ??
+        <String,dynamic>{
+          'name': name,
+          'email': email,
+          'password': password,
+          'phone': phone,
+          'role': role,
+          if (businessName != null) 'businessName': businessName,
+          if (document != null) 'document': document,
+        };
+    loading = true;
+    error = null;
+    notifyListeners();
+    try {
+      final created = Map<String,dynamic>.from(
+        await api.request('POST', '/auth/register', body: d),
+      );
+      if (d['role'] == 'CUSTOMER') {
+        return await login(d['email'].toString(), d['password'].toString());
+      }
+      user = created;
+      return created;
+    } catch (e) {
+      error = e.toString().replaceFirst('Exception: ', '');
+      rethrow;
+    } finally {
+      loading = false;
+      notifyListeners();
+    }
+  }
+
   Future<Map<String,dynamic>> login(String email,String password)async{loading=true;error=null;notifyListeners();try{final x=Map<String,dynamic>.from(await api.request('POST','/auth/login',body:{'email':email.trim(),'password':password}));api.token=x['token'];user=Map<String,dynamic>.from(x['user']);if(isCustomer){await Future.wait([loadAddresses(),loadOrders(),loadActiveOrder()]);}return x;}catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}}
   Future<void> logout()async{try{await api.request('POST','/auth/logout');}catch(_){}api.token=null;user=null;addresses=[];orders=[];activeOrder=null;cart.clear();error=null;notifyListeners();}
 
