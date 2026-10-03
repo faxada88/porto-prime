@@ -11,7 +11,8 @@ export class PaymentsService {
 
   async createCheckout(data: CreateCheckoutDto, authorization?: string) {
     const secret = process.env.STRIPE_SECRET_KEY;
-    if (!secret) throw new ServiceUnavailableException('Pagamento Stripe ainda não configurado no servidor');
+    const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY;
+    if (!secret || !publishableKey) throw new ServiceUnavailableException('Pagamento Stripe ainda não configurado no servidor');
 
     const user = await this.auth.authenticate(authorization);
     if (user.role !== UserRole.CUSTOMER) throw new ForbiddenException('Apenas clientes podem pagar pedidos');
@@ -21,67 +22,35 @@ export class PaymentsService {
     if (order.paymentStatus === PaymentStatus.PAID) throw new BadRequestException('Este pedido já está pago');
 
     const params = new URLSearchParams();
-    params.set('mode', 'payment');
-    params.set('ui_mode', 'embedded');
-    params.set('return_url', data.successUrl);
-    params.set('customer_email', user.email);
-    params.set('client_reference_id', order.id);
+    params.set('amount', String(Math.round(Number(order.total) * 100)));
+    params.set('currency', 'brl');
+    params.set('automatic_payment_methods[enabled]', 'true');
     params.set('metadata[orderId]', order.id);
-    params.set('line_items[0][price_data][currency]', 'brl');
-    params.set('line_items[0][price_data][product_data][name]', 'Pedido Porto Prime');
-    params.set('line_items[0][price_data][unit_amount]', String(Math.round(Number(order.total) * 100)));
-    params.set('line_items[0][quantity]', '1');
+    params.set('metadata[customerId]', user.id);
+    params.set('description', `Pedido Porto Prime ${order.id}`);
+    params.set('receipt_email', user.email);
 
-    const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+    const response = await fetch('https://api.stripe.com/v1/payment_intents', {
       method: 'POST',
       headers: { Authorization: `Bearer ${secret}`, 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params,
     });
     const payload = await response.json() as Record<string, any>;
-    if (!response.ok || !payload.client_secret) throw new BadRequestException(payload?.error?.message ?? 'Não foi possível iniciar o pagamento');
+    if (!response.ok || !payload.client_secret || !payload.id) {
+      throw new BadRequestException(payload?.error?.message ?? 'Não foi possível iniciar o pagamento');
+    }
 
-    await this.prisma.order.update({ where: { id: order.id }, data: { paymentMethod: PaymentMethod.CARD } });
-    return { sessionId: payload.id, orderId: order.id };
-  }
-
-  async embeddedPage(sessionId?: string) {
-    const secret = process.env.STRIPE_SECRET_KEY;
-    const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY;
-    if (!secret || !publishableKey) throw new ServiceUnavailableException('Stripe não configurado');
-    if (!sessionId) throw new BadRequestException('Sessão de pagamento ausente');
-
-    const response = await fetch(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}`, {
-      headers: { Authorization: `Bearer ${secret}` },
+    await this.prisma.order.update({
+      where: { id: order.id },
+      data: { paymentMethod: PaymentMethod.CARD, stripePaymentIntentId: payload.id },
     });
-    const session = await response.json() as Record<string, any>;
-    if (!response.ok || !session.client_secret) throw new BadRequestException(session?.error?.message ?? 'Sessão de pagamento inválida');
 
-    const safeKey = JSON.stringify(publishableKey);
-    const safeSecret = JSON.stringify(session.client_secret);
-    return `<!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Pagamento Porto Prime</title>
-<script src="https://js.stripe.com/v3/"></script>
-<style>
-html,body{margin:0;background:#f7f8f4;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#17201e}
-.shell{max-width:720px;margin:0 auto;padding:18px 12px 40px}.brand{display:flex;align-items:center;gap:10px;margin:4px 4px 16px}
-.mark{width:38px;height:38px;border-radius:13px;background:#e8f7f2;display:grid;place-items:center;color:#00675e;font-weight:900}
-.brand b{font-size:16px}.brand span{display:block;color:#6e7a76;font-size:11px;margin-top:2px}
-#checkout{min-height:420px}.loading{text-align:center;padding:60px 16px;color:#6e7a76;font-size:13px}
-.error{margin:16px;padding:16px;border-radius:16px;background:#fff1d5;color:#7b4d00;font-size:13px;line-height:1.4}
-</style>
-</head>
-<body><div class="shell"><div class="brand"><div class="mark">P</div><div><b>Porto Prime</b><span>Pagamento protegido pelo Stripe</span></div></div><div id="checkout"><div class="loading">Carregando pagamento seguro…</div></div></div>
-<script>
-(async()=>{try{
- const stripe=Stripe(${safeKey});
- const checkout=await stripe.initEmbeddedCheckout({clientSecret:${safeSecret}});
- document.getElementById('checkout').innerHTML='';
- checkout.mount('#checkout');
-}catch(e){document.getElementById('checkout').innerHTML='<div class="error">Não foi possível carregar o pagamento. Feche esta tela e tente novamente.</div>';console.error(e);}})();
-</script></body></html>`;
+    return {
+      orderId: order.id,
+      paymentIntentId: payload.id,
+      clientSecret: payload.client_secret,
+      publishableKey,
+    };
   }
 
   async webhook(rawBody?: Buffer, signature?: string) {
@@ -100,18 +69,27 @@ html,body{margin:0;background:#f7f8f4;font-family:Inter,system-ui,-apple-system,
     if (a.length !== b.length || !timingSafeEqual(a, b)) throw new UnauthorizedException('Assinatura Stripe inválida');
 
     const event = JSON.parse(rawBody.toString('utf8')) as Record<string, any>;
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data?.object;
-      const orderId = session?.metadata?.orderId ?? session?.client_reference_id;
-      if (orderId && session?.payment_status === 'paid') {
+    const intent = event.data?.object;
+    if (event.type === 'payment_intent.succeeded') {
+      const orderId = intent?.metadata?.orderId;
+      if (orderId) {
         await this.prisma.order.updateMany({
           where: { id: orderId, paymentStatus: { not: PaymentStatus.PAID } },
           data: {
             paymentStatus: PaymentStatus.PAID,
             paymentMethod: PaymentMethod.CARD,
             status: OrderStatus.CONFIRMED,
-            stripePaymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : undefined,
+            stripePaymentIntentId: intent.id,
           },
+        });
+      }
+    }
+    if (event.type === 'payment_intent.payment_failed' || event.type === 'payment_intent.canceled') {
+      const orderId = intent?.metadata?.orderId;
+      if (orderId) {
+        await this.prisma.order.updateMany({
+          where: { id: orderId, paymentStatus: PaymentStatus.PENDING },
+          data: { paymentStatus: PaymentStatus.FAILED, paymentMethod: PaymentMethod.CARD },
         });
       }
     }
