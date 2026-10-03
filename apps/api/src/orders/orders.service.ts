@@ -52,7 +52,6 @@ export class OrdersService {
       where: {
         customerId: user.id,
         paymentStatus: { in: [PaymentStatus.PENDING, PaymentStatus.FAILED] },
-        status: { in: [OrderStatus.PENDING, OrderStatus.CANCELED] },
       },
       select: { id: true },
     });
