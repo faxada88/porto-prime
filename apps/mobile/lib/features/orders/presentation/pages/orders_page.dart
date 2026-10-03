@@ -23,7 +23,7 @@ class _OrdersPageState extends State<OrdersPage>{
       return RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.fromLTRB(20,10,20,36),children:[
         if(active.isNotEmpty)...[const Text('Pedido atual',style:TextStyle(fontSize:22,fontWeight:FontWeight.w900,letterSpacing:-.5)),const SizedBox(height:5),const Text('Acompanhe cada etapa em tempo real.',style:TextStyle(color:AppColors.muted,fontSize:11)),const SizedBox(height:14),...active.map((o)=>_OrderCard(order:o,active:true))],
         if(history.isNotEmpty)...[SizedBox(height:active.isEmpty?4:24),const Text('Pedidos anteriores',style:TextStyle(fontSize:19,fontWeight:FontWeight.w900)),const SizedBox(height:12),...history.map((o)=>_OrderCard(order:o,active:false))],
-      ]);}),
+      ]));}),
   );
 }
 class _OrderCard extends StatelessWidget{
