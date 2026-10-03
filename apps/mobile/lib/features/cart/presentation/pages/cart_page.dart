@@ -103,17 +103,15 @@ Future<void> _checkout(BuildContext context) async {
     );
     if (!context.mounted) return;
 
-    if (result == 'track' || result == 'shop') {
+    if (result == 'track') {
+      final tracking = Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => OrderTrackingPage(orderId: orderId)),
+      );
       s.clearCart();
-      await Future.wait([s.loadOrders(), s.loadActiveOrder()]);
-      if (!context.mounted) return;
-      if (result == 'track') {
-        await Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => OrderTrackingPage(orderId: orderId)),
-        );
-      } else {
-        AppNav.instance.go(0);
-      }
+      await tracking;
+    } else if (result == 'shop') {
+      s.clearCart();
+      AppNav.instance.go(0);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pedido criado. Você pode concluir o pagamento depois.')));
     }
