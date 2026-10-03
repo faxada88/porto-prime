@@ -79,12 +79,21 @@ void _payments(BuildContext context) {
                       ),
                     );
                     if (confirm != true) return;
-                    final deleted = await AppState.instance.clearPendingOrders();
-                    if (!c.mounted) return;
-                    Navigator.pop(c);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('$deleted pedido(s) pendente(s) removido(s).')),
-                    );
+                    try {
+                      final deleted = await AppState.instance.clearPendingOrders();
+                      if (!c.mounted) return;
+                      Navigator.pop(c);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('$deleted pedido(s) não pago(s) removido(s).')),
+                        );
+                      }
+                    } catch (e) {
+                      if (!c.mounted) return;
+                      ScaffoldMessenger.of(c).showSnackBar(
+                        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                      );
+                    }
                   },
                 ),
               ),
