@@ -1,0 +1,39 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import '../../../../core/state/app_state.dart';
+import '../../../../core/theme/app_theme.dart';
+
+class OrderTrackingPage extends StatefulWidget{
+ const OrderTrackingPage({super.key,required this.orderId});final String orderId;
+ @override State<OrderTrackingPage> createState()=>_OrderTrackingPageState();
+}
+class _OrderTrackingPageState extends State<OrderTrackingPage>{
+ Timer? timer;
+ @override void initState(){super.initState();_refresh();timer=Timer.periodic(const Duration(seconds:4),(_)=>_refresh());}
+ Future<void> _refresh()async{try{await Future.wait([AppState.instance.loadOrders(),AppState.instance.loadActiveOrder()]);}catch(_){}}
+ @override void dispose(){timer?.cancel();super.dispose();}
+ Map<String,dynamic>? get order{for(final x in AppState.instance.orders){final o=Map<String,dynamic>.from(x);if(o['id'].toString()==widget.orderId)return o;}return AppState.instance.activeOrder;}
+ @override Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(_,__){final o=order;if(o==null)return const Scaffold(body:Center(child:CircularProgressIndicator()));final status=o['status'].toString(),step=_step(status),courier=o['courier'];return Scaffold(backgroundColor:AppColors.canvas,appBar:AppBar(backgroundColor:AppColors.canvas,surfaceTintColor:AppColors.canvas,title:const Text('Acompanhar pedido',style:TextStyle(fontSize:16,fontWeight:FontWeight.w900))),body:SafeArea(child:ListView(padding:const EdgeInsets.fromLTRB(20,8,20,34),children:[
+ Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF102D28),Color(0xFF08786D)]),borderRadius:BorderRadius.circular(30),boxShadow:const [BoxShadow(color:Color(0x1C000000),blurRadius:28,offset:Offset(0,14))]),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+  Row(children:[Container(padding:const EdgeInsets.symmetric(horizontal:10,vertical:7),decoration:BoxDecoration(color:Colors.white12,borderRadius:BorderRadius.circular(12)),child:const Row(children:[Icon(Icons.radio_button_checked_rounded,color:Color(0xFF8CFFE4),size:11),SizedBox(width:5),Text('ACOMPANHAMENTO AO VIVO',style:TextStyle(color:Colors.white,fontSize:8,fontWeight:FontWeight.w900,letterSpacing:.7))])),const Spacer(),Text('#'+widget.orderId.substring(0,8).toUpperCase(),style:const TextStyle(color:Colors.white60,fontSize:10,fontWeight:FontWeight.w800))]),
+  const SizedBox(height:22),Text(_title(status),style:const TextStyle(color:Colors.white,fontSize:27,height:1.05,fontWeight:FontWeight.w900,letterSpacing:-.8)),const SizedBox(height:8),Text(_subtitle(status),style:const TextStyle(color:Color(0xFFD4ECE7),fontSize:11,height:1.45,fontWeight:FontWeight.w600)),const SizedBox(height:22),
+  Row(children:[const Icon(Icons.payments_rounded,color:Color(0xFF8CFFE4),size:18),const SizedBox(width:8),const Text('Pagamento aprovado',style:TextStyle(color:Colors.white,fontSize:11,fontWeight:FontWeight.w800)),const Spacer(),Text('R\$ '+o['total'].toString(),style:const TextStyle(color:Colors.white,fontSize:14,fontWeight:FontWeight.w900))])
+ ])),
+ const SizedBox(height:16),Container(padding:const EdgeInsets.all(20),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(27),border:Border.all(color:const Color(0xFFE5EAE7))),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+  const Text('Jornada do pedido',style:TextStyle(fontSize:17,fontWeight:FontWeight.w900)),const SizedBox(height:4),const Text('Atualizamos cada etapa automaticamente.',style:TextStyle(color:AppColors.muted,fontSize:10)),const SizedBox(height:18),
+  _Stage(Icons.verified_rounded,'Pagamento aprovado','Recebemos a confirmação do seu pagamento.',step>=0,step==0),
+  _Stage(Icons.storefront_rounded,'Confirmação da distribuidora',step<1?'A distribuidora está conferindo e vai liberar seu pedido.':'Pedido confirmado pela distribuidora.',step>=1,step==1),
+  _Stage(Icons.delivery_dining_rounded,'Motoboy',step<3?'Após a liberação, buscamos um motoboy disponível.':'Motoboy atribuído ao seu pedido.',step>=3,step==2||step==3),
+  _Stage(Icons.route_rounded,'Entrega',step<5?'Você será avisado quando sair para entrega.':status=='DELIVERED'?'Pedido entregue.':'Seu pedido está a caminho.',step>=5,step>=4&&status!='DELIVERED',last:true)
+ ])),
+ if(courier!=null)...[const SizedBox(height:16),Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(24)),child:Row(children:[Container(width:52,height:52,decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(17)),child:const Icon(Icons.delivery_dining_rounded,color:AppColors.oceanDeep,size:28)),const SizedBox(width:13),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('SEU MOTOBOY',style:TextStyle(fontSize:8,color:AppColors.muted,fontWeight:FontWeight.w900)),Text(courier['user']?['name']??'Motoboy Porto Prime',style:const TextStyle(fontSize:15,fontWeight:FontWeight.w900))]))]))],
+ const SizedBox(height:16),Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(color:AppColors.sand,borderRadius:BorderRadius.circular(22)),child:const Row(children:[Icon(Icons.notifications_active_outlined,color:AppColors.oceanDeep),SizedBox(width:11),Expanded(child:Text('Pode seguir seu dia. Esta tela atualiza automaticamente conforme o pedido avança.',style:TextStyle(fontSize:10,height:1.4,fontWeight:FontWeight.w700)))]))
+ ])));});
+}
+class _Stage extends StatelessWidget{
+ const _Stage(this.icon,this.title,this.subtitle,this.done,this.current,{this.last=false});final IconData icon;final String title,subtitle;final bool done,current,last;
+ @override Widget build(BuildContext context)=>IntrinsicHeight(child:Row(crossAxisAlignment:CrossAxisAlignment.stretch,children:[SizedBox(width:42,child:Column(children:[Container(width:38,height:38,decoration:BoxDecoration(color:done?AppColors.oceanDeep:current?AppColors.sand:AppColors.canvas,borderRadius:BorderRadius.circular(13)),child:Icon(done?Icons.check_rounded:icon,color:done?Colors.white:AppColors.oceanDeep,size:19)),if(!last)Expanded(child:Container(width:2,margin:const EdgeInsets.symmetric(vertical:5),color:done?AppColors.oceanDeep:const Color(0xFFE5EAE7)))])),const SizedBox(width:11),Expanded(child:Padding(padding:EdgeInsets.only(top:3,bottom:last?0:21),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(title,style:TextStyle(fontSize:13,fontWeight:FontWeight.w900,color:done||current?AppColors.ink:AppColors.muted)),const SizedBox(height:4),Text(subtitle,style:const TextStyle(fontSize:9.5,height:1.4,color:AppColors.muted,fontWeight:FontWeight.w600))])))]));
+}
+int _step(String s)=>switch(s){'CONFIRMED'=>0,'PREPARING'=>1,'READY_FOR_PICKUP'=>2,'COURIER_ASSIGNED'=>3,'PICKED_UP'=>4,'OUT_FOR_DELIVERY'=>5,'DELIVERED'=>6,_=>0};
+String _title(String s)=>switch(s){'CONFIRMED'=>'Pagamento aprovado.\nPedido recebido.','PREPARING'=>'Distribuidora confirmou\nseu pedido.','READY_FOR_PICKUP'=>'Pedido pronto.\nBuscando motoboy.','COURIER_ASSIGNED'=>'Motoboy encontrado.','PICKED_UP'=>'Pedido coletado.','OUT_FOR_DELIVERY'=>'Está chegando!','DELIVERED'=>'Pedido entregue.',_=>'Pedido recebido.'};
+String _subtitle(String s)=>switch(s){'CONFIRMED'=>'Agora a distribuidora vai conferir e liberar seu pedido. Você acompanha tudo daqui.','PREPARING'=>'Os itens estão sendo separados para a próxima etapa.','READY_FOR_PICKUP'=>'Tudo pronto para coleta. Estamos conectando um motoboy disponível.','COURIER_ASSIGNED'=>'Um motoboy foi atribuído e seguirá para a coleta.','PICKED_UP'=>'Seu pedido já está com o motoboy.','OUT_FOR_DELIVERY'=>'O motoboy está levando seu pedido até você.','DELIVERED'=>'Tudo certo. Aproveite seu pedido!',_=>'Acompanhe as próximas etapas por aqui.'};
