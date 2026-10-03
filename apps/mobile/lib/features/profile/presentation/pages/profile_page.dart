@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../orders/presentation/pages/orders_page.dart';
+import '../../../payments/presentation/pages/payments_page.dart';
 
 class ProfilePage extends StatelessWidget{const ProfilePage({super.key});@override Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(_,__)=>AppState.instance.loggedIn?const _Account():const _Guest());}
 
@@ -46,106 +47,7 @@ void _addresses(BuildContext context){showModalBottomSheet(context:context,isScr
 void _newAddress(BuildContext context){final st=TextEditingController(),no=TextEditingController(),ne=TextEditingController(),cep=TextEditingController();showDialog(context:context,builder:(c)=>AlertDialog(title:const Text('Novo endereço'),content:SingleChildScrollView(child:Column(children:[_field(st,'Rua',Icons.route),_field(no,'Número',Icons.numbers),_field(ne,'Bairro',Icons.map_outlined),_field(cep,'CEP',Icons.local_post_office_outlined)])),actions:[TextButton(onPressed:()=>Navigator.pop(c),child:const Text('Cancelar')),FilledButton(onPressed:()async{try{await AppState.instance.addAddress({'street':st.text,'number':no.text,'neighborhood':ne.text,'city':'Porto Seguro','state':'BA','postalCode':cep.text,'isDefault':true});if(c.mounted)Navigator.pop(c);}catch(e){if(c.mounted)ScaffoldMessenger.of(c).showSnackBar(SnackBar(content:Text(e.toString())));}},child:const Text('Salvar'))]));}
 
 
-void _payments(BuildContext context) {
-  final orders = AppState.instance.orders;
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    builder: (c) => SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Pagamentos', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-            const SizedBox(height: 4),
-            const Text('Acompanhe o status financeiro dos seus pedidos.', style: TextStyle(color: AppColors.muted, fontSize: 11)),
-            const SizedBox(height: 14),
-            if (orders.any((o) => o['paymentStatus'] == 'PENDING' || o['paymentStatus'] == 'FAILED')) ...[
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.delete_sweep_outlined),
-                  label: const Text('Limpar pedidos e pagamentos pendentes'),
-                  onPressed: () async {
-                    final confirm = await showDialog<bool>(
-                      context: c,
-                      builder: (d) => AlertDialog(
-                        title: const Text('Limpar pendências?'),
-                        content: const Text('Serão apagados somente os pedidos não pagos desta conta. Pedidos pagos não serão alterados.'),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(d, false), child: const Text('Cancelar')),
-                          FilledButton(onPressed: () => Navigator.pop(d, true), child: const Text('Apagar pendências')),
-                        ],
-                      ),
-                    );
-                    if (confirm != true) return;
-                    try {
-                      final deleted = await AppState.instance.clearPendingOrders();
-                      if (!c.mounted) return;
-                      Navigator.pop(c);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('$deleted pedido(s) não pago(s) removido(s).')),
-                        );
-                      }
-                    } catch (e) {
-                      if (!c.mounted) return;
-                      ScaffoldMessenger.of(c).showSnackBar(
-                        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-                      );
-                    }
-                  },
-                ),
-              ),
-              const SizedBox(height: 10),
-            ],
-            Expanded(
-              child: orders.isEmpty
-                  ? const Center(child: Text('Nenhum pagamento por aqui ainda.'))
-                  : ListView.separated(
-                      itemCount: orders.length,
-                      separatorBuilder: (_, __) => const Divider(),
-                      itemBuilder: (_, i) {
-                        final o = orders[i];
-                        final paid = o['paymentStatus'] == 'PAID';
-                        final id = o['id'].toString();
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: Container(
-                            width: 42,
-                            height: 42,
-                            decoration: BoxDecoration(
-                              color: paid ? AppColors.mint : AppColors.sand,
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Icon(
-                              paid ? Icons.check_rounded : Icons.schedule_rounded,
-                              color: AppColors.oceanDeep,
-                            ),
-                          ),
-                          title: Text(
-                            'Pedido ${id.length > 8 ? id.substring(0, 8) : id}',
-                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
-                          ),
-                          subtitle: Text(
-                            paid ? 'Pagamento confirmado' : 'Pagamento pendente',
-                            style: const TextStyle(fontSize: 10),
-                          ),
-                          trailing: Text(
-                            'R\$ ${o['total']}',
-                            style: const TextStyle(fontWeight: FontWeight.w900),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
+void _payments(BuildContext context){Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const PaymentsPage()));}
 
 void _support(BuildContext context){showModalBottomSheet(context:context,builder:(c)=>SafeArea(child:Padding(padding:const EdgeInsets.all(20),child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Como podemos ajudar?',style:TextStyle(fontSize:22,fontWeight:FontWeight.w900)),const SizedBox(height:5),const Text('Escolha o assunto. O histórico do seu pedido fica disponível em Meus pedidos.',style:TextStyle(color:AppColors.muted,fontSize:11)),const SizedBox(height:15),_supportLine(Icons.receipt_long_rounded,'Problema com um pedido'),_supportLine(Icons.payments_outlined,'Pagamento ou cobrança'),_supportLine(Icons.person_outline_rounded,'Minha conta'),_supportLine(Icons.info_outline_rounded,'Dúvidas sobre a Porto Prime'),const SizedBox(height:8)]))));}
 Widget _supportLine(IconData i,String text)=>Padding(padding:const EdgeInsets.only(bottom:8),child:Material(color:AppColors.canvas,borderRadius:BorderRadius.circular(17),clipBehavior:Clip.antiAlias,child:ListTile(leading:Icon(i,color:AppColors.oceanDeep),title:Text(text,style:const TextStyle(fontWeight:FontWeight.w800,fontSize:12)),trailing:const Icon(Icons.chevron_right_rounded,size:18))));
