@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -25,11 +26,15 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
   bool ready = false;
   bool paying = false;
   String? error;
+  Timer? _webPaymentPoll;
 
   @override
   void initState() {
     super.initState();
     _configure();
+    if (kIsWeb) {
+      _webPaymentPoll = Timer.periodic(const Duration(seconds: 2), (_) => _checkWebPayment());
+    }
   }
 
   Future<void> _configure() async {
@@ -52,6 +57,25 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
     } catch (e) {
       if (mounted) setState(() => error = _message(e));
     }
+  }
+
+  Future<void> _checkWebPayment() async {
+    if (!mounted || paying) return;
+    try {
+      final paid = await AppState.instance.refreshPayment(widget.orderId);
+      if (paid && mounted) {
+        _webPaymentPoll?.cancel();
+        Navigator.pop(context, true);
+      }
+    } catch (_) {
+      // Keep the Stripe form usable while the webhook is still settling.
+    }
+  }
+
+  @override
+  void dispose() {
+    _webPaymentPoll?.cancel();
+    super.dispose();
   }
 
   String _message(Object e) {
