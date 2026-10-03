@@ -23,26 +23,24 @@ class AppState extends ChangeNotifier {
   Future<void> bootstrap()async{await loadProducts();if(loggedIn&&isCustomer){await Future.wait([loadAddresses(),loadOrders(),loadActiveOrder()]);}}
 
   Future<void> loadProducts()async{try{products=List<dynamic>.from(await api.request('GET','/products'));notifyListeners();}catch(e){error=e.toString();notifyListeners();}}
-  Future<Map<String,dynamic>> register(
-    [Map<String,dynamic>? data], {
-    String? name,
-    String? email,
-    String? password,
-    String? phone,
-    String? role,
+  Future<Map<String,dynamic>> register({
+    required String name,
+    required String email,
+    required String password,
+    required String phone,
+    required String role,
     String? businessName,
     String? document,
   }) async {
-    final d = data ??
-        <String,dynamic>{
-          'name': name,
-          'email': email,
-          'password': password,
-          'phone': phone,
-          'role': role,
-          if (businessName != null) 'businessName': businessName,
-          if (document != null) 'document': document,
-        };
+    final d = <String,dynamic>{
+      'name': name,
+      'email': email,
+      'password': password,
+      'phone': phone,
+      'role': role,
+      if (businessName != null) 'businessName': businessName,
+      if (document != null) 'document': document,
+    };
     loading = true;
     error = null;
     notifyListeners();
@@ -50,8 +48,8 @@ class AppState extends ChangeNotifier {
       final created = Map<String,dynamic>.from(
         await api.request('POST', '/auth/register', body: d),
       );
-      if (d['role'] == 'CUSTOMER') {
-        return await login(d['email'].toString(), d['password'].toString());
+      if (role == 'CUSTOMER') {
+        return await login(email, password);
       }
       user = created;
       return created;
