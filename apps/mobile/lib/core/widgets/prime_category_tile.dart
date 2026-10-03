@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 
 IconData categoryIcon(String name) {
   final n = name.toLowerCase();
+  if (n == 'todos') return Symbols.grid_view_rounded;
   if (n.contains('cervej')) return Symbols.sports_bar_rounded;
   if (n.contains('vinh')) return Symbols.wine_bar_rounded;
   if (n.contains('whisk') || n.contains('destil') || n.contains('vodk')) return Symbols.liquor_rounded;
