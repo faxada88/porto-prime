@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { OrderStatus, UserRole } from '../generated/prisma/client.js';
+import { OrderStatus, PaymentStatus, UserRole } from '../generated/prisma/client.js';
 import { AuthService } from '../auth/auth.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
@@ -42,6 +42,31 @@ export class OrdersService {
       },
       include: { items: true, address: true },
     });
+  }
+
+  async clearPending(authorization?: string) {
+    const user = await this.auth.authenticate(authorization);
+    if (user.role !== UserRole.CUSTOMER) throw new ForbiddenException('Acesso exclusivo de cliente');
+
+    const pending = await this.prisma.order.findMany({
+      where: {
+        customerId: user.id,
+        paymentStatus: { in: [PaymentStatus.PENDING, PaymentStatus.FAILED] },
+        status: { in: [OrderStatus.PENDING, OrderStatus.CANCELED] },
+      },
+      select: { id: true },
+    });
+
+    if (pending.length === 0) return { deleted: 0 };
+
+    const result = await this.prisma.order.deleteMany({
+      where: {
+        id: { in: pending.map((order) => order.id) },
+        customerId: user.id,
+      },
+    });
+
+    return { deleted: result.count };
   }
 
   async mine(authorization?: string) {
