@@ -73,7 +73,7 @@ export class OrdersService {
     if (user.role !== UserRole.CUSTOMER) throw new ForbiddenException('Acesso exclusivo de cliente');
     return this.prisma.order.findMany({
       where: { customerId: user.id },
-      include: { items: true, address: true },
+      include: { items: true, address: true, courier: { include: { user: { select: { name: true, phone: true } } } } },
       orderBy: { createdAt: 'desc' },
     });
   }
