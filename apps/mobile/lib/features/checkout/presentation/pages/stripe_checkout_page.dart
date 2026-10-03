@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../core/state/app_state.dart';
@@ -14,14 +15,15 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
   bool pageLoading=true,confirming=false;
   @override void initState(){
     super.initState();
-    controller=WebViewController()
+    controller=WebViewController();
+    if(!kIsWeb){controller!
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(NavigationDelegate(
         onPageStarted:(url){if(mounted)setState(()=>pageLoading=true);_check(url);},
         onPageFinished:(url){if(mounted)setState(()=>pageLoading=false);_check(url);},
         onWebResourceError:(e){if(mounted)setState(()=>pageLoading=false);},
-      ))
-      ..loadRequest(Uri.parse(widget.checkoutUrl));
+      ));}
+    controller!.loadRequest(Uri.parse(widget.checkoutUrl));
   }
 
   Future<void> _check(String url)async{
