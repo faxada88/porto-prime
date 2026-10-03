@@ -21,34 +21,105 @@ class _Item extends StatelessWidget{const _Item({required this.id,required this.
 
 class _Summary extends StatelessWidget{const _Summary({required this.total});final double total;@override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(23),border:Border.all(color:const Color(0xFFE8ECE8))),child:Column(children:[_row('Subtotal','R\$ '+total.toStringAsFixed(2).replaceAll('.',',')),const SizedBox(height:10),_row('Entrega','Calculada no pedido',muted:true),const Padding(padding:EdgeInsets.symmetric(vertical:13),child:Divider(height:1)),_row('Total','R\$ '+total.toStringAsFixed(2).replaceAll('.',','),strong:true)]));Widget _row(String a,String b,{bool muted=false,bool strong=false})=>Row(children:[Expanded(child:Text(a,style:TextStyle(fontSize:strong?15:11,fontWeight:strong?FontWeight.w900:FontWeight.w700,color:muted?AppColors.muted:AppColors.ink))),Text(b,style:TextStyle(fontSize:strong?18:11,fontWeight:strong?FontWeight.w900:FontWeight.w700,color:muted?AppColors.muted:AppColors.ink))]);}
 
-Future<void> _checkout(BuildContext context)async{
- final s=AppState.instance;
- if(!s.loggedIn||!s.isCustomer){AppNav.instance.go(3);ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Entre ou crie sua conta de cliente para continuar.')));return;}
- if(s.addresses.isEmpty){AppNav.instance.go(3);ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Cadastre um endereço de entrega no Perfil.')));return;}
- String selected=s.addresses.firstWhere((a)=>a['isDefault']==true,orElse:()=>s.addresses.first)['id'].toString();
- final ok=await showModalBottomSheet<bool>(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(c)=>StatefulBuilder(builder:(c,set)=>Material(color:Colors.white,borderRadius:const BorderRadius.vertical(top:Radius.circular(32)),clipBehavior:Clip.antiAlias,child:Padding(padding:const EdgeInsets.fromLTRB(20,12,20,24),child:SafeArea(top:false,child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[
-  Center(child:Container(width:42,height:4,decoration:BoxDecoration(color:const Color(0xFFD8DDDA),borderRadius:BorderRadius.circular(10)))),const SizedBox(height:18),const Text('Confirmar entrega',style:TextStyle(fontSize:23,fontWeight:FontWeight.w900)),const SizedBox(height:4),const Text('Escolha onde receber seu pedido.',style:TextStyle(color:AppColors.muted,fontSize:11)),const SizedBox(height:14),
-  ...s.addresses.map((a)=>RadioListTile<String>(value:a['id'].toString(),groupValue:selected,onChanged:(v)=>set(()=>selected=v!),contentPadding:EdgeInsets.zero,activeColor:AppColors.oceanDeep,title:Text((a['street']??'')+', '+(a['number']??''),style:const TextStyle(fontWeight:FontWeight.w800,fontSize:13)),subtitle:Text((a['neighborhood']??'')+' • Porto Seguro',style:const TextStyle(fontSize:10)))),
-  const SizedBox(height:8),Container(padding:const EdgeInsets.all(13),decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(17)),child:const Row(children:[Icon(Icons.lock_rounded,color:AppColors.oceanDeep,size:19),SizedBox(width:9),Expanded(child:Text('Pagamento seguro dentro do app. Após a confirmação você vai direto para o acompanhamento do pedido.',style:TextStyle(fontSize:9,height:1.35,color:AppColors.oceanDeep,fontWeight:FontWeight.w700)))])),const SizedBox(height:10),SizedBox(width:double.infinity,height:54,child:FilledButton(style:FilledButton.styleFrom(backgroundColor:AppColors.oceanDeep),onPressed:()=>Navigator.pop(c,true),child:const Text('Continuar para pagamento',style:TextStyle(fontWeight:FontWeight.w900)))),
- ]))))));
- if(ok!=true)return;
- try{final order=await s.createOrder(selected);if(!context.mounted)return;final orderId=order['id'].toString();final payment=await s.createCheckout(orderId);if(!context.mounted)return;final paid=await Navigator.of(context).push<bool>(MaterialPageRoute(fullscreenDialog:true,builder:(_)=>StripeCheckoutPage(clientSecret:payment['clientSecret'].toString(),publishableKey:payment['publishableKey'].toString(),orderId:orderId)));if(!context.mounted)return;if(paid==true){s.clearCart();await Future.wait([s.loadOrders(),s.loadActiveOrder()]);if(!context.mounted)return;final track=await _paymentApproved(context,orderId);if(!context.mounted)return;if(track==true){await Navigator.of(context).push(MaterialPageRoute(builder:(_)=>OrderTrackingPage(orderId:orderId)));}}else{ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Pedido criado. Você pode concluir o pagamento depois.')));}}catch(e){if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString().replaceFirst('Exception: ',''))));}
-}
+Future<void> _checkout(BuildContext context) async {
+  final s = AppState.instance;
+  if (!s.loggedIn || !s.isCustomer) {
+    AppNav.instance.go(3);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Entre ou crie sua conta de cliente para continuar.')));
+    return;
+  }
+  if (s.addresses.isEmpty) {
+    AppNav.instance.go(3);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cadastre um endereço de entrega no Perfil.')));
+    return;
+  }
 
+  String selected = s.addresses.firstWhere((a) => a['isDefault'] == true, orElse: () => s.addresses.first)['id'].toString();
+  final ok = await showModalBottomSheet<bool>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (c) => StatefulBuilder(
+      builder: (c, set) => Material(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: const Color(0xFFD8DDDA), borderRadius: BorderRadius.circular(10)))),
+                const SizedBox(height: 18),
+                const Text('Confirmar entrega', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 4),
+                const Text('Escolha onde receber seu pedido.', style: TextStyle(color: AppColors.muted, fontSize: 11)),
+                const SizedBox(height: 14),
+                ...s.addresses.map((a) => RadioListTile<String>(
+                  value: a['id'].toString(),
+                  groupValue: selected,
+                  onChanged: (v) => set(() => selected = v!),
+                  contentPadding: EdgeInsets.zero,
+                  activeColor: AppColors.oceanDeep,
+                  title: Text('${a['street'] ?? ''}, ${a['number'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                  subtitle: Text('${a['neighborhood'] ?? ''} • Porto Seguro', style: const TextStyle(fontSize: 10)),
+                )),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(13),
+                  decoration: BoxDecoration(color: AppColors.mint, borderRadius: BorderRadius.circular(17)),
+                  child: const Row(children: [Icon(Icons.lock_rounded, color: AppColors.oceanDeep, size: 19), SizedBox(width: 9), Expanded(child: Text('Pagamento seguro dentro do app. A confirmação aparece imediatamente após o Stripe aprovar.', style: TextStyle(fontSize: 9, height: 1.35, color: AppColors.oceanDeep, fontWeight: FontWeight.w700)))]),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(width: double.infinity, height: 54, child: FilledButton(style: FilledButton.styleFrom(backgroundColor: AppColors.oceanDeep), onPressed: () => Navigator.pop(c, true), child: const Text('Continuar para pagamento', style: TextStyle(fontWeight: FontWeight.w900)))),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  if (ok != true) return;
 
-Future<bool?> _paymentApproved(BuildContext context,String orderId){
- final s=AppState.instance;dynamic order;for(final o in s.orders){if(o['id'].toString()==orderId){order=o;break;}}final total=double.tryParse((order?['total']??0).toString())??0;
- return showModalBottomSheet<bool>(
- context:context,isScrollControlled:true,isDismissible:false,enableDrag:false,backgroundColor:Colors.transparent,
- builder:(c)=>Material(color:Colors.transparent,child:Container(padding:const EdgeInsets.fromLTRB(22,14,22,26),decoration:const BoxDecoration(color:Colors.white,borderRadius:BorderRadius.vertical(top:Radius.circular(36))),child:SafeArea(top:false,child:Column(mainAxisSize:MainAxisSize.min,children:[
-  Container(width:42,height:4,decoration:BoxDecoration(color:const Color(0xFFDDE3DF),borderRadius:BorderRadius.circular(20))),const SizedBox(height:25),
-  Stack(alignment:Alignment.center,children:[Container(width:104,height:104,decoration:BoxDecoration(color:AppColors.mint,shape:BoxShape.circle,boxShadow:[BoxShadow(color:AppColors.oceanDeep.withValues(alpha:.14),blurRadius:32,spreadRadius:5)])),Container(width:72,height:72,decoration:const BoxDecoration(color:AppColors.oceanDeep,shape:BoxShape.circle),child:const Icon(Icons.check_rounded,color:Colors.white,size:42))]),
-  const SizedBox(height:22),const Text('Pagamento aprovado!',textAlign:TextAlign.center,style:TextStyle(fontSize:28,fontWeight:FontWeight.w900,letterSpacing:-.9)),const SizedBox(height:8),
-  const Text('Seu pedido já está com a Porto Prime.',textAlign:TextAlign.center,style:TextStyle(fontSize:12,color:AppColors.muted,fontWeight:FontWeight.w700)),const SizedBox(height:22),
-  Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF102D28),Color(0xFF08786D)]),borderRadius:BorderRadius.circular(22)),child:const Row(children:[Icon(Icons.storefront_rounded,color:Color(0xFF8CFFE4),size:25),SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Aguardando a distribuidora',style:TextStyle(color:Colors.white,fontSize:13,fontWeight:FontWeight.w900)),SizedBox(height:3),Text('Estamos aguardando a confirmação e liberação dos itens. Depois, conectamos um motoboy.',style:TextStyle(color:Color(0xFFD4ECE7),fontSize:9.5,height:1.4,fontWeight:FontWeight.w600))]))])),
-  const SizedBox(height:14),Row(children:[_approvedMini(Icons.credit_card_rounded,'VALOR PAGO','R\$ '+total.toStringAsFixed(2).replaceAll('.',',')),const SizedBox(width:9),_approvedMini(Icons.receipt_long_rounded,'PEDIDO','#'+orderId.substring(0,8).toUpperCase())]),const SizedBox(height:18),
-  SizedBox(width:double.infinity,height:58,child:FilledButton.icon(style:FilledButton.styleFrom(backgroundColor:AppColors.oceanDeep,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(19))),onPressed:()=>Navigator.pop(c,true),icon:const Icon(Icons.route_rounded),label:const Text('Acompanhar meu pedido',style:TextStyle(fontWeight:FontWeight.w900,fontSize:13)))),
-  const SizedBox(height:8),TextButton(onPressed:()=>Navigator.pop(c,false),child:const Text('Continuar comprando',style:TextStyle(color:AppColors.muted,fontWeight:FontWeight.w800)))
- ])))));
+  try {
+    final order = await s.createOrder(selected);
+    if (!context.mounted) return;
+    final orderId = order['id'].toString();
+    final payment = await s.createCheckout(orderId);
+    if (!context.mounted) return;
+
+    final result = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => StripeCheckoutPage(
+          clientSecret: payment['clientSecret'].toString(),
+          publishableKey: payment['publishableKey'].toString(),
+          orderId: orderId,
+        ),
+      ),
+    );
+    if (!context.mounted) return;
+
+    if (result == 'track' || result == 'shop') {
+      s.clearCart();
+      await Future.wait([s.loadOrders(), s.loadActiveOrder()]);
+      if (!context.mounted) return;
+      if (result == 'track') {
+        await Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => OrderTrackingPage(orderId: orderId)),
+        );
+      } else {
+        AppNav.instance.go(0);
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pedido criado. Você pode concluir o pagamento depois.')));
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+    }
+  }
 }
-Widget _approvedMini(IconData icon,String a,String b)=>Expanded(child:Container(padding:const EdgeInsets.all(13),decoration:BoxDecoration(color:AppColors.canvas,borderRadius:BorderRadius.circular(18),border:Border.all(color:const Color(0xFFE7ECE8))),child:Row(children:[Icon(icon,color:AppColors.oceanDeep,size:20),const SizedBox(width:9),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(a,style:const TextStyle(fontSize:7.5,color:AppColors.muted,fontWeight:FontWeight.w900,letterSpacing:.7)),Text(b,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,fontWeight:FontWeight.w900))]))])));
