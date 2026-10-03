@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:flutter_stripe_web/flutter_stripe_web.dart';
+import 'stripe_web_element_stub.dart' if (dart.library.js_interop) 'stripe_web_element_web.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -70,12 +70,8 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
 
     try {
       if (kIsWeb) {
-        await WebStripe.instance.confirmPaymentElement(
-          const ConfirmPaymentElementOptions(
-            redirect: PaymentConfirmationRedirect.ifRequired,
-            confirmParams: ConfirmPaymentParams(return_url: ''),
-          ),
-        );
+        // On web the official Stripe.js Payment Element owns confirmation.
+        // Flutter polls the webhook-backed order state below.
       } else {
         await Stripe.instance.presentPaymentSheet();
       }
@@ -173,11 +169,9 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                       ),
                       const SizedBox(height: 22),
                       if (kIsWeb)
-                        PaymentElement(
+                        StripeWebElement(
+                          publishableKey: widget.publishableKey,
                           clientSecret: widget.clientSecret,
-                          autofocus: true,
-                          enablePostalCode: true,
-                          onCardChanged: (_) {},
                         )
                       else
                         Container(
@@ -219,12 +213,12 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                       backgroundColor: AppColors.oceanDeep,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                     ),
-                    onPressed: !ready || paying ? null : _pay,
+                    onPressed: kIsWeb || !ready || paying ? null : _pay,
                     icon: paying
                         ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                         : const Icon(Icons.lock_rounded, size: 18),
                     label: Text(
-                      paying ? 'Processando...' : (kIsWeb ? 'Confirmar pagamento seguro' : 'Abrir Stripe'),
+                      paying ? 'Processando...' : (kIsWeb ? 'Pagamento protegido pelo Stripe' : 'Abrir Stripe'),
                       style: const TextStyle(fontWeight: FontWeight.w900),
                     ),
                   ),
