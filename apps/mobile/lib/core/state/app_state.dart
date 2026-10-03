@@ -52,7 +52,8 @@ class AppState extends ChangeNotifier {
       final success='$origin/checkout-return?checkout=success&orderId=$orderId';
       final cancel='$origin/checkout-return?checkout=cancel&orderId=$orderId';
       final x=Map<String,dynamic>.from(await api.request('POST','/payments/checkout',body:{'orderId':orderId,'successUrl':success,'cancelUrl':cancel}));
-      return x['checkoutUrl'].toString();
+      final sessionId=x['sessionId'].toString();
+      return '${api.baseUrl}/payments/embedded?sessionId=${Uri.encodeQueryComponent(sessionId)}';
     }catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}
   }
 
