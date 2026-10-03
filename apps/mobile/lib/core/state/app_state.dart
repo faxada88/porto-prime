@@ -45,15 +45,15 @@ class AppState extends ChangeNotifier {
     }catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}
   }
 
-  Future<String> createCheckout(String orderId)async{
+  Future<Map<String,dynamic>> createCheckout(String orderId)async{
     loading=true;error=null;notifyListeners();
     try{
       final origin=Uri.base.origin;
-      final success='$origin/checkout-return?checkout=success&orderId=$orderId';
-      final cancel='$origin/checkout-return?checkout=cancel&orderId=$orderId';
-      final x=Map<String,dynamic>.from(await api.request('POST','/payments/checkout',body:{'orderId':orderId,'successUrl':success,'cancelUrl':cancel}));
-      final sessionId=x['sessionId'].toString();
-      return '${api.baseUrl}/payments/embedded?sessionId=${Uri.encodeQueryComponent(sessionId)}';
+      return Map<String,dynamic>.from(await api.request('POST','/payments/checkout',body:{
+        'orderId':orderId,
+        'successUrl':'$origin/checkout-return?checkout=success&orderId=$orderId',
+        'cancelUrl':'$origin/checkout-return?checkout=cancel&orderId=$orderId'
+      }));
     }catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}
   }
 
