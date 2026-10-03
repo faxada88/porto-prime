@@ -43,9 +43,19 @@
   -->
   <script src="https://js.stripe.com/v3/"></script>
   <script>
-    window.portoPrimeStripeMount = function(containerId, publishableKey, clientSecret) {
+    window.portoPrimeStripeMount = function(containerId, publishableKey, clientSecret, attempt) {
+      attempt = attempt || 0;
       const host = document.getElementById(containerId);
-      if (!host) return;
+      if (!host) {
+        if (attempt < 100) {
+          window.setTimeout(function() {
+            window.portoPrimeStripeMount(containerId, publishableKey, clientSecret, attempt + 1);
+          }, 50);
+        }
+        return;
+      }
+      if (host.dataset.stripeMounted === 'true') return;
+      host.dataset.stripeMounted = 'true';
 
       host.innerHTML = '<div id="' + containerId + '-payment"></div>' +
         '<div id="' + containerId + '-error" style="display:none;margin-top:12px;padding:12px 14px;border-radius:12px;background:#fff1d5;color:#17201e;font:600 13px Arial,sans-serif"></div>' +
