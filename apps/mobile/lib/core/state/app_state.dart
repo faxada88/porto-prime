@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../network/api_client.dart';
 
 class AppState extends ChangeNotifier {
@@ -46,14 +45,23 @@ class AppState extends ChangeNotifier {
     }catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}
   }
 
-  Future<void> payOrder(String orderId)async{
+  Future<String> createCheckout(String orderId)async{
     loading=true;error=null;notifyListeners();
     try{
-      final base=Uri.base.replace(queryParameters:{'checkout':'success'}).toString();
-      final cancel=Uri.base.replace(queryParameters:{'checkout':'cancel'}).toString();
-      final x=Map<String,dynamic>.from(await api.request('POST','/payments/checkout',body:{'orderId':orderId,'successUrl':base,'cancelUrl':cancel}));
-      final url=Uri.parse(x['checkoutUrl'].toString());
-      if(!await launchUrl(url,mode:LaunchMode.externalApplication))throw Exception('Não foi possível abrir o pagamento seguro');
+      final origin=Uri.base.origin;
+      final success='$origin/checkout-return?checkout=success&orderId=$orderId';
+      final cancel='$origin/checkout-return?checkout=cancel&orderId=$orderId';
+      final x=Map<String,dynamic>.from(await api.request('POST','/payments/checkout',body:{'orderId':orderId,'successUrl':success,'cancelUrl':cancel}));
+      return x['checkoutUrl'].toString();
     }catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}
+  }
+
+  Future<bool> refreshPayment(String orderId)async{
+    for(var i=0;i<10;i++){
+      await Future.wait([loadOrders(),loadActiveOrder()]);
+      for(final o in orders){if(o['id'].toString()==orderId&&o['paymentStatus']=='PAID')return true;}
+      await Future<void>.delayed(const Duration(milliseconds:900));
+    }
+    return false;
   }
 }
