@@ -60,6 +60,36 @@ void _payments(BuildContext context) {
             const SizedBox(height: 4),
             const Text('Acompanhe o status financeiro dos seus pedidos.', style: TextStyle(color: AppColors.muted, fontSize: 11)),
             const SizedBox(height: 14),
+            if (orders.any((o) => o['paymentStatus'] == 'PENDING' || o['paymentStatus'] == 'FAILED')) ...[
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.delete_sweep_outlined),
+                  label: const Text('Limpar pedidos e pagamentos pendentes'),
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: c,
+                      builder: (d) => AlertDialog(
+                        title: const Text('Limpar pendências?'),
+                        content: const Text('Serão apagados somente os pedidos não pagos desta conta. Pedidos pagos não serão alterados.'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(d, false), child: const Text('Cancelar')),
+                          FilledButton(onPressed: () => Navigator.pop(d, true), child: const Text('Apagar pendências')),
+                        ],
+                      ),
+                    );
+                    if (confirm != true) return;
+                    final deleted = await AppState.instance.clearPendingOrders();
+                    if (!c.mounted) return;
+                    Navigator.pop(c);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('$deleted pedido(s) pendente(s) removido(s).')),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
             Expanded(
               child: orders.isEmpty
                   ? const Center(child: Text('Nenhum pagamento por aqui ainda.'))
