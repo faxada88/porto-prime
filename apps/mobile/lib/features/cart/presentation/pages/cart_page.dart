@@ -38,7 +38,6 @@ Future<void> _checkout(BuildContext context)async{
 
 Future<bool?> _paymentApproved(BuildContext context,String orderId){
  final s=AppState.instance;dynamic order;for(final o in s.orders){if(o['id'].toString()==orderId){order=o;break;}}final total=double.tryParse((order?['total']??0).toString())??0;
- Future.delayed(const Duration(seconds:5),(){if(context.mounted&&Navigator.of(context).canPop())Navigator.of(context).pop(true);});
  return showModalBottomSheet<bool>(
  context:context,isScrollControlled:true,isDismissible:false,enableDrag:false,backgroundColor:Colors.transparent,
  builder:(c)=>Material(color:Colors.transparent,child:Container(padding:const EdgeInsets.fromLTRB(22,14,22,26),decoration:const BoxDecoration(color:Colors.white,borderRadius:BorderRadius.vertical(top:Radius.circular(36))),child:SafeArea(top:false,child:Column(mainAxisSize:MainAxisSize.min,children:[
