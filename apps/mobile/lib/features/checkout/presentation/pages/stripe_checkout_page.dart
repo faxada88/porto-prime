@@ -229,24 +229,26 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                     child: Text(error!, style: const TextStyle(fontSize: 10, height: 1.4, fontWeight: FontWeight.w700)),
                   ),
                 ],
-                const SizedBox(height: 18),
-                SizedBox(
-                  height: 58,
-                  child: FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.oceanDeep,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                    ),
-                    onPressed: kIsWeb || !ready || paying ? null : _pay,
-                    icon: paying
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Icon(Icons.lock_rounded, size: 18),
-                    label: Text(
-                      paying ? 'Processando...' : (kIsWeb ? 'Pagamento protegido pelo Stripe' : 'Abrir Stripe'),
-                      style: const TextStyle(fontWeight: FontWeight.w900),
+                if (!kIsWeb) ...[
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    height: 58,
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.oceanDeep,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      ),
+                      onPressed: !ready || paying ? null : _pay,
+                      icon: paying
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : const Icon(Icons.lock_rounded, size: 18),
+                      label: Text(
+                        paying ? 'Processando...' : 'Abrir Stripe',
+                        style: const TextStyle(fontWeight: FontWeight.w900),
+                      ),
                     ),
                   ),
-                ),
+                ],
                 if (!ready && error == null) ...[
                   const SizedBox(height: 14),
                   const Center(child: CircularProgressIndicator()),
