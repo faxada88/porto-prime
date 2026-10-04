@@ -10,7 +10,7 @@ import {
   scryptSync,
   timingSafeEqual,
 } from 'node:crypto';
-import { UserRole, UserStatus } from '../generated/prisma/client.js';
+import { Prisma, UserRole, UserStatus } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
@@ -68,6 +68,9 @@ export class AuthService {
     if (exists) throw new ConflictException('E-mail já cadastrado');
 
     const pending = data.role === UserRole.COURIER || data.role === UserRole.PARTNER;
+    const onboardingData = data.profileData
+      ? (data.profileData as Prisma.InputJsonObject)
+      : undefined;
 
     const user = await this.prisma.user.create({
       data: {
@@ -78,10 +81,10 @@ export class AuthService {
         role: data.role,
         status: pending ? UserStatus.PENDING : UserStatus.ACTIVE,
         customerProfile:
-          data.role === UserRole.CUSTOMER ? { create: { onboardingData: data.profileData ?? undefined } } : undefined,
+          data.role === UserRole.CUSTOMER ? { create: { onboardingData } } : undefined,
         courierProfile:
           data.role === UserRole.COURIER
-            ? { create: { document: data.document?.trim() || null, onboardingData: data.profileData ?? undefined } }
+            ? { create: { document: data.document?.trim() || null, onboardingData } }
             : undefined,
         partnerProfile:
           data.role === UserRole.PARTNER
@@ -89,7 +92,7 @@ export class AuthService {
                 create: {
                   businessName: data.businessName!.trim(),
                   document: data.document?.trim() || null,
-                  onboardingData: data.profileData ?? undefined,
+                  onboardingData,
                 },
               }
             : undefined,
