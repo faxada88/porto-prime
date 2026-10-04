@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../theme/app_theme.dart';
 
@@ -12,17 +12,17 @@ class _CategoryLook {
 
 _CategoryLook _look(String name) {
   final n = name.toLowerCase();
-  if (n == 'todos') return const _CategoryLook(Symbols.grid_view_rounded, Color(0xFFF1ECFF), Color(0xFF7967B8));
-  if (n.contains('cervej')) return const _CategoryLook(Symbols.sports_bar_rounded, Color(0xFFFFF0C9), Color(0xFFE5A52A));
-  if (n.contains('vinh')) return const _CategoryLook(Symbols.wine_bar_rounded, Color(0xFFF7E5EC), Color(0xFFA95D78));
-  if (n.contains('whisk') || n.contains('destil') || n.contains('vodk') || n.contains('gin')) return const _CategoryLook(Symbols.liquor_rounded, Color(0xFFFFE7D0), Color(0xFFC77B36));
-  if (n.contains('energ')) return const _CategoryLook(Symbols.bolt_rounded, Color(0xFFECE8FF), Color(0xFF7664C8));
-  if (n.contains('refriger') || n.contains('suco')) return const _CategoryLook(Symbols.local_drink_rounded, Color(0xFFFFE7DF), Color(0xFFE27D62));
-  if (n.contains('água') || n.contains('agua')) return const _CategoryLook(Symbols.water_drop_rounded, Color(0xFFE3F5FA), Color(0xFF4BA8C2));
-  if (n.contains('gelo')) return const _CategoryLook(Symbols.ac_unit_rounded, Color(0xFFEAF7FA), Color(0xFF63ABC0));
-  if (n.contains('conveni')) return const _CategoryLook(Symbols.shopping_basket_rounded, Color(0xFFE8F5E9), Color(0xFF64A46D));
-  if (n.contains('combo') || n.contains('kit')) return const _CategoryLook(Symbols.inventory_2_rounded, Color(0xFFFFEBD7), Color(0xFFD78A45));
-  return const _CategoryLook(Symbols.local_mall_rounded, Color(0xFFF1EFEA), Color(0xFF827C71));
+  if (n == 'todos') return const _CategoryLook(FontAwesomeIcons.tableCellsLarge, Color(0xFFF1EDFF), Color(0xFF7867B7));
+  if (n.contains('cervej')) return const _CategoryLook(FontAwesomeIcons.beerMugEmpty, Color(0xFFFFF1C9), Color(0xFFD99A22));
+  if (n.contains('vinh')) return const _CategoryLook(FontAwesomeIcons.wineGlass, Color(0xFFF9E8EF), Color(0xFFA95F7A));
+  if (n.contains('whisk') || n.contains('destil') || n.contains('vodk') || n.contains('gin')) return const _CategoryLook(FontAwesomeIcons.whiskeyGlass, Color(0xFFFFE8D1), Color(0xFFB97535));
+  if (n.contains('energ')) return const _CategoryLook(FontAwesomeIcons.bolt, Color(0xFFECE9FF), Color(0xFF7364BE));
+  if (n.contains('refriger') || n.contains('suco')) return const _CategoryLook(FontAwesomeIcons.bottleWater, Color(0xFFFFE8E0), Color(0xFFD87860));
+  if (n.contains('água') || n.contains('agua')) return const _CategoryLook(FontAwesomeIcons.droplet, Color(0xFFE4F5FA), Color(0xFF449CB6));
+  if (n.contains('gelo')) return const _CategoryLook(FontAwesomeIcons.snowflake, Color(0xFFEAF7FA), Color(0xFF5DA7BC));
+  if (n.contains('conveni')) return const _CategoryLook(FontAwesomeIcons.basketShopping, Color(0xFFE9F6EB), Color(0xFF609968));
+  if (n.contains('combo') || n.contains('kit')) return const _CategoryLook(FontAwesomeIcons.boxOpen, Color(0xFFFFECD8), Color(0xFFC98242));
+  return const _CategoryLook(FontAwesomeIcons.bagShopping, Color(0xFFF3F0EA), Color(0xFF80796E));
 }
 
 class PrimeCategoryTile extends StatefulWidget {
@@ -34,6 +34,7 @@ class PrimeCategoryTile extends StatefulWidget {
     this.compact = false,
     this.imageUrls = const [],
   });
+
   final String name;
   final VoidCallback onTap;
   final bool selected;
@@ -45,7 +46,7 @@ class PrimeCategoryTile extends StatefulWidget {
 }
 
 class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
-  bool pressed = false;
+  bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
@@ -56,15 +57,16 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
       label: 'Categoria ${widget.name}',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTapDown: (_) => setState(() => pressed = true),
-        onTapCancel: () => setState(() => pressed = false),
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapCancel: () => setState(() => _pressed = false),
         onTapUp: (_) {
-          setState(() => pressed = false);
+          setState(() => _pressed = false);
           widget.onTap();
         },
         child: AnimatedScale(
-          scale: pressed ? .96 : 1,
-          duration: const Duration(milliseconds: 110),
+          scale: _pressed ? .965 : 1,
+          duration: const Duration(milliseconds: 90),
+          curve: Curves.easeOut,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -73,48 +75,27 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                   duration: const Duration(milliseconds: 180),
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: widget.selected ? look.bg.withValues(alpha: .75) : look.bg,
-                    borderRadius: BorderRadius.circular(widget.compact ? 19 : 23),
+                    color: look.bg,
+                    borderRadius: BorderRadius.circular(widget.compact ? 20 : 24),
                     border: Border.all(
-                      color: widget.selected ? look.accent.withValues(alpha: .42) : Colors.transparent,
-                      width: 1.3,
+                      color: widget.selected ? look.accent.withValues(alpha: .38) : Colors.white.withValues(alpha: .9),
                     ),
                   ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Positioned(
-                        top: 9,
-                        left: 9,
-                        child: Container(
-                          width: 15,
-                          height: 15,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: .68),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
+                  child: Center(
+                    child: Container(
+                      width: widget.compact ? 47 : 58,
+                      height: widget.compact ? 47 : 58,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: .72),
+                        shape: BoxShape.circle,
                       ),
-                      Icon(
+                      child: FaIcon(
                         look.icon,
-                        size: widget.compact ? 39 : 48,
+                        size: widget.compact ? 25 : 31,
                         color: look.accent,
-                        fill: 1,
-                        weight: 560,
-                        grade: 100,
                       ),
-                      if (widget.selected)
-                        Positioned(
-                          right: 6,
-                          top: 6,
-                          child: Container(
-                            width: 18,
-                            height: 18,
-                            decoration: BoxDecoration(color: look.accent, shape: BoxShape.circle),
-                            child: const Icon(Symbols.check_rounded, size: 13, color: Colors.white, weight: 800),
-                          ),
-                        ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -126,10 +107,10 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: AppColors.ink,
-                  fontSize: widget.compact ? 10 : 11.5,
+                  fontSize: widget.compact ? 10.1 : 11.5,
                   height: 1.05,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: -.18,
+                  letterSpacing: -.15,
                 ),
               ),
             ],
