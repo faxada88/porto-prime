@@ -168,7 +168,7 @@ class _Header extends StatelessWidget {
             SizedBox(height: 3),
             Row(
               children: [
-                Icon(Symbols.location_on_rounded, size: 14, color: AppColors.coral, fill: 1),
+                Icon(Symbols.location_on_rounded, size: 14, color: AppColors.orange, fill: 1),
                 SizedBox(width: 4),
                 Flexible(child: Text('Porto Seguro • BA', overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: AppColors.muted, fontWeight: FontWeight.w700))),
                 SizedBox(width: 3),
@@ -185,7 +185,7 @@ class _Header extends StatelessWidget {
           width: 45,
           height: 45,
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), border: Border.all(color: AppColors.stroke), boxShadow: AppShadows.soft),
-          child: Icon(logged ? Symbols.person_rounded : Symbols.person_rounded, color: AppColors.coral, fill: logged ? 1 : 0),
+          child: Icon(logged ? Symbols.person_rounded : Symbols.person_rounded, color: AppColors.orange, fill: logged ? 1 : 0),
         ),
       ),
     ],
@@ -207,7 +207,7 @@ class _Search extends StatelessWidget {
           Icon(Symbols.search_rounded, size: 23, color: AppColors.ink),
           SizedBox(width: 10),
           Expanded(child: Text('O que vai gelado hoje?', style: TextStyle(fontSize: 12, color: AppColors.muted, fontWeight: FontWeight.w600))),
-          Icon(Symbols.tune_rounded, size: 20, color: AppColors.coral),
+          Icon(Symbols.tune_rounded, size: 20, color: AppColors.orange),
         ],
       ),
     ),
@@ -247,7 +247,7 @@ class _Hero extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
-        gradient: const LinearGradient(colors: [Color(0xFFFF354B), Color(0xFFFF7A3D)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        gradient: const LinearGradient(colors: [AppColors.oceanDeep, AppColors.turquoise], begin: Alignment.topLeft, end: Alignment.bottomRight),
         boxShadow: AppShadows.elevated,
       ),
       child: Stack(
@@ -368,12 +368,12 @@ class _Promise extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(color: const Color(0xFF17231F), borderRadius: BorderRadius.circular(26)),
+    decoration: BoxDecoration(color: AppColors.mint, borderRadius: BorderRadius.circular(26)),
     child: const Row(
       children: [
-        DecoratedBox(decoration: BoxDecoration(color: Color(0xFF263A34), borderRadius: BorderRadius.all(Radius.circular(17))), child: SizedBox(width: 53, height: 53, child: Icon(Symbols.bolt_rounded, color: AppColors.sun, size: 29, fill: 1))),
+        DecoratedBox(decoration: BoxDecoration(color: AppColors.mintStrong, borderRadius: BorderRadius.all(Radius.circular(17))), child: SizedBox(width: 53, height: 53, child: Icon(Symbols.bolt_rounded, color: AppColors.sun, size: 29, fill: 1))),
         SizedBox(width: 13),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Gelada. Rápida. Sem complicação.', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900)), SizedBox(height: 3), Text('Da escolha ao acompanhamento, tudo em poucos toques.', style: TextStyle(color: Colors.white60, fontSize: 10, height: 1.35, fontWeight: FontWeight.w600))])),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Gelada. Rápida. Sem complicação.', style: TextStyle(color: AppColors.ink, fontSize: 14, fontWeight: FontWeight.w900)), SizedBox(height: 3), Text('Da escolha ao acompanhamento, tudo em poucos toques.', style: TextStyle(color: AppColors.muted, fontSize: 10, height: 1.35, fontWeight: FontWeight.w600))])),
       ],
     ),
   );
