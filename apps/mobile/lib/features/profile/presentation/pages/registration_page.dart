@@ -263,6 +263,55 @@ class _RegistrationPageState extends State<RegistrationPage> {
   );
   }
 
+  Widget choiceField(_F f) {
+    List<String> options;
+    if (f.key == 'cnhCategory') {
+      options = const ['A','B','AB','C','AC','D','AD','E','AE'];
+    } else if (f.key == 'vehicleType') {
+      options = const ['Moto','Carro','Utilitário','Outro'];
+    } else if (f.key == 'vehicleBrand') {
+      options = ctl('vehicleType').text == 'Moto' ? MotorcycleCatalog.brandOptions : const ['Outra marca'];
+    } else {
+      options = ctl('vehicleType').text == 'Moto' ? MotorcycleCatalog.modelsFor(ctl('vehicleBrand').text) : const ['Outro modelo'];
+    }
+    final value=ctl(f.key).text;
+    return Padding(padding:const EdgeInsets.only(bottom:13),child:InkWell(
+      borderRadius:BorderRadius.circular(18),onTap:()=>openPicker(f,options),
+      child:InputDecorator(decoration:InputDecoration(labelText:f.label,filled:true,fillColor:AppColors.canvas,
+        prefixIcon:Icon(f.icon,color:AppColors.primary),suffixIcon:const Icon(Icons.keyboard_arrow_down_rounded),
+        enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:const BorderSide(color:AppColors.stroke)),
+        border:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:BorderSide.none)),
+        child:Text(value.isEmpty?'Toque para selecionar':value,style:TextStyle(fontWeight:FontWeight.w700,color:value.isEmpty?AppColors.muted:AppColors.ink))),
+    ));
+  }
+
+  Future<void> openPicker(_F f,List<String> options) async {
+    final search=TextEditingController();
+    var filtered=List<String>.from(options);
+    final picked=await showModalBottomSheet<String>(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,
+      builder:(ctx)=>StatefulBuilder(builder:(ctx,setSheet)=>Container(
+        height:MediaQuery.sizeOf(ctx).height*.72,padding:const EdgeInsets.fromLTRB(20,16,20,20),
+        decoration:const BoxDecoration(color:Colors.white,borderRadius:BorderRadius.vertical(top:Radius.circular(30))),
+        child:Column(children:[
+          Container(width:42,height:4,decoration:BoxDecoration(color:AppColors.stroke,borderRadius:BorderRadius.circular(8))),
+          const SizedBox(height:18),
+          Row(children:[Expanded(child:Text(f.label,style:const TextStyle(fontSize:21,fontWeight:FontWeight.w900))),IconButton(onPressed:()=>Navigator.pop(ctx),icon:const Icon(Icons.close_rounded))]),
+          TextField(controller:search,onChanged:(q)=>setSheet(()=>filtered=options.where((x)=>x.toLowerCase().contains(q.toLowerCase())).toList()),
+            decoration:InputDecoration(hintText:'Pesquisar',prefixIcon:const Icon(Icons.search_rounded),filled:true,fillColor:AppColors.canvas,border:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:BorderSide.none))),
+          const SizedBox(height:10),
+          Expanded(child:ListView.separated(itemCount:filtered.length,separatorBuilder:(_,__)=>const Divider(height:1,color:AppColors.stroke),
+            itemBuilder:(ctx,i){final x=filtered[i],selected=ctl(f.key).text==x;return ListTile(title:Text(x,style:TextStyle(fontWeight:selected?FontWeight.w900:FontWeight.w700)),trailing:selected?const Icon(Icons.check_circle_rounded,color:AppColors.success):null,onTap:()=>Navigator.pop(ctx,x));})),
+        ]),
+      )));
+    search.dispose();
+    if(picked==null||!mounted)return;
+    setState((){
+      ctl(f.key).text=picked;
+      if(f.key=='vehicleType'){ctl('vehicleBrand').clear();ctl('vehicleModel').clear();}
+      if(f.key=='vehicleBrand')ctl('vehicleModel').clear();
+    });
+  }
+
   Future<void> _checkRemote(String key,String value) async {
     final field = key == 'cpf' ? 'cpf' : key == 'cnpj' ? 'cnpj' : key == 'email' ? 'email' : key == 'phone' ? 'phone' : null;
     if (field == null || value.trim().isEmpty) return;
