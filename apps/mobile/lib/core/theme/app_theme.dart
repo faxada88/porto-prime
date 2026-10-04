@@ -79,15 +79,6 @@ abstract final class AppTheme {
     highlightColor: Colors.transparent,
     focusColor: Colors.transparent,
     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    pageTransitionsTheme: const PageTransitionsTheme(
-      builders: {
-        TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
-      },
-    ),
     textTheme: const TextTheme(
       headlineLarge: TextStyle(fontSize: 31, height: 1.04, fontWeight: FontWeight.w900, letterSpacing: -1.15, color: AppColors.ink),
       headlineMedium: TextStyle(fontSize: 25, height: 1.08, fontWeight: FontWeight.w900, letterSpacing: -.75, color: AppColors.ink),
