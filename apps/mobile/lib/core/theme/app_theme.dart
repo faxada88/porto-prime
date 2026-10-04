@@ -1,27 +1,33 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  static const coral = Color(0xFFFF3D4F);
-  static const coralStrong = Color(0xFFE91F36);
-  static const orange = Color(0xFFFF8A3D);
-  static const sun = Color(0xFFFFC64B);
-  static const peach = Color(0xFFFFE2D1);
-  static const cream = Color(0xFFFFF8F1);
-  static const mint = Color(0xFFEAF7F1);
-  static const mintStrong = Color(0xFFD9F0E7);
-  static const ocean = Color(0xFFFF5B50);
-  static const oceanDeep = coralStrong;
-  static const turquoise = Color(0xFFFF8A62);
-  static const ink = Color(0xFF202329);
-  static const muted = Color(0xFF777A80);
-  static const canvas = Color(0xFFFFFAF5);
+  // Porto Prime 2026: vibrante, tropical e claro. Vermelho forte removido.
+  static const coral = Color(0xFFFF8A72);
+  static const coralStrong = Color(0xFFE96F5B);
+  static const orange = Color(0xFFFFAD66);
+  static const sun = Color(0xFFFFD76A);
+  static const peach = Color(0xFFFFE9DD);
+  static const cream = Color(0xFFFFFBF5);
+  static const mint = Color(0xFFEAF8F1);
+  static const mintStrong = Color(0xFFCDEDDD);
+  static const ocean = Color(0xFF53B8A5);
+  static const oceanDeep = Color(0xFF238A79);
+  static const turquoise = Color(0xFF66C8B5);
+  static const lavender = Color(0xFFEDE8FF);
+  static const sky = Color(0xFFE5F4FA);
+  static const ink = Color(0xFF25312F);
+  static const muted = Color(0xFF78827F);
+  static const canvas = Color(0xFFFFFBF7);
   static const surface = Color(0xFFFFFFFF);
-  static const stroke = Color(0xFFF0E9E3);
-  static const sand = Color(0xFFFFEDC9);
-  static const success = Color(0xFF22A06B);
+  static const stroke = Color(0xFFECE9E3);
+  static const sand = Color(0xFFFFF0CB);
+  static const success = Color(0xFF3CA57E);
   static const white = Colors.white;
-  static const primary = coral;
-  static const primaryDark = coralStrong;
+
+  // Ações principais usam verde-petróleo claro para não transformar a UI em vermelho.
+  static const primary = oceanDeep;
+  static const primaryDark = Color(0xFF1D7467);
+  static const accent = coral;
 }
 
 abstract final class AppRadius {
@@ -42,16 +48,16 @@ abstract final class AppSpacing {
 abstract final class AppShadows {
   static final soft = [
     BoxShadow(
-      color: const Color(0xFF7B4B34).withValues(alpha: .07),
+      color: const Color(0xFF40534E).withValues(alpha: .07),
       blurRadius: 22,
       offset: const Offset(0, 8),
     ),
   ];
   static final elevated = [
     BoxShadow(
-      color: AppColors.coral.withValues(alpha: .16),
-      blurRadius: 32,
-      offset: const Offset(0, 14),
+      color: AppColors.oceanDeep.withValues(alpha: .13),
+      blurRadius: 30,
+      offset: const Offset(0, 12),
     ),
   ];
 }
@@ -61,7 +67,9 @@ abstract final class AppTheme {
     useMaterial3: true,
     scaffoldBackgroundColor: AppColors.canvas,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: AppColors.coral,
+      seedColor: AppColors.primary,
+      primary: AppColors.primary,
+      secondary: AppColors.accent,
       surface: AppColors.surface,
       brightness: Brightness.light,
     ),
@@ -81,20 +89,31 @@ abstract final class AppTheme {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md), borderSide: const BorderSide(color: AppColors.stroke)),
       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md), borderSide: const BorderSide(color: AppColors.stroke)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md), borderSide: const BorderSide(color: AppColors.coral, width: 1.5)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.coral,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         minimumSize: const Size(48, 50),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 0,
         textStyle: const TextStyle(fontWeight: FontWeight.w900),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.primary,
+        side: const BorderSide(color: AppColors.stroke),
+        minimumSize: const Size(48, 50),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w800),
       ),
     ),
     navigationBarTheme: const NavigationBarThemeData(
       backgroundColor: AppColors.white,
-      indicatorColor: AppColors.peach,
+      indicatorColor: AppColors.mintStrong,
       height: 70,
       elevation: 0,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
