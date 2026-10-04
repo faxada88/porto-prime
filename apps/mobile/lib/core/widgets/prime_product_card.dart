@@ -27,10 +27,10 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: widget.onOpen,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        child: Ink(
+        child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -61,28 +61,6 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                               : const _Fallback(),
                         ),
                       ),
-                      if (qty > 0)
-                        Positioned(
-                          top: 7,
-                          right: 7,
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 240),
-                            transitionBuilder: (child, animation) => ScaleTransition(scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack), child: child),
-                            child: Container(
-                              key: ValueKey(qty),
-                              width: 28,
-                              height: 28,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: AppColors.stroke),
-                                boxShadow: AppShadows.soft,
-                              ),
-                              child: Text('$qty', style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w800)),
-                            ),
-                          ),
-                        ),
                     ],
                   ),
                 ),
@@ -119,7 +97,8 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                           Semantics(
                             button: true,
                             label: 'Adicionar ${p['name']}',
-                            child: InkWell(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
                               onTap: () {
                                 state.addProduct(id);
                                 setState(() => added = true);
@@ -127,8 +106,11 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                                   if (mounted) setState(() => added = false);
                                 });
                               },
-                              borderRadius: BorderRadius.circular(13),
-                              child: AnimatedContainer(
+                              child: AnimatedScale(
+                                scale: added ? 1.12 : 1,
+                                duration: const Duration(milliseconds: 220),
+                                curve: Curves.easeOutBack,
+                                child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 180),
                                 width: 38,
                                 height: 38,
@@ -146,6 +128,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                                     weight: 650,
                                   ),
                                 ),
+                              ),
                               ),
                             ),
                           ),
