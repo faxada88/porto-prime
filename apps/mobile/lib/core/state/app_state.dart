@@ -32,6 +32,7 @@ class AppState extends ChangeNotifier {
     required String role,
     String? businessName,
     String? document,
+    Map<String, dynamic>? profileData,
   }) async {
     final d = <String,dynamic>{
       'name': name,
@@ -41,6 +42,7 @@ class AppState extends ChangeNotifier {
       'role': role,
       if (businessName != null) 'businessName': businessName,
       if (document != null) 'document': document,
+      if (profileData != null) 'profileData': profileData,
     };
     loading = true;
     error = null;
