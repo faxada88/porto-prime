@@ -20,7 +20,89 @@ class _CartHeader extends StatelessWidget{const _CartHeader({required this.count
 
 class _Empty extends StatelessWidget{const _Empty();@override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.fromLTRB(24,42,24,32),decoration:BoxDecoration(gradient:const LinearGradient(begin:Alignment.topLeft,end:Alignment.bottomRight,colors:[Colors.white,Color(0xFFF1FBF7)]),borderRadius:BorderRadius.circular(32),border:Border.all(color:AppColors.stroke),boxShadow:AppShadows.soft),child:Column(children:[Stack(alignment:Alignment.center,children:[Container(width:112,height:112,decoration:const BoxDecoration(color:AppColors.mint,shape:BoxShape.circle)),Container(width:76,height:76,decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(25),boxShadow:AppShadows.soft),child:const Icon(Icons.shopping_cart_outlined,size:34,color:AppColors.primary))]),const SizedBox(height:23),const Text('Seu próximo momento\ncomeça aqui',textAlign:TextAlign.center,style:TextStyle(fontSize:24,height:1.08,fontWeight:FontWeight.w800,letterSpacing:-.7)),const SizedBox(height:9),const Text('Escolha bebidas, gelo e combos. A gente cuida do caminho até você.',textAlign:TextAlign.center,style:TextStyle(color:AppColors.muted,fontSize:11,height:1.5,fontWeight:FontWeight.w500)),const SizedBox(height:22),SizedBox(width:double.infinity,height:54,child:FilledButton.icon(onPressed:()=>AppNav.instance.go(1),icon:const Icon(Icons.explore_outlined,size:19),label:const Text('Explorar catálogo'))),const SizedBox(height:16),const Row(mainAxisAlignment:MainAxisAlignment.center,children:[Icon(Icons.bolt_rounded,color:AppColors.primary,size:16),SizedBox(width:5),Text('Rápido  •  gelado  •  seguro',style:TextStyle(color:AppColors.muted,fontSize:9.5,fontWeight:FontWeight.w700))]) ]));}
 
-class _Item extends StatelessWidget{const _Item({required this.id,required this.qty});final String id;final int qty;@override Widget build(BuildContext context){final s=AppState.instance,p=s.product(id);if(p==null)return const SizedBox();final price=double.tryParse(p['price'].toString())??0;return Container(margin:const EdgeInsets.only(bottom:10),padding:const EdgeInsets.all(11),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(22),border:Border.all(color:const Color(0xFFE8ECE8))),child:Row(children:[Container(width:68,height:68,clipBehavior:Clip.antiAlias,decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(18)),child:p['imageUrl']!=null?Image.network(p['imageUrl'],fit:BoxFit.cover,errorBuilder:(_,__,___)=>const Icon(Icons.local_drink_rounded)):const Icon(Icons.local_drink_rounded)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(p['name']??'',maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:13,fontWeight:FontWeight.w900)),const SizedBox(height:5),Text('R\$ '+price.toStringAsFixed(2).replaceAll('.',','),style:const TextStyle(color:AppColors.oceanDeep,fontSize:12,fontWeight:FontWeight.w900))])),Container(decoration:BoxDecoration(color:AppColors.canvas,borderRadius:BorderRadius.circular(14)),child:Row(children:[_q(Icons.remove_rounded,()=>s.changeQty(id,-1)),Text(qty.toString(),style:const TextStyle(fontSize:12,fontWeight:FontWeight.w900)),_q(Icons.add_rounded,()=>s.changeQty(id,1))]))]));}Widget _q(IconData i,VoidCallback tap)=>GestureDetector(behavior:HitTestBehavior.opaque,onTap:tap,child:Padding(padding:const EdgeInsets.all(9),child:Icon(i,size:16)));}
+class _Item extends StatelessWidget {
+  const _Item({required this.id, required this.qty});
+  final String id;
+  final int qty;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppState.instance;
+    final p = s.product(id);
+    if (p == null) return const SizedBox();
+    final price = double.tryParse(p['price'].toString()) ?? 0;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(11),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFE8ECE8)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 68,
+            height: 68,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(color: AppColors.mint, borderRadius: BorderRadius.circular(18)),
+            child: p['imageUrl'] != null
+                ? Image.network(p['imageUrl'], fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.local_drink_rounded))
+                : const Icon(Icons.local_drink_rounded),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(p['name'] ?? '', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 5),
+                Text('R\$ ${price.toStringAsFixed(2).replaceAll('.', ',')}', style: const TextStyle(color: AppColors.oceanDeep, fontSize: 12, fontWeight: FontWeight.w900)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => s.removeProduct(id),
+                child: Container(
+                  width: 34,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(color: AppColors.peach, borderRadius: BorderRadius.circular(12)),
+                  child: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.coralStrong),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(color: AppColors.canvas, borderRadius: BorderRadius.circular(14)),
+                child: Row(
+                  children: [
+                    _q(Icons.remove_rounded, () => s.changeQty(id, -1)),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: Text(qty.toString(), key: ValueKey(qty), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+                    ),
+                    _q(Icons.add_rounded, () => s.changeQty(id, 1)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _q(IconData icon, VoidCallback tap) => GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: tap,
+        child: Padding(padding: const EdgeInsets.all(9), child: Icon(icon, size: 16)),
+      );
+}
 
 class _Summary extends StatelessWidget{const _Summary({required this.total});final double total;@override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(23),border:Border.all(color:const Color(0xFFE8ECE8))),child:Column(children:[_row('Subtotal','R\$ '+total.toStringAsFixed(2).replaceAll('.',',')),const SizedBox(height:10),_row('Entrega','Calculada no pedido',muted:true),const Padding(padding:EdgeInsets.symmetric(vertical:13),child:Divider(height:1)),_row('Total','R\$ '+total.toStringAsFixed(2).replaceAll('.',','),strong:true)]));Widget _row(String a,String b,{bool muted=false,bool strong=false})=>Row(children:[Expanded(child:Text(a,style:TextStyle(fontSize:strong?15:11,fontWeight:strong?FontWeight.w900:FontWeight.w700,color:muted?AppColors.muted:AppColors.ink))),Text(b,style:TextStyle(fontSize:strong?18:11,fontWeight:strong?FontWeight.w900:FontWeight.w700,color:muted?AppColors.muted:AppColors.ink))]);}
 
