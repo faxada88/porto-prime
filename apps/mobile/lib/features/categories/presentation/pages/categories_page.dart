@@ -102,6 +102,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                                 : PrimeCategoryTile(
                                     name: name,
                                     selected: selected == name,
+                                    imageUrls: _categoryImages(s.products, name),
                                     compact: true,
                                     onTap: () => s.selectCatalogCategory(name),
                                   ),
@@ -340,4 +341,14 @@ void _details(BuildContext context, dynamic p) {
       ),
     ),
   );
+}
+
+
+List<String> _categoryImages(List<dynamic> products, String category) {
+  return products
+      .where((p) => (p['category']?['name'] ?? '').toString() == category)
+      .map((p) => (p['imageUrl'] ?? '').toString())
+      .where((url) => url.isNotEmpty)
+      .take(3)
+      .toList();
 }
