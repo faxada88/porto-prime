@@ -78,10 +78,10 @@ export class AuthService {
         role: data.role,
         status: pending ? UserStatus.PENDING : UserStatus.ACTIVE,
         customerProfile:
-          data.role === UserRole.CUSTOMER ? { create: {} } : undefined,
+          data.role === UserRole.CUSTOMER ? { create: { onboardingData: data.profileData ?? undefined } } : undefined,
         courierProfile:
           data.role === UserRole.COURIER
-            ? { create: { document: data.document?.trim() || null } }
+            ? { create: { document: data.document?.trim() || null, onboardingData: data.profileData ?? undefined } }
             : undefined,
         partnerProfile:
           data.role === UserRole.PARTNER
@@ -89,6 +89,7 @@ export class AuthService {
                 create: {
                   businessName: data.businessName!.trim(),
                   document: data.document?.trim() || null,
+                  onboardingData: data.profileData ?? undefined,
                 },
               }
             : undefined,
