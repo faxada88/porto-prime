@@ -211,7 +211,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
           ? TextCapitalization.none
           : TextCapitalization.words,
       autovalidateMode: AutovalidateMode.onUserInteraction,
-      onChanged: (value) { setState(() {}); _checkRemote(f.key,value); },
+      onChanged: (value) {
+        setState(() {
+          remoteError.remove(f.key);
+          checking[f.key] = false;
+        });
+        _checkRemote(f.key, value);
+      },
       validator: (v) {
         final value = v?.trim() ?? '';
         if (f.required && value.isEmpty) return 'Preencha este campo';
@@ -229,7 +235,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
         if (f.key == 'cpf' && digits.length != 11) return 'CPF incompleto';
         if (f.key == 'cnpj' && digits.length != 14) return 'CNPJ incompleto';
         if (f.key == 'cep' && digits.length != 8) return 'CEP incompleto';
-        if (remoteError[f.key] != null) return remoteError[f.key];
+        final remote = remoteError[f.key];
+        if (remote != null && remote.isNotEmpty) return remote;
         if (f.key == 'birthDate' && digits.length != 8) {
           return 'Informe a data completa';
         }
