@@ -341,7 +341,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   Future<void> _lookupCep(String value) async {
-    final digits=value.replaceAll(RegExp(r'\\D'),'');
+    final digits=value.replaceAll(RegExp(r'\D'),'');
     if(digits.length!=8)return;
     final ticket=(validationTicket['cepLookup']??0)+1;
     validationTicket['cepLookup']=ticket;
