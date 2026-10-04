@@ -180,7 +180,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
   String heading()=>step==0?'Conte um pouco\nsobre você':step==1?(customer?'Onde vamos\nentregar?':courier?'Sua moto e\nhabilitação':'Sobre o seu\nnegócio'):'Seu acesso\nPorto Prime';
   String sub()=>step==0?'Precisamos dos seus dados básicos para criar um perfil seguro.':step==1?(customer?'Cadastre seu endereço principal. Você poderá adicionar outros depois.':courier?'Essas informações ajudam nossa equipe a validar seu cadastro antes da liberação.':'Dados usados pela nossa equipe para analisar e aprovar sua parceria.'):'Finalize seu acesso. '+(customer?'Sua conta será liberada imediatamente.':'Depois do envio, nossa equipe fará a aprovação manual no painel administrativo.');
-  Widget field(_F f) => Padding(
+  Widget field(_F f) {
+    if (courier && const ['cnhCategory','vehicleType','vehicleBrand','vehicleModel'].contains(f.key)) return choiceField(f);
+    return Padding(
     padding: const EdgeInsets.only(bottom: 13),
     child: TextFormField(
       controller: ctl(f.key),
@@ -259,6 +261,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       ),
     ),
   );
+  }
 
   Future<void> _checkRemote(String key,String value) async {
     final field = key == 'cpf' ? 'cpf' : key == 'cnpj' ? 'cnpj' : key == 'email' ? 'email' : key == 'phone' ? 'phone' : null;
