@@ -1,28 +1,27 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/app_theme.dart';
 
 class _CategoryLook {
-  const _CategoryLook(this.icon, this.bg, this.accent);
-  final IconData icon;
+  const _CategoryLook(this.asset, this.bg);
+  final String asset;
   final Color bg;
-  final Color accent;
 }
 
 _CategoryLook _look(String name) {
   final n = name.toLowerCase();
-  if (n == 'todos') return const _CategoryLook(CupertinoIcons.square_grid_2x2_fill, Color(0xFFF1EDFF), Color(0xFF7867B7));
-  if (n.contains('cervej')) return const _CategoryLook(CupertinoIcons.cart_fill, Color(0xFFFFF1C9), Color(0xFFD99A22));
-  if (n.contains('vinh')) return const _CategoryLook(CupertinoIcons.drop_fill, Color(0xFFF9E8EF), Color(0xFFA95F7A));
-  if (n.contains('whisk') || n.contains('destil') || n.contains('vodk') || n.contains('gin')) return const _CategoryLook(CupertinoIcons.flame_fill, Color(0xFFFFE8D1), Color(0xFFB97535));
-  if (n.contains('energ')) return const _CategoryLook(CupertinoIcons.bolt_fill, Color(0xFFECE9FF), Color(0xFF7364BE));
-  if (n.contains('refriger') || n.contains('suco')) return const _CategoryLook(CupertinoIcons.cube_box_fill, Color(0xFFFFE8E0), Color(0xFFD87860));
-  if (n.contains('água') || n.contains('agua')) return const _CategoryLook(CupertinoIcons.drop_fill, Color(0xFFE4F5FA), Color(0xFF449CB6));
-  if (n.contains('gelo')) return const _CategoryLook(CupertinoIcons.snow, Color(0xFFEAF7FA), Color(0xFF5DA7BC));
-  if (n.contains('conveni')) return const _CategoryLook(CupertinoIcons.bag_fill, Color(0xFFE9F6EB), Color(0xFF609968));
-  if (n.contains('combo') || n.contains('kit')) return const _CategoryLook(CupertinoIcons.gift_fill, Color(0xFFFFECD8), Color(0xFFC98242));
-  return const _CategoryLook(CupertinoIcons.bag_fill, Color(0xFFF3F0EA), Color(0xFF80796E));
+  if (n == 'todos') return const _CategoryLook('assets/category_icons/all.svg', Color(0xFFF2EEFF));
+  if (n.contains('cervej')) return const _CategoryLook('assets/category_icons/beer.svg', Color(0xFFFFF3D2));
+  if (n.contains('vinh')) return const _CategoryLook('assets/category_icons/wine.svg', Color(0xFFF9EAF0));
+  if (n.contains('whisk') || n.contains('destil') || n.contains('vodk') || n.contains('gin')) return const _CategoryLook('assets/category_icons/spirits.svg', Color(0xFFFFEBD6));
+  if (n.contains('energ')) return const _CategoryLook('assets/category_icons/energy.svg', Color(0xFFEFECFF));
+  if (n.contains('refriger') || n.contains('suco')) return const _CategoryLook('assets/category_icons/softdrink.svg', Color(0xFFFFECE5));
+  if (n.contains('água') || n.contains('agua')) return const _CategoryLook('assets/category_icons/water.svg', Color(0xFFE8F7FB));
+  if (n.contains('gelo')) return const _CategoryLook('assets/category_icons/ice.svg', Color(0xFFEBF8FB));
+  if (n.contains('conveni')) return const _CategoryLook('assets/category_icons/convenience.svg', Color(0xFFECF7EE));
+  if (n.contains('combo') || n.contains('kit')) return const _CategoryLook('assets/category_icons/combo.svg', Color(0xFFFFEEDC));
+  return const _CategoryLook('assets/category_icons/all.svg', Color(0xFFF4F1EC));
 }
 
 class PrimeCategoryTile extends StatefulWidget {
@@ -48,6 +47,10 @@ class PrimeCategoryTile extends StatefulWidget {
 class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
   bool _pressed = false;
 
+  void _release() {
+    if (_pressed && mounted) setState(() => _pressed = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final look = _look(widget.name);
@@ -58,17 +61,16 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTapDown: (_) => setState(() => _pressed = true),
-        onTapCancel: () => setState(() => _pressed = false),
+        onTapCancel: _release,
         onTapUp: (_) {
-          setState(() => _pressed = false);
+          _release();
           widget.onTap();
         },
         child: AnimatedScale(
-          scale: _pressed ? .965 : 1,
-          duration: const Duration(milliseconds: 90),
-          curve: Curves.easeOut,
+          scale: _pressed ? .97 : 1,
+          duration: const Duration(milliseconds: 85),
+          curve: Curves.easeOutCubic,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(
                 child: Container(
@@ -78,25 +80,15 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                     borderRadius: BorderRadius.circular(widget.compact ? 20 : 24),
                     border: Border.all(
                       color: widget.selected
-                          ? look.accent.withValues(alpha: .34)
-                          : Colors.white.withValues(alpha: .9),
+                          ? AppColors.ink.withValues(alpha: .12)
+                          : Colors.white.withValues(alpha: .92),
                     ),
                   ),
-                  child: Center(
-                    child: Container(
-                      width: widget.compact ? 48 : 60,
-                      height: widget.compact ? 48 : 60,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: .74),
-                        borderRadius: BorderRadius.circular(widget.compact ? 16 : 19),
-                      ),
-                      child: Icon(
-                        look.icon,
-                        size: widget.compact ? 27 : 33,
-                        color: look.accent,
-                      ),
-                    ),
+                  padding: EdgeInsets.all(widget.compact ? 10 : 13),
+                  child: SvgPicture.asset(
+                    look.asset,
+                    fit: BoxFit.contain,
+                    semanticsLabel: widget.name,
                   ),
                 ),
               ),
