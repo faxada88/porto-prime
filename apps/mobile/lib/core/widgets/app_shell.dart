@@ -32,7 +32,7 @@ class _AppShellState extends State<AppShell> {
           child:AnimatedBuilder(animation:AppState.instance,builder:(_,__)=>Row(children:[
             _item(0,Symbols.home_rounded,'Início',index),
             _item(1,Symbols.explore_rounded,'Descobrir',index),
-            _item(2,Symbols.shopping_bag_rounded,'Sacola',index,badge:AppState.instance.cartCount),
+            _item(2,Symbols.shopping_cart_rounded,'Carrinho',index,badge:AppState.instance.cartCount),
             _item(3,Symbols.person_rounded,'Perfil',index),
           ])),
         ),
@@ -52,7 +52,7 @@ class _AppShellState extends State<AppShell> {
             const SizedBox(height:3),
             Text(label,style:TextStyle(fontSize:10,fontWeight:FontWeight.w800,color:selected?AppColors.primary:AppColors.muted)),
           ]),
-          if(badge>0) Positioned(top:3,right:12,child:Container(constraints:const BoxConstraints(minWidth:18,minHeight:18),padding:const EdgeInsets.symmetric(horizontal:5),decoration:BoxDecoration(color:AppColors.orange,borderRadius:BorderRadius.circular(20),border:Border.all(color:Colors.white,width:2)),alignment:Alignment.center,child:Text(badge>9?'9+':'$badge',style:const TextStyle(color:Colors.white,fontSize:8,fontWeight:FontWeight.w900)))),
+          if(badge>0) Positioned(top:1,right:10,child:AnimatedSwitcher(duration:const Duration(milliseconds:260),transitionBuilder:(child,animation)=>ScaleTransition(scale:CurvedAnimation(parent:animation,curve:Curves.easeOutBack),child:child),child:Container(key:ValueKey(badge),constraints:const BoxConstraints(minWidth:19,minHeight:19),padding:const EdgeInsets.symmetric(horizontal:5),decoration:BoxDecoration(color:AppColors.orange,borderRadius:BorderRadius.circular(20),border:Border.all(color:Colors.white,width:2),boxShadow:const [BoxShadow(color:Color(0x22000000),blurRadius:7,offset:Offset(0,3))]),alignment:Alignment.center,child:Text(badge>9?'9+':'$badge',style:const TextStyle(color:Colors.white,fontSize:8,fontWeight:FontWeight.w900))))),
         ]),
       ),
     ));
