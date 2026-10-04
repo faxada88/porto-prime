@@ -89,6 +89,11 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                     look.asset,
                     fit: BoxFit.contain,
                     semanticsLabel: widget.name,
+                    placeholderBuilder: (_) => Icon(
+                      Icons.category_rounded,
+                      size: widget.compact ? 32 : 40,
+                      color: AppColors.oceanDeep,
+                    ),
                   ),
                 ),
               ),
