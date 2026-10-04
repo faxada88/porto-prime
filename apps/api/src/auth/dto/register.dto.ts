@@ -8,6 +8,6 @@ export class RegisterDto {
   @IsString() @MinLength(8) password!: string;
   @IsEnum(UserRole) role!: UserRole;
   @IsOptional() @IsString() businessName?: string;
-  @IsString() @IsNotEmpty() document!: string;
+  @IsOptional() @IsString() document?: string;
   @IsOptional() @IsObject() profileData?: Record<string, unknown>;
 }
