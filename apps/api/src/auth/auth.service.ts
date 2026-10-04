@@ -127,12 +127,15 @@ export class AuthService {
 
     const email = data.email.trim().toLowerCase();
     const phone = this.digits(data.phone);
-    const document = this.normalizeDocument(data.document);
+    const document = data.document ? this.normalizeDocument(data.document) : undefined;
     const documentType = data.role === UserRole.PARTNER ? 'CNPJ' : 'CPF';
-    const documentValid = documentType === 'CNPJ'
-      ? this.validCnpj(document)
-      : this.validCpf(document);
-    if (!documentValid) throw new BadRequestException(documentType + ' inválido');
+    if (data.role !== UserRole.CUSTOMER) {
+      if (!document) throw new BadRequestException(documentType + ' obrigatório');
+      const documentValid = documentType === 'CNPJ'
+        ? this.validCnpj(document)
+        : this.validCpf(document);
+      if (!documentValid) throw new BadRequestException(documentType + ' inválido');
+    }
     if (phone.length !== 11) throw new BadRequestException('Telefone inválido');
 
     const duplicate = await this.prisma.user.findFirst({
@@ -140,7 +143,7 @@ export class AuthService {
         OR: [
           { email },
           { phone },
-          { document },
+          ...(document ? [{ document }] : []),
         ],
       },
       select: { email: true, phone: true, document: true },
@@ -149,7 +152,7 @@ export class AuthService {
     if (duplicate?.email === email) {
       throw new ConflictException('Este e-mail já está cadastrado. Entre na sua conta ou use outro e-mail.');
     }
-    if (duplicate?.document === document) {
+    if (document && duplicate?.document === document) {
       throw new ConflictException('Este ' + documentType + ' já possui cadastro');
     }
     if (duplicate?.phone === phone) {
