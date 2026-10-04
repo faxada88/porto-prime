@@ -33,6 +33,68 @@ export class AuthService {
     return candidate.length === expected.length && timingSafeEqual(candidate, expected);
   }
 
+  private digits(value?: string) {
+    return (value ?? '').replace(/\D/g, '');
+  }
+
+  private normalizeDocument(value?: string) {
+    return this.digits(value);
+  }
+
+  private validCpf(value: string) {
+    const cpf = this.digits(value);
+    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+    const calc = (size: number) => {
+      let sum = 0;
+      for (let i = 0; i < size; i++) sum += Number(cpf[i]) * (size + 1 - i);
+      const rest = (sum * 10) % 11;
+      return rest === 10 ? 0 : rest;
+    };
+    return calc(9) === Number(cpf[9]) && calc(10) === Number(cpf[10]);
+  }
+
+  private validCnpj(value: string) {
+    const cnpj = this.digits(value);
+    if (cnpj.length !== 14 || /^(\d)\1{13}$/.test(cnpj)) return false;
+    const digit = (base: string) => {
+      let factor = base.length - 7, sum = 0;
+      for (const n of base) {
+        sum += Number(n) * factor--;
+        if (factor < 2) factor = 9;
+      }
+      const rest = sum % 11;
+      return rest < 2 ? 0 : 11 - rest;
+    };
+    return digit(cnpj.slice(0, 12)) === Number(cnpj[12]) &&
+      digit(cnpj.slice(0, 13)) === Number(cnpj[13]);
+  }
+
+  async availability(field: string, raw: string) {
+    const value = raw?.trim() ?? '';
+    if (!['email', 'phone', 'cpf', 'cnpj'].includes(field)) {
+      throw new BadRequestException('Campo de verificação inválido');
+    }
+    let normalized = value;
+    let valid = true;
+    if (field === 'email') {
+      normalized = value.toLowerCase();
+      valid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(normalized);
+    } else if (field === 'phone') {
+      normalized = this.digits(value);
+      valid = normalized.length === 11;
+    } else {
+      normalized = this.normalizeDocument(value);
+      valid = field === 'cpf' ? this.validCpf(normalized) : this.validCnpj(normalized);
+    }
+    if (!valid) return { valid: false, available: false };
+    const exists = field === 'email'
+      ? await this.prisma.user.findUnique({ where: { email: normalized }, select: { id: true } })
+      : field === 'phone'
+        ? await this.prisma.user.findUnique({ where: { phone: normalized }, select: { id: true } })
+        : await this.prisma.user.findUnique({ where: { document: normalized }, select: { id: true } });
+    return { valid: true, available: !exists };
+  }
+
   private tokenHash(token: string) {
     return createHash('sha256').update(token).digest('hex');
   }
@@ -64,22 +126,33 @@ export class AuthService {
     }
 
     const email = data.email.trim().toLowerCase();
-    const phone = data.phone?.trim() || null;
+    const phone = this.digits(data.phone);
+    const document = this.normalizeDocument(data.document);
+    const documentType = data.role === UserRole.PARTNER ? 'CNPJ' : 'CPF';
+    const documentValid = documentType === 'CNPJ'
+      ? this.validCnpj(document)
+      : this.validCpf(document);
+    if (!documentValid) throw new BadRequestException(documentType + ' inválido');
+    if (phone.length !== 11) throw new BadRequestException('Telefone inválido');
 
     const duplicate = await this.prisma.user.findFirst({
       where: {
         OR: [
           { email },
-          ...(phone ? [{ phone }] : []),
+          { phone },
+          { document },
         ],
       },
-      select: { email: true, phone: true },
+      select: { email: true, phone: true, document: true },
     });
 
     if (duplicate?.email === email) {
       throw new ConflictException('Este e-mail já está cadastrado. Entre na sua conta ou use outro e-mail.');
     }
-    if (phone && duplicate?.phone === phone) {
+    if (duplicate?.document === document) {
+      throw new ConflictException('Este ' + documentType + ' já possui cadastro');
+    }
+    if (duplicate?.phone === phone) {
       throw new ConflictException('Este celular/WhatsApp já está cadastrado. Entre na sua conta ou use outro número.');
     }
 
@@ -93,6 +166,7 @@ export class AuthService {
         name: data.name.trim(),
         email,
         phone,
+        document,
         passwordHash: this.hashPassword(data.password),
         role: data.role,
         status: pending ? UserStatus.PENDING : UserStatus.ACTIVE,
@@ -100,14 +174,14 @@ export class AuthService {
           data.role === UserRole.CUSTOMER ? { create: { onboardingData } } : undefined,
         courierProfile:
           data.role === UserRole.COURIER
-            ? { create: { document: data.document?.trim() || null, onboardingData } }
+            ? { create: { document, onboardingData } }
             : undefined,
         partnerProfile:
           data.role === UserRole.PARTNER
             ? {
                 create: {
                   businessName: data.businessName!.trim(),
-                  document: data.document?.trim() || null,
+                  document,
                   onboardingData,
                 },
               }
@@ -125,6 +199,9 @@ export class AuthService {
 
     if (!user || !this.verifyPassword(data.password, user.passwordHash)) {
       throw new UnauthorizedException('E-mail ou senha inválidos');
+    }
+    if (user.status === UserStatus.PENDING) {
+      throw new UnauthorizedException('Cadastro aguardando aprovação administrativa');
     }
     if (user.status === UserStatus.BLOCKED || user.status === UserStatus.SUSPENDED) {
       throw new UnauthorizedException('Conta indisponível');
