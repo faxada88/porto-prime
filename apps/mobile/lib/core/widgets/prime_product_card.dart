@@ -65,19 +65,21 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                         Positioned(
                           top: 7,
                           right: 7,
-                          child: AnimatedScale(
-                            scale: 1,
-                            duration: const Duration(milliseconds: 180),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 240),
+                            transitionBuilder: (child, animation) => ScaleTransition(scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack), child: child),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                              key: ValueKey(qty),
+                              width: 28,
+                              height: 28,
+                              alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: AppColors.oceanDeep,
-                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: AppColors.stroke),
+                                boxShadow: AppShadows.soft,
                               ),
-                              child: Text(
-                                '$qty na sacola',
-                                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
-                              ),
+                              child: Text('$qty', style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w800)),
                             ),
                           ),
                         ),
