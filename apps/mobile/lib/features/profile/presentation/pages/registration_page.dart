@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -15,10 +16,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
   bool get customer=>widget.role=='CUSTOMER'; bool get courier=>widget.role=='COURIER';
   String get title=>customer?'Cliente':courier?'Motoboy':'Parceiro';
   List<List<_F>> get groups=>[
-    [const _F('name','Nome completo',Icons.person_outline_rounded),const _F('cpf','CPF',Icons.badge_outlined,keyboard:TextInputType.number),const _F('birthDate','Data de nascimento',Icons.cake_outlined,hint:'DD/MM/AAAA'),const _F('phone','Celular / WhatsApp',Icons.phone_outlined,keyboard:TextInputType.phone)],
-    if(courier)[const _F('cnh','CNH',Icons.credit_card_outlined),const _F('cnhCategory','Categoria da CNH',Icons.fact_check_outlined,hint:'Ex.: A / AB'),const _F('vehicleModel','Modelo da moto',Icons.two_wheeler_outlined),const _F('vehiclePlate','Placa',Icons.pin_outlined)]
-    else if(!customer)[const _F('businessName','Nome do estabelecimento',Icons.storefront_outlined),const _F('legalName','Razão social',Icons.business_outlined),const _F('cnpj','CNPJ / documento',Icons.badge_outlined,keyboard:TextInputType.number),const _F('businessType','Tipo de estabelecimento',Icons.category_outlined,hint:'Hotel, pousada, receptivo...')]
-    else [const _F('cep','CEP',Icons.local_post_office_outlined,keyboard:TextInputType.number),const _F('street','Rua / avenida',Icons.route_outlined),const _F('number','Número',Icons.numbers_outlined),const _F('neighborhood','Bairro',Icons.map_outlined),const _F('complement','Complemento',Icons.home_work_outlined,required:false)],
+    [const _F('name','Nome completo',Icons.person_outline_rounded),const _F('cpf','CPF',Icons.badge_outlined,keyboard:TextInputType.number,format:_Format.cpf),const _F('birthDate','Data de nascimento',Icons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date),const _F('phone','Celular / WhatsApp',Icons.phone_outlined,keyboard:TextInputType.phone,format:_Format.phone)],
+    if(courier)[const _F('cnh','CNH',Icons.credit_card_outlined),const _F('cnhCategory','Categoria da CNH',Icons.fact_check_outlined,hint:'Ex.: A / AB'),const _F('vehicleModel','Modelo da moto',Icons.two_wheeler_outlined),const _F('vehiclePlate','Placa',Icons.pin_outlined,format:_Format.plate)]
+    else if(!customer)[const _F('businessName','Nome do estabelecimento',Icons.storefront_outlined),const _F('legalName','Razão social',Icons.business_outlined),const _F('cnpj','CNPJ / documento',Icons.badge_outlined,keyboard:TextInputType.number,format:_Format.cnpj),const _F('businessType','Tipo de estabelecimento',Icons.category_outlined,hint:'Hotel, pousada, receptivo...')]
+    else [const _F('cep','CEP',Icons.local_post_office_outlined,keyboard:TextInputType.number,format:_Format.cep),const _F('street','Rua / avenida',Icons.route_outlined),const _F('number','Número',Icons.numbers_outlined),const _F('neighborhood','Bairro',Icons.map_outlined),const _F('complement','Complemento',Icons.home_work_outlined,required:false)],
     [const _F('email','E-mail',Icons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',Icons.lock_outline_rounded,secret:true,hint:'Mínimo de 8 caracteres'),if(courier)const _F('pixKey','Chave PIX para recebimentos',Icons.account_balance_wallet_outlined,required:false),if(!customer&&!courier)const _F('contactRole','Seu cargo / função',Icons.work_outline_rounded,required:false)],
   ];
   @override void dispose(){for(final x in c.values)x.dispose();super.dispose();}
@@ -174,9 +175,105 @@ class _RegistrationPageState extends State<RegistrationPage> {
     child:TextFormField(
       controller:ctl(f.key),
       keyboardType:f.keyboard,
+      inputFormatters:_formatters(f.format),
       obscureText:f.secret&&obscure,
       textCapitalization:f.keyboard==TextInputType.emailAddress?TextCapitalization.none:TextCapitalization.words,
-      validator:(v){if(f.required&&(v==null||v.trim().isEmpty))return 'Preencha este campo';if(f.key=='email'&&v!=null&&!v.contains('@'))return 'Informe um e-mail válido';if(f.key=='password'&&(v?.length??0)<8)return 'Use pelo menos 8 caracteres';return null;},
+      validator:(v){
+        final value=v?.trim()??'';
+        if(f.required&&value.isEmpty){return 'Preencha este campo';}
+        final digits=value.replaceAll(RegExp(r'\\D'),'');
+        if(f.key=='email'&&value.isNotEmpty&&!RegExp(r'^[^@\\s]+@[^@\\s]+\\.[^@\\s]+
+      decoration:InputDecoration(
+        labelText:f.label,
+        hintText:f.hint,
+        filled:true,
+        fillColor:AppColors.canvas,
+        prefixIcon:Padding(padding:const EdgeInsets.all(11),child:Container(width:38,height:38,decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(12)),child:Icon(f.icon,color:AppColors.primary,size:20))),
+        prefixIconConstraints:const BoxConstraints(minWidth:62,minHeight:58),
+        suffixIcon:f.secret?IconButton(onPressed:()=>setState(()=>obscure=!obscure),icon:Icon(obscure?Icons.visibility_outlined:Icons.visibility_off_outlined,size:20)):null,
+        border:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:BorderSide.none),
+        enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:const BorderSide(color:AppColors.stroke)),
+        focusedBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:const BorderSide(color:AppColors.primary,width:1.5)),
+      ),
+    ),
+  );
+  List<TextInputFormatter>? _formatters(_Format format){
+    switch(format){
+      case _Format.none:return null;
+      case _Format.cpf:return [FilteringTextInputFormatter.digitsOnly,LengthLimitingTextInputFormatter(11),_MaskFormatter('###.###.###-##')];
+      case _Format.cnpj:return [FilteringTextInputFormatter.digitsOnly,LengthLimitingTextInputFormatter(14),_MaskFormatter('##.###.###/####-##')];
+      case _Format.phone:return [FilteringTextInputFormatter.digitsOnly,LengthLimitingTextInputFormatter(11),_MaskFormatter('(##) #####-####')];
+      case _Format.cep:return [FilteringTextInputFormatter.digitsOnly,LengthLimitingTextInputFormatter(8),_MaskFormatter('#####-###')];
+      case _Format.date:return [FilteringTextInputFormatter.digitsOnly,LengthLimitingTextInputFormatter(8),_MaskFormatter('##/##/####')];
+      case _Format.plate:return [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),LengthLimitingTextInputFormatter(7),_UpperFormatter()];
+    }
+  }
+  Future<void> next()async{if(!(form.currentState?.validate()??false))return;if(step<groups.length-1){setState(()=>step++);return;}if(!accepted){await _showInfo('Confirme para continuar','Para proteger sua conta, confirme que os dados são verdadeiros e que você aceita os termos e a política de privacidade.',Icons.shield_outlined);return;}final data=<String,dynamic>{for(final e in c.entries)e.key:e.value.text.trim()};try{await AppState.instance.register(name:data['name']??'',email:data['email']??'',phone:data['phone']??'',password:data['password']??'',role:widget.role,document:courier?data['cpf']:customer?data['cpf']:data['cnpj'],businessName:!customer&&!courier?data['businessName']:null,profileData:{...data}..remove('password'));if(!mounted)return;if(customer){if((data['street']??'').toString().isNotEmpty){try{await AppState.instance.addAddress({'label':'Casa','street':data['street'],'number':data['number'],'complement':data['complement'],'neighborhood':data['neighborhood'],'city':'Porto Seguro','state':'BA','postalCode':data['cep'],'isDefault':true});}catch(_){}}if(mounted)Navigator.of(context).pop();}else{await _showInfo('Cadastro enviado','Recebemos seu cadastro de $title. Agora nossa equipe fará a análise. Assim que for aprovado, seu acesso operacional será liberado.',Icons.verified_rounded);if(mounted)Navigator.of(context).pop();}}catch(e){if(mounted)await _showRegistrationError(e.toString().replaceFirst('Exception: ',''));}}
+  Future<void> _showInfo(String title,String message,IconData icon) async {
+    await showDialog<void>(context:context,barrierDismissible:false,barrierColor:Colors.black.withValues(alpha:.42),builder:(d)=>Dialog(backgroundColor:Colors.transparent,insetPadding:const EdgeInsets.symmetric(horizontal:24),child:Container(padding:const EdgeInsets.fromLTRB(22,24,22,20),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(30),boxShadow:AppShadows.elevated),child:Column(mainAxisSize:MainAxisSize.min,children:[
+      Container(width:66,height:66,decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(23)),child:Icon(icon,color:AppColors.oceanDeep,size:31)),
+      const SizedBox(height:18),Text(title,textAlign:TextAlign.center,style:const TextStyle(fontSize:22,fontWeight:FontWeight.w900,letterSpacing:-.5)),
+      const SizedBox(height:9),Text(message,textAlign:TextAlign.center,style:const TextStyle(fontSize:11.5,height:1.5,color:AppColors.muted,fontWeight:FontWeight.w600)),
+      const SizedBox(height:20),SizedBox(width:double.infinity,height:52,child:FilledButton(onPressed:()=>Navigator.pop(d),child:const Text('Entendi',style:TextStyle(fontWeight:FontWeight.w900)))),
+    ]))));
+  }
+  Future<void> _showRegistrationError(String raw) async {
+    final lower=raw.toLowerCase();
+    final phone=lower.contains('celular')||lower.contains('telefone')||lower.contains('whatsapp')||lower.contains('phone');
+    final email=lower.contains('e-mail')||lower.contains('email');
+    final duplicate=lower.contains('cadastrad')||lower.contains('unique')||lower.contains('duplic');
+    final title=phone&&duplicate?'Telefone já cadastrado':email&&duplicate?'E-mail já cadastrado':'Não foi possível criar sua conta';
+    final message=phone&&duplicate
+      ?'Este número já está vinculado a uma conta Porto Prime. Use outro celular ou entre com a conta existente.'
+      :email&&duplicate
+        ?'Este e-mail já está vinculado a uma conta Porto Prime. Use outro endereço ou entre com a conta existente.'
+        :raw;
+    await showDialog<void>(
+      context:context,
+      barrierColor:Colors.black.withValues(alpha:.42),
+      builder:(d)=>Dialog(
+        backgroundColor:Colors.transparent,
+        insetPadding:const EdgeInsets.symmetric(horizontal:24),
+        child:Container(
+          padding:const EdgeInsets.fromLTRB(22,22,22,20),
+          decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(30),boxShadow:AppShadows.elevated),
+          child:Column(mainAxisSize:MainAxisSize.min,children:[
+            Container(width:64,height:64,decoration:BoxDecoration(color:AppColors.peach,borderRadius:BorderRadius.circular(22)),child:const Icon(Icons.priority_high_rounded,color:AppColors.coral,size:31)),
+            const SizedBox(height:18),
+            Text(title,textAlign:TextAlign.center,style:const TextStyle(fontSize:22,height:1.05,fontWeight:FontWeight.w900,letterSpacing:-.5)),
+            const SizedBox(height:9),
+            Text(message,textAlign:TextAlign.center,style:const TextStyle(fontSize:11.5,height:1.5,color:AppColors.muted,fontWeight:FontWeight.w600)),
+            const SizedBox(height:20),
+            SizedBox(width:double.infinity,height:52,child:FilledButton(onPressed:()=>Navigator.pop(d),style:FilledButton.styleFrom(shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(17))),child:const Text('Corrigir meus dados',style:TextStyle(fontWeight:FontWeight.w900)))),
+            const SizedBox(height:6),
+            TextButton(onPressed:(){Navigator.pop(d);Navigator.pop(context);},child:const Text('Já tenho uma conta',style:TextStyle(color:AppColors.muted,fontWeight:FontWeight.w800))),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+enum _Format{none,cpf,cnpj,phone,cep,date,plate}
+class _F{const _F(this.key,this.label,this.icon,{this.hint,this.keyboard,this.secret=false,this.required=true,this.format=_Format.none});final String key,label;final IconData icon;final String? hint;final TextInputType? keyboard;final bool secret,required;final _Format format;}
+class _MaskFormatter extends TextInputFormatter{
+  _MaskFormatter(this.mask);final String mask;
+  @override TextEditingValue formatEditUpdate(TextEditingValue oldValue,TextEditingValue newValue){
+    final digits=newValue.text.replaceAll(RegExp(r'\\D'),'');
+    final out=StringBuffer();var i=0;
+    for(var m=0;m<mask.length&&i<digits.length;m++){if(mask[m]=='#'){out.write(digits[i++]);}else{out.write(mask[m]);}}
+    final text=out.toString();return TextEditingValue(text:text,selection:TextSelection.collapsed(offset:text.length));
+  }
+}
+class _UpperFormatter extends TextInputFormatter{@override TextEditingValue formatEditUpdate(TextEditingValue oldValue,TextEditingValue newValue){final text=newValue.text.toUpperCase();return TextEditingValue(text:text,selection:TextSelection.collapsed(offset:text.length));}}
+).hasMatch(value)){return 'Informe um e-mail válido';}
+        if(f.key=='password'&&value.length<8){return 'Use pelo menos 8 caracteres';}
+        if(f.key=='phone'&&digits.length!=11){return 'Informe um celular com DDD';}
+        if(f.key=='cpf'&&digits.length!=11){return 'CPF incompleto';}
+        if(f.key=='cnpj'&&digits.length!=14){return 'CNPJ incompleto';}
+        if(f.key=='cep'&&digits.length!=8){return 'CEP incompleto';}
+        if(f.key=='birthDate'&&digits.length!=8){return 'Informe a data completa';}
+        return null;
+      },
       decoration:InputDecoration(
         labelText:f.label,
         hintText:f.hint,
