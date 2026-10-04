@@ -76,6 +76,7 @@ class HomePage extends StatelessWidget {
                                   child: PrimeCategoryTile(
                                     name: name,
                                     compact: true,
+                                    imageUrls: _categoryImages(s.products, name),
                                     onTap: () {
                                       s.selectCatalogCategory(name);
                                       AppNav.instance.go(1);
@@ -184,7 +185,7 @@ class _Header extends StatelessWidget {
           width: 45,
           height: 45,
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), border: Border.all(color: AppColors.stroke), boxShadow: AppShadows.soft),
-          child: Icon(logged ? Symbols.person_rounded : Symbols.person_rounded, color: AppColors.oceanDeep, fill: logged ? 1 : 0),
+          child: Icon(logged ? Symbols.person_rounded : Symbols.person_rounded, color: AppColors.coral, fill: logged ? 1 : 0),
         ),
       ),
     ],
@@ -206,7 +207,7 @@ class _Search extends StatelessWidget {
           Icon(Symbols.search_rounded, size: 23, color: AppColors.ink),
           SizedBox(width: 10),
           Expanded(child: Text('O que vai gelado hoje?', style: TextStyle(fontSize: 12, color: AppColors.muted, fontWeight: FontWeight.w600))),
-          Icon(Symbols.tune_rounded, size: 20, color: AppColors.oceanDeep),
+          Icon(Symbols.tune_rounded, size: 20, color: AppColors.coral),
         ],
       ),
     ),
@@ -246,7 +247,7 @@ class _Hero extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
-        gradient: const LinearGradient(colors: [Color(0xFF063D38), Color(0xFF008A7C)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        gradient: const LinearGradient(colors: [Color(0xFFFF354B), Color(0xFFFF7A3D)], begin: Alignment.topLeft, end: Alignment.bottomRight),
         boxShadow: AppShadows.elevated,
       ),
       child: Stack(
@@ -389,3 +390,13 @@ String _status(String s) => switch (s) {
   'DELIVERED' => 'Entregue',
   _ => s,
 };
+
+
+List<String> _categoryImages(List<dynamic> products, String category) {
+  return products
+      .where((p) => (p['category']?['name'] ?? '').toString() == category)
+      .map((p) => (p['imageUrl'] ?? '').toString())
+      .where((url) => url.isNotEmpty)
+      .take(3)
+      .toList();
+}
