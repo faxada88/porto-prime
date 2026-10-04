@@ -24,6 +24,11 @@ class AppState extends ChangeNotifier {
   Future<void> bootstrap()async{await loadProducts();if(loggedIn&&isCustomer){await Future.wait([loadAddresses(),loadOrders(),loadActiveOrder()]);}}
 
   Future<void> loadProducts()async{try{products=List<dynamic>.from(await api.request('GET','/products'));notifyListeners();}catch(e){error=e.toString();notifyListeners();}}
+  Future<Map<String,dynamic>> lookupPostalCode(String cep) async {
+    final q=Uri(queryParameters:{'cep':cep}).query;
+    return Map<String,dynamic>.from(await api.request('GET','/auth/postal-code?$q'));
+  }
+
   Future<Map<String,dynamic>> checkAvailability(String field,String value) async {
     final q=Uri(queryParameters:{'field':field,'value':value}).query;
     return Map<String,dynamic>.from(await api.request('GET','/auth/availability?$q'));
