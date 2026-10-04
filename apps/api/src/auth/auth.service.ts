@@ -161,7 +161,9 @@ export class AuthService {
       ? (data.profileData as Prisma.InputJsonObject)
       : undefined;
 
-    const user = await this.prisma.user.create({
+    let user;
+    try {
+      user = await this.prisma.user.create({
       data: {
         name: data.name.trim(),
         email,
@@ -187,7 +189,13 @@ export class AuthService {
               }
             : undefined,
       },
-    });
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new ConflictException('E-mail, telefone ou documento já cadastrado');
+      }
+      throw error;
+    }
 
     return this.publicUser(user);
   }
