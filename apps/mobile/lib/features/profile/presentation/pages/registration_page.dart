@@ -78,7 +78,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 child: SingleChildScrollView(
                   key: ValueKey(step),
                   padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
-                  child: Form(
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(color: AppColors.stroke),
+                      boxShadow: AppShadows.soft,
+                    ),
+                    child: Form(
                     key: form,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,6 +135,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       ],
                     ),
                   ),
+                  ),
                 ),
               ),
             ),
@@ -160,7 +169,63 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
   String heading()=>step==0?'Conte um pouco\nsobre você':step==1?(customer?'Onde vamos\nentregar?':courier?'Sua moto e\nhabilitação':'Sobre o seu\nnegócio'):'Seu acesso\nPorto Prime';
   String sub()=>step==0?'Precisamos dos seus dados básicos para criar um perfil seguro.':step==1?(customer?'Cadastre seu endereço principal. Você poderá adicionar outros depois.':courier?'Essas informações ajudam nossa equipe a validar seu cadastro antes da liberação.':'Dados usados pela nossa equipe para analisar e aprovar sua parceria.'):'Finalize seu acesso. '+(customer?'Sua conta será liberada imediatamente.':'Depois do envio, nossa equipe fará a aprovação manual no painel administrativo.');
-  Widget field(_F f)=>Padding(padding:const EdgeInsets.only(bottom:12),child:TextFormField(controller:ctl(f.key),keyboardType:f.keyboard,obscureText:f.secret&&obscure,textCapitalization:f.keyboard==TextInputType.emailAddress?TextCapitalization.none:TextCapitalization.words,validator:(v){if(f.required&&(v==null||v.trim().isEmpty))return 'Preencha este campo';if(f.key=='email'&&v!=null&&!v.contains('@'))return 'Informe um e-mail válido';if(f.key=='password'&&(v?.length??0)<8)return 'Use pelo menos 8 caracteres';return null;},decoration:InputDecoration(labelText:f.label,hintText:f.hint,prefixIcon:Icon(f.icon,color:AppColors.primary,size:21),suffixIcon:f.secret?IconButton(onPressed:()=>setState(()=>obscure=!obscure),icon:Icon(obscure?Icons.visibility_outlined:Icons.visibility_off_outlined,size:20)):null)));
-  Future<void> next()async{if(!(form.currentState?.validate()??false))return;if(step<groups.length-1){setState(()=>step++);return;}if(!accepted){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Confirme os termos para continuar.')));return;}final data=<String,dynamic>{for(final e in c.entries)e.key:e.value.text.trim()};try{await AppState.instance.register(name:data['name']??'',email:data['email']??'',phone:data['phone']??'',password:data['password']??'',role:widget.role,document:courier?data['cpf']:customer?data['cpf']:data['cnpj'],businessName:!customer&&!courier?data['businessName']:null,profileData:{...data}..remove('password'));if(!mounted)return;if(customer){if((data['street']??'').toString().isNotEmpty){try{await AppState.instance.addAddress({'label':'Casa','street':data['street'],'number':data['number'],'complement':data['complement'],'neighborhood':data['neighborhood'],'city':'Porto Seguro','state':'BA','postalCode':data['cep'],'isDefault':true});}catch(_){}}if(mounted)Navigator.of(context).pop();}else{await showDialog<void>(context:context,barrierDismissible:false,builder:(d)=>AlertDialog(icon:const Icon(Icons.verified_outlined,color:AppColors.primary,size:38),title:const Text('Cadastro enviado',textAlign:TextAlign.center),content:Text('Recebemos seu cadastro de '+title+'. Ele já está no painel administrativo para aprovação manual.',textAlign:TextAlign.center),actions:[FilledButton(onPressed:()=>Navigator.pop(d),child:const Text('Entendi'))]));if(mounted)Navigator.of(context).pop();}}catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString().replaceFirst('Exception: ',''))));}}
+  Widget field(_F f)=>Padding(
+    padding:const EdgeInsets.only(bottom:13),
+    child:TextFormField(
+      controller:ctl(f.key),
+      keyboardType:f.keyboard,
+      obscureText:f.secret&&obscure,
+      textCapitalization:f.keyboard==TextInputType.emailAddress?TextCapitalization.none:TextCapitalization.words,
+      validator:(v){if(f.required&&(v==null||v.trim().isEmpty))return 'Preencha este campo';if(f.key=='email'&&v!=null&&!v.contains('@'))return 'Informe um e-mail válido';if(f.key=='password'&&(v?.length??0)<8)return 'Use pelo menos 8 caracteres';return null;},
+      decoration:InputDecoration(
+        labelText:f.label,
+        hintText:f.hint,
+        filled:true,
+        fillColor:AppColors.canvas,
+        prefixIcon:Padding(padding:const EdgeInsets.all(11),child:Container(width:38,height:38,decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(12)),child:Icon(f.icon,color:AppColors.primary,size:20))),
+        prefixIconConstraints:const BoxConstraints(minWidth:62,minHeight:58),
+        suffixIcon:f.secret?IconButton(onPressed:()=>setState(()=>obscure=!obscure),icon:Icon(obscure?Icons.visibility_outlined:Icons.visibility_off_outlined,size:20)):null,
+        border:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:BorderSide.none),
+        enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:const BorderSide(color:AppColors.stroke)),
+        focusedBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:const BorderSide(color:AppColors.primary,width:1.5)),
+      ),
+    ),
+  );
+  Future<void> next()async{if(!(form.currentState?.validate()??false))return;if(step<groups.length-1){setState(()=>step++);return;}if(!accepted){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Confirme os termos para continuar.')));return;}final data=<String,dynamic>{for(final e in c.entries)e.key:e.value.text.trim()};try{await AppState.instance.register(name:data['name']??'',email:data['email']??'',phone:data['phone']??'',password:data['password']??'',role:widget.role,document:courier?data['cpf']:customer?data['cpf']:data['cnpj'],businessName:!customer&&!courier?data['businessName']:null,profileData:{...data}..remove('password'));if(!mounted)return;if(customer){if((data['street']??'').toString().isNotEmpty){try{await AppState.instance.addAddress({'label':'Casa','street':data['street'],'number':data['number'],'complement':data['complement'],'neighborhood':data['neighborhood'],'city':'Porto Seguro','state':'BA','postalCode':data['cep'],'isDefault':true});}catch(_){}}if(mounted)Navigator.of(context).pop();}else{await showDialog<void>(context:context,barrierDismissible:false,builder:(d)=>AlertDialog(icon:const Icon(Icons.verified_outlined,color:AppColors.primary,size:38),title:const Text('Cadastro enviado',textAlign:TextAlign.center),content:Text('Recebemos seu cadastro de '+title+'. Ele já está no painel administrativo para aprovação manual.',textAlign:TextAlign.center),actions:[FilledButton(onPressed:()=>Navigator.pop(d),child:const Text('Entendi'))]));if(mounted)Navigator.of(context).pop();}}catch(e){if(mounted)await _showRegistrationError(e.toString().replaceFirst('Exception: ',''));}}
+  Future<void> _showRegistrationError(String raw) async {
+    final lower=raw.toLowerCase();
+    final phone=lower.contains('celular')||lower.contains('telefone')||lower.contains('whatsapp')||lower.contains('phone');
+    final email=lower.contains('e-mail')||lower.contains('email');
+    final duplicate=lower.contains('cadastrad')||lower.contains('unique')||lower.contains('duplic');
+    final title=phone&&duplicate?'Telefone já cadastrado':email&&duplicate?'E-mail já cadastrado':'Não foi possível criar sua conta';
+    final message=phone&&duplicate
+      ?'Este número já está vinculado a uma conta Porto Prime. Use outro celular ou entre com a conta existente.'
+      :email&&duplicate
+        ?'Este e-mail já está vinculado a uma conta Porto Prime. Use outro endereço ou entre com a conta existente.'
+        :raw;
+    await showDialog<void>(
+      context:context,
+      barrierColor:Colors.black.withValues(alpha:.42),
+      builder:(d)=>Dialog(
+        backgroundColor:Colors.transparent,
+        insetPadding:const EdgeInsets.symmetric(horizontal:24),
+        child:Container(
+          padding:const EdgeInsets.fromLTRB(22,22,22,20),
+          decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(30),boxShadow:AppShadows.elevated),
+          child:Column(mainAxisSize:MainAxisSize.min,children:[
+            Container(width:64,height:64,decoration:BoxDecoration(color:AppColors.peach,borderRadius:BorderRadius.circular(22)),child:const Icon(Icons.priority_high_rounded,color:AppColors.coral,size:31)),
+            const SizedBox(height:18),
+            Text(title,textAlign:TextAlign.center,style:const TextStyle(fontSize:22,height:1.05,fontWeight:FontWeight.w900,letterSpacing:-.5)),
+            const SizedBox(height:9),
+            Text(message,textAlign:TextAlign.center,style:const TextStyle(fontSize:11.5,height:1.5,color:AppColors.muted,fontWeight:FontWeight.w600)),
+            const SizedBox(height:20),
+            SizedBox(width:double.infinity,height:52,child:FilledButton(onPressed:()=>Navigator.pop(d),style:FilledButton.styleFrom(shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(17))),child:const Text('Corrigir meus dados',style:TextStyle(fontWeight:FontWeight.w900)))),
+            const SizedBox(height:6),
+            TextButton(onPressed:(){Navigator.pop(d);Navigator.pop(context);},child:const Text('Já tenho uma conta',style:TextStyle(color:AppColors.muted,fontWeight:FontWeight.w800))),
+          ]),
+        ),
+      ),
+    );
+  }
 }
 class _F{const _F(this.key,this.label,this.icon,{this.hint,this.keyboard,this.secret=false,this.required=true});final String key,label;final IconData icon;final String? hint;final TextInputType? keyboard;final bool secret,required;}
