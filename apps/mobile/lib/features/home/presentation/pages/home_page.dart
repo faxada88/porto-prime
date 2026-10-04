@@ -76,7 +76,6 @@ class HomePage extends StatelessWidget {
                                   child: PrimeCategoryTile(
                                     name: name,
                                     compact: true,
-                                    imageUrls: _categoryImages(s.products, name),
                                     onTap: () {
                                       s.selectCatalogCategory(name);
                                       AppNav.instance.go(1);
@@ -90,9 +89,12 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               const SliverPadding(
-                padding: EdgeInsets.fromLTRB(20, 26, 20, 12),
+                padding: EdgeInsets.fromLTRB(20, 24, 20, 10),
                 sliver: SliverToBoxAdapter(
-                  child: _Section(title: 'Para o seu momento', subtitle: 'Escolhas rápidas para cada ocasião'),
+                  child: _Section(
+                    title: 'Escolha pelo momento',
+                    subtitle: 'Atalhos para encontrar o que combina com agora',
+                  ),
                 ),
               ),
               const SliverToBoxAdapter(child: _Moments()),
@@ -100,8 +102,8 @@ class HomePage extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 26, 20, 12),
                 sliver: SliverToBoxAdapter(
                   child: _Section(
-                    title: 'Gelou, chegou',
-                    subtitle: 'Destaques do catálogo Porto Prime',
+                    title: 'Mais pedidos',
+                    subtitle: 'Os favoritos da Porto Prime',
                     onTap: () => AppNav.instance.go(1),
                   ),
                 ),
@@ -302,7 +304,7 @@ class _Moments extends StatelessWidget {
   const _Moments();
   @override
   Widget build(BuildContext context) => SizedBox(
-    height: 106,
+    height: 82,
     child: ListView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -320,14 +322,14 @@ class _Moments extends StatelessWidget {
     onTap: () => AppNav.instance.go(1),
     borderRadius: BorderRadius.circular(22),
     child: Container(
-      width: 170,
-      padding: const EdgeInsets.all(14),
+      width: 146,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(22)),
       child: Row(
         children: [
-          Container(width: 44, height: 44, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .78), borderRadius: BorderRadius.circular(14)), child: Icon(icon, size: 24, color: AppColors.ink, weight: 500)),
+          Container(width: 36, height: 36, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .82), borderRadius: BorderRadius.circular(12)), child: Icon(icon, size: 20, color: AppColors.ink, weight: 500)),
           const SizedBox(width: 10),
-          Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900)), Text(subtitle, style: const TextStyle(fontSize: 9, color: AppColors.muted, fontWeight: FontWeight.w700))])),
+          Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)), Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8.5, color: AppColors.muted, fontWeight: FontWeight.w700))])),
         ],
       ),
     ),
@@ -390,13 +392,3 @@ String _status(String s) => switch (s) {
   'DELIVERED' => 'Entregue',
   _ => s,
 };
-
-
-List<String> _categoryImages(List<dynamic> products, String category) {
-  return products
-      .where((p) => (p['category']?['name'] ?? '').toString() == category)
-      .map((p) => (p['imageUrl'] ?? '').toString())
-      .where((url) => url.isNotEmpty)
-      .take(3)
-      .toList();
-}
