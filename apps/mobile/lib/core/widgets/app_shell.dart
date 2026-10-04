@@ -32,7 +32,7 @@ class _AppShellState extends State<AppShell> {
           child:AnimatedBuilder(animation:AppState.instance,builder:(_,__)=>Row(children:[
             _item(0,Symbols.home_rounded,'Início',index),
             _item(1,Symbols.explore_rounded,'Descobrir',index),
-            _item(2,Symbols.shopping_cart_rounded,'Carrinho',index,badge:AppState.instance.cartCount),
+            _item(2,Symbols.shopping_cart_checkout_rounded,'Carrinho',index,badge:AppState.instance.cartCount),
             _item(3,Symbols.person_rounded,'Perfil',index),
           ])),
         ),
