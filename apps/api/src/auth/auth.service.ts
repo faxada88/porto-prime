@@ -72,30 +72,40 @@ export class AuthService {
   async postalCode(raw: string) {
     const cep = this.digits(raw);
     if (cep.length !== 8) return { valid: false, reason: 'INVALID_FORMAT' };
-    try {
-      const response = await fetch('https://brasilapi.com.br/api/cep/v1/' + cep, {
-        headers: { Accept: 'application/json' },
-        signal: AbortSignal.timeout(8000),
-      });
-      if (response.status === 404) return { valid: false, reason: 'NOT_FOUND' };
-      if (!response.ok) return { valid: false, reason: 'LOOKUP_UNAVAILABLE' };
-      const data = await response.json() as Record<string, unknown>;
-      const city = String(data['city'] ?? '').trim();
-      const state = String(data['state'] ?? '').trim().toUpperCase();
-      if (state !== 'BA' || city.toLowerCase() !== 'porto seguro') {
-        return { valid: false, reason: 'OUTSIDE_SERVICE_AREA' };
+    const providers = [
+      'https://viacep.com.br/ws/' + cep + '/json/',
+      'https://cep.is/ws/' + cep + '/json/',
+    ];
+    let hadResponse = false;
+    for (const url of providers) {
+      try {
+        const response = await fetch(url, {
+          headers: { Accept: 'application/json', 'User-Agent': 'PortoPrimeDelivery/1.0' },
+          signal: AbortSignal.timeout(8000),
+        });
+        if (!response.ok) continue;
+        hadResponse = true;
+        const data = await response.json() as Record<string, unknown>;
+        if (data['erro'] === true || data['erro'] === 'true') continue;
+        const city = String(data['localidade'] ?? '').trim();
+        const state = String(data['uf'] ?? '').trim().toUpperCase();
+        if (!city || !state) continue;
+        if (state !== 'BA' || city.toLowerCase() !== 'porto seguro') {
+          return { valid: false, reason: 'OUTSIDE_SERVICE_AREA' };
+        }
+        return {
+          valid: true,
+          cep,
+          street: String(data['logradouro'] ?? '').trim(),
+          neighborhood: String(data['bairro'] ?? '').trim(),
+          city,
+          state,
+        };
+      } catch {
+        continue;
       }
-      return {
-        valid: true,
-        cep,
-        street: String(data['street'] ?? '').trim(),
-        neighborhood: String(data['neighborhood'] ?? '').trim(),
-        city,
-        state,
-      };
-    } catch {
-      return { valid: false, reason: 'LOOKUP_UNAVAILABLE' };
     }
+    return { valid: false, reason: hadResponse ? 'NOT_FOUND' : 'LOOKUP_UNAVAILABLE' };
   }
 
   async availability(field: string, raw: string) {
