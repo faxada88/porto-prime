@@ -96,6 +96,7 @@ model User {
 model CustomerProfile {
   id     String @id @default(cuid())
   userId String @unique
+  onboardingData Json?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -111,6 +112,7 @@ model CourierProfile {
   isOnline       Boolean       @default(false)
 
   document       String?
+  onboardingData Json?
   pixKeyType     PixKeyType?
   pixKey         String?
 
@@ -133,6 +135,7 @@ model PartnerProfile {
 
   businessName String
   document     String?
+  onboardingData Json?
   approved     Boolean @default(false)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
