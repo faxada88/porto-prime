@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../orders/presentation/pages/orders_page.dart';
+import 'registration_page.dart';
 
 class ProfilePage extends StatelessWidget{const ProfilePage({super.key});@override Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(_,__)=>AppState.instance.loggedIn?const _Account():const _Guest());}
 
@@ -122,10 +123,9 @@ Future<void> _auth(BuildContext context)async{final e=TextEditingController(),p=
  _field(e,'E-mail',Icons.mail_outline_rounded,type:TextInputType.emailAddress),_field(p,'Senha',Icons.lock_outline_rounded,secret:true),_submit(ctx,'Entrar',()async{await AppState.instance.login(e.text,p.text);if(ctx.mounted)Navigator.pop(ctx);})
 ]));}
 
-Future<void> _register(BuildContext context,String role)async{final n=TextEditingController(),e=TextEditingController(),ph=TextEditingController(),p=TextEditingController(),doc=TextEditingController(),biz=TextEditingController();final label=role=='CUSTOMER'?'Cliente':role=='COURIER'?'Motoboy':'Parceiro';await showModalBottomSheet(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(ctx)=>_Sheet(title:'Criar conta de '+label,subtitle:role=='CUSTOMER'?'Peça, acompanhe entregas e salve seus endereços. Sua conta fica ativa na hora.':'Preencha seus dados com atenção. Seu cadastro será enviado para aprovação.',children:[
- _field(n,'Nome completo',Icons.person_outline_rounded),if(role=='PARTNER')_field(biz,'Nome do estabelecimento',Icons.storefront_rounded),_field(e,'E-mail',Icons.mail_outline_rounded,type:TextInputType.emailAddress),_field(ph,'Telefone',Icons.phone_outlined,type:TextInputType.phone),if(role!='CUSTOMER')_field(doc,role=='COURIER'?'CPF / documento':'CNPJ / documento',Icons.badge_outlined),_field(p,'Senha (mínimo 8 caracteres)',Icons.lock_outline_rounded,secret:true),
- _submit(ctx,'Criar conta',()async{await AppState.instance.register(name:n.text,email:e.text,phone:ph.text,password:p.text,role:role,document:role!='CUSTOMER'?doc.text:null,businessName:role=='PARTNER'?biz.text:null);if(ctx.mounted)Navigator.pop(ctx);})
-]));}
+Future<void> _register(BuildContext context,String role) async {
+  await Navigator.of(context).push(_primeRoute(RegistrationPage(role: role)));
+}
 
 Widget _field(TextEditingController c,String label,IconData i,{bool secret=false,TextInputType? type})=>Padding(padding:const EdgeInsets.only(bottom:11),child:TextField(controller:c,obscureText:secret,keyboardType:type,style:const TextStyle(fontSize:16),decoration:InputDecoration(labelText:label,prefixIcon:Icon(i,color:AppColors.oceanDeep),filled:true,fillColor:AppColors.canvas,border:OutlineInputBorder(borderRadius:BorderRadius.circular(17),borderSide:BorderSide.none))));
 Widget _submit(BuildContext ctx,String label,Future<void> Function() go)=>AnimatedBuilder(animation:AppState.instance,builder:(_,__)=>Column(children:[if(AppState.instance.error!=null)Padding(padding:const EdgeInsets.only(bottom:9),child:Text(AppState.instance.error!,style:const TextStyle(color:Colors.red,fontSize:11))),SizedBox(width:double.infinity,height:54,child:FilledButton(onPressed:AppState.instance.loading?null:()async{try{await go();}catch(_){}},style:FilledButton.styleFrom(backgroundColor:AppColors.oceanDeep),child:AppState.instance.loading?const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):Text(label,style:const TextStyle(fontWeight:FontWeight.w900))))]));
