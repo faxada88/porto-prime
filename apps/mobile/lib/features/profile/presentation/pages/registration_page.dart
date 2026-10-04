@@ -199,7 +199,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       const Text('Após o envio, o cadastro ficará pendente até a aprovação administrativa.',style:TextStyle(fontSize:11,height:1.45,color:AppColors.muted,fontWeight:FontWeight.w600)),
     ]));
   Widget field(_F f) {
-    if (courier && const ['cnhCategory','vehicleType','vehicleBrand','vehicleModel'].contains(f.key)) return choiceField(f);
+    if (courier && const ['cnhCategory','vehicleType','vehicleBrand','vehicleModel','state'].contains(f.key)) return choiceField(f);
     return Padding(
     padding: const EdgeInsets.only(bottom: 13),
     child: TextFormField(
@@ -217,6 +217,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           checking[f.key] = false;
         });
         _checkRemote(f.key, value);
+        if (courier && f.key == 'cep') _lookupCep(value);
       },
       validator: (v) {
         final value = v?.trim() ?? '';
@@ -290,7 +291,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   Widget choiceField(_F f) {
     List<String> options;
-    if (f.key == 'cnhCategory') {
+    if (f.key == 'state') {
+      options = const ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+    } else if (f.key == 'cnhCategory') {
       options = const ['A','B','AB','C','AC','D','AD','E','AE'];
     } else if (f.key == 'vehicleType') {
       options = const ['Moto','Carro','Utilitário','Outro'];
@@ -335,6 +338,47 @@ class _RegistrationPageState extends State<RegistrationPage> {
       if(f.key=='vehicleType'){ctl('vehicleBrand').clear();ctl('vehicleModel').clear();}
       if(f.key=='vehicleBrand')ctl('vehicleModel').clear();
     });
+  }
+
+  Future<void> _lookupCep(String value) async {
+    final digits=value.replaceAll(RegExp(r'\\D'),'');
+    if(digits.length!=8)return;
+    final ticket=(validationTicket['cepLookup']??0)+1;
+    validationTicket['cepLookup']=ticket;
+    setState(()=>checking['cep']=true);
+    try {
+      final result=await AppState.instance.lookupPostalCode(digits);
+      if(!mounted||validationTicket['cepLookup']!=ticket)return;
+      if(result['valid']==true){
+        setState((){
+          checking['cep']=false;
+          remoteError['cep']='';
+          ctl('street').text=(result['street']??'').toString();
+          ctl('neighborhood').text=(result['neighborhood']??'').toString();
+          ctl('city').text=(result['city']??'Porto Seguro').toString();
+          ctl('state').text=(result['state']??'BA').toString();
+        });
+      } else {
+        final reason=result['reason'];
+        setState((){
+          checking['cep']=false;
+          remoteError['cep']=reason=='OUTSIDE_SERVICE_AREA'
+              ? 'Atendemos motoboys somente na região de Porto Seguro'
+              : reason=='LOOKUP_UNAVAILABLE'
+                  ? 'Não foi possível consultar o CEP agora'
+                  : 'CEP não encontrado';
+          ctl('street').clear(); ctl('neighborhood').clear(); ctl('city').clear(); ctl('state').clear();
+        });
+      }
+      form.currentState?.validate();
+    } catch (_) {
+      if(mounted&&validationTicket['cepLookup']==ticket){
+        setState((){
+          checking['cep']=false;
+          remoteError['cep']='Não foi possível consultar o CEP agora';
+        });
+      }
+    }
   }
 
   Future<void> _checkRemote(String key,String value) async {
