@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 abstract final class AppColors {
   // Porto Prime 2026: vibrante, tropical e claro. Vermelho forte removido.
@@ -79,15 +80,16 @@ abstract final class AppTheme {
     highlightColor: Colors.transparent,
     focusColor: Colors.transparent,
     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    textTheme: const TextTheme(
-      headlineLarge: TextStyle(fontSize: 31, height: 1.04, fontWeight: FontWeight.w900, letterSpacing: -1.15, color: AppColors.ink),
-      headlineMedium: TextStyle(fontSize: 25, height: 1.08, fontWeight: FontWeight.w900, letterSpacing: -.75, color: AppColors.ink),
-      titleLarge: TextStyle(fontSize: 20, height: 1.15, fontWeight: FontWeight.w900, letterSpacing: -.45, color: AppColors.ink),
-      titleMedium: TextStyle(fontSize: 16, height: 1.2, fontWeight: FontWeight.w800, letterSpacing: -.2, color: AppColors.ink),
-      bodyLarge: TextStyle(fontSize: 16, height: 1.4, color: AppColors.ink),
-      bodyMedium: TextStyle(fontSize: 14, height: 1.4, color: AppColors.muted),
-      labelLarge: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.ink),
+    textTheme: GoogleFonts.manropeTextTheme().copyWith(
+      headlineLarge: GoogleFonts.manrope(fontSize: 31, height: 1.04, fontWeight: FontWeight.w800, letterSpacing: -1.15, color: AppColors.ink),
+      headlineMedium: GoogleFonts.manrope(fontSize: 25, height: 1.08, fontWeight: FontWeight.w800, letterSpacing: -.75, color: AppColors.ink),
+      titleLarge: GoogleFonts.manrope(fontSize: 20, height: 1.15, fontWeight: FontWeight.w800, letterSpacing: -.45, color: AppColors.ink),
+      titleMedium: GoogleFonts.manrope(fontSize: 16, height: 1.2, fontWeight: FontWeight.w700, letterSpacing: -.2, color: AppColors.ink),
+      bodyLarge: GoogleFonts.manrope(fontSize: 16, height: 1.4, fontWeight: FontWeight.w500, color: AppColors.ink),
+      bodyMedium: GoogleFonts.manrope(fontSize: 14, height: 1.4, fontWeight: FontWeight.w500, color: AppColors.muted),
+      labelLarge: GoogleFonts.manrope(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink),
     ),
+    fontFamily: GoogleFonts.manrope().fontFamily,
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Colors.white,
