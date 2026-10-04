@@ -21,16 +21,142 @@ class _RegistrationPageState extends State<RegistrationPage> {
     [const _F('email','E-mail',Icons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',Icons.lock_outline_rounded,secret:true,hint:'Mínimo de 8 caracteres'),if(courier)const _F('pixKey','Chave PIX para recebimentos',Icons.account_balance_wallet_outlined,required:false),if(!customer&&!courier)const _F('contactRole','Seu cargo / função',Icons.work_outline_rounded,required:false)],
   ];
   @override void dispose(){for(final x in c.values)x.dispose();super.dispose();}
-  @override Widget build(BuildContext context){final total=groups.length;return Scaffold(backgroundColor:AppColors.canvas,body:SafeArea(child:Column(children:[
-    Padding(padding:const EdgeInsets.fromLTRB(12,8,20,8),child:Row(children:[IconButton(onPressed:()=>step==0?Navigator.pop(context):setState(()=>step--),icon:const Icon(Icons.arrow_back_rounded)),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Conta de '+title,style:const TextStyle(fontSize:16,fontWeight:FontWeight.w800)),Text('Etapa '+(step+1).toString()+' de '+total.toString(),style:const TextStyle(fontSize:9.5,color:AppColors.muted,fontWeight:FontWeight.w600))])),Container(padding:const EdgeInsets.symmetric(horizontal:10,vertical:6),decoration:BoxDecoration(color:customer?AppColors.mint:courier?AppColors.sand:AppColors.lavender,borderRadius:BorderRadius.circular(20)),child:Text(customer?'CLIENTE':courier?'MOTOBOY':'PARCEIRO',style:const TextStyle(fontSize:8,fontWeight:FontWeight.w800,letterSpacing:.7)))])),
-    Padding(padding:const EdgeInsets.symmetric(horizontal:20),child:ClipRRect(borderRadius:BorderRadius.circular(20),child:LinearProgressIndicator(value:(step+1)/total,minHeight:5,backgroundColor:AppColors.stroke,color:AppColors.primary))),
-    Expanded(child:AnimatedSwitcher(duration:const Duration(milliseconds:280),transitionBuilder:(child,a)=>FadeTransition(opacity:a,child:SlideTransition(position:Tween(begin:const Offset(.04,0),end:Offset.zero).animate(a),child:child)),child:SingleChildScrollView(key:ValueKey(step),padding:const EdgeInsets.fromLTRB(20,28,20,24),child:Form(key:form,child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-      Container(width:52,height:52,decoration:BoxDecoration(color:step==0?AppColors.mint:step==1?AppColors.sand:AppColors.lavender,borderRadius:BorderRadius.circular(18)),child:Icon(step==0?Icons.person_rounded:step==1?(customer?Icons.location_on_rounded:courier?Icons.two_wheeler_rounded:Icons.store_rounded):Icons.shield_outlined,color:AppColors.primary)),
-      const SizedBox(height:18),Text(heading(),style:const TextStyle(fontSize:27,height:1.05,fontWeight:FontWeight.w800,letterSpacing:-.8)),const SizedBox(height:8),Text(sub(),style:const TextStyle(fontSize:11.5,height:1.5,color:AppColors.muted,fontWeight:FontWeight.w500)),const SizedBox(height:24),...groups[step].map(field),
-      if(step==total-1)...[const SizedBox(height:2),GestureDetector(onTap:()=>setState(()=>accepted=!accepted),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[AnimatedContainer(duration:const Duration(milliseconds:180),width:22,height:22,decoration:BoxDecoration(color:accepted?AppColors.primary:Colors.white,borderRadius:BorderRadius.circular(7),border:Border.all(color:accepted?AppColors.primary:AppColors.stroke)),child:accepted?const Icon(Icons.check_rounded,color:Colors.white,size:15):null),const SizedBox(width:10),const Expanded(child:Text('Confirmo que os dados informados são verdadeiros e aceito os termos e a política de privacidade.',style:TextStyle(fontSize:10,height:1.45,color:AppColors.muted,fontWeight:FontWeight.w600))) ]))],
-    ])))))),
-    Padding(padding:const EdgeInsets.fromLTRB(20,10,20,18),child:SafeArea(top:false,child:SizedBox(width:double.infinity,height:56,child:FilledButton(onPressed:AppState.instance.loading?null:next,child:AppState.instance.loading?const SizedBox(width:21,height:21,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):Row(mainAxisAlignment:MainAxisAlignment.center,children:[Text(step==total-1?'Criar minha conta':'Continuar'),const SizedBox(width:8),const Icon(Icons.arrow_forward_rounded,size:19)]))))),
-  ])));}
+  @override
+  Widget build(BuildContext context) {
+    final total = groups.length;
+    return Scaffold(
+      backgroundColor: AppColors.canvas,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 20, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => step == 0 ? Navigator.pop(context) : setState(() => step--),
+                    icon: const Icon(Icons.arrow_back_rounded),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Conta de $title', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                        Text('Etapa ${step + 1} de $total', style: const TextStyle(fontSize: 9.5, color: AppColors.muted, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: customer ? AppColors.mint : courier ? AppColors.sand : AppColors.lavender,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(customer ? 'CLIENTE' : courier ? 'MOTOBOY' : 'PARCEIRO', style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w800, letterSpacing: .7)),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: LinearProgressIndicator(value: (step + 1) / total, minHeight: 5, backgroundColor: AppColors.stroke, color: AppColors.primary),
+              ),
+            ),
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 280),
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(begin: const Offset(.04, 0), end: Offset.zero).animate(animation),
+                    child: child,
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  key: ValueKey(step),
+                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
+                  child: Form(
+                    key: form,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: step == 0 ? AppColors.mint : step == 1 ? AppColors.sand : AppColors.lavender,
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: Icon(step == 0 ? Icons.person_rounded : step == 1 ? (customer ? Icons.location_on_rounded : courier ? Icons.two_wheeler_rounded : Icons.store_rounded) : Icons.shield_outlined, color: AppColors.primary),
+                        ),
+                        const SizedBox(height: 18),
+                        Text(heading(), style: const TextStyle(fontSize: 27, height: 1.05, fontWeight: FontWeight.w800, letterSpacing: -.8)),
+                        const SizedBox(height: 8),
+                        Text(sub(), style: const TextStyle(fontSize: 11.5, height: 1.5, color: AppColors.muted, fontWeight: FontWeight.w500)),
+                        const SizedBox(height: 24),
+                        ...groups[step].map(field),
+                        if (step == total - 1) ...[
+                          const SizedBox(height: 2),
+                          GestureDetector(
+                            onTap: () => setState(() => accepted = !accepted),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 180),
+                                  width: 22,
+                                  height: 22,
+                                  decoration: BoxDecoration(
+                                    color: accepted ? AppColors.primary : Colors.white,
+                                    borderRadius: BorderRadius.circular(7),
+                                    border: Border.all(color: accepted ? AppColors.primary : AppColors.stroke),
+                                  ),
+                                  child: accepted ? const Icon(Icons.check_rounded, color: Colors.white, size: 15) : null,
+                                ),
+                                const SizedBox(width: 10),
+                                const Expanded(
+                                  child: Text('Confirmo que os dados informados são verdadeiros e aceito os termos e a política de privacidade.', style: TextStyle(fontSize: 10, height: 1.45, color: AppColors.muted, fontWeight: FontWeight.w600)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: FilledButton(
+                    onPressed: AppState.instance.loading ? null : next,
+                    child: AppState.instance.loading
+                        ? const SizedBox(width: 21, height: 21, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(step == total - 1 ? 'Criar minha conta' : 'Continuar'),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.arrow_forward_rounded, size: 19),
+                            ],
+                          ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   String heading()=>step==0?'Conte um pouco\nsobre você':step==1?(customer?'Onde vamos\nentregar?':courier?'Sua moto e\nhabilitação':'Sobre o seu\nnegócio'):'Seu acesso\nPorto Prime';
   String sub()=>step==0?'Precisamos dos seus dados básicos para criar um perfil seguro.':step==1?(customer?'Cadastre seu endereço principal. Você poderá adicionar outros depois.':courier?'Essas informações ajudam nossa equipe a validar seu cadastro antes da liberação.':'Dados usados pela nossa equipe para analisar e aprovar sua parceria.'):'Finalize seu acesso. '+(customer?'Sua conta será liberada imediatamente.':'Depois do envio, nossa equipe fará a aprovação manual no painel administrativo.');
   Widget field(_F f)=>Padding(padding:const EdgeInsets.only(bottom:12),child:TextFormField(controller:ctl(f.key),keyboardType:f.keyboard,obscureText:f.secret&&obscure,textCapitalization:f.keyboard==TextInputType.emailAddress?TextCapitalization.none:TextCapitalization.words,validator:(v){if(f.required&&(v==null||v.trim().isEmpty))return 'Preencha este campo';if(f.key=='email'&&v!=null&&!v.contains('@'))return 'Informe um e-mail válido';if(f.key=='password'&&(v?.length??0)<8)return 'Use pelo menos 8 caracteres';return null;},decoration:InputDecoration(labelText:f.label,hintText:f.hint,prefixIcon:Icon(f.icon,color:AppColors.primary,size:21),suffixIcon:f.secret?IconButton(onPressed:()=>setState(()=>obscure=!obscure),icon:Icon(obscure?Icons.visibility_outlined:Icons.visibility_off_outlined,size:20)):null)));
