@@ -1,69 +1,32 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+import { useEffect, useMemo, useState } from "react";
+
+type AnyRow = Record<string, any>;
+const apiBase=()=>{const configured=process.env.NEXT_PUBLIC_API_URL;if(configured)return configured.replace(/\/$/,"");if(typeof window==="undefined")return "http://127.0.0.1:3000/api";const u=new URL(window.location.href);u.hostname=u.hostname.replace(/-[0-9]{4,5}(?=\.)/,"-3000");u.port=(u.hostname==="localhost"||u.hostname==="127.0.0.1")?"3000":"";u.pathname="/api";return u.toString().replace(/\/$/,"")};
+async function api(path:string,token:string,method="GET"){const r=await fetch(apiBase()+path,{method,headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"}});const d=await r.json().catch(()=>null);if(!r.ok)throw new Error(Array.isArray(d?.message)?d.message.join(", "):d?.message||"Falha na API");return d}
+const money=(v:any)=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(Number(v||0)/100);
+const date=(v:any)=>v?new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short"}).format(new Date(v)):"—";
+
+export default function Home(){
+ const [token,setToken]=useState(""); const [email,setEmail]=useState(""); const [password,setPassword]=useState("");
+ const [me,setMe]=useState<AnyRow|null>(null); const [pending,setPending]=useState<AnyRow[]>([]); const [orders,setOrders]=useState<AnyRow[]>([]);
+ const [tab,setTab]=useState("Visão geral"); const [error,setError]=useState(""); const [busy,setBusy]=useState(false);
+ async function load(t=token){setBusy(true);setError("");try{const who=await api("/auth/me",t);if(who.role!=="ADMIN")throw new Error("Esta conta não possui acesso administrativo.");setMe(who);const [p,o]=await Promise.all([api("/admin/pending",t),api("/admin/orders",t)]);setPending(p);setOrders(o);localStorage.setItem("pp_admin_token",t)}catch(e:any){setError(e.message);setMe(null);localStorage.removeItem("pp_admin_token")}finally{setBusy(false)}}
+ useEffect(()=>{const t=localStorage.getItem("pp_admin_token");if(t){setToken(t);load(t)}},[]);
+ async function login(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");try{const d=await fetch(apiBase()+"/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})}).then(async r=>{const x=await r.json();if(!r.ok)throw new Error(x.message||"Login inválido");return x});setToken(d.token);await load(d.token)}catch(e:any){setError(e.message);setBusy(false)}}
+ async function action(path:string){try{setBusy(true);await api(path,token,"PATCH");await load()}catch(e:any){setError(e.message);setBusy(false)}}
+ const revenue=useMemo(()=>orders.reduce((s,o)=>s+Number(o.totalCents||0),0),[orders]);
+ if(!me)return <main className="login"><section className="brand"><div className="mark">P</div><span>PORTO PRIME</span><h1>Central de<br/>Operações</h1><p>Administração exclusiva da operação Porto Prime Delivery.</p><div className="security">● Ambiente administrativo protegido</div></section><section className="loginCard"><div><small>ACESSO RESTRITO</small><h2>Entrar no Admin</h2><p>Use uma conta com perfil ADMIN.</p></div><form onSubmit={login}><label>E-mail<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required/></label><label>Senha<input type="password" value={password} onChange={e=>setPassword(e.target.value)} required/></label>{error&&<div className="error">{error}</div>}<button disabled={busy}>{busy?"Validando...":"Acessar painel"}</button></form></section></main>;
+ const nav=["Visão geral","Pedidos","Aprovações","Motoboys","Clientes","Parceiros","Catálogo","Pagamentos","Configurações"];
+ return <div className="shell"><aside><div className="logo"><b>P</b><div><strong>PORTO PRIME</strong><span>OPERAÇÕES</span></div></div><nav>{nav.map(n=><button key={n} className={tab===n?"active":""} onClick={()=>setTab(n)}><i>•</i>{n}{n==="Aprovações"&&pending.length>0?<em>{pending.length}</em>:null}</button>)}</nav><div className="admin"><span>{me.name?.slice(0,1)}</span><div><b>{me.name}</b><small>Administrador</small></div><button onClick={()=>{localStorage.removeItem("pp_admin_token");location.reload()}}>↗</button></div></aside><main className="content"><header><div><small>CENTRAL PORTO PRIME</small><h1>{tab}</h1></div><div className="live">● Operação conectada</div></header>{error&&<div className="error top">{error}</div>}
+ {tab==="Visão geral"&&<><section className="hero"><div><small>OPERAÇÃO EM TEMPO REAL</small><h2>Controle a distribuidora<br/>em um só lugar.</h2><p>Pedidos, pagamentos, aprovações e despacho sincronizados com o aplicativo.</p></div><div className="pulse"><b>{orders.filter(o=>!["DELIVERED","CANCELLED"].includes(o.status)).length}</b><span>pedidos ativos</span></div></section><section className="metrics"><Metric label="Pedidos pagos" value={orders.length}/><Metric label="Aguardando aprovação" value={pending.length}/><Metric label="Receita registrada" value={money(revenue)}/><Metric label="Motoboys em análise" value={pending.filter(x=>x.role==="COURIER").length}/></section><section className="grid"><Panel title="Pedidos recentes"><Orders rows={orders.slice(0,5)} action={action}/></Panel><Panel title="Aprovações pendentes"><Pending rows={pending.slice(0,5)} action={action}/></Panel></section></>}
+ {tab==="Pedidos"&&<Panel title="Todos os pedidos pagos"><Orders rows={orders} action={action}/></Panel>}
+ {tab==="Aprovações"&&<Panel title="Cadastros aguardando análise"><Pending rows={pending} action={action}/></Panel>}
+ {["Motoboys","Clientes","Parceiros","Catálogo","Pagamentos","Configurações"].includes(tab)&&<section className="empty"><b>{tab}</b><p>Este módulo está preparado na navegação, mas ainda precisa dos endpoints administrativos específicos antes de permitir alterações reais com segurança.</p></section>}
+ </main></div>
 }
+function Metric({label,value}:{label:string,value:any}){return <article><span>{label}</span><strong>{value}</strong><small>Dados da API Porto Prime</small></article>}
+function Panel({title,children}:{title:string,children:React.ReactNode}){return <section className="panel"><div className="panelHead"><h3>{title}</h3><span>Atualizado agora</span></div>{children}</section>}
+function Pending({rows,action}:{rows:AnyRow[],action:(p:string)=>void}){if(!rows.length)return <div className="none">Nenhuma aprovação pendente.</div>;return <div className="rows">{rows.map(x=><div className="row" key={x.id}><div className="avatar">{x.name?.slice(0,1)}</div><div className="grow"><b>{x.name}</b><span>{x.role==="COURIER"?"Motoboy":"Parceiro"} · {x.phone}</span><small>{x.email} · {date(x.createdAt)}</small></div><button className="reject" onClick={()=>action("/admin/users/"+x.id+"/reject")}>Rejeitar</button><button onClick={()=>action("/admin/users/"+x.id+"/approve")}>Aprovar</button></div>)}</div>}
+function Orders({rows,action}:{rows:AnyRow[],action:(p:string)=>void}){if(!rows.length)return <div className="none">Nenhum pedido pago encontrado.</div>;return <div className="rows">{rows.map(o=><div className="row" key={o.id}><div className="order">#{String(o.id).slice(-6).toUpperCase()}</div><div className="grow"><b>{o.customer?.name||"Cliente"}</b><span>{o.status} · {money(o.totalCents)}</span><small>{date(o.createdAt)}{o.courier?.user?.name?" · "+o.courier.user.name:""}</small></div>{["CONFIRMED","PREPARING"].includes(o.status)&&<button onClick={()=>action("/admin/orders/"+o.id+"/release")}>Liberar pedido</button>}</div>)}</div>}
