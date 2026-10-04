@@ -70,6 +70,7 @@ class AppState extends ChangeNotifier {
 
   void addProduct(String id){cart[id]=(cart[id]??0)+1;notifyListeners();}
   void changeQty(String id,int d){final n=(cart[id]??0)+d;if(n<=0)cart.remove(id);else cart[id]=n;notifyListeners();}
+  void removeProduct(String id){cart.remove(id);notifyListeners();}
   void clearCart(){cart.clear();notifyListeners();}
   void selectCatalogCategory(String name){catalogCategory=name;notifyListeners();}
   dynamic product(String id){for(final p in products){if(p['id']==id)return p;}return null;}
