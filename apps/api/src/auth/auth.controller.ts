@@ -12,6 +12,9 @@ export class AuthController {
     return this.authService.availability(field, value);
   }
 
+  @Get('postal-code')
+  postalCode(@Query('cep') cep: string) { return this.authService.postalCode(cep); }
+
   @Post('register')
   register(@Body() body: RegisterDto) { return this.authService.register(body); }
 
