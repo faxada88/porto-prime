@@ -317,7 +317,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           TextField(controller:search,onChanged:(q)=>setSheet(()=>filtered=options.where((x)=>x.toLowerCase().contains(q.toLowerCase())).toList()),
             decoration:InputDecoration(hintText:'Pesquisar',prefixIcon:const Icon(Icons.search_rounded),filled:true,fillColor:AppColors.canvas,border:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:BorderSide.none))),
           const SizedBox(height:10),
-          Expanded(child:ListView.separated(itemCount:filtered.length,separatorBuilder:(_,__)=>const Divider(height:1,color:AppColors.stroke),
+          Expanded(child:ListView.separated(itemCount:filtered.length,separatorBuilder:(_,_)=>const Divider(height:1,color:AppColors.stroke),
             itemBuilder:(ctx,i){final x=filtered[i],selected=ctl(f.key).text==x;return ListTile(title:Text(x,style:TextStyle(fontWeight:selected?FontWeight.w900:FontWeight.w700)),trailing:selected?const Icon(Icons.check_circle_rounded,color:AppColors.success):null,onTap:()=>Navigator.pop(ctx,x));})),
         ]),
       )));
@@ -393,7 +393,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   Future<void> next() async {
     if (!(form.currentState?.validate() ?? false)) return;
     if(checking.values.any((v)=>v)){await _showInfo('Verificando dados','Aguarde a conclusão das validações antes de continuar.',Icons.hourglass_top_rounded);return;}
-    if(remoteError.values.any((v)=>v!=null&&v!.isNotEmpty))return;
+    if(remoteError.values.any((v)=>v?.isNotEmpty ?? false))return;
     if(courier&&step==3&&(ctl('vehicleType').text.isEmpty||ctl('vehicleBrand').text.isEmpty||ctl('vehicleModel').text.isEmpty)){await _showInfo('Complete o veículo','Selecione tipo, marca e modelo antes de continuar.',Icons.two_wheeler_rounded);return;}
     if (step < groups.length - 1) {
       setState(() => step++);
