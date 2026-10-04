@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../data/motorcycle_catalog.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key, required this.role});
@@ -9,18 +10,27 @@ class RegistrationPage extends StatefulWidget {
   @override State<RegistrationPage> createState()=>_RegistrationPageState();
 }
 class _RegistrationPageState extends State<RegistrationPage> {
-  final forms=List.generate(3, (_)=>GlobalKey<FormState>()); int step=0; bool accepted=false,obscure=true;
+  final forms=List.generate(6, (_)=>GlobalKey<FormState>()); int step=0; bool accepted=false,obscure=true;
+  final Map<String,String?> remoteError={}; final Map<String,bool> checking={}; final Map<String,int> validationTicket={};
   GlobalKey<FormState> get form=>forms[step];
   final Map<String,TextEditingController> c={};
   TextEditingController ctl(String k)=>c.putIfAbsent(k,()=>TextEditingController());
   bool get customer=>widget.role=='CUSTOMER'; bool get courier=>widget.role=='COURIER';
   String get title=>customer?'Cliente':courier?'Motoboy':'Parceiro';
-  List<List<_F>> get groups=>[
+  List<List<_F>> get groups=>courier ? courierGroups : commonGroups;
+  List<List<_F>> get commonGroups=>[
     [const _F('name','Nome completo',Icons.person_outline_rounded),const _F('cpf','CPF',Icons.badge_outlined,keyboard:TextInputType.number,format:_Format.cpf),const _F('birthDate','Data de nascimento',Icons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date),const _F('phone','Celular / WhatsApp',Icons.phone_outlined,keyboard:TextInputType.phone,format:_Format.phone)],
-    if(courier)[const _F('cnh','CNH',Icons.credit_card_outlined),const _F('cnhCategory','Categoria da CNH',Icons.fact_check_outlined,hint:'Ex.: A / AB'),const _F('vehicleModel','Modelo da moto',Icons.two_wheeler_outlined),const _F('vehiclePlate','Placa',Icons.pin_outlined,format:_Format.plate)]
-    else if(!customer)[const _F('businessName','Nome do estabelecimento',Icons.storefront_outlined),const _F('legalName','Razão social',Icons.business_outlined),const _F('cnpj','CNPJ / documento',Icons.badge_outlined,keyboard:TextInputType.number,format:_Format.cnpj),const _F('businessType','Tipo de estabelecimento',Icons.category_outlined,hint:'Hotel, pousada, receptivo...')]
+    if(!customer)[const _F('businessName','Nome do estabelecimento',Icons.storefront_outlined),const _F('legalName','Razão social',Icons.business_outlined),const _F('cnpj','CNPJ / documento',Icons.badge_outlined,keyboard:TextInputType.number,format:_Format.cnpj),const _F('businessType','Tipo de estabelecimento',Icons.category_outlined,hint:'Hotel, pousada, receptivo...')]
     else [const _F('cep','CEP',Icons.local_post_office_outlined,keyboard:TextInputType.number,format:_Format.cep),const _F('street','Rua / avenida',Icons.route_outlined),const _F('number','Número',Icons.numbers_outlined),const _F('neighborhood','Bairro',Icons.map_outlined),const _F('complement','Complemento',Icons.home_work_outlined,required:false)],
     [const _F('email','E-mail',Icons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',Icons.lock_outline_rounded,secret:true,hint:'Mínimo de 8 caracteres'),if(courier)const _F('pixKey','Chave PIX para recebimentos',Icons.account_balance_wallet_outlined,required:false),if(!customer&&!courier)const _F('contactRole','Seu cargo / função',Icons.work_outline_rounded,required:false)],
+  ];
+  List<List<_F>> get courierGroups=>[
+    [const _F('name','Nome completo',Icons.person_outline_rounded),const _F('cpf','CPF',Icons.badge_outlined,keyboard:TextInputType.number,format:_Format.cpf),const _F('birthDate','Data de nascimento',Icons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date)],
+    [const _F('phone','Celular / WhatsApp',Icons.phone_outlined,keyboard:TextInputType.phone,format:_Format.phone),const _F('cep','CEP',Icons.local_post_office_outlined,keyboard:TextInputType.number,format:_Format.cep),const _F('street','Rua / avenida',Icons.route_outlined),const _F('number','Número',Icons.numbers_outlined),const _F('neighborhood','Bairro',Icons.map_outlined),const _F('city','Cidade',Icons.location_city_outlined),const _F('state','UF',Icons.map_outlined)],
+    [const _F('cnh','Número de registro da CNH',Icons.credit_card_outlined),const _F('cnhCategory','Categoria da CNH',Icons.fact_check_outlined),const _F('cnhExpiry','Validade da CNH',Icons.event_available_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date)],
+    [const _F('vehicleType','Tipo de veículo',Icons.commute_rounded),const _F('vehicleBrand','Marca',Icons.two_wheeler_outlined),const _F('vehicleModel','Modelo',Icons.two_wheeler_outlined),const _F('vehicleYear','Ano',Icons.calendar_today_outlined,keyboard:TextInputType.number),const _F('vehiclePlate','Placa',Icons.pin_outlined,format:_Format.plate)],
+    [const _F('email','E-mail',Icons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',Icons.lock_outline_rounded,secret:true,hint:'8+ caracteres, maiúscula, minúscula e número'),const _F('confirmPassword','Confirme sua senha',Icons.lock_reset_rounded,secret:true),const _F('pixKey','Chave PIX para recebimentos',Icons.account_balance_wallet_outlined,required:false)],
+    [],
   ];
   @override void dispose(){for(final x in c.values)x.dispose();super.dispose();}
   @override
@@ -180,6 +190,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
       textCapitalization: f.keyboard == TextInputType.emailAddress
           ? TextCapitalization.none
           : TextCapitalization.words,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      onChanged: (value) { setState(() {}); _checkRemote(f.key,value); },
       validator: (v) {
         final value = v?.trim() ?? '';
         if (f.required && value.isEmpty) return 'Preencha este campo';
@@ -189,15 +201,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
             !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
           return 'Informe um e-mail válido';
         }
-        if (f.key == 'password' && value.length < 8) {
-          return 'Use pelo menos 8 caracteres';
-        }
+        if (f.key == 'password' && (value.length < 8 || !RegExp(r'[A-Z]').hasMatch(value) || !RegExp(r'[a-z]').hasMatch(value) || !RegExp(r'[0-9]').hasMatch(value))) return 'Use 8+ caracteres, maiúscula, minúscula e número';
+        if (f.key == 'confirmPassword' && value != ctl('password').text) return 'As senhas não coincidem';
         if (f.key == 'phone' && digits.length != 11) {
           return 'Informe um celular com DDD';
         }
         if (f.key == 'cpf' && digits.length != 11) return 'CPF incompleto';
         if (f.key == 'cnpj' && digits.length != 14) return 'CNPJ incompleto';
         if (f.key == 'cep' && digits.length != 8) return 'CEP incompleto';
+        if (remoteError[f.key] != null) return remoteError[f.key];
         if (f.key == 'birthDate' && digits.length != 8) {
           return 'Informe a data completa';
         }
@@ -221,7 +233,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           ),
         ),
         prefixIconConstraints: const BoxConstraints(minWidth: 62, minHeight: 58),
-        suffixIcon: f.secret
+        suffixIcon: checking[f.key] == true ? const Padding(padding: EdgeInsets.all(16),child:SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2))) : remoteError[f.key] == '' ? const Icon(Icons.check_circle_rounded,color:AppColors.success) : f.secret
             ? IconButton(
                 onPressed: () => setState(() => obscure = !obscure),
                 icon: Icon(
@@ -247,6 +259,23 @@ class _RegistrationPageState extends State<RegistrationPage> {
       ),
     ),
   );
+
+  Future<void> _checkRemote(String key,String value) async {
+    final field = key == 'cpf' ? 'cpf' : key == 'cnpj' ? 'cnpj' : key == 'email' ? 'email' : key == 'phone' ? 'phone' : null;
+    if (field == null || value.trim().isEmpty) return;
+    final ticket=(validationTicket[key]??0)+1; validationTicket[key]=ticket;
+    await Future<void>.delayed(const Duration(milliseconds:550));
+    if (!mounted || validationTicket[key]!=ticket) return;
+    setState(()=>checking[key]=true);
+    try {
+      final result=await AppState.instance.checkAvailability(field,value);
+      if (!mounted || validationTicket[key]!=ticket) return;
+      setState(() { checking[key]=false; remoteError[key]=result['valid']!=true ? (field=='cpf'?'CPF inválido':field=='cnpj'?'CNPJ inválido':field=='email'?'E-mail inválido':'Telefone inválido') : result['available']==true ? '' : (field=='cpf'?'Este CPF já possui cadastro':field=='cnpj'?'Este CNPJ já possui cadastro':field=='email'?'Este e-mail já está cadastrado':'Este telefone já está cadastrado'); });
+      form.currentState?.validate();
+    } catch (_) {
+      if (mounted && validationTicket[key]==ticket) setState(() { checking[key]=false; remoteError[key]='Não foi possível verificar agora'; });
+    }
+  }
 
   List<TextInputFormatter>? _formatters(_Format format) {
     switch (format) {
@@ -324,7 +353,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 : data['cnpj'],
         businessName:
             !customer && !courier ? data['businessName'] : null,
-        profileData: {...data}..remove('password'),
+        profileData: {...data}..remove('password')..remove('confirmPassword'),
       );
       if (!mounted) return;
 
