@@ -73,7 +73,11 @@ abstract final class AppTheme {
       surface: AppColors.surface,
       brightness: Brightness.light,
     ),
-    splashFactory: InkSparkle.splashFactory,
+    splashFactory: NoSplash.splashFactory,
+    hoverColor: Colors.transparent,
+    splashColor: Colors.transparent,
+    highlightColor: Colors.transparent,
+    focusColor: Colors.transparent,
     textTheme: const TextTheme(
       headlineLarge: TextStyle(fontSize: 31, height: 1.04, fontWeight: FontWeight.w900, letterSpacing: -1.15, color: AppColors.ink),
       headlineMedium: TextStyle(fontSize: 25, height: 1.08, fontWeight: FontWeight.w900, letterSpacing: -.75, color: AppColors.ink),
