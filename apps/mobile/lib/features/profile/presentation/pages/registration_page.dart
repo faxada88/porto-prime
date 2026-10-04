@@ -117,6 +117,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         Text(sub(), style: const TextStyle(fontSize: 11.5, height: 1.5, color: AppColors.muted, fontWeight: FontWeight.w500)),
                         const SizedBox(height: 24),
                         ...groups[step].map(field),
+                        if(courier && step==3 && ctl('vehicleBrand').text=='Outra marca') field(const _F('customVehicleBrand','Informe a marca',Icons.edit_rounded)),
+                        if(courier && step==3 && ctl('vehicleModel').text=='Outro modelo') field(const _F('customVehicleModel','Informe o modelo',Icons.edit_rounded)),
+                        if(courier && step==groups.length-1) reviewCard(),
                         if (step == total - 1) ...[
                           const SizedBox(height: 2),
                           GestureDetector(
@@ -178,8 +181,23 @@ class _RegistrationPageState extends State<RegistrationPage> {
       ),
     );
   }
-  String heading()=>step==0?'Conte um pouco\nsobre você':step==1?(customer?'Onde vamos\nentregar?':courier?'Sua moto e\nhabilitação':'Sobre o seu\nnegócio'):'Seu acesso\nPorto Prime';
-  String sub()=>step==0?'Precisamos dos seus dados básicos para criar um perfil seguro.':step==1?(customer?'Cadastre seu endereço principal. Você poderá adicionar outros depois.':courier?'Essas informações ajudam nossa equipe a validar seu cadastro antes da liberação.':'Dados usados pela nossa equipe para analisar e aprovar sua parceria.'):'Finalize seu acesso. '+(customer?'Sua conta será liberada imediatamente.':'Depois do envio, nossa equipe fará a aprovação manual no painel administrativo.');
+  String heading() {
+    if(!courier) return step==0?'Conte um pouco\nsobre você':step==1?(customer?'Onde vamos\nentregar?':'Sobre o seu\nnegócio'):'Seu acesso\nPorto Prime';
+    return const ['Dados pessoais','Contato e endereço','Sua CNH','Seu veículo','Segurança','Revise seu cadastro'][step];
+  }
+  String sub() {
+    if(!courier) return step==0?'Precisamos dos seus dados básicos para criar um perfil seguro.':step==1?(customer?'Cadastre seu endereço principal. Você poderá adicionar outros depois.':'Dados usados pela nossa equipe para analisar e aprovar sua parceria.'):'Finalize seu acesso com segurança.';
+    return const ['Identificação necessária para manter sua conta segura.','Contato e endereço usados na operação.','Dados reais da habilitação para análise administrativa.','Informe o veículo que será usado nas entregas.','Proteja seu acesso e configure os dados essenciais.','Confira antes de enviar. O acesso operacional depende da aprovação.'][step];
+  }
+  Widget reviewCard()=>Container(padding:const EdgeInsets.all(16),margin:const EdgeInsets.only(bottom:18),
+    decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(20)),
+    child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+      const Row(children:[Icon(Icons.fact_check_rounded,color:AppColors.primary),SizedBox(width:9),Text('Pronto para análise',style:TextStyle(fontSize:16,fontWeight:FontWeight.w900))]),
+      const SizedBox(height:10),
+      Text('${ctl('name').text} • ${ctl('vehicleType').text} • ${ctl('vehiclePlate').text}',style:const TextStyle(color:AppColors.muted,fontWeight:FontWeight.w700)),
+      const SizedBox(height:8),
+      const Text('Após o envio, o cadastro ficará pendente até a aprovação administrativa.',style:TextStyle(fontSize:11,height:1.45,color:AppColors.muted,fontWeight:FontWeight.w600)),
+    ]));
   Widget field(_F f) {
     if (courier && const ['cnhCategory','vehicleType','vehicleBrand','vehicleModel'].contains(f.key)) return choiceField(f);
     return Padding(
@@ -374,6 +392,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   Future<void> next() async {
     if (!(form.currentState?.validate() ?? false)) return;
+    if(checking.values.any((v)=>v)){await _showInfo('Verificando dados','Aguarde a conclusão das validações antes de continuar.',Icons.hourglass_top_rounded);return;}
+    if(remoteError.values.any((v)=>v!=null&&v!.isNotEmpty))return;
+    if(courier&&step==3&&(ctl('vehicleType').text.isEmpty||ctl('vehicleBrand').text.isEmpty||ctl('vehicleModel').text.isEmpty)){await _showInfo('Complete o veículo','Selecione tipo, marca e modelo antes de continuar.',Icons.two_wheeler_rounded);return;}
     if (step < groups.length - 1) {
       setState(() => step++);
       return;
