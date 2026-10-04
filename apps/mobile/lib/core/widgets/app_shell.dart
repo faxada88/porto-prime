@@ -42,8 +42,9 @@ class _AppShellState extends State<AppShell> {
 
   Widget _item(int value,IconData icon,String label,int current,{int badge=0}) {
     final selected=current==value;
-    return Expanded(child:InkWell(
-      onTap:()=>AppNav.instance.go(value),borderRadius:BorderRadius.circular(21),
+    return Expanded(child:GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap:()=>AppNav.instance.go(value),
       child:AnimatedContainer(duration:const Duration(milliseconds:240),curve:Curves.easeOutCubic,decoration:BoxDecoration(color:selected?AppColors.peach:Colors.transparent,borderRadius:BorderRadius.circular(21)),
         child:Stack(clipBehavior:Clip.none,alignment:Alignment.center,children:[
           Column(mainAxisAlignment:MainAxisAlignment.center,children:[
