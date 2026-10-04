@@ -28,7 +28,7 @@ class _AppShellState extends State<AppShell> {
         minimum:const EdgeInsets.fromLTRB(16,0,16,10),
         child:Container(
           height:74,padding:const EdgeInsets.all(7),
-          decoration:BoxDecoration(color:const Color(0xFF13221F),borderRadius:BorderRadius.circular(28),boxShadow:[BoxShadow(color:Colors.black.withValues(alpha:.16),blurRadius:32,offset:const Offset(0,12))]),
+          decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(28),border:Border.all(color:AppColors.stroke),boxShadow:AppShadows.elevated),
           child:AnimatedBuilder(animation:AppState.instance,builder:(_,__)=>Row(children:[
             _item(0,Symbols.home_rounded,'Início',index),
             _item(1,Symbols.explore_rounded,'Descobrir',index),
@@ -44,14 +44,14 @@ class _AppShellState extends State<AppShell> {
     final selected=current==value;
     return Expanded(child:InkWell(
       onTap:()=>AppNav.instance.go(value),borderRadius:BorderRadius.circular(21),
-      child:AnimatedContainer(duration:const Duration(milliseconds:240),curve:Curves.easeOutCubic,decoration:BoxDecoration(color:selected?Colors.white:Colors.transparent,borderRadius:BorderRadius.circular(21)),
+      child:AnimatedContainer(duration:const Duration(milliseconds:240),curve:Curves.easeOutCubic,decoration:BoxDecoration(color:selected?AppColors.peach:Colors.transparent,borderRadius:BorderRadius.circular(21)),
         child:Stack(clipBehavior:Clip.none,alignment:Alignment.center,children:[
           Column(mainAxisAlignment:MainAxisAlignment.center,children:[
-            Icon(icon,size:22,color:selected?AppColors.oceanDeep:Colors.white60),
+            Icon(icon,size:22,color:selected?AppColors.coral:AppColors.muted),
             const SizedBox(height:3),
-            Text(label,style:TextStyle(fontSize:10,fontWeight:FontWeight.w800,color:selected?AppColors.ink:Colors.white60)),
+            Text(label,style:TextStyle(fontSize:10,fontWeight:FontWeight.w800,color:selected?AppColors.coral:AppColors.muted)),
           ]),
-          if(badge>0) Positioned(top:3,right:12,child:Container(constraints:const BoxConstraints(minWidth:18,minHeight:18),padding:const EdgeInsets.symmetric(horizontal:5),decoration:BoxDecoration(color:AppColors.coral,borderRadius:BorderRadius.circular(20),border:Border.all(color:const Color(0xFF13221F),width:2)),alignment:Alignment.center,child:Text(badge>9?'9+':'$badge',style:const TextStyle(color:Colors.white,fontSize:8,fontWeight:FontWeight.w900)))),
+          if(badge>0) Positioned(top:3,right:12,child:Container(constraints:const BoxConstraints(minWidth:18,minHeight:18),padding:const EdgeInsets.symmetric(horizontal:5),decoration:BoxDecoration(color:AppColors.coral,borderRadius:BorderRadius.circular(20),border:Border.all(color:Colors.white,width:2)),alignment:Alignment.center,child:Text(badge>9?'9+':'$badge',style:const TextStyle(color:Colors.white,fontSize:8,fontWeight:FontWeight.w900)))),
         ]),
       ),
     ));
