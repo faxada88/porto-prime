@@ -19,7 +19,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   String get title=>customer?'Cliente':courier?'Motoboy':'Parceiro';
   List<List<_F>> get groups=>courier ? courierGroups : commonGroups;
   List<List<_F>> get commonGroups=>[
-    [const _F('name','Nome completo',Icons.person_outline_rounded),const _F('cpf','CPF',Icons.badge_outlined,keyboard:TextInputType.number,format:_Format.cpf),const _F('birthDate','Data de nascimento',Icons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date),const _F('phone','Celular / WhatsApp',Icons.phone_outlined,keyboard:TextInputType.phone,format:_Format.phone)],
+    [const _F('name','Nome completo',Icons.person_outline_rounded),const _F('birthDate','Data de nascimento',Icons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date),const _F('phone','Celular / WhatsApp',Icons.phone_outlined,keyboard:TextInputType.phone,format:_Format.phone)],
     if(!customer)[const _F('businessName','Nome do estabelecimento',Icons.storefront_outlined),const _F('legalName','Razão social',Icons.business_outlined),const _F('cnpj','CNPJ / documento',Icons.badge_outlined,keyboard:TextInputType.number,format:_Format.cnpj),const _F('businessType','Tipo de estabelecimento',Icons.category_outlined,hint:'Hotel, pousada, receptivo...')]
     else [const _F('cep','CEP',Icons.local_post_office_outlined,keyboard:TextInputType.number,format:_Format.cep),const _F('street','Rua / avenida',Icons.route_outlined),const _F('number','Número',Icons.numbers_outlined),const _F('neighborhood','Bairro',Icons.map_outlined),const _F('complement','Complemento',Icons.home_work_outlined,required:false)],
     [const _F('email','E-mail',Icons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',Icons.lock_outline_rounded,secret:true,hint:'Mínimo de 8 caracteres'),if(courier)const _F('pixKey','Chave PIX para recebimentos',Icons.account_balance_wallet_outlined,required:false),if(!customer&&!courier)const _F('contactRole','Seu cargo / função',Icons.work_outline_rounded,required:false)],
@@ -426,11 +426,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         phone: data['phone'] ?? '',
         password: data['password'] ?? '',
         role: widget.role,
-        document: courier
-            ? data['cpf']
-            : customer
-                ? data['cpf']
-                : data['cnpj'],
+        document: customer ? null : (courier ? data['cpf'] : data['cnpj']),
         businessName:
             !customer && !courier ? data['businessName'] : null,
         profileData: {...data}..remove('password')..remove('confirmPassword'),
