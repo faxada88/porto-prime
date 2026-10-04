@@ -47,11 +47,11 @@ class _AppShellState extends State<AppShell> {
       child:AnimatedContainer(duration:const Duration(milliseconds:240),curve:Curves.easeOutCubic,decoration:BoxDecoration(color:selected?AppColors.peach:Colors.transparent,borderRadius:BorderRadius.circular(21)),
         child:Stack(clipBehavior:Clip.none,alignment:Alignment.center,children:[
           Column(mainAxisAlignment:MainAxisAlignment.center,children:[
-            Icon(icon,size:22,color:selected?AppColors.coral:AppColors.muted),
+            Icon(icon,size:22,color:selected?AppColors.primary:AppColors.muted),
             const SizedBox(height:3),
-            Text(label,style:TextStyle(fontSize:10,fontWeight:FontWeight.w800,color:selected?AppColors.coral:AppColors.muted)),
+            Text(label,style:TextStyle(fontSize:10,fontWeight:FontWeight.w800,color:selected?AppColors.primary:AppColors.muted)),
           ]),
-          if(badge>0) Positioned(top:3,right:12,child:Container(constraints:const BoxConstraints(minWidth:18,minHeight:18),padding:const EdgeInsets.symmetric(horizontal:5),decoration:BoxDecoration(color:AppColors.coral,borderRadius:BorderRadius.circular(20),border:Border.all(color:Colors.white,width:2)),alignment:Alignment.center,child:Text(badge>9?'9+':'$badge',style:const TextStyle(color:Colors.white,fontSize:8,fontWeight:FontWeight.w900)))),
+          if(badge>0) Positioned(top:3,right:12,child:Container(constraints:const BoxConstraints(minWidth:18,minHeight:18),padding:const EdgeInsets.symmetric(horizontal:5),decoration:BoxDecoration(color:AppColors.orange,borderRadius:BorderRadius.circular(20),border:Border.all(color:Colors.white,width:2)),alignment:Alignment.center,child:Text(badge>9?'9+':'$badge',style:const TextStyle(color:Colors.white,fontSize:8,fontWeight:FontWeight.w900)))),
         ]),
       ),
     ));
