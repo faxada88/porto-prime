@@ -5,88 +5,114 @@ import '../../../orders/presentation/pages/orders_page.dart';
 
 class ProfilePage extends StatelessWidget{const ProfilePage({super.key});@override Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(_,__)=>AppState.instance.loggedIn?const _Account():const _Guest());}
 
-class _Guest extends StatelessWidget {
+class _Guest extends StatefulWidget {
   const _Guest();
+  @override
+  State<_Guest> createState() => _GuestState();
+}
+
+class _GuestState extends State<_Guest> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _fade;
+  late final Animation<Offset> _rise;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 850));
+    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+    _rise = Tween<Offset>(begin: const Offset(0, .045), end: Offset.zero).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => SafeArea(
     bottom: false,
-    child: ListView(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 120),
-      children: [
-        Row(
+    child: FadeTransition(
+      opacity: _fade,
+      child: SlideTransition(
+        position: _rise,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
           children: [
+            const _PrimeMark(),
+            const SizedBox(height: 25),
             Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(color: AppColors.mint, borderRadius: BorderRadius.circular(17)),
-              child: const Icon(Icons.person_outline_rounded, color: AppColors.primary, size: 25),
-            ),
-            const SizedBox(width: 13),
-            Expanded(
+              padding: const EdgeInsets.fromLTRB(22, 30, 22, 24),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF1F8374), Color(0xFF62C9B5)]),
+                borderRadius: BorderRadius.circular(34),
+                boxShadow: AppShadows.elevated,
+              ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Sua conta', style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 2),
-                  const Text('Pedidos, endereços e benefícios em um só lugar.', style: TextStyle(color: AppColors.muted, fontSize: 10.5, fontWeight: FontWeight.w600)),
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: .16), shape: BoxShape.circle, border: Border.all(color: Colors.white.withValues(alpha: .26))),
+                    child: const Icon(Icons.person_outline_rounded, color: Colors.white, size: 33),
+                  ),
+                  const SizedBox(height: 19),
+                  const Text('Bem-vindo', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 30, height: 1, fontWeight: FontWeight.w800, letterSpacing: -1)),
+                  const SizedBox(height: 10),
+                  const Text('Sua Porto Prime começa aqui.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 7),
+                  Text('Acompanhe pedidos, salve endereços e compre novamente em poucos toques.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withValues(alpha: .82), fontSize: 11, height: 1.5, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 23),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
+                      onPressed: () => _auth(context),
+                      icon: const Icon(Icons.arrow_forward_rounded, size: 19),
+                      label: const Text('Entrar na minha conta', style: TextStyle(fontWeight: FontWeight.w800)),
+                    ),
+                  ),
                 ],
               ),
             ),
+            const SizedBox(height: 28),
+            const Center(child: Text('NOVO POR AQUI?', style: TextStyle(color: AppColors.muted, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1.4))),
+            const SizedBox(height: 8),
+            const Center(child: Text('Escolha sua experiência', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: -.45))),
+            const SizedBox(height: 5),
+            const Center(child: Text('Um acesso para cada jeito de viver a Porto Prime.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.muted, fontSize: 10.5, height: 1.4, fontWeight: FontWeight.w500))),
+            const SizedBox(height: 17),
+            _Role('Cliente', 'Peça, pague e acompanhe sua entrega.', Icons.shopping_bag_outlined, AppColors.sand, () => _register(context, 'CUSTOMER')),
+            _Role('Motoboy', 'Entregas e rotina operacional.', Icons.delivery_dining_outlined, AppColors.mint, () => _register(context, 'COURIER')),
+            _Role('Parceiro', 'Divulgação e relacionamento Porto Prime.', Icons.storefront_outlined, AppColors.lavender, () => _register(context, 'PARTNER')),
+            const SizedBox(height: 8),
+            const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(Icons.lock_outline_rounded, color: AppColors.muted, size: 15),
+              SizedBox(width: 6),
+              Text('Acesso protegido • Porto Prime', style: TextStyle(color: AppColors.muted, fontSize: 9.5, fontWeight: FontWeight.w600)),
+            ]),
           ],
         ),
-        const SizedBox(height: 22),
-        Container(
-          padding: const EdgeInsets.all(22),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF238A79), Color(0xFF53B8A5)]),
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(color: Colors.white.withValues(alpha: .16), borderRadius: BorderRadius.circular(20)),
-                child: const Text('PORTO PRIME', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1)),
-              ),
-              const SizedBox(height: 28),
-              const Text('Bem-vindo.', style: TextStyle(color: Colors.white, fontSize: 28, height: 1, fontWeight: FontWeight.w800, letterSpacing: -.8)),
-              const SizedBox(height: 8),
-              const Text('Entre para acompanhar seus pedidos e deixar a próxima compra ainda mais rápida.', style: TextStyle(color: Colors.white, fontSize: 12, height: 1.45, fontWeight: FontWeight.w500)),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.primary),
-                  onPressed: () => _auth(context),
-                  child: const Text('Entrar na minha conta'),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 26),
-        Text('Ainda não tem conta?', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18)),
-        const SizedBox(height: 4),
-        const Text('Escolha como você quer usar a Porto Prime.', style: TextStyle(color: AppColors.muted, fontSize: 11, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 13),
-        _Role('Cliente', 'Compre, pague e acompanhe suas entregas.', Icons.shopping_bag_outlined, AppColors.sand, () => _register(context, 'CUSTOMER')),
-        _Role('Motoboy', 'Receba entregas após aprovação do seu cadastro.', Icons.delivery_dining_outlined, AppColors.mint, () => _register(context, 'COURIER')),
-        _Role('Parceiro', 'Divulgue a Porto Prime e acompanhe sua parceria.', Icons.storefront_outlined, AppColors.lavender, () => _register(context, 'PARTNER')),
-        const SizedBox(height: 10),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(22), border: Border.all(color: AppColors.stroke)),
-          child: const Row(children: [
-            Icon(Icons.lock_outline_rounded, color: AppColors.primary, size: 20),
-            SizedBox(width: 11),
-            Expanded(child: Text('Acesso seguro e seus dados protegidos.', style: TextStyle(fontSize: 10.5, color: AppColors.muted, fontWeight: FontWeight.w600))),
-          ]),
-        ),
-      ],
+      ),
     ),
+  );
+}
+
+class _PrimeMark extends StatelessWidget {
+  const _PrimeMark();
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Container(width: 34, height: 34, decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, AppColors.turquoise]), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 19)),
+      const SizedBox(width: 10),
+      const Text('PORTO PRIME', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 1.8)),
+    ],
   );
 }
 
