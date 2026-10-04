@@ -88,29 +88,19 @@ class HomePage extends StatelessWidget {
                         ),
                 ),
               ),
-              const SliverPadding(
-                padding: EdgeInsets.fromLTRB(20, 24, 20, 10),
-                sliver: SliverToBoxAdapter(
-                  child: _Section(
-                    title: 'Escolha pelo momento',
-                    subtitle: 'Atalhos para encontrar o que combina com agora',
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: _Moments()),
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 26, 20, 12),
+                padding: const EdgeInsets.fromLTRB(20, 25, 20, 12),
                 sliver: SliverToBoxAdapter(
                   child: _Section(
-                    title: 'Mais pedidos',
-                    subtitle: 'Os favoritos da Porto Prime',
+                    title: 'Escolhas para agora',
+                    subtitle: 'Favoritos para praia, churrasco, noite e qualquer momento',
                     onTap: () => AppNav.instance.go(1),
                   ),
                 ),
               ),
               SliverToBoxAdapter(
                 child: SizedBox(
-                  height: 270,
+                  height: 252,
                   child: s.products.isEmpty
                       ? const _ProductSkeleton()
                       : ListView.separated(
@@ -119,7 +109,7 @@ class HomePage extends StatelessWidget {
                           itemCount: s.products.length > 8 ? 8 : s.products.length,
                           separatorBuilder: (_, __) => const SizedBox(width: 12),
                           itemBuilder: (_, i) => SizedBox(
-                            width: 172,
+                            width: 164,
                             child: PrimeProductCard(
                               product: s.products[i],
                               onOpen: () {
@@ -297,42 +287,6 @@ class _Section extends StatelessWidget {
       if (onTap != null)
         InkWell(onTap: onTap, borderRadius: BorderRadius.circular(10), child: const Padding(padding: EdgeInsets.all(6), child: Row(children: [Text('Ver tudo', style: TextStyle(color: AppColors.oceanDeep, fontSize: 10, fontWeight: FontWeight.w900)), SizedBox(width: 2), Icon(Symbols.arrow_forward_rounded, size: 14, color: AppColors.oceanDeep)]))),
     ],
-  );
-}
-
-class _Moments extends StatelessWidget {
-  const _Moments();
-  @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 82,
-    child: ListView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      children: [
-        _moment('Praia', 'Pé na areia', Symbols.beach_access_rounded, AppColors.sand),
-        const SizedBox(width: 10),
-        _moment('Churrasco', 'Sem faltar nada', Symbols.outdoor_grill_rounded, const Color(0xFFFFDED1)),
-        const SizedBox(width: 10),
-        _moment('Noite', 'Drinks & amigos', Symbols.nightlife_rounded, AppColors.mint),
-      ],
-    ),
-  );
-
-  Widget _moment(String title, String subtitle, IconData icon, Color color) => InkWell(
-    onTap: () => AppNav.instance.go(1),
-    borderRadius: BorderRadius.circular(22),
-    child: Container(
-      width: 146,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(22)),
-      child: Row(
-        children: [
-          Container(width: 36, height: 36, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .82), borderRadius: BorderRadius.circular(12)), child: Icon(icon, size: 20, color: AppColors.ink, weight: 500)),
-          const SizedBox(width: 10),
-          Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)), Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8.5, color: AppColors.muted, fontWeight: FontWeight.w700))])),
-        ],
-      ),
-    ),
   );
 }
 
