@@ -64,8 +64,24 @@ export class AuthService {
     }
 
     const email = data.email.trim().toLowerCase();
-    const exists = await this.prisma.user.findUnique({ where: { email } });
-    if (exists) throw new ConflictException('E-mail já cadastrado');
+    const phone = data.phone?.trim() || null;
+
+    const duplicate = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email },
+          ...(phone ? [{ phone }] : []),
+        ],
+      },
+      select: { email: true, phone: true },
+    });
+
+    if (duplicate?.email === email) {
+      throw new ConflictException('Este e-mail já está cadastrado. Entre na sua conta ou use outro e-mail.');
+    }
+    if (phone && duplicate?.phone === phone) {
+      throw new ConflictException('Este celular/WhatsApp já está cadastrado. Entre na sua conta ou use outro número.');
+    }
 
     const pending = data.role === UserRole.COURIER || data.role === UserRole.PARTNER;
     const onboardingData = data.profileData
@@ -76,7 +92,7 @@ export class AuthService {
       data: {
         name: data.name.trim(),
         email,
-        phone: data.phone?.trim() || null,
+        phone,
         passwordHash: this.hashPassword(data.password),
         role: data.role,
         status: pending ? UserStatus.PENDING : UserStatus.ACTIVE,
