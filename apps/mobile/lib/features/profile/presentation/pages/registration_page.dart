@@ -8,7 +8,8 @@ class RegistrationPage extends StatefulWidget {
   @override State<RegistrationPage> createState()=>_RegistrationPageState();
 }
 class _RegistrationPageState extends State<RegistrationPage> {
-  final form=GlobalKey<FormState>(); int step=0; bool accepted=false,obscure=true;
+  final forms=List.generate(3, (_)=>GlobalKey<FormState>()); int step=0; bool accepted=false,obscure=true;
+  GlobalKey<FormState> get form=>forms[step];
   final Map<String,TextEditingController> c={};
   TextEditingController ctl(String k)=>c.putIfAbsent(k,()=>TextEditingController());
   bool get customer=>widget.role=='CUSTOMER'; bool get courier=>widget.role=='COURIER';
