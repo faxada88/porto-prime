@@ -54,7 +54,9 @@ class AppState extends ChangeNotifier {
       if (role == 'CUSTOMER') {
         return await login(email, password);
       }
-      user = created;
+      // Motoboy e parceiro aguardam aprovação: não criamos sessão local.
+      user = null;
+      api.token = null;
       return created;
     } catch (e) {
       error = e.toString().replaceFirst('Exception: ', '');
