@@ -5,18 +5,92 @@ import '../../../orders/presentation/pages/orders_page.dart';
 
 class ProfilePage extends StatelessWidget{const ProfilePage({super.key});@override Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(_,__)=>AppState.instance.loggedIn?const _Account():const _Guest());}
 
-class _Guest extends StatelessWidget{const _Guest();@override Widget build(BuildContext context)=>SafeArea(bottom:false,child:ListView(padding:const EdgeInsets.fromLTRB(20,22,20,120),children:[
- Text('Tudo seu.\\nDo seu jeito.',style:Theme.of(context).textTheme.headlineLarge?.copyWith(fontSize:35,height:.98,letterSpacing:-1.4)),const SizedBox(height:10),const Text('Entre para acompanhar pedidos ou escolha como quer fazer parte da Porto Prime.',style:TextStyle(color:AppColors.muted,fontSize:13,height:1.4,fontWeight:FontWeight.w600)),const SizedBox(height:24),
- Container(padding:const EdgeInsets.all(21),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF15302B),Color(0xFF08786D)]),borderRadius:BorderRadius.circular(28)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-  Row(children:[Container(width:46,height:46,decoration:BoxDecoration(color:Colors.white.withValues(alpha:.12),borderRadius:BorderRadius.circular(15)),child:const Icon(Icons.person_rounded,color:Colors.white,size:26)),const Spacer(),Container(padding:const EdgeInsets.symmetric(horizontal:10,vertical:7),decoration:BoxDecoration(color:Colors.white.withValues(alpha:.10),borderRadius:BorderRadius.circular(12)),child:const Text('JÁ SOU PRIME',style:TextStyle(color:Colors.white,fontSize:9,fontWeight:FontWeight.w900,letterSpacing:.8)))]),const SizedBox(height:20),const Text('Bem-vindo de volta',style:TextStyle(color:Colors.white,fontSize:23,fontWeight:FontWeight.w900,letterSpacing:-.4)),const SizedBox(height:5),const Text('Pedidos, endereços e sua conta em um só lugar.',style:TextStyle(color:Colors.white70,fontSize:12)),
-  const SizedBox(height:17),SizedBox(width:double.infinity,child:FilledButton(style:FilledButton.styleFrom(backgroundColor:Colors.white,foregroundColor:AppColors.oceanDeep,padding:const EdgeInsets.all(15)),onPressed:()=>_auth(context),child:const Text('Entrar na minha conta',style:TextStyle(fontWeight:FontWeight.w900)))),
- ])),const SizedBox(height:28),const Text('Comece por aqui',style:TextStyle(fontSize:20,fontWeight:FontWeight.w900,letterSpacing:-.4)),const SizedBox(height:4),const Text('Escolha o perfil que combina com você.',style:TextStyle(fontSize:11,color:AppColors.muted,fontWeight:FontWeight.w600)),const SizedBox(height:13),
- _Role('Cliente','Peça bebidas geladas e acompanhe tudo pelo app.',Icons.shopping_bag_rounded,AppColors.sand,()=>_register(context,'CUSTOMER')),
- _Role('Motoboy','Receba corridas e gerencie sua rotina de entregas.',Icons.delivery_dining_rounded,AppColors.mint,()=>_register(context,'COURIER')),
- _Role('Parceiro','Conecte seus hóspedes à conveniência Porto Prime.',Icons.apartment_rounded,const Color(0xFFFFE1DB),()=>_register(context,'PARTNER')),
-]));}
+class _Guest extends StatelessWidget {
+  const _Guest();
 
-class _Role extends StatelessWidget{const _Role(this.a,this.b,this.i,this.c,this.tap);final String a,b;final IconData i;final Color c;final VoidCallback tap;@override Widget build(BuildContext context)=>Padding(padding:const EdgeInsets.only(bottom:10),child:InkWell(onTap:tap,borderRadius:BorderRadius.circular(22),child:Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(24),border:Border.all(color:const Color(0xFFE8EBE6)),boxShadow:const [BoxShadow(color:Color(0x08000000),blurRadius:14,offset:Offset(0,6))]),child:Row(children:[Container(width:58,height:58,decoration:BoxDecoration(color:c,borderRadius:BorderRadius.circular(19)),child:Icon(i,color:AppColors.ink,size:27)),const SizedBox(width:13),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(a,style:const TextStyle(fontSize:16,fontWeight:FontWeight.w900,letterSpacing:-.2)),const SizedBox(height:3),Text(b,style:const TextStyle(fontSize:10,height:1.35,color:AppColors.muted,fontWeight:FontWeight.w600))])),const Icon(Icons.arrow_forward_rounded,size:19)]))));}
+  @override
+  Widget build(BuildContext context) => SafeArea(
+    bottom: false,
+    child: ListView(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 120),
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(color: AppColors.mint, borderRadius: BorderRadius.circular(17)),
+              child: const Icon(Icons.person_outline_rounded, color: AppColors.primary, size: 25),
+            ),
+            const SizedBox(width: 13),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Sua conta', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 2),
+                  const Text('Pedidos, endereços e benefícios em um só lugar.', style: TextStyle(color: AppColors.muted, fontSize: 10.5, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 22),
+        Container(
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF238A79), Color(0xFF53B8A5)]),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha: .16), borderRadius: BorderRadius.circular(20)),
+                child: const Text('PORTO PRIME', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1)),
+              ),
+              const SizedBox(height: 28),
+              const Text('Bem-vindo.', style: TextStyle(color: Colors.white, fontSize: 28, height: 1, fontWeight: FontWeight.w800, letterSpacing: -.8)),
+              const SizedBox(height: 8),
+              const Text('Entre para acompanhar seus pedidos e deixar a próxima compra ainda mais rápida.', style: TextStyle(color: Colors.white, fontSize: 12, height: 1.45, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.primary),
+                  onPressed: () => _auth(context),
+                  child: const Text('Entrar na minha conta'),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 26),
+        Text('Ainda não tem conta?', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18)),
+        const SizedBox(height: 4),
+        const Text('Escolha como você quer usar a Porto Prime.', style: TextStyle(color: AppColors.muted, fontSize: 11, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 13),
+        _Role('Cliente', 'Compre, pague e acompanhe suas entregas.', Icons.shopping_bag_outlined, AppColors.sand, () => _register(context, 'CUSTOMER')),
+        _Role('Motoboy', 'Receba entregas após aprovação do seu cadastro.', Icons.delivery_dining_outlined, AppColors.mint, () => _register(context, 'COURIER')),
+        _Role('Parceiro', 'Divulgue a Porto Prime e acompanhe sua parceria.', Icons.storefront_outlined, AppColors.lavender, () => _register(context, 'PARTNER')),
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(22), border: Border.all(color: AppColors.stroke)),
+          child: const Row(children: [
+            Icon(Icons.lock_outline_rounded, color: AppColors.primary, size: 20),
+            SizedBox(width: 11),
+            Expanded(child: Text('Acesso seguro e seus dados protegidos.', style: TextStyle(fontSize: 10.5, color: AppColors.muted, fontWeight: FontWeight.w600))),
+          ]),
+        ),
+      ],
+    ),
+  );
+}
+
+class _Role extends StatelessWidget{const _Role(this.a,this.b,this.i,this.c,this.tap);final String a,b;final IconData i;final Color c;final VoidCallback tap;@override Widget build(BuildContext context)=>Padding(padding:const EdgeInsets.only(bottom:10),child:GestureDetector(behavior:HitTestBehavior.opaque,onTap:tap,child:Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(24),border:Border.all(color:AppColors.stroke)),child:Row(children:[Container(width:54,height:54,decoration:BoxDecoration(color:c,borderRadius:BorderRadius.circular(18)),child:Icon(i,color:AppColors.ink,size:25)),const SizedBox(width:13),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(a,style:const TextStyle(fontSize:15,fontWeight:FontWeight.w800,letterSpacing:-.2)),const SizedBox(height:3),Text(b,style:const TextStyle(fontSize:10,height:1.35,color:AppColors.muted,fontWeight:FontWeight.w600))])),const Icon(Icons.arrow_forward_rounded,size:18,color:AppColors.muted)]))));}
 
 Future<void> _auth(BuildContext context)async{final e=TextEditingController(),p=TextEditingController();await showModalBottomSheet(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(ctx)=>_Sheet(title:'Entrar na Porto Prime',children:[
  _field(e,'E-mail',Icons.mail_outline_rounded,type:TextInputType.emailAddress),_field(p,'Senha',Icons.lock_outline_rounded,secret:true),_submit(ctx,'Entrar',()async{await AppState.instance.login(e.text,p.text);if(ctx.mounted)Navigator.pop(ctx);})
