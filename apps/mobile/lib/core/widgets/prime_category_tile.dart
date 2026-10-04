@@ -77,16 +77,16 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: selected
-                          ? [AppColors.coral, AppColors.coralStrong]
+                          ? [AppColors.mintStrong, AppColors.mint]
                           : [look.from, look.to],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(widget.compact ? 20 : 24),
-                    border: Border.all(color: selected ? AppColors.coral : Colors.white, width: 1.4),
+                    border: Border.all(color: selected ? AppColors.oceanDeep : Colors.white, width: 1.4),
                     boxShadow: [
                       BoxShadow(
-                        color: (selected ? AppColors.coral : look.from).withValues(alpha: .28),
+                        color: (selected ? AppColors.oceanDeep : look.from).withValues(alpha: .28),
                         blurRadius: 15,
                         offset: const Offset(0, 7),
                       ),
@@ -127,7 +127,7 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                           Icon(
                             look.icon,
                             size: widget.compact ? 42 : 50,
-                            color: selected ? Colors.white : AppColors.coral,
+                            color: selected ? AppColors.oceanDeep : AppColors.oceanDeep,
                             fill: 1,
                             weight: 650,
                             shadows: const [
@@ -142,7 +142,7 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                               width: 19,
                               height: 19,
                               decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                              child: const Icon(Symbols.check_rounded, size: 14, color: AppColors.coral, weight: 800),
+                              child: const Icon(Symbols.check_rounded, size: 14, color: AppColors.oceanDeep, weight: 800),
                             ),
                           ),
                       ],
