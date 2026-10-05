@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'courier_application_page.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -566,7 +567,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
           'Recebemos seu cadastro de $title. Agora nossa equipe fará a análise. Assim que for aprovado, seu acesso operacional será liberado.',
           Icons.verified_rounded,
         );
-        if (mounted) Navigator.of(context).pop();
+        if (mounted) {
+          if (courier) {
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder:(_)=>CourierApplicationPage(initialCpf:data['cpf']?.toString())));
+          } else {
+            Navigator.of(context).pop();
+          }
+        }
       }
     } catch (e) {
       if (mounted) {
