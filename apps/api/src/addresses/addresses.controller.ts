@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Patch, Post } from '@nestjs/common';
 import { AddressesService } from './addresses.service.js';
 import { CreateAddressDto } from './dto/create-address.dto.js';
 
@@ -15,4 +15,9 @@ export class AddressesController {
   create(@Body() body: CreateAddressDto, @Headers('authorization') authorization?: string) {
     return this.addressesService.create(body, authorization);
   }
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() body: CreateAddressDto, @Headers('authorization') authorization?: string) { return this.addressesService.update(id, body, authorization); }
+
+  @Delete(':id')
+  remove(@Param('id') id: string, @Headers('authorization') authorization?: string) { return this.addressesService.remove(id, authorization); }
 }
