@@ -7,6 +7,7 @@ import '../../features/cart/presentation/pages/cart_page.dart';
 import '../../features/categories/presentation/pages/categories_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/courier/presentation/pages/courier_page.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -21,6 +22,7 @@ class _AppShellState extends State<AppShell> {
 
   @override Widget build(BuildContext context) {
     final index=AppNav.instance.index.value;
+    if(AppState.instance.isCourier) return const CourierPage();
     return Scaffold(
       extendBody:true,
       body:IndexedStack(index:index,children:pages),
