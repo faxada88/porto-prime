@@ -167,7 +167,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(step == total - 1 ? 'Criar minha conta' : 'Continuar'),
+                              Text(step == total - 1 ? (courier ? 'Enviar cadastro para análise' : 'Criar minha conta') : 'Continuar'),
                               const SizedBox(width: 8),
                               const Icon(Icons.arrow_forward_rounded, size: 19),
                             ],
@@ -189,15 +189,81 @@ class _RegistrationPageState extends State<RegistrationPage> {
     if(!courier) return step==0?'Precisamos dos seus dados básicos para criar um perfil seguro.':step==1?(customer?'Cadastre seu endereço principal. Você poderá adicionar outros depois.':'Dados usados pela nossa equipe para analisar e aprovar sua parceria.'):'Finalize seu acesso com segurança.';
     return const ['Identificação necessária para manter sua conta segura.','Contato e endereço usados na operação.','Dados reais da habilitação para análise administrativa.','Informe o veículo que será usado nas entregas.','Proteja seu acesso e configure os dados essenciais.','Confira antes de enviar. O acesso operacional depende da aprovação.'][step];
   }
-  Widget reviewCard()=>Container(padding:const EdgeInsets.all(16),margin:const EdgeInsets.only(bottom:18),
-    decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(20)),
-    child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-      const Row(children:[Icon(Icons.fact_check_rounded,color:AppColors.primary),SizedBox(width:9),Text('Pronto para análise',style:TextStyle(fontSize:16,fontWeight:FontWeight.w900))]),
-      const SizedBox(height:10),
-      Text('${ctl('name').text} • ${ctl('vehicleType').text} • ${ctl('vehiclePlate').text}',style:const TextStyle(color:AppColors.muted,fontWeight:FontWeight.w700)),
-      const SizedBox(height:8),
-      const Text('Após o envio, o cadastro ficará pendente até a aprovação administrativa.',style:TextStyle(fontSize:11,height:1.45,color:AppColors.muted,fontWeight:FontWeight.w600)),
-    ]));
+  Widget reviewCard() {
+    final sections = <Map<String, dynamic>>[
+      {'title':'Dados pessoais','icon':Icons.person_rounded,'step':0,'rows':[
+        ['Nome completo',ctl('name').text],['CPF',ctl('cpf').text],['Data de nascimento',ctl('birthDate').text],
+      ]},
+      {'title':'Contato e endereço','icon':Icons.location_on_rounded,'step':1,'rows':[
+        ['Celular / WhatsApp',ctl('phone').text],['CEP',ctl('cep').text],
+        ['Endereço','${ctl('street').text}, ${ctl('number').text}'],
+        ['Bairro',ctl('neighborhood').text],['Cidade / UF','${ctl('city').text} / ${ctl('state').text}'],
+      ]},
+      {'title':'Habilitação','icon':Icons.badge_rounded,'step':2,'rows':[
+        ['Registro CNH',ctl('cnh').text],['Categoria',ctl('cnhCategory').text],['Validade',ctl('cnhExpiry').text],
+      ]},
+      {'title':'Veículo de entrega','icon':Icons.two_wheeler_rounded,'step':3,'rows':[
+        ['Tipo',ctl('vehicleType').text],
+        ['Marca',ctl('vehicleBrand').text=='Outra marca'?ctl('customVehicleBrand').text:ctl('vehicleBrand').text],
+        ['Modelo',ctl('vehicleModel').text=='Outro modelo'?ctl('customVehicleModel').text:ctl('vehicleModel').text],
+        ['Ano',ctl('vehicleYear').text],['Placa',ctl('vehiclePlate').text],
+      ]},
+      {'title':'Conta e recebimentos','icon':Icons.shield_rounded,'step':4,'rows':[
+        ['E-mail',ctl('email').text],['Senha','••••••••'],['Chave PIX',ctl('pixKey').text.isEmpty?'Não informada':ctl('pixKey').text],
+      ]},
+    ];
+    return Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+      Container(
+        width:double.infinity,padding:const EdgeInsets.all(18),margin:const EdgeInsets.only(bottom:14),
+        decoration:BoxDecoration(
+          gradient:const LinearGradient(colors:[AppColors.mint,Color(0xFFF4FBF8)]),
+          borderRadius:BorderRadius.circular(22),border:Border.all(color:AppColors.mintStrong),
+        ),
+        child:const Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
+          Icon(Icons.verified_user_rounded,color:AppColors.oceanDeep,size:27),SizedBox(width:12),
+          Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+            Text('Confira tudo antes de enviar',style:TextStyle(fontSize:16,fontWeight:FontWeight.w900)),
+            SizedBox(height:4),
+            Text('Revise seus dados pessoais, CNH, veículo e contato. Se encontrar algo errado, toque em Editar e volte exatamente à etapa correspondente.',style:TextStyle(fontSize:10.5,height:1.45,color:AppColors.muted,fontWeight:FontWeight.w600)),
+          ])),
+        ]),
+      ),
+      ...sections.map((section)=>Container(
+        margin:const EdgeInsets.only(bottom:12),padding:const EdgeInsets.fromLTRB(15,14,15,12),
+        decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(21),border:Border.all(color:AppColors.stroke)),
+        child:Column(children:[
+          Row(children:[
+            Container(width:38,height:38,decoration:BoxDecoration(color:AppColors.canvas,borderRadius:BorderRadius.circular(12)),child:Icon(section['icon'] as IconData,color:AppColors.oceanDeep,size:20)),
+            const SizedBox(width:10),Expanded(child:Text(section['title'] as String,style:const TextStyle(fontSize:13.5,fontWeight:FontWeight.w900))),
+            TextButton.icon(
+              onPressed:()=>setState(()=>step=section['step'] as int),
+              icon:const Icon(Icons.edit_rounded,size:15),label:const Text('Editar'),
+              style:TextButton.styleFrom(foregroundColor:AppColors.oceanDeep,textStyle:const TextStyle(fontSize:11,fontWeight:FontWeight.w900)),
+            ),
+          ]),
+          const SizedBox(height:6),
+          ...(section['rows'] as List).map((raw){
+            final row=raw as List<String>;return Padding(
+              padding:const EdgeInsets.symmetric(vertical:6),
+              child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                Expanded(flex:4,child:Text(row[0],style:const TextStyle(fontSize:9.5,color:AppColors.muted,fontWeight:FontWeight.w700))),
+                const SizedBox(width:10),
+                Expanded(flex:6,child:Text(row[1].isEmpty?'Não informado':row[1],textAlign:TextAlign.right,style:const TextStyle(fontSize:10.5,height:1.3,fontWeight:FontWeight.w800))),
+              ]),
+            );
+          }),
+        ]),
+      )),
+      Container(
+        padding:const EdgeInsets.all(15),margin:const EdgeInsets.only(bottom:18),
+        decoration:BoxDecoration(color:AppColors.sand,borderRadius:BorderRadius.circular(19)),
+        child:const Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
+          Icon(Icons.manage_search_rounded,color:AppColors.coral,size:22),SizedBox(width:10),
+          Expanded(child:Text('Depois do envio, o cadastro ficará em análise. A equipe Porto Prime verificará as informações antes de liberar o acesso operacional.',style:TextStyle(fontSize:10.5,height:1.45,color:AppColors.ink,fontWeight:FontWeight.w700))),
+        ]),
+      ),
+    ]);
+  }
   Widget field(_F f) {
     if (courier && const ['cnhCategory','vehicleType','vehicleBrand','vehicleModel','state'].contains(f.key)) return choiceField(f);
     return Padding(
