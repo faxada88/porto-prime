@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Query } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { BootstrapAdminDto } from './dto/bootstrap-admin.dto.js';
@@ -22,6 +22,12 @@ export class AuthController {
 
   @Post('bootstrap-admin')
   bootstrapAdmin(@Body() body: BootstrapAdminDto) { return this.authService.bootstrapAdmin(body); }
+
+  @Get('courier-application')
+  courierApplication(@Query('cpf') cpf:string){return this.authService.courierApplication(cpf)}
+
+  @Post('courier-application/requirements/:id')
+  courierRequirement(@Param('id') id:string,@Body() body:{cpf:string;response:string}){return this.authService.submitCourierRequirement(id,body)}
 
   @Post('register')
   register(@Body() body: RegisterDto) { return this.authService.register(body); }
