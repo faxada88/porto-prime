@@ -15,6 +15,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { BootstrapAdminDto } from './dto/bootstrap-admin.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
+import { ForgotPasswordDto, ResetPasswordDto } from './dto/reset-password.dto.js';
 
 @Injectable()
 export class AuthService {
@@ -283,6 +284,32 @@ export class AuthService {
     }
 
     return this.publicUser(user);
+  }
+
+  async forgotPassword(data: ForgotPasswordDto) {
+    const email=data.email.trim().toLowerCase();
+    const user=await this.prisma.user.findUnique({where:{email},select:{id:true}});
+    // Resposta idêntica evita revelar quais e-mails possuem conta.
+    if(!user) return {success:true};
+    const raw=randomBytes(32).toString('base64url');
+    await this.prisma.$transaction([
+      this.prisma.passwordResetToken.deleteMany({where:{userId:user.id}}),
+      this.prisma.passwordResetToken.create({data:{userId:user.id,tokenHash:this.tokenHash(raw),expiresAt:new Date(Date.now()+30*60*1000)}}),
+    ]);
+    // Em desenvolvimento o token é devolvido para permitir o fluxo completo sem um provedor de e-mail.
+    // Em produção, configure o envio de e-mail e remova resetToken da resposta pública.
+    return {success:true,resetToken:process.env.NODE_ENV==='production'?undefined:raw};
+  }
+
+  async resetPassword(data: ResetPasswordDto) {
+    const row=await this.prisma.passwordResetToken.findUnique({where:{tokenHash:this.tokenHash(data.token)},include:{user:true}});
+    if(!row || row.usedAt || row.expiresAt<=new Date()) throw new BadRequestException('Link de recuperação inválido ou expirado');
+    await this.prisma.$transaction([
+      this.prisma.user.update({where:{id:row.userId},data:{passwordHash:this.hashPassword(data.password)}}),
+      this.prisma.passwordResetToken.update({where:{id:row.id},data:{usedAt:new Date()}}),
+      this.prisma.authSession.deleteMany({where:{userId:row.userId}}),
+    ]);
+    return {success:true};
   }
 
   async login(data: LoginDto) {
