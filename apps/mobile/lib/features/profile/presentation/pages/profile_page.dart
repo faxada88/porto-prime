@@ -141,7 +141,31 @@ class _Account extends StatelessWidget{const _Account();@override Widget build(B
 
 Widget _line(String a,String b,IconData i,VoidCallback tap)=>ListTile(onTap:tap,contentPadding:const EdgeInsets.symmetric(horizontal:16,vertical:7),leading:Container(width:40,height:40,decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(13)),child:Icon(i,color:AppColors.oceanDeep,size:21)),title:Text(a,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:14)),subtitle:Padding(padding:const EdgeInsets.only(top:2),child:Text(b,style:const TextStyle(color:AppColors.muted,fontSize:9,fontWeight:FontWeight.w600))),trailing:const Icon(Icons.chevron_right_rounded,color:AppColors.muted,size:21));
 
-void _passwordRecovery(BuildContext context){final email=TextEditingController();showModalBottomSheet(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,builder:(ctx)=>_Sheet(title:'Recuperar senha',subtitle:'Informe o e-mail cadastrado na Porto Prime.',children:[_field(email,'E-mail',Icons.mail_outline_rounded,type:TextInputType.emailAddress),_submit(ctx,'Continuar',()async{final r=await AppState.instance.forgotPassword(email.text);if(ctx.mounted){Navigator.pop(ctx);ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(r['resetToken']!=null?'Solicitação criada. Use o token de desenvolvimento para redefinir sua senha.':'Se o e-mail estiver cadastrado, enviaremos as instruções.')));}})])));}
+void _passwordRecovery(BuildContext context) {
+  final email = TextEditingController();
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => _Sheet(
+      title: 'Recuperar senha',
+      subtitle: 'Informe o e-mail cadastrado na Porto Prime.',
+      children: [
+        _field(email, 'E-mail', Icons.mail_outline_rounded, type: TextInputType.emailAddress),
+        _submit(ctx, 'Continuar', () async {
+          final r = await AppState.instance.forgotPassword(email.text);
+          if (ctx.mounted) {
+            Navigator.pop(ctx);
+            final message = r['resetToken'] != null
+                ? 'Solicitação criada. Use o token de desenvolvimento para redefinir sua senha.'
+                : 'Se o e-mail estiver cadastrado, enviaremos as instruções.';
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+          }
+        }),
+      ],
+    ),
+  );
+}
 
 void _orders(BuildContext context){Navigator.of(context).push(_primeRoute(const OrdersPage()));}
 
