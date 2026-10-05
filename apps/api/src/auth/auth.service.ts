@@ -286,6 +286,27 @@ export class AuthService {
     return this.publicUser(user);
   }
 
+  async courierApplication(rawCpf:string) {
+    const cpf=this.normalizeDocument(rawCpf);
+    if(!this.validCpf(cpf)) throw new BadRequestException('CPF inválido');
+    const user=await this.prisma.user.findUnique({where:{document:cpf},include:{courierProfile:{include:{requirements:{orderBy:{createdAt:'desc'}}}}}});
+    if(!user || user.role!==UserRole.COURIER || !user.courierProfile) throw new BadRequestException('Não encontramos uma aplicação de motoboy para este CPF');
+    const p=user.courierProfile;
+    return {applicationId:p.id,name:user.name,status:p.approvalStatus,userStatus:user.status,createdAt:p.createdAt,updatedAt:p.updatedAt,requirements:p.requirements.map(r=>({id:r.id,title:r.title,message:r.message,fieldKey:r.fieldKey,status:r.status,response:r.response,createdAt:r.createdAt,submittedAt:r.submittedAt}))};
+  }
+
+  async submitCourierRequirement(id:string,body:{cpf:string;response:string}) {
+    const cpf=this.normalizeDocument(body.cpf); const response=String(body.response??'').trim();
+    if(!this.validCpf(cpf)) throw new BadRequestException('CPF inválido');
+    if(response.length<3) throw new BadRequestException('Informe os dados solicitados');
+    const req=await this.prisma.courierRequirement.findUnique({where:{id},include:{courier:{include:{user:true}}}});
+    if(!req || req.courier.user.document!==cpf) throw new BadRequestException('Pendência não encontrada para este CPF');
+    if(req.status==='RESOLVED') throw new BadRequestException('Esta pendência já foi concluída');
+    const updated=await this.prisma.courierRequirement.update({where:{id},data:{response,status:'SUBMITTED',submittedAt:new Date()}});
+    await this.prisma.courierProfile.update({where:{id:req.courierId},data:{approvalStatus:'NEEDS_INFO'}});
+    return {success:true,requirement:updated};
+  }
+
   async forgotPassword(data: ForgotPasswordDto) {
     const email=data.email.trim().toLowerCase();
     const user=await this.prisma.user.findUnique({where:{email},select:{id:true}});
