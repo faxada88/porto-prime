@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type AnyRow = Record<string, any>;
-const apiBase=()=>{const configured=process.env.NEXT_PUBLIC_API_URL;if(configured)return configured.replace(/\/$/,"");if(typeof window==="undefined")return "http://127.0.0.1:3000/api";const u=new URL(window.location.href);u.hostname=u.hostname.replace(/-[0-9]{4,5}(?=\.)/,"-3000");u.port=(u.hostname==="localhost"||u.hostname==="127.0.0.1")?"3000":"";u.pathname="/api";return u.toString().replace(/\/$/,"")};
+const apiBase=()=>"/api/backend";
 async function api(path:string,token:string,method="GET"){const r=await fetch(apiBase()+path,{method,headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"}});const d=await r.json().catch(()=>null);if(!r.ok)throw new Error(Array.isArray(d?.message)?d.message.join(", "):d?.message||"Falha na API");return d}
 const money=(v:any)=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(Number(v||0)/100);
 const date=(v:any)=>v?new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short"}).format(new Date(v)):"—";
