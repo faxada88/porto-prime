@@ -3,6 +3,7 @@ import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { BootstrapAdminDto } from './dto/bootstrap-admin.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
+import { ForgotPasswordDto, ResetPasswordDto } from './dto/reset-password.dto.js';
 
 @Controller('auth')
 export class AuthController {
@@ -24,6 +25,12 @@ export class AuthController {
 
   @Post('register')
   register(@Body() body: RegisterDto) { return this.authService.register(body); }
+
+  @Post('forgot-password')
+  forgotPassword(@Body() body: ForgotPasswordDto) { return this.authService.forgotPassword(body); }
+
+  @Post('reset-password')
+  resetPassword(@Body() body: ResetPasswordDto) { return this.authService.resetPassword(body); }
 
   @Post('login')
   login(@Body() body: LoginDto) { return this.authService.login(body); }
