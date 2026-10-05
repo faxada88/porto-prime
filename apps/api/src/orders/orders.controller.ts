@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Headers, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Patch, Post, Param } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { OrdersService } from './orders.service.js';
 
@@ -25,4 +25,18 @@ export class OrdersController {
   active(@Headers('authorization') authorization?: string) {
     return this.ordersService.active(authorization);
   }
+  @Get('courier/available')
+  courierAvailable(@Headers('authorization') authorization?: string) { return this.ordersService.courierAvailable(authorization); }
+
+  @Get('courier/current')
+  courierCurrent(@Headers('authorization') authorization?: string) { return this.ordersService.courierCurrent(authorization); }
+
+  @Patch(':id/courier/accept')
+  courierAccept(@Param('id') id: string, @Headers('authorization') authorization?: string) { return this.ordersService.courierAccept(id, authorization); }
+
+  @Patch(':id/courier/status')
+  courierStatus(@Param('id') id: string, @Body() body: { status: string }, @Headers('authorization') authorization?: string) { return this.ordersService.courierStatus(id, body.status, authorization); }
+
+  @Patch('courier/online')
+  courierOnline(@Body() body: { online: boolean }, @Headers('authorization') authorization?: string) { return this.ordersService.courierOnline(body.online, authorization); }
 }
