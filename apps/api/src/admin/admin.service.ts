@@ -90,6 +90,37 @@ export class AdminService {
     });
   }
 
+  async deleteOrder(orderId:string,authorization?:string) {
+    await this.requireAdmin(authorization);
+    const order=await this.prisma.order.findUnique({where:{id:orderId},select:{id:true,courierId:true}});
+    if(!order) throw new NotFoundException('Pedido não encontrado');
+    return this.prisma.$transaction(async tx=>{
+      await tx.courierLedgerEntry.deleteMany({where:{orderId}});
+      await tx.orderItem.deleteMany({where:{orderId}});
+      await tx.order.delete({where:{id:orderId}});
+      if(order.courierId) await tx.courierProfile.updateMany({where:{id:order.courierId},data:{isOnline:true}});
+      return {success:true,id:orderId};
+    });
+  }
+
+  async deleteUser(userId:string,authorization?:string) {
+    await this.requireAdmin(authorization);
+    const user=await this.prisma.user.findUnique({where:{id:userId},include:{courierProfile:true}});
+    if(!user) throw new NotFoundException('Usuário não encontrado');
+    if(user.role===UserRole.ADMIN) throw new ForbiddenException('Administrador não pode ser removido por esta operação');
+    if(user.role===UserRole.COURIER && user.courierProfile){
+      const active=await this.prisma.order.count({where:{courierId:user.courierProfile.id,status:{notIn:[OrderStatus.DELIVERED,OrderStatus.CANCELED]}}});
+      if(active>0) throw new BadRequestException('Este motoboy possui entrega ativa. Finalize ou reatribua antes de remover.');
+      await this.prisma.order.updateMany({where:{courierId:user.courierProfile.id},data:{courierId:null}});
+    }
+    if(user.role===UserRole.CUSTOMER){
+      const count=await this.prisma.order.count({where:{customerId:userId}});
+      if(count>0) throw new BadRequestException('Cliente possui histórico de pedidos e não pode ser removido por esta operação');
+    }
+    await this.prisma.user.delete({where:{id:userId}});
+    return {success:true,id:userId};
+  }
+
   async setOrderStatus(orderId:string,status:OrderStatus,authorization?:string) {
     await this.requireAdmin(authorization);
     if(!Object.values(OrderStatus).includes(status)) throw new BadRequestException('Status de pedido inválido');
