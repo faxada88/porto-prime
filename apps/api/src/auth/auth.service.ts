@@ -10,7 +10,7 @@ import {
   scryptSync,
   timingSafeEqual,
 } from 'node:crypto';
-import { Prisma, UserRole, UserStatus } from '../generated/prisma/client.js';
+import { CourierRequirementStatus, CourierStatus, Prisma, UserRole, UserStatus } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { BootstrapAdminDto } from './dto/bootstrap-admin.dto.js';
@@ -302,8 +302,8 @@ export class AuthService {
     const req=await this.prisma.courierRequirement.findUnique({where:{id},include:{courier:{include:{user:true}}}});
     if(!req || req.courier.user.document!==cpf) throw new BadRequestException('Pendência não encontrada para este CPF');
     if(req.status==='RESOLVED') throw new BadRequestException('Esta pendência já foi concluída');
-    const updated=await this.prisma.courierRequirement.update({where:{id},data:{response,status:'SUBMITTED',submittedAt:new Date()}});
-    await this.prisma.courierProfile.update({where:{id:req.courierId},data:{approvalStatus:'NEEDS_INFO'}});
+    const updated=await this.prisma.courierRequirement.update({where:{id},data:{response,status:CourierRequirementStatus.SUBMITTED,submittedAt:new Date()}});
+    await this.prisma.courierProfile.update({where:{id:req.courierId},data:{approvalStatus:CourierStatus.NEEDS_INFO}});
     return {success:true,requirement:updated};
   }
 
