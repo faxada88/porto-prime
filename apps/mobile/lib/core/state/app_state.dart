@@ -92,6 +92,14 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<Map<String,dynamic>> courierApplication(String cpf) async {
+    final value=Uri.encodeQueryComponent(cpf.trim());
+    return Map<String,dynamic>.from(await api.request('GET','/auth/courier-application?cpf=$value'));
+  }
+  Future<Map<String,dynamic>> submitCourierRequirement(String id,String cpf,String response) async {
+    return Map<String,dynamic>.from(await api.request('POST','/auth/courier-application/requirements/$id',body:{'cpf':cpf.trim(),'response':response.trim()}));
+  }
+
   Future<Map<String,dynamic>> forgotPassword(String email) async => Map<String,dynamic>.from(await api.request('POST','/auth/forgot-password',body:{'email':email.trim()}));
   Future<void> resetPassword(String token,String password) async { await api.request('POST','/auth/reset-password',body:{'token':token,'password':password}); }
 
