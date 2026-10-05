@@ -30,7 +30,7 @@ export class AdminService {
     await this.requireAdmin(authorization);
     return this.prisma.user.findMany({
       where: { status: UserStatus.PENDING, role: { in: [UserRole.COURIER, UserRole.PARTNER] } },
-      select: { id:true,name:true,email:true,phone:true,document:true,role:true,status:true,courierProfile:true,partnerProfile:true,createdAt:true },
+      select: { id:true,name:true,email:true,phone:true,document:true,role:true,status:true,courierProfile:{include:{requirements:{orderBy:{createdAt:'desc'}}}},partnerProfile:true,createdAt:true },
       orderBy: { createdAt: 'asc' },
     });
   }
@@ -42,7 +42,7 @@ export class AdminService {
       select: {
         id:true,name:true,email:true,phone:true,document:true,role:true,status:true,createdAt:true,updatedAt:true,
         customerProfile:true,
-        courierProfile:{ include:{ _count:{ select:{ deliveries:true } } } },
+        courierProfile:{ include:{ requirements:{orderBy:{createdAt:'desc'}}, _count:{ select:{ deliveries:true } } } },
         partnerProfile:true,
         _count:{ select:{ orders:true } },
       },
