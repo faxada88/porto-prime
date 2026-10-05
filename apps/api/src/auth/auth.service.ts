@@ -13,6 +13,7 @@ import {
 import { Prisma, UserRole, UserStatus } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { LoginDto } from './dto/login.dto.js';
+import { BootstrapAdminDto } from './dto/bootstrap-admin.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
 
 @Injectable()
@@ -154,6 +155,48 @@ export class AuthService {
       role: user.role,
       status: user.status,
     };
+  }
+
+  async bootstrapStatus() {
+    const admin = await this.prisma.user.findFirst({
+      where: { role: UserRole.ADMIN },
+      select: { id: true },
+    });
+    return { available: !admin };
+  }
+
+  async bootstrapAdmin(data: BootstrapAdminDto) {
+    const email = data.email.trim().toLowerCase();
+
+    return this.prisma.$transaction(async (tx) => {
+      const existingAdmin = await tx.user.findFirst({
+        where: { role: UserRole.ADMIN },
+        select: { id: true },
+      });
+      if (existingAdmin) {
+        throw new ConflictException('O administrador inicial já foi configurado');
+      }
+
+      const emailInUse = await tx.user.findUnique({
+        where: { email },
+        select: { id: true },
+      });
+      if (emailInUse) {
+        throw new ConflictException('Este e-mail já está cadastrado');
+      }
+
+      const user = await tx.user.create({
+        data: {
+          name: data.name.trim(),
+          email,
+          passwordHash: this.hashPassword(data.password),
+          role: UserRole.ADMIN,
+          status: UserStatus.ACTIVE,
+        },
+      });
+
+      return this.publicUser(user);
+    });
   }
 
   async register(data: RegisterDto) {
