@@ -88,6 +88,9 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<Map<String,dynamic>> forgotPassword(String email) async => Map<String,dynamic>.from(await api.request('POST','/auth/forgot-password',body:{'email':email.trim()}));
+  Future<void> resetPassword(String token,String password) async { await api.request('POST','/auth/reset-password',body:{'token':token,'password':password}); }
+
   Future<Map<String,dynamic>> login(String email,String password)async{loading=true;error=null;notifyListeners();try{final x=Map<String,dynamic>.from(await api.request('POST','/auth/login',body:{'email':email.trim(),'password':password}));api.token=x['token'];user=Map<String,dynamic>.from(x['user']);if(isCustomer){await Future.wait([loadAddresses(),loadOrders(),loadActiveOrder()]);}return x;}catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}}
   Future<void> logout()async{try{await api.request('POST','/auth/logout');}catch(_){}api.token=null;user=null;addresses=[];orders=[];activeOrder=null;cart.clear();error=null;notifyListeners();}
 
@@ -100,6 +103,8 @@ class AppState extends ChangeNotifier {
 
   Future<void> loadAddresses()async{if(!isCustomer)return;addresses=List<dynamic>.from(await api.request('GET','/addresses'));notifyListeners();}
   Future<void> addAddress(Map<String,dynamic>d)async{await api.request('POST','/addresses',body:d);await loadAddresses();}
+  Future<void> updateAddress(String id,Map<String,dynamic>d)async{await api.request('PATCH','/addresses/$id',body:d);await loadAddresses();}
+  Future<void> removeAddress(String id)async{await api.request('DELETE','/addresses/$id');await loadAddresses();}
   Future<int> clearPendingOrders()async{if(!isCustomer)return 0;final x=Map<String,dynamic>.from(await api.request('DELETE','/orders/pending'));await Future.wait([loadOrders(),loadActiveOrder()]);return (x['deleted'] as num?)?.toInt()??0;}
   Future<void> loadOrders()async{if(!isCustomer)return;orders=List<dynamic>.from(await api.request('GET','/orders/mine'));notifyListeners();}
   Future<void> loadActiveOrder()async{if(!isCustomer)return;final x=await api.request('GET','/orders/active');activeOrder=x==null?null:Map<String,dynamic>.from(x);notifyListeners();}
