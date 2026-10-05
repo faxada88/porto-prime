@@ -124,7 +124,7 @@ export class OrdersService {
   async courierStatus(orderId:string,raw:string,authorization?:string){
     const courier=await this.courier(authorization);
     const status=raw as OrderStatus;
-    const allowed=[OrderStatus.PICKED_UP,OrderStatus.OUT_FOR_DELIVERY,OrderStatus.DELIVERED];
+    const allowed: OrderStatus[]=[OrderStatus.PICKED_UP,OrderStatus.OUT_FOR_DELIVERY,OrderStatus.DELIVERED];
     if(!allowed.includes(status))throw new BadRequestException('Etapa de entrega inválida');
     const order=await this.prisma.order.findFirst({where:{id:orderId,courierId:courier.id}});
     if(!order)throw new NotFoundException('Entrega não encontrada');
