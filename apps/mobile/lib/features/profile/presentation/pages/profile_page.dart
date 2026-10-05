@@ -1,43 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_theme.dart';
-
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
-  @override
-  Widget build(BuildContext context) => SafeArea(
-    child: ListView(
-      padding: const EdgeInsets.all(20),
-      children: [
-        Text('Perfil', style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: 24),
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
-          child: const Row(children: [
-            CircleAvatar(radius: 28, backgroundColor: Color(0xFFE0F5ED), child: Icon(Icons.person_rounded, color: AppColors.primaryDark)),
-            SizedBox(width: 14),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Olá!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-              SizedBox(height: 3),
-              Text('Entre para acompanhar seus pedidos', style: TextStyle(color: AppColors.muted, fontSize: 12)),
-            ])),
-            Icon(Icons.chevron_right_rounded),
-          ]),
-        ),
-        const SizedBox(height: 18),
-        for (final item in const [
-          ('Meus pedidos', Icons.receipt_long_outlined),
-          ('Endereços', Icons.location_on_outlined),
-          ('Pagamentos', Icons.credit_card_outlined),
-          ('Ajuda', Icons.help_outline_rounded),
-        ])
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            leading: Icon(item.$2, color: AppColors.primaryDark),
-            title: Text(item.$1, style: const TextStyle(fontWeight: FontWeight.w700)),
-            trailing: const Icon(Icons.chevron_right_rounded),
-          ),
-      ],
-    ),
-  );
-}
+import '../../../../core/state/app_state.dart'; import '../../../../core/theme/app_theme.dart'; import '../../../auth/presentation/pages/auth_page.dart';
+class ProfilePage extends StatefulWidget{const ProfilePage({super.key});@override State<ProfilePage> createState()=>_ProfilePageState();}
+class _ProfilePageState extends State<ProfilePage>{
+ Map<String,dynamic>? application;bool loading=false;
+ Future<void> load()async{if(AppState.instance.user?.role!='COURIER')return;setState(()=>loading=true);try{application=await AppState.instance.courierApplication();}finally{if(mounted)setState(()=>loading=false);}}
+ Future<void> answer(Map<String,dynamic> r)async{final c=TextEditingController(text:r['response']?.toString()??'');final value=await showDialog<String>(context:context,builder:(ctx)=>AlertDialog(title:Text(r['title']?.toString()??'Pendência'),content:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[Text(r['description']?.toString()??''),const SizedBox(height:14),TextField(controller:c,maxLines:4,decoration:const InputDecoration(labelText:'Sua resposta / informação'))]),actions:[TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('Cancelar')),FilledButton(onPressed:()=>Navigator.pop(ctx,c.text),child:const Text('Enviar'))]));if(value?.trim().isNotEmpty==true){await AppState.instance.respondRequirement(r['id'].toString(),value!);await load();}}
+ @override Widget build(BuildContext context){final s=AppState.instance,u=s.user;return SafeArea(child:ListView(padding:const EdgeInsets.all(20),children:[Text('Perfil',style:Theme.of(context).textTheme.headlineMedium),const SizedBox(height:20),
+  Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(24)),child:Row(children:[const CircleAvatar(radius:28,backgroundColor:Color(0xFFE0F5ED),child:Icon(Icons.person_rounded,color:AppColors.primaryDark)),const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(u?.name??'Olá!',style:const TextStyle(fontSize:18,fontWeight:FontWeight.w800)),Text(u==null?'Entre para acompanhar pedidos e candidaturas':u.email,style:const TextStyle(color:AppColors.muted,fontSize:12))])),if(u==null)FilledButton(onPressed:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const AuthPage())).then((_)=>setState((){})),child:const Text('Entrar'))])),
+  if(u?.role=='COURIER')...[const SizedBox(height:18),FilledButton.icon(onPressed:loading?null:load,icon:const Icon(Icons.fact_check_outlined),label:Text(application==null?'CARREGAR MINHA CANDIDATURA':'ATUALIZAR STATUS')),if(application!=null)...[const SizedBox(height:12),Card(child:Padding(padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Status: ${application!['approvalStatus']}',style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900)),const SizedBox(height:10),for(final raw in (application!['requirements'] as List? ?? []))if(Map<String,dynamic>.from(raw)['status']!='RESOLVED')ListTile(contentPadding:EdgeInsets.zero,leading:const Icon(Icons.warning_amber_rounded,color:Colors.deepOrange),title:Text(Map<String,dynamic>.from(raw)['title'].toString(),style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text(Map<String,dynamic>.from(raw)['description'].toString()),trailing:TextButton(onPressed:()=>answer(Map<String,dynamic>.from(raw)),child:const Text('RESPONDER')))]))]]],
+  const SizedBox(height:18),for(final item in const [('Meus pedidos',Icons.receipt_long_outlined),('Endereços',Icons.location_on_outlined),('Pagamentos',Icons.credit_card_outlined),('Ajuda',Icons.help_outline_rounded)])ListTile(leading:Icon(item.$2,color:AppColors.primaryDark),title:Text(item.$1,style:const TextStyle(fontWeight:FontWeight.w700)),trailing:const Icon(Icons.chevron_right_rounded)),
+  if(u!=null)TextButton.icon(onPressed:()=>s.logout().then((_)=>setState(()=>application=null)),icon:const Icon(Icons.logout),label:const Text('Sair'))
+ ]));}}

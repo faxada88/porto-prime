@@ -1,69 +1,26 @@
-import Image from "next/image";
-
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+"use client";
+import { useEffect, useState } from "react";
+type Req={id:string;title:string;description:string;response?:string;status:string};
+type Courier={id:string;approvalStatus:string;document?:string;cnh?:string;vehicleModel?:string;vehiclePlate?:string;user:{id:string;name:string;email:string;phone?:string;status:string};requirements:Req[]};
+const API=(process.env.NEXT_PUBLIC_API_URL||"http://127.0.0.1:3000/api").replace(/\/$/,"");
+export default function Home(){
+ const [token,setToken]=useState("");const [rows,setRows]=useState<Courier[]>([]);const [error,setError]=useState("");const [busy,setBusy]=useState(false);
+ useEffect(()=>setToken(localStorage.getItem("porto_admin_token")||""),[]);
+ async function call(path:string,init:RequestInit={}){const r=await fetch(API+path,{...init,headers:{"Content-Type":"application/json",Authorization:"Bearer "+token,...(init.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(Array.isArray(d.message)?d.message.join(", "):d.message||"Erro na operação");return d;}
+ async function load(){setBusy(true);setError("");try{localStorage.setItem("porto_admin_token",token);setRows(await call("/admin/couriers"));}catch(e){setError(e instanceof Error?e.message:String(e));}finally{setBusy(false);}}
+ async function request(c:Courier){const title=prompt("O que está pendente? Ex.: Foto da CNH");if(!title)return;const description=prompt("Explique exatamente o que o motoboy precisa enviar/corrigir:");if(!description)return;await call("/admin/couriers/"+c.id+"/requirements",{method:"POST",body:JSON.stringify({title,description})});await load();}
+ async function resolve(id:string){await call("/admin/requirements/"+id+"/resolve",{method:"PATCH"});await load();}
+ async function approve(c:Courier){await call("/admin/users/"+c.user.id+"/approve",{method:"PATCH"});await load();}
+ async function reject(c:Courier){if(!confirm("Rejeitar esta candidatura?"))return;await call("/admin/users/"+c.user.id+"/reject",{method:"PATCH"});await load();}
+ return <main className="min-h-screen bg-[#f5f7f4] text-[#10231c]">
+  <header className="bg-[#073f35] text-white"><div className="mx-auto max-w-7xl px-6 py-8"><p className="text-xs font-black tracking-[.28em] text-emerald-300">PORTO PRIME • OPERAÇÃO</p><h1 className="mt-2 text-3xl font-black">Central de candidaturas</h1><p className="mt-1 text-emerald-50/70">Analise motoboys, solicite qualquer pendência e acompanhe as respostas.</p></div></header>
+  <section className="mx-auto max-w-7xl px-6 py-6">
+   <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-black/5"><label className="text-sm font-bold">Token do administrador</label><div className="mt-2 flex gap-3"><input type="password" value={token} onChange={e=>setToken(e.target.value)} placeholder="Token da sessão ADMIN" className="min-w-0 flex-1 rounded-2xl border border-slate-200 px-4 py-3"/><button onClick={load} disabled={busy||!token} className="rounded-2xl bg-[#08745e] px-6 font-black text-white disabled:opacity-40">{busy?"CARREGANDO...":"ABRIR PAINEL"}</button></div>{error&&<p className="mt-3 font-bold text-red-600">{error}</p>}</div>
+   <div className="mt-6 grid gap-5">{rows.map(c=>{const open=c.requirements.filter(r=>r.status!=="RESOLVED");return <article key={c.id} className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5">
+    <div className="flex flex-wrap items-start justify-between gap-4 p-6"><div><div className="flex items-center gap-2"><h2 className="text-xl font-black">{c.user.name}</h2><span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800">{c.approvalStatus}</span></div><p className="mt-1 text-sm text-slate-500">{c.user.email} • {c.user.phone||"sem telefone"}</p><p className="mt-3 text-sm"><b>CPF:</b> {c.document||"—"} &nbsp; <b>CNH:</b> {c.cnh||"—"} &nbsp; <b>Moto:</b> {c.vehicleModel||"—"} {c.vehiclePlate?" • "+c.vehiclePlate:""}</p></div><button onClick={()=>request(c)} className="rounded-2xl border border-[#08745e] px-4 py-3 text-sm font-black text-[#08745e]">+ SOLICITAR PENDÊNCIA</button></div>
+    {c.requirements.length>0&&<div className="border-t border-slate-100 bg-slate-50/70 p-6"><h3 className="mb-3 text-sm font-black uppercase">Pendências e respostas</h3><div className="grid gap-3">{c.requirements.map(r=><div key={r.id} className="rounded-2xl bg-white p-4 ring-1 ring-slate-200"><div className="flex justify-between gap-3"><div><b>{r.title}</b><p className="mt-1 text-sm text-slate-600">{r.description}</p>{r.response&&<p className="mt-3 rounded-xl bg-emerald-50 p-3 text-sm"><b>Resposta:</b> {r.response}</p>}</div><span className="h-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-black">{r.status}</span></div>{r.status==="ANSWERED"&&<button onClick={()=>resolve(r.id)} className="mt-3 text-sm font-black text-emerald-700">MARCAR RESOLVIDA ✓</button>}</div>)}</div></div>}
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 p-5"><p className="text-sm font-bold">{open.length?open.length+" pendência(s) em aberto":"Sem pendências abertas"}</p><div className="flex gap-2"><button onClick={()=>reject(c)} className="rounded-xl bg-red-50 px-4 py-2 text-sm font-black text-red-700">REJEITAR</button><button onClick={()=>approve(c)} disabled={open.length>0||c.approvalStatus==="APPROVED"} className="rounded-xl bg-[#08745e] px-4 py-2 text-sm font-black text-white disabled:opacity-30">APROVAR</button></div></div>
+   </article>})}</div>
+  </section>
+ </main>
 }

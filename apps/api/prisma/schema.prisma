@@ -2,312 +2,214 @@ generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
-
-datasource db {
-  provider = "postgresql"
-}
-
-enum UserRole {
-  CUSTOMER
-  COURIER
-  PARTNER
-  ADMIN
-}
-
-enum UserStatus {
-  ACTIVE
-  PENDING
-  SUSPENDED
-  BLOCKED
-}
-
-enum CourierStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  SUSPENDED
-}
-
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  PREPARING
-  READY_FOR_PICKUP
-  COURIER_ASSIGNED
-  PICKED_UP
-  OUT_FOR_DELIVERY
-  DELIVERED
-  CANCELED
-}
-
-enum PaymentStatus {
-  PENDING
-  PAID
-  FAILED
-  REFUNDED
-  PARTIALLY_REFUNDED
-}
-
-enum PaymentMethod {
-  CARD
-  PIX
-}
-
-enum PixKeyType {
-  CPF
-  CNPJ
-  EMAIL
-  PHONE
-  RANDOM
-}
-
-enum WithdrawalStatus {
-  PENDING
-  PROCESSING
-  PAID
-  REJECTED
-  CANCELED
-}
+datasource db { provider = "postgresql" }
+enum UserRole { CUSTOMER COURIER PARTNER ADMIN }
+enum UserStatus { ACTIVE PENDING SUSPENDED BLOCKED }
+enum CourierStatus { PENDING APPROVED REJECTED SUSPENDED }
+enum RequirementStatus { OPEN ANSWERED RESOLVED }
+enum OrderStatus { PENDING CONFIRMED PREPARING READY_FOR_PICKUP COURIER_ASSIGNED PICKED_UP OUT_FOR_DELIVERY DELIVERED CANCELED }
+enum PaymentStatus { PENDING PAID FAILED REFUNDED PARTIALLY_REFUNDED }
+enum PaymentMethod { CARD PIX }
+enum PixKeyType { CPF CNPJ EMAIL PHONE RANDOM }
+enum WithdrawalStatus { PENDING PROCESSING PAID REJECTED CANCELED }
 
 model User {
-  id           String     @id @default(cuid())
-  name         String
-  email        String     @unique
-  phone        String?    @unique
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  phone String? @unique
   passwordHash String
-  role         UserRole
-  status       UserStatus @default(ACTIVE)
-
+  role UserRole
+  status UserStatus @default(ACTIVE)
   customerProfile CustomerProfile?
-  courierProfile  CourierProfile?
-  partnerProfile  PartnerProfile?
-
+  courierProfile CourierProfile?
+  partnerProfile PartnerProfile?
   addresses Address[]
-  orders    Order[]  @relation("CustomerOrders")
-  sessions  AuthSession[]
-
+  orders Order[] @relation("CustomerOrders")
+  sessions AuthSession[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@index([role])
   @@index([status])
 }
-
 model CustomerProfile {
-  id     String @id @default(cuid())
+  id String @id @default(cuid())
   userId String @unique
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 model CourierProfile {
-  id     String @id @default(cuid())
+  id String @id @default(cuid())
   userId String @unique
-
   approvalStatus CourierStatus @default(PENDING)
-  isOnline       Boolean       @default(false)
-
-  document       String?
-  pixKeyType     PixKeyType?
-  pixKey         String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  deliveries  Order[]            @relation("CourierOrders")
-  ledger      CourierLedgerEntry[]
+  isOnline Boolean @default(false)
+  document String? @unique
+  cnh String?
+  cnhCategory String?
+  vehicleBrand String?
+  vehicleModel String?
+  vehiclePlate String?
+  vehicleYear Int?
+  pixKeyType PixKeyType?
+  pixKey String?
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  deliveries Order[] @relation("CourierOrders")
+  ledger CourierLedgerEntry[]
   withdrawals Withdrawal[]
-
+  requirements CourierRequirement[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@index([approvalStatus])
   @@index([isOnline])
 }
-
+model CourierRequirement {
+  id String @id @default(cuid())
+  courierId String
+  title String
+  description String
+  response String?
+  status RequirementStatus @default(OPEN)
+  requestedAt DateTime @default(now())
+  answeredAt DateTime?
+  resolvedAt DateTime?
+  courier CourierProfile @relation(fields:[courierId],references:[id],onDelete:Cascade)
+  @@index([courierId,status])
+}
 model PartnerProfile {
-  id     String @id @default(cuid())
+  id String @id @default(cuid())
   userId String @unique
-
   businessName String
-  document     String?
-  approved     Boolean @default(false)
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  document String?
+  approved Boolean @default(false)
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 model Address {
-  id     String @id @default(cuid())
+  id String @id @default(cuid())
   userId String
-
-  label        String?
-  street       String
-  number       String
-  complement   String?
+  label String?
+  street String
+  number String
+  complement String?
   neighborhood String
-  city         String
-  state        String
-  postalCode   String
-  latitude     Decimal? @db.Decimal(10, 7)
-  longitude    Decimal? @db.Decimal(10, 7)
-  isDefault    Boolean  @default(false)
-
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city String
+  state String
+  postalCode String
+  latitude Decimal? @db.Decimal(10,7)
+  longitude Decimal? @db.Decimal(10,7)
+  isDefault Boolean @default(false)
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
   orders Order[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@index([userId])
 }
-
 model Category {
-  id   String @id @default(cuid())
+  id String @id @default(cuid())
   name String @unique
   slug String @unique
-
   imageUrl String?
-  active   Boolean @default(true)
-  position Int     @default(0)
-
+  active Boolean @default(true)
+  position Int @default(0)
   products Product[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@index([active, position])
+  @@index([active,position])
 }
-
 model Product {
-  id         String @id @default(cuid())
+  id String @id @default(cuid())
   categoryId String
-
-  name        String
+  name String
   description String?
-  imageUrl    String?
-  price       Decimal @db.Decimal(10, 2)
-  active      Boolean @default(true)
-  stock       Int     @default(0)
-
-  category  Category    @relation(fields: [categoryId], references: [id])
+  imageUrl String?
+  price Decimal @db.Decimal(10,2)
+  active Boolean @default(true)
+  stock Int @default(0)
+  category Category @relation(fields:[categoryId],references:[id])
   orderItems OrderItem[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@index([categoryId])
   @@index([active])
 }
-
 model Order {
-  id         String @id @default(cuid())
+  id String @id @default(cuid())
   customerId String
-  courierId  String?
-  addressId  String
-
-  status        OrderStatus   @default(PENDING)
+  courierId String?
+  addressId String
+  status OrderStatus @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
   paymentMethod PaymentMethod?
-
-  subtotal    Decimal @db.Decimal(10, 2)
-  deliveryFee Decimal @db.Decimal(10, 2)
-  total       Decimal @db.Decimal(10, 2)
-
+  subtotal Decimal @db.Decimal(10,2)
+  deliveryFee Decimal @db.Decimal(10,2)
+  total Decimal @db.Decimal(10,2)
   stripePaymentIntentId String? @unique
-
-  customer User            @relation("CustomerOrders", fields: [customerId], references: [id])
-  courier  CourierProfile? @relation("CourierOrders", fields: [courierId], references: [id])
-  address  Address         @relation(fields: [addressId], references: [id])
-
-  items       OrderItem[]
+  customer User @relation("CustomerOrders",fields:[customerId],references:[id])
+  courier CourierProfile? @relation("CourierOrders",fields:[courierId],references:[id])
+  address Address @relation(fields:[addressId],references:[id])
+  items OrderItem[]
   courierLedger CourierLedgerEntry[]
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   deliveredAt DateTime?
-  canceledAt  DateTime?
-
+  canceledAt DateTime?
   @@index([customerId])
   @@index([courierId])
   @@index([status])
   @@index([createdAt])
 }
-
 model OrderItem {
-  id        String @id @default(cuid())
-  orderId   String
+  id String @id @default(cuid())
+  orderId String
   productId String
-
   productName String
-  unitPrice   Decimal @db.Decimal(10, 2)
-  quantity    Int
-  total       Decimal @db.Decimal(10, 2)
-
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
-
+  unitPrice Decimal @db.Decimal(10,2)
+  quantity Int
+  total Decimal @db.Decimal(10,2)
+  order Order @relation(fields:[orderId],references:[id],onDelete:Cascade)
+  product Product @relation(fields:[productId],references:[id])
   createdAt DateTime @default(now())
-
   @@index([orderId])
   @@index([productId])
 }
-
 model CourierLedgerEntry {
-  id        String @id @default(cuid())
+  id String @id @default(cuid())
   courierId String
-  orderId   String?
-
-  amount      Decimal @db.Decimal(10, 2)
+  orderId String?
+  amount Decimal @db.Decimal(10,2)
   description String
-
-  courier CourierProfile @relation(fields: [courierId], references: [id])
-  order   Order?         @relation(fields: [orderId], references: [id])
-
+  courier CourierProfile @relation(fields:[courierId],references:[id])
+  order Order? @relation(fields:[orderId],references:[id])
   createdAt DateTime @default(now())
-
   @@index([courierId])
   @@index([orderId])
   @@index([createdAt])
 }
-
 model Withdrawal {
-  id        String @id @default(cuid())
+  id String @id @default(cuid())
   courierId String
-
-  amount Decimal          @db.Decimal(10, 2)
+  amount Decimal @db.Decimal(10,2)
   status WithdrawalStatus @default(PENDING)
-
   pixKeyType PixKeyType
-  pixKey     String
-
+  pixKey String
   receiptUrl String?
   requestedAt DateTime @default(now())
   processedAt DateTime?
-
-  courier CourierProfile @relation(fields: [courierId], references: [id])
-
+  courier CourierProfile @relation(fields:[courierId],references:[id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@index([courierId])
   @@index([status])
 }
-
 model AuthSession {
-  id        String   @id @default(cuid())
-  userId    String
-  tokenHash String   @unique
+  id String @id @default(cuid())
+  userId String
+  tokenHash String @unique
   expiresAt DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
   createdAt DateTime @default(now())
-
   @@index([userId])
   @@index([expiresAt])
 }
