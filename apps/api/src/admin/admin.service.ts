@@ -52,7 +52,7 @@ export class AdminService {
 
   async setUserStatus(userId:string, status:UserStatus, authorization?:string) {
     await this.requireAdmin(authorization);
-    if (![UserStatus.ACTIVE,UserStatus.BLOCKED,UserStatus.SUSPENDED].includes(status)) throw new BadRequestException('Status inválido');
+    if (status !== UserStatus.ACTIVE && status !== UserStatus.BLOCKED && status !== UserStatus.SUSPENDED) throw new BadRequestException('Status inválido');
     const user=await this.prisma.user.findUnique({where:{id:userId}});
     if(!user) throw new NotFoundException('Usuário não encontrado');
     if(user.role===UserRole.ADMIN) throw new ForbiddenException('Não é permitido alterar outro administrador por esta operação');
