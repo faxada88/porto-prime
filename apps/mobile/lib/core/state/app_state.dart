@@ -15,15 +15,26 @@ class AppState extends ChangeNotifier {
   bool loading=false;
   String? error;
   String catalogCategory='Todos';
+  bool _catalogPolling=false;
 
   bool get loggedIn=>user!=null;
   bool get isCustomer=>user?['role']=='CUSTOMER';
   int get cartCount=>cart.values.fold(0,(a,b)=>a+b);
   double get cartSubtotal=>cart.entries.fold(0,(sum,e){final p=product(e.key);return sum+(p==null?0:(double.tryParse(p['price'].toString())??0)*e.value);});
 
-  Future<void> bootstrap()async{await loadProducts();if(loggedIn&&isCustomer){await Future.wait([loadAddresses(),loadOrders(),loadActiveOrder()]);}}
+  Future<void> bootstrap()async{await loadProducts();startCatalogSync();if(loggedIn&&isCustomer){await Future.wait([loadAddresses(),loadOrders(),loadActiveOrder()]);}}
+  void startCatalogSync(){
+    if(_catalogPolling)return;
+    _catalogPolling=true;
+    Future<void>(()async{
+      while(_catalogPolling){
+        await Future<void>.delayed(const Duration(seconds:5));
+        try{await loadProducts(silent:true);}catch(_){}
+      }
+    });
+  }
 
-  Future<void> loadProducts()async{try{products=List<dynamic>.from(await api.request('GET','/products'));notifyListeners();}catch(e){error=e.toString();notifyListeners();}}
+  Future<void> loadProducts({bool silent=false})async{try{final next=List<dynamic>.from(await api.request('GET','/products'));final changed=next.toString()!=products.toString();products=next;if(changed)notifyListeners();}catch(e){if(!silent){error=e.toString();notifyListeners();}}}
   Future<Map<String,dynamic>> lookupPostalCode(String cep) async {
     final q=Uri(queryParameters:{'cep':cep}).query;
     return Map<String,dynamic>.from(await api.request('GET','/auth/postal-code?$q'));
