@@ -144,12 +144,9 @@ export class AdminService {
     if(!order) throw new NotFoundException('Pedido não encontrado');
     if(order.paymentStatus!==PaymentStatus.PAID) throw new ForbiddenException('O pedido precisa estar pago antes da liberação');
     if(order.status!==OrderStatus.CONFIRMED && order.status!==OrderStatus.PREPARING) throw new ForbiddenException('Pedido não está aguardando liberação');
-    const courier=await this.prisma.courierProfile.findFirst({where:{isOnline:true,approvalStatus:CourierStatus.APPROVED,user:{status:UserStatus.ACTIVE}},orderBy:{updatedAt:'asc'}});
-    if(!courier) return this.prisma.order.update({where:{id:orderId},data:{status:OrderStatus.READY_FOR_PICKUP}});
-    return this.prisma.$transaction(async tx=>{
-      await tx.courierProfile.update({where:{id:courier.id},data:{isOnline:false}});
-      return tx.order.update({where:{id:orderId},data:{courierId:courier.id,status:OrderStatus.COURIER_ASSIGNED},include:{courier:{include:{user:true}}}});
-    });
+    // Ao liberar, o pedido entra imediatamente no pool dos motoboys online.
+    // A aceitação é atômica: apenas o primeiro motoboy consegue assumir.
+    return this.prisma.order.update({where:{id:orderId},data:{courierId:null,status:OrderStatus.READY_FOR_PICKUP}});
   }
 
   async catalog(authorization?:string) {
