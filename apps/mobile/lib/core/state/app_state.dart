@@ -11,6 +11,9 @@ class AppState extends ChangeNotifier {
   List<dynamic> addresses=[];
   List<dynamic> orders=[];
   Map<String,dynamic>? activeOrder;
+  Map<String,dynamic>? courierDelivery;
+  List<dynamic> courierOffers=[];
+  bool courierOnline=false;
   final Map<String,int> cart={};
   bool loading=false;
   String? error;
@@ -19,6 +22,7 @@ class AppState extends ChangeNotifier {
 
   bool get loggedIn=>user!=null;
   bool get isCustomer=>user?['role']=='CUSTOMER';
+  bool get isCourier=>user?['role']=='COURIER';
   int get cartCount=>cart.values.fold(0,(a,b)=>a+b);
   double get cartSubtotal=>cart.entries.fold(0,(sum,e){final p=product(e.key);return sum+(p==null?0:(double.tryParse(p['price'].toString())??0)*e.value);});
 
@@ -91,7 +95,7 @@ class AppState extends ChangeNotifier {
   Future<Map<String,dynamic>> forgotPassword(String email) async => Map<String,dynamic>.from(await api.request('POST','/auth/forgot-password',body:{'email':email.trim()}));
   Future<void> resetPassword(String token,String password) async { await api.request('POST','/auth/reset-password',body:{'token':token,'password':password}); }
 
-  Future<Map<String,dynamic>> login(String email,String password)async{loading=true;error=null;notifyListeners();try{final x=Map<String,dynamic>.from(await api.request('POST','/auth/login',body:{'email':email.trim(),'password':password}));api.token=x['token'];user=Map<String,dynamic>.from(x['user']);if(isCustomer){await Future.wait([loadAddresses(),loadOrders(),loadActiveOrder()]);}return x;}catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}}
+  Future<Map<String,dynamic>> login(String email,String password)async{loading=true;error=null;notifyListeners();try{final x=Map<String,dynamic>.from(await api.request('POST','/auth/login',body:{'email':email.trim(),'password':password}));api.token=x['token'];user=Map<String,dynamic>.from(x['user']);if(isCustomer){await Future.wait([loadAddresses(),loadOrders(),loadActiveOrder()]);}if(isCourier){await refreshCourier();}return x;}catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}}
   Future<void> logout()async{try{await api.request('POST','/auth/logout');}catch(_){}api.token=null;user=null;addresses=[];orders=[];activeOrder=null;cart.clear();error=null;notifyListeners();}
 
   void addProduct(String id){cart[id]=(cart[id]??0)+1;notifyListeners();}
@@ -108,6 +112,11 @@ class AppState extends ChangeNotifier {
   Future<int> clearPendingOrders()async{if(!isCustomer)return 0;final x=Map<String,dynamic>.from(await api.request('DELETE','/orders/pending'));await Future.wait([loadOrders(),loadActiveOrder()]);return (x['deleted'] as num?)?.toInt()??0;}
   Future<void> loadOrders()async{if(!isCustomer)return;orders=List<dynamic>.from(await api.request('GET','/orders/mine'));notifyListeners();}
   Future<void> loadActiveOrder()async{if(!isCustomer)return;final x=await api.request('GET','/orders/active');activeOrder=x==null?null:Map<String,dynamic>.from(x);notifyListeners();}
+
+  Future<void> refreshCourier()async{if(!isCourier)return;final current=await api.request('GET','/orders/courier/current');courierDelivery=current==null?null:Map<String,dynamic>.from(current);courierOffers=List<dynamic>.from(await api.request('GET','/orders/courier/available'));notifyListeners();}
+  Future<void> setCourierOnline(bool online)async{await api.request('PATCH','/orders/courier/online',body:{'online':online});courierOnline=online;await refreshCourier();}
+  Future<void> acceptDelivery(String id)async{courierDelivery=Map<String,dynamic>.from(await api.request('PATCH','/orders/$id/courier/accept'));courierOnline=false;await refreshCourier();}
+  Future<void> advanceDelivery(String id,String status)async{courierDelivery=Map<String,dynamic>.from(await api.request('PATCH','/orders/$id/courier/status',body:{'status':status}));if(status=='DELIVERED'){courierOnline=true;}await refreshCourier();}
 
   Future<Map<String,dynamic>> createOrder(String addressId)async{
     if(!isCustomer)throw Exception('Entre como cliente para finalizar');
