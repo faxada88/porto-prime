@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { CourierStatus, OrderStatus, PaymentStatus, UserRole, UserStatus } from '../generated/prisma/client.js';
+import { CourierRequirementStatus, CourierStatus, OrderStatus, PaymentStatus, UserRole, UserStatus } from '../generated/prisma/client.js';
 import { AuthService } from '../auth/auth.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -69,7 +69,7 @@ export class AdminService {
     const title=String(data.title??'').trim(),message=String(data.message??'').trim();
     if(!title||!message) throw new BadRequestException('Título e orientação são obrigatórios');
     const requirement=await this.prisma.courierRequirement.create({data:{courierId:user.courierProfile.id,title,message,fieldKey:data.fieldKey?.trim()||null}});
-    await this.prisma.courierProfile.update({where:{id:user.courierProfile.id},data:{approvalStatus:'NEEDS_INFO',isOnline:false}});
+    await this.prisma.courierProfile.update({where:{id:user.courierProfile.id},data:{approvalStatus:CourierStatus.NEEDS_INFO,isOnline:false}});
     await this.prisma.user.update({where:{id:userId},data:{status:UserStatus.PENDING}});
     return requirement;
   }
@@ -78,7 +78,7 @@ export class AdminService {
     await this.requireAdmin(authorization);
     const requirement=await this.prisma.courierRequirement.findUnique({where:{id}});
     if(!requirement) throw new NotFoundException('Pendência não encontrada');
-    return this.prisma.courierRequirement.update({where:{id},data:{status:'RESOLVED',resolvedAt:new Date()}});
+    return this.prisma.courierRequirement.update({where:{id},data:{status:CourierRequirementStatus.RESOLVED,resolvedAt:new Date()}});
   }
 
   async approve(userId:string, authorization?:string) {
@@ -86,7 +86,7 @@ export class AdminService {
     const user=await this.prisma.user.findUnique({where:{id:userId},include:{courierProfile:{include:{requirements:true}},partnerProfile:true}});
     if(!user) throw new NotFoundException('Usuário não encontrado');
     return this.prisma.$transaction(async tx=>{
-      if(user.role===UserRole.COURIER && user.courierProfile) { const open=user.courierProfile.requirements.some(r=>r.status!=='RESOLVED'); if(open) throw new BadRequestException('Resolva todas as pendências antes de aprovar'); await tx.courierProfile.update({where:{id:user.courierProfile.id},data:{approvalStatus:CourierStatus.APPROVED}}); }
+      if(user.role===UserRole.COURIER && user.courierProfile) { const open=user.courierProfile.requirements.some(r=>r.status!==CourierRequirementStatus.RESOLVED); if(open) throw new BadRequestException('Resolva todas as pendências antes de aprovar'); await tx.courierProfile.update({where:{id:user.courierProfile.id},data:{approvalStatus:CourierStatus.APPROVED}}); }
       else if(user.role===UserRole.PARTNER && user.partnerProfile) await tx.partnerProfile.update({where:{id:user.partnerProfile.id},data:{approved:true}});
       else throw new ForbiddenException('Perfil não requer aprovação');
       return tx.user.update({where:{id:userId},data:{status:UserStatus.ACTIVE},select:{id:true,name:true,email:true,role:true,status:true}});
