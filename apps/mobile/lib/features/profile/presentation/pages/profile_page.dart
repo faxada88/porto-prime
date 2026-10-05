@@ -3,6 +3,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../orders/presentation/pages/orders_page.dart';
 import 'registration_page.dart';
+import 'courier_application_page.dart';
 
 class ProfilePage extends StatelessWidget{const ProfilePage({super.key});@override Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(_,__)=>AppState.instance.loggedIn?const _Account():const _Guest());}
 
@@ -90,6 +91,7 @@ class _GuestState extends State<_Guest> with SingleTickerProviderStateMixin {
             const SizedBox(height: 17),
             _Role('Cliente', 'Peça, pague e acompanhe sua entrega.', Icons.shopping_bag_outlined, AppColors.sand, () => _register(context, 'CUSTOMER')),
             _Role('Motoboy', 'Entregas e rotina operacional.', Icons.delivery_dining_outlined, AppColors.mint, () => _register(context, 'COURIER')),
+            Container(margin:const EdgeInsets.only(bottom:10),padding:const EdgeInsets.fromLTRB(15,14,12,14),decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(22),border:Border.all(color:AppColors.mintStrong)),child:Row(children:[Container(width:43,height:43,decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(14)),child:const Icon(Icons.manage_search_rounded,color:AppColors.oceanDeep)),const SizedBox(width:12),const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Já se candidatou?',style:TextStyle(fontSize:13,fontWeight:FontWeight.w900)),SizedBox(height:2),Text('Consulte o status pelo CPF e resolva pendências.',style:TextStyle(fontSize:9.5,color:AppColors.muted,fontWeight:FontWeight.w600))])),TextButton(onPressed:()=>Navigator.of(context).push(_primeRoute(const CourierApplicationPage())),child:const Text('Ver status',style:TextStyle(fontWeight:FontWeight.w900)))])),
             _Role('Parceiro', 'Divulgação e relacionamento Porto Prime.', Icons.storefront_outlined, AppColors.lavender, () => _register(context, 'PARTNER')),
             const SizedBox(height: 8),
             const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
