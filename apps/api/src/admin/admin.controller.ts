@@ -9,6 +9,8 @@ export class AdminController {
   @Get('pending') pending(@Headers('authorization') a?:string){return this.adminService.pending(a)}
   @Get('users') users(@Query('role') role:string|undefined,@Headers('authorization') a?:string){return this.adminService.users(role as UserRole|undefined,a)}
   @Patch('users/:id/status') userStatus(@Param('id') id:string,@Body() b:{status:UserStatus},@Headers('authorization') a?:string){return this.adminService.setUserStatus(id,b.status,a)}
+  @Post('users/:id/requirements') requirement(@Param('id') id:string,@Body() b:{title:string;message:string;fieldKey?:string},@Headers('authorization') a?:string){return this.adminService.requestCourierInfo(id,b,a)}
+  @Patch('requirements/:id/resolve') resolveRequirement(@Param('id') id:string,@Headers('authorization') a?:string){return this.adminService.resolveCourierRequirement(id,a)}
   @Patch('users/:id/approve') approve(@Param('id') id:string,@Headers('authorization') a?:string){return this.adminService.approve(id,a)}
   @Patch('users/:id/reject') reject(@Param('id') id:string,@Headers('authorization') a?:string){return this.adminService.reject(id,a)}
   @Get('orders') orders(@Headers('authorization') a?:string){return this.adminService.orders(a)}
