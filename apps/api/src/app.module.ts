@@ -9,10 +9,6 @@ import { AuthModule } from './auth/auth.module.js';
 import { AdminModule } from './admin/admin.module.js';
 import { AddressesModule } from './addresses/addresses.module.js';
 import { OrdersModule } from './orders/orders.module.js';
-
-@Module({
-  imports: [PrismaModule, HealthModule, AuthModule, AdminModule, AddressesModule, OrdersModule, CategoriesModule, ProductsModule],
-  controllers: [AppController],
-  providers: [AppService],
-})
+import { CouriersModule } from './couriers/couriers.module.js';
+@Module({imports:[PrismaModule,HealthModule,AuthModule,AdminModule,CouriersModule,AddressesModule,OrdersModule,CategoriesModule,ProductsModule],controllers:[AppController],providers:[AppService]})
 export class AppModule {}

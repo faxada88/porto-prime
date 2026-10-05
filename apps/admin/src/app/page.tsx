@@ -1,69 +1,63 @@
-import Image from "next/image";
+"use client";
+import { useEffect,useMemo,useState } from "react";
 
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+type Row=Record<string,any>;
+const base=()=>"/api/backend";
+async function api(path:string,token="",method="GET",body?:any){const r=await fetch(base()+path,{method,headers:{"Content-Type":"application/json",...(token?{Authorization:"Bearer "+token}:{})},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store"});const d=await r.json().catch(()=>null);if(!r.ok)throw new Error(Array.isArray(d?.message)?d.message.join(", "):d?.message||"Falha na API");return d}
+const brl=(v:any)=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(Number(v||0));
+const dt=(v:any)=>v?new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short"}).format(new Date(v)):"—";
+const statusLabel:Record<string,string>={ACTIVE:"Ativo",PENDING:"Pendente",SUSPENDED:"Suspenso",BLOCKED:"Bloqueado",PAID:"Pago",FAILED:"Falhou",REFUNDED:"Reembolsado",PARTIALLY_REFUNDED:"Reembolso parcial",CONFIRMED:"Confirmado",PREPARING:"Preparando",READY_FOR_PICKUP:"Pronto para retirada",COURIER_ASSIGNED:"Motoboy atribuído",PICKED_UP:"Coletado",OUT_FOR_DELIVERY:"Em rota",DELIVERED:"Entregue",CANCELED:"Cancelado"};
+
+export default function Home(){
+ const [token,setToken]=useState(""),[email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState("");
+ const [me,setMe]=useState<Row|null>(null),[bootstrap,setBootstrap]=useState(false),[pending,setPending]=useState<Row[]>([]),[orders,setOrders]=useState<Row[]>([]),[users,setUsers]=useState<Row[]>([]),[catalog,setCatalog]=useState<Row[]>([]),[dash,setDash]=useState<Row>({});
+ const [tab,setTab]=useState("Visão geral"),[error,setError]=useState(""),[busy,setBusy]=useState(false),[search,setSearch]=useState("");
+ const [confirmBox,setConfirmBox]=useState<{title:string;message:string;detail?:string;confirm:string;action:()=>void}|null>(null);
+ const [forgot,setForgot]=useState(false),[resetToken,setResetToken]=useState(""),[newPassword,setNewPassword]=useState(""),[notice,setNotice]=useState("");
+ const [lastSync,setLastSync]=useState<Date|null>(null),[activityNotice,setActivityNotice]=useState("");
+ async function load(t=token){setBusy(true);setError("");try{const who=await api("/auth/me",t);if(who.role!=="ADMIN")throw new Error("Conta sem acesso administrativo");setMe(who);const [p,o,u,c,d]=await Promise.all([api("/admin/pending",t),api("/admin/orders",t),api("/admin/users",t),api("/admin/catalog",t),api("/admin/dashboard",t)]);setPending(p);setOrders(o);setUsers(u);setCatalog(c);setDash(d);setLastSync(new Date());localStorage.setItem("pp_admin_token",t)}catch(e:any){setError(e.message);setMe(null);localStorage.removeItem("pp_admin_token")}finally{setBusy(false)}}
+ useEffect(()=>{const t=localStorage.getItem("pp_admin_token");if(t){setToken(t);load(t);return}api("/auth/bootstrap-admin").then(d=>setBootstrap(!!d.available)).catch(()=>setBootstrap(false))},[]);
+ useEffect(()=>{if(!me||!token)return;let previous={orders:orders.length,pending:pending.length};const sync=async()=>{if(document.visibilityState!=="visible")return;try{const [p,o,u,c,d]=await Promise.all([api("/admin/pending",token),api("/admin/orders",token),api("/admin/users",token),api("/admin/catalog",token),api("/admin/dashboard",token)]);const changes:string[]=[];if(o.length>previous.orders)changes.push((o.length-previous.orders)+" novo(s) pedido(s)");if(p.length>previous.pending)changes.push((p.length-previous.pending)+" novo(s) cadastro(s) aguardando aprovação");previous={orders:o.length,pending:p.length};setPending(p);setOrders(o);setUsers(u);setCatalog(c);setDash(d);setLastSync(new Date());if(changes.length){setActivityNotice(changes.join(" · "));setTimeout(()=>setActivityNotice(""),7000)}}catch{}};const id=window.setInterval(sync,5000);const visible=()=>{if(document.visibilityState==="visible")sync()};document.addEventListener("visibilitychange",visible);return()=>{window.clearInterval(id);document.removeEventListener("visibilitychange",visible)}},[me,token]);
+ async function login(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");try{const d=await api("/auth/login","","POST",{email,password});setToken(d.token);await load(d.token)}catch(e:any){setError(e.message);setBusy(false)}}
+ async function createAdmin(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");try{await api("/auth/bootstrap-admin","","POST",{name,email,password});setBootstrap(false);await login(e)}catch(e:any){setError(e.message);setBusy(false)}}
+ async function act(path:string,method="PATCH",body?:any){try{setBusy(true);setError("");await api(path,token,method,body);await load()}catch(e:any){setError(e.message);setBusy(false)}}
+ const couriers=users.filter(x=>x.role==="COURIER"), customers=users.filter(x=>x.role==="CUSTOMER"),partners=users.filter(x=>x.role==="PARTNER");
+ const filtered=(rows:Row[])=>rows.filter(x=>JSON.stringify(x).toLowerCase().includes(search.toLowerCase()));
+ if(!me)return <main className="login"><section className="brand"><div className="mark">P</div><span>PORTO PRIME</span><h1>Central de<br/>Operações</h1><p>Controle exclusivo da Porto Prime Delivery.</p><div className="security">● Ambiente administrativo protegido</div></section><section className="loginCard"><small>{forgot?"RECUPERAÇÃO SEGURA":bootstrap?"CONFIGURAÇÃO INICIAL":"ACESSO RESTRITO"}</small><h2>{forgot?"Recuperar senha":bootstrap?"Criar primeiro administrador":"Entrar no Admin"}</h2><p>{forgot?"Informe seu e-mail para iniciar a redefinição.":bootstrap?"Defina a conta principal da operação.":"Use sua conta administrativa."}</p>{forgot?<form onSubmit={async e=>{e.preventDefault();setBusy(true);setError("");try{const d=await api("/auth/forgot-password","","POST",{email});if(d.resetToken){setResetToken(d.resetToken);setNotice("Ambiente de desenvolvimento: defina sua nova senha agora.")}else setNotice("Se o e-mail estiver cadastrado, as instruções de recuperação serão enviadas.")}catch(e:any){setError(e.message)}finally{setBusy(false)}}}><label>E-mail<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required/></label>{resetToken&&<label>Nova senha<input type="password" minLength={8} value={newPassword} onChange={e=>setNewPassword(e.target.value)} required/></label>}{notice&&<div className="security">{notice}</div>}{error&&<div className="error">{error}</div>}{resetToken?<button type="button" disabled={busy||newPassword.length<8} onClick={async()=>{try{setBusy(true);await api("/auth/reset-password","","POST",{token:resetToken,password:newPassword});setForgot(false);setResetToken("");setNewPassword("");setNotice("Senha alterada. Entre com sua nova senha.")}catch(e:any){setError(e.message)}finally{setBusy(false)}}}>Salvar nova senha</button>:<button disabled={busy}>{busy?"Aguarde...":"Continuar"}</button>}<button type="button" className="secondary" onClick={()=>{setForgot(false);setResetToken("");setError("")}}>Voltar ao login</button></form>:<form onSubmit={bootstrap?createAdmin:login}>{bootstrap&&<label>Nome<input value={name} onChange={e=>setName(e.target.value)} required/></label>}<label>E-mail<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required/></label><label>Senha<input type="password" minLength={8} value={password} onChange={e=>setPassword(e.target.value)} required/></label>{notice&&<div className="security">{notice}</div>}{error&&<div className="error">{error}</div>}<button disabled={busy}>{busy?"Aguarde...":bootstrap?"Criar administrador e entrar":"Acessar painel"}</button>{!bootstrap&&<button type="button" className="forgotLink" onClick={()=>{setForgot(true);setError("");setNotice("")}}>Esqueci minha senha</button>}</form>}</section></main>;
+ const nav=["Visão geral","Pedidos","Aprovações","Motoboys","Clientes","Parceiros","Catálogo","Pagamentos","Configurações"];
+ return <div className="shell"><aside><div className="logo"><b>P</b><div><strong>PORTO PRIME</strong><span>OPERAÇÕES</span></div></div><nav>{nav.map(n=><button key={n} className={tab===n?"active":""} onClick={()=>{setTab(n);setSearch("")}}><i>•</i>{n}{n==="Aprovações"&&pending.length>0&&<em>{pending.length}</em>}</button>)}</nav><div className="admin"><span>{me.name?.[0]}</span><div><b>{me.name}</b><small>Administrador</small></div><button title="Sair" onClick={()=>{localStorage.removeItem("pp_admin_token");location.reload()}}>↗</button></div></aside>
+ <main className="content"><header><div><small>CENTRAL PORTO PRIME</small><h1>{tab}</h1></div><div className="headActions">{tab!=="Visão geral"&&tab!=="Configurações"&&<input className="search" placeholder="Buscar..." value={search} onChange={e=>setSearch(e.target.value)}/>}<button className="live" title="Clique para sincronizar agora" onClick={()=>load()}>● Sincronização automática · 5s{lastSync&&<small> · {lastSync.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}</small>}</button></div></header>{activityNotice&&<div className="activityToast"><b>Nova atividade</b><span>{activityNotice}</span></div>}{error&&<div className="error top">{error}</div>}{busy&&<div className="loading">Sincronizando dados...</div>}
+ {tab==="Visão geral"&&<Dashboard dash={dash} orders={orders} pending={pending}/>}
+ {tab==="Pedidos"&&<Orders rows={filtered(orders)} couriers={couriers} act={act} ask={setConfirmBox}/>}
+ {tab==="Aprovações"&&<Pending rows={filtered(pending)} act={act}/>}
+ {tab==="Motoboys"&&<People rows={filtered(couriers)} kind="Motoboy" act={act} ask={setConfirmBox}/>}
+ {tab==="Clientes"&&<People rows={filtered(customers)} kind="Cliente" act={act} ask={setConfirmBox}/>}
+ {tab==="Parceiros"&&<People rows={filtered(partners)} kind="Parceiro" act={act} ask={setConfirmBox}/>}
+ {tab==="Catálogo"&&<Catalog categories={catalog} act={act}/>}
+ {tab==="Pagamentos"&&<Payments rows={filtered(orders)}/>}
+ {tab==="Configurações"&&<Settings me={me} dash={dash}/>}
+ {confirmBox&&<div className="modalBackdrop" onMouseDown={()=>setConfirmBox(null)}><section className="dangerModal" onMouseDown={e=>e.stopPropagation()}><div className="dangerIcon">!</div><small>ATENÇÃO · AÇÃO IRREVERSÍVEL</small><h2>{confirmBox.title}</h2><p>{confirmBox.message}</p>{confirmBox.detail&&<div className="dangerDetail">{confirmBox.detail}</div>}<div className="dangerNotice"><b>Esta ação não poderá ser desfeita.</b><span>Confirme somente se tiver certeza de que deseja remover este registro definitivamente.</span></div><div className="modalActions"><button className="cancelBtn" onClick={()=>setConfirmBox(null)}>Cancelar</button><button className="deleteBtn" onClick={()=>{const fn=confirmBox.action;setConfirmBox(null);fn()}}>{confirmBox.confirm}</button></div></section></div>}
+ </main></div>
 }
+function Card({label,value,note}:{label:string,value:any,note:string}){return <article><span>{label}</span><strong>{value}</strong><small>{note}</small></article>}
+function Dashboard({dash,orders,pending}:{dash:Row,orders:Row[],pending:Row[]}){const active=orders.filter(o=>!["DELIVERED","CANCELED"].includes(o.status)).length;return <><section className="hero"><div><small>OPERAÇÃO EM TEMPO REAL</small><h2>Seu negócio inteiro,<br/>sob controle.</h2><p>Pedidos, equipe, pagamentos e estoque sincronizados em uma única central.</p></div><div className="pulse"><b>{active}</b><span>pedidos ativos</span></div></section><section className="metrics"><Card label="Receita paga" value={brl(dash.revenue)} note="Pedidos confirmados"/><Card label="Pedidos" value={dash.orders||0} note="Histórico total"/><Card label="Aprovações" value={pending.length} note="Aguardando análise"/><Card label="Motoboys online" value={dash.onlineCouriers||0} note="Disponíveis agora"/></section><section className="grid"><Panel title="Pedidos recentes"><MiniOrders rows={orders.slice(0,6)}/></Panel><Panel title="Radar operacional"><div className="radar"><b>{dash.users||0}</b><span>usuários cadastrados</span><b>{dash.products||0}</b><span>produtos ativos</span></div></Panel></section></>}
+function Panel({title,children}:{title:string,children:React.ReactNode}){return <section className="panel"><div className="panelHead"><h3>{title}</h3><span>Dados em tempo real</span></div>{children}</section>}
+function Badge({v}:{v:string}){return <span className={"badge b-"+v.toLowerCase()}>{statusLabel[v]||v}</span>}
+function MiniOrders({rows}:{rows:Row[]}){return <div className="rows">{rows.map(o=><div className="row" key={o.id}><div className="order">#{o.id.slice(-6).toUpperCase()}</div><div className="grow"><b>{o.customer?.name}</b><span>{brl(o.total)}</span><small>{dt(o.createdAt)}</small></div><Badge v={o.status}/></div>)}</div>}
+function Pending({rows,act}:{rows:Row[],act:any}){if(!rows.length)return <Empty text="Nenhum cadastro aguardando aprovação."/>;return <Panel title="Cadastros aguardando análise"><div className="cards">{rows.map(x=><article className="person" key={x.id}><div className="personTop"><div className="avatar">{x.name?.[0]}</div><div><b>{x.name}</b><span>{x.role==="COURIER"?"Motoboy":"Parceiro"}</span></div><Badge v={x.status}/></div><dl><dt>E-mail</dt><dd>{x.email}</dd><dt>Telefone</dt><dd>{x.phone||"—"}</dd><dt>Documento</dt><dd>{x.document||"—"}</dd><dt>Cadastro</dt><dd>{dt(x.createdAt)}</dd></dl><details><summary>Ver dados completos do cadastro</summary><pre>{JSON.stringify(x.courierProfile?.onboardingData||x.partnerProfile?.onboardingData||{},null,2)}</pre></details><div className="actions"><button className="danger" onClick={()=>act("/admin/users/"+x.id+"/reject")}>Rejeitar</button><button onClick={()=>act("/admin/users/"+x.id+"/approve")}>Aprovar cadastro</button></div></article>)}</div></Panel>}
+function People({rows,kind,act,ask}:{rows:Row[],kind:string,act:any,ask:any}){return <Panel title={kind+"s cadastrados"}>{!rows.length?<Empty text={"Nenhum "+kind.toLowerCase()+" encontrado."}/>:<div className="tableWrap"><table><thead><tr><th>Usuário</th><th>Contato</th><th>Status</th><th>{kind==="Motoboy"?"Operação":"Atividade"}</th><th>Ações</th></tr></thead><tbody>{rows.map(x=><tr key={x.id}><td><b>{x.name}</b><small>{dt(x.createdAt)}</small></td><td>{x.email}<small>{x.phone||"—"}</small></td><td><Badge v={x.status}/></td><td>{kind==="Motoboy"?(x.courierProfile?.isOnline?"Online":"Offline"):(kind==="Cliente"?((x._count?.orders||0)+" pedidos"):(x.partnerProfile?.businessName||"—"))}</td><td><div className="actions">{x.status!=="ACTIVE"&&<button onClick={()=>act("/admin/users/"+x.id+"/status","PATCH",{status:"ACTIVE"})}>Ativar</button>}{x.status==="ACTIVE"&&<button className="warn" onClick={()=>act("/admin/users/"+x.id+"/status","PATCH",{status:"SUSPENDED"})}>Suspender</button>}{x.status!=="BLOCKED"&&<button className="danger" onClick={()=>act("/admin/users/"+x.id+"/status","PATCH",{status:"BLOCKED"})}>Bloquear</button>}{kind==="Motoboy"&&<button className="danger" onClick={()=>ask({title:"Excluir motoboy permanentemente?",message:"Você está prestes a remover "+x.name+" da Porto Prime.",detail:"O cadastro, acesso e dados vinculados ao perfil serão removidos. Motoboys com entrega ativa não podem ser excluídos.",confirm:"Sim, excluir motoboy",action:()=>act("/admin/users/"+x.id,"DELETE")})}>Excluir</button>}</div></td></tr>)}</tbody></table></div>}</Panel>}
+function Orders({rows,couriers,act,ask}:{rows:Row[],couriers:Row[],act:any,ask:any}){return <Panel title="Gestão de pedidos">{!rows.length?<Empty text="Nenhum pedido encontrado."/>:<div className="orderCards">{rows.map(o=><article className="orderCard" key={o.id}><div className="orderHead"><div><small>PEDIDO</small><b>#{o.id.slice(-8).toUpperCase()}</b></div><Badge v={o.status}/><strong>{brl(o.total)}</strong></div><div className="orderGrid"><div><span>Cliente</span><b>{o.customer?.name}</b><small>{o.customer?.phone}</small></div><div><span>Pagamento</span><Badge v={o.paymentStatus}/><small>{o.paymentMethod||"—"}</small></div><div><span>Entrega</span><b>{o.address?.street}, {o.address?.number}</b><small>{o.address?.neighborhood}</small></div><div><span>Motoboy</span><b>{o.courier?.user?.name||"Não atribuído"}</b></div></div><details><summary>{o.items?.length||0} itens · ver detalhes</summary><div className="items">{o.items?.map((i:Row)=><span key={i.id}>{i.quantity}× {i.productName} <b>{brl(i.total)}</b></span>)}</div></details><div className="actions"><select value={o.status} onChange={e=>act("/admin/orders/"+o.id+"/status","PATCH",{status:e.target.value})}>{["PENDING","CONFIRMED","PREPARING","READY_FOR_PICKUP","COURIER_ASSIGNED","PICKED_UP","OUT_FOR_DELIVERY","DELIVERED","CANCELED"].map(s=><option key={s} value={s}>{statusLabel[s]||s}</option>)}</select><select value={o.courierId||""} onChange={e=>e.target.value&&act("/admin/orders/"+o.id+"/courier","PATCH",{courierId:e.target.value})}><option value="">Atribuir motoboy</option>{couriers.filter(c=>c.status==="ACTIVE"&&c.courierProfile?.approvalStatus==="APPROVED").map(c=><option key={c.courierProfile.id} value={c.courierProfile.id}>{c.name}</option>)}</select>{o.paymentStatus==="PAID"&&["CONFIRMED","PREPARING"].includes(o.status)&&<button onClick={()=>act("/admin/orders/"+o.id+"/release")}>Liberar e despachar</button>}<button className="danger" onClick={()=>ask({title:"Excluir permanentemente este pedido?",message:"O pedido #"+o.id.slice(-8).toUpperCase()+" será removido definitivamente da operação.",detail:"Cliente: "+(o.customer?.name||"—")+" · Valor: "+brl(o.total)+". Após a exclusão, ele também deixará de aparecer na conta do cliente.",confirm:"Sim, excluir pedido",action:()=>act("/admin/orders/"+o.id,"DELETE")})}>Excluir pedido</button></div></article>)}</div>}</Panel>}
+function Payments({rows}:{rows:Row[]}){const paid=rows.filter(x=>x.paymentStatus==="PAID").reduce((s,x)=>s+Number(x.total||0),0);return <><section className="metrics payMetrics"><Card label="Volume pago" value={brl(paid)} note="Transações aprovadas"/><Card label="Pagos" value={rows.filter(x=>x.paymentStatus==="PAID").length} note="Pedidos"/><Card label="Pendentes" value={rows.filter(x=>x.paymentStatus==="PENDING").length} note="Aguardando confirmação"/><Card label="Falhas" value={rows.filter(x=>x.paymentStatus==="FAILED").length} note="Transações"/></section><Panel title="Histórico financeiro"><div className="tableWrap"><table><thead><tr><th>Pedido</th><th>Cliente</th><th>Método</th><th>Status</th><th>Valor</th><th>Data</th></tr></thead><tbody>{rows.map(o=><tr key={o.id}><td>#{o.id.slice(-7).toUpperCase()}</td><td>{o.customer?.name}</td><td>{o.paymentMethod||"—"}</td><td><Badge v={o.paymentStatus}/></td><td><b>{brl(o.total)}</b></td><td>{dt(o.createdAt)}</td></tr>)}</tbody></table></div></Panel></>}
+function Catalog({categories,act}:{categories:Row[],act:any}){
+ const [productOpen,setProductOpen]=useState(false),[categoryOpen,setCategoryOpen]=useState(false);
+ const [form,setForm]=useState<Row>({categoryId:"",name:"",price:"",stock:0,description:""});
+ const [cat,setCat]=useState("");
+ const submit=(e:React.FormEvent)=>{e.preventDefault();act("/admin/products","POST",{...form,price:Number(form.price),stock:Number(form.stock)});setProductOpen(false)};
+ const submitCategory=(e:React.FormEvent)=>{e.preventDefault();act("/admin/categories","POST",{name:cat});setCat("");setCategoryOpen(false)};
+ return <><div className="toolbar"><div><b>{categories.reduce((s,c)=>s+c.products.length,0)} produtos</b><span>{categories.length} categorias cadastradas · catálogo sincronizado com o app</span></div><div className="actions"><button className="secondary" onClick={()=>setCategoryOpen(!categoryOpen)}>+ Nova categoria</button><button onClick={()=>{setForm({categoryId:categories[0]?.id||"",name:"",price:"",stock:0,description:""});setProductOpen(!productOpen)}}>+ Novo produto</button></div></div>
+ {categoryOpen&&<form className="productForm categoryForm" onSubmit={submitCategory}><label>Nome da nova categoria<input autoFocus value={cat} onChange={e=>setCat(e.target.value)} placeholder="Ex.: Destilados" required/></label><button>Criar categoria</button></form>}
+ {productOpen&&<form className="productForm" onSubmit={submit}><label>Categoria<select value={form.categoryId} onChange={e=>setForm({...form,categoryId:e.target.value})} required><option value="" disabled>Selecione</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label>Produto<input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} required/></label><label>Preço<input type="number" step=".01" min="0" value={form.price} onChange={e=>setForm({...form,price:e.target.value})} required/></label><label>Estoque<input type="number" min="0" value={form.stock} onChange={e=>setForm({...form,stock:e.target.value})} required/></label><button>Salvar e publicar</button></form>}
+ <div className="catalog">{categories.map(c=><section key={c.id}><div className="catTitle"><div><b>{c.name}</b><span>{c.products.length} produtos</span></div><Badge v={c.active?"ACTIVE":"BLOCKED"}/></div><div className="productGrid">{c.products.map((p:Row)=><article key={p.id} className={!p.active||p.stock<=0?"unavailableProduct":""}><div className="productPic">{p.imageUrl?<img src={p.imageUrl} alt=""/>:"P"}</div><div className="grow"><b>{p.name}</b><span>{brl(p.price)}</span><small>{p.stock>0?p.stock+" em estoque":"SEM ESTOQUE"}</small>{!p.active&&<em className="unavailableTag">INDISPONÍVEL NO APP</em>}</div><input className="stock" title="Estoque" type="number" min="0" defaultValue={p.stock} onBlur={e=>Number(e.target.value)!==p.stock&&act("/admin/products/"+p.id,"PATCH",{stock:Number(e.target.value)})}/><button className={p.active?"warn":""} onClick={()=>act("/admin/products/"+p.id,"PATCH",{active:!p.active})}>{p.active?"Marcar indisponível":"Disponibilizar"}</button></article>)}</div></section>)}</div></>
+}
+function Settings({me,dash}:{me:Row,dash:Row}){return <div className="settings"><section className="settingsHero"><div className="avatar big">{me.name?.[0]}</div><div><small>CONTA ADMINISTRATIVA</small><h2>{me.name}</h2><p>{me.email}</p></div><Badge v={me.status}/></section><div className="grid"><Panel title="Ambiente"><dl className="settingsList"><dt>Arquitetura</dt><dd>Admin Web → Proxy interno → NestJS API → PostgreSQL</dd><dt>Sessão</dt><dd>Autenticada e protegida por perfil ADMIN</dd><dt>Operação</dt><dd>Conectada</dd></dl></Panel><Panel title="Resumo da plataforma"><dl className="settingsList"><dt>Usuários</dt><dd>{dash.users||0}</dd><dt>Produtos ativos</dt><dd>{dash.products||0}</dd><dt>Pedidos registrados</dt><dd>{dash.orders||0}</dd></dl></Panel></div></div>}
+function Empty({text}:{text:string}){return <div className="none">{text}</div>}
