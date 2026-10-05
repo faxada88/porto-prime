@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Patch, Post, Query } from '@nestjs/common';
 import { OrderStatus, UserRole, UserStatus } from '../generated/prisma/client.js';
 import { AdminService } from './admin.service.js';
 
@@ -12,6 +12,8 @@ export class AdminController {
   @Patch('users/:id/approve') approve(@Param('id') id:string,@Headers('authorization') a?:string){return this.adminService.approve(id,a)}
   @Patch('users/:id/reject') reject(@Param('id') id:string,@Headers('authorization') a?:string){return this.adminService.reject(id,a)}
   @Get('orders') orders(@Headers('authorization') a?:string){return this.adminService.orders(a)}
+  @Delete('orders/:id') deleteOrder(@Param('id') id:string,@Headers('authorization') a?:string){return this.adminService.deleteOrder(id,a)}
+  @Delete('users/:id') deleteUser(@Param('id') id:string,@Headers('authorization') a?:string){return this.adminService.deleteUser(id,a)}
   @Patch('orders/:id/release') release(@Param('id') id:string,@Headers('authorization') a?:string){return this.adminService.releaseOrder(id,a)}
   @Patch('orders/:id/status') orderStatus(@Param('id') id:string,@Body() b:{status:OrderStatus},@Headers('authorization') a?:string){return this.adminService.setOrderStatus(id,b.status,a)}
   @Patch('orders/:id/courier') courier(@Param('id') id:string,@Body() b:{courierId:string},@Headers('authorization') a?:string){return this.adminService.assignCourier(id,b.courierId,a)}
