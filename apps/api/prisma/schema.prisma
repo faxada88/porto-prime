@@ -23,9 +23,16 @@ enum UserStatus {
 
 enum CourierStatus {
   PENDING
+  NEEDS_INFO
   APPROVED
   REJECTED
   SUSPENDED
+}
+
+enum CourierRequirementStatus {
+  OPEN
+  SUBMITTED
+  RESOLVED
 }
 
 enum OrderStatus {
@@ -123,12 +130,30 @@ model CourierProfile {
   deliveries  Order[]            @relation("CourierOrders")
   ledger      CourierLedgerEntry[]
   withdrawals Withdrawal[]
+  requirements CourierRequirement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([approvalStatus])
   @@index([isOnline])
+}
+
+model CourierRequirement {
+  id        String @id @default(cuid())
+  courierId String
+  title     String
+  message   String
+  fieldKey  String?
+  status    CourierRequirementStatus @default(OPEN)
+  response  String?
+  createdAt DateTime @default(now())
+  submittedAt DateTime?
+  resolvedAt DateTime?
+
+  courier CourierProfile @relation(fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@index([courierId, status])
 }
 
 model PartnerProfile {
