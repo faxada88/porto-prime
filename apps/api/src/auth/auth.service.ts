@@ -521,6 +521,15 @@ export class AuthService {
       where: {
         email: data.email.trim().toLowerCase(),
       },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        passwordHash: true,
+        role: true,
+        status: true,
+      },
     });
 
     if (
@@ -606,7 +615,18 @@ export class AuthService {
         where: {
           tokenHash: this.tokenHash(token),
         },
-        include: { user: true },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phone: true,
+              role: true,
+              status: true,
+            },
+          },
+        },
       });
 
     if (
