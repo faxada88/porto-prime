@@ -176,7 +176,14 @@ export class OrdersService {
         items: true,
         address: true,
         courier: {
-          include: {
+          select: {
+            id: true,
+            vehicleBrand: true,
+            vehicleModel: true,
+            vehiclePlate: true,
+            currentLatitude: true,
+            currentLongitude: true,
+            locationUpdatedAt: true,
             user: {
               select: { name: true, phone: true },
             },
@@ -206,7 +213,14 @@ export class OrdersService {
         items: true,
         address: true,
         courier: {
-          include: {
+          select: {
+            id: true,
+            vehicleBrand: true,
+            vehicleModel: true,
+            vehiclePlate: true,
+            currentLatitude: true,
+            currentLongitude: true,
+            locationUpdatedAt: true,
             user: {
               select: { name: true, phone: true },
             },
