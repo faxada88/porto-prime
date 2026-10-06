@@ -132,3 +132,8 @@ CREATE TABLE IF NOT EXISTS "DeliveryPricingConfig" (
 INSERT INTO "DeliveryPricingConfig" ("id")
 VALUES ('default')
 ON CONFLICT ("id") DO NOTHING;
+
+ALTER TABLE "Order"
+  ADD COLUMN IF NOT EXISTS "activeOfferId" TEXT;
+
+CREATE INDEX IF NOT EXISTS "Order_activeOfferId_idx" ON "Order"("activeOfferId");
