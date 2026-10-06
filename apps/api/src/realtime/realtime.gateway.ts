@@ -1,8 +1,10 @@
+import { OnModuleDestroy } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -16,15 +18,73 @@ import { PrismaService } from '../prisma/prisma.service.js';
   transports: ['websocket', 'polling'],
 })
 export class RealtimeGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
+  implements
+    OnGatewayInit,
+    OnGatewayConnection,
+    OnGatewayDisconnect,
+    OnModuleDestroy
 {
   @WebSocketServer()
   server!: Server;
+
+  private sessionSweep?: NodeJS.Timeout;
+  private sweeping = false;
 
   constructor(
     private readonly auth: AuthService,
     private readonly prisma: PrismaService,
   ) {}
+
+  afterInit() {
+    this.sessionSweep = setInterval(() => {
+      void this.disconnectInvalidSessions();
+    }, 30_000);
+    this.sessionSweep.unref?.();
+  }
+
+  onModuleDestroy() {
+    if (this.sessionSweep) clearInterval(this.sessionSweep);
+  }
+
+  private async disconnectInvalidSessions() {
+    if (this.sweeping || !this.server) return;
+    this.sweeping = true;
+
+    try {
+      const sockets = [...this.server.sockets.sockets.values()];
+      const sessionIds = [
+        ...new Set(
+          sockets
+            .map((socket) => String(socket.data.sessionId ?? ''))
+            .filter(Boolean),
+        ),
+      ];
+      if (!sessionIds.length) return;
+
+      const validRows = await this.prisma.authSession.findMany({
+        where: {
+          id: { in: sessionIds },
+          revokedAt: null,
+          refreshExpiresAt: { gt: new Date() },
+          user: { status: 'ACTIVE' },
+        },
+        select: { id: true },
+      });
+
+      const valid = new Set(validRows.map((row) => row.id));
+      for (const socket of sockets) {
+        const sessionId = String(socket.data.sessionId ?? '');
+        if (sessionId && !valid.has(sessionId)) {
+          socket.emit('session.revoked', {
+            reason: 'SESSION_INVALID',
+          });
+          socket.disconnect(true);
+        }
+      }
+    } finally {
+      this.sweeping = false;
+    }
+  }
 
   async handleConnection(client: Socket) {
     try {
@@ -34,12 +94,15 @@ export class RealtimeGateway
           .replace(/^Bearer\s+/i, '')
           .trim();
 
-      const user = await this.auth.authenticate(
+      const session = await this.auth.authenticateSession(
         token ? `Bearer ${token}` : undefined,
       );
+      const user = session.user;
 
+      client.data.sessionId = session.id;
       client.data.userId = user.id;
       client.data.role = user.role;
+
       await client.join(`user:${user.id}`);
       await client.join(`role:${user.role}`);
 
@@ -55,6 +118,7 @@ export class RealtimeGateway
       }
 
       client.emit('session.ready', {
+        sessionId: session.id,
         userId: user.id,
         role: user.role,
       });
@@ -64,9 +128,9 @@ export class RealtimeGateway
   }
 
   handleDisconnect(_client: Socket) {
-    // Presença operacional é controlada por heartbeat persistido no banco.
-    // Desconectar o socket não muda o estado imediatamente para evitar
-    // falsos OFFLINE em reconexões rápidas de rede.
+    // O heartbeat persistido por sessão/dispositivo é a fonte de verdade
+    // para presença operacional. Oscilações rápidas do socket não forçam
+    // OFFLINE imediatamente.
   }
 
   @SubscribeMessage('ping')
