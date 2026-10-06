@@ -13,23 +13,28 @@ const realtimeOrigin=()=>{
  const host=u.hostname.replace(/-8085(?=\.)/,"-3000");
  return u.protocol+"//"+host;
 };
+let adminRefreshPromise:Promise<string>|null=null;
+async function refreshAdminSession(){
+ if(adminRefreshPromise)return adminRefreshPromise;
+ adminRefreshPromise=(async()=>{
+  const refreshToken=typeof window!=="undefined"?localStorage.getItem("pp_admin_refresh"):"";
+  if(!refreshToken)throw new Error("Sessão expirada");
+  const rr=await fetch(base()+"/auth/refresh",{method:"POST",headers:{"Content-Type":"application/json","X-Device-Id":"porto-prime-admin-web","X-Device-Name":"Porto Prime Admin"},body:JSON.stringify({refreshToken}),cache:"no-store"});
+  const rd=await rr.json().catch(()=>null);
+  if(!rr.ok||!rd?.accessToken)throw new Error(Array.isArray(rd?.message)?rd.message.join(", "):rd?.message||"Sessão expirada");
+  localStorage.setItem("pp_admin_token",rd.accessToken);
+  if(rd.refreshToken)localStorage.setItem("pp_admin_refresh",rd.refreshToken);
+  if(rd.sessionId)localStorage.setItem("pp_admin_session",rd.sessionId);
+  return rd.accessToken as string;
+ })().finally(()=>{adminRefreshPromise=null});
+ return adminRefreshPromise;
+}
 async function api(path:string,token="",method="GET",body?:any,retry=true){
- let active=token||(typeof window!=="undefined"?localStorage.getItem("pp_admin_token")||"":"");
- const send=async(t:string)=>fetch(base()+path,{method,headers:{"Content-Type":"application/json","X-Device-Id":"porto-prime-admin-web","X-Device-Name":"Porto Prime Admin",...(t?{Authorization:"Bearer "+t}:{})},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store"});
+ let active=(typeof window!=="undefined"?localStorage.getItem("pp_admin_token")||"":"")||token;
+ const send=(t:string)=>fetch(base()+path,{method,headers:{"Content-Type":"application/json","X-Device-Id":"porto-prime-admin-web","X-Device-Name":"Porto Prime Admin",...(t?{Authorization:"Bearer "+t}:{})},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store"});
  let r=await send(active);
- if(r.status===401&&retry&&!["/auth/login","/auth/refresh"].includes(path)&&typeof window!=="undefined"){
-  const refreshToken=localStorage.getItem("pp_admin_refresh");
-  if(refreshToken){
-   const rr=await fetch(base()+"/auth/refresh",{method:"POST",headers:{"Content-Type":"application/json","X-Device-Id":"porto-prime-admin-web","X-Device-Name":"Porto Prime Admin"},body:JSON.stringify({refreshToken}),cache:"no-store"});
-   const rd=await rr.json().catch(()=>null);
-   if(rr.ok&&rd?.accessToken){
-    active=rd.accessToken;
-    localStorage.setItem("pp_admin_token",rd.accessToken);
-    if(rd.refreshToken)localStorage.setItem("pp_admin_refresh",rd.refreshToken);
-    if(rd.sessionId)localStorage.setItem("pp_admin_session",rd.sessionId);
-    r=await send(active);
-   }
-  }
+ if(r.status===401&&retry&&!["/auth/login","/auth/refresh"].includes(path)){
+  try{active=await refreshAdminSession();r=await send(active)}catch{}
  }
  const d=await r.json().catch(()=>null);
  if(!r.ok)throw new Error(Array.isArray(d?.message)?d.message.join(", "):d?.message||"Falha na API");
@@ -50,7 +55,9 @@ export default function Home(){
  const [lastSync,setLastSync]=useState<Date|null>(null),[activityNotice,setActivityNotice]=useState("");
  async function load(t=token){setBusy(true);setError("");try{const who=await api("/auth/me",t);if(who.role!=="ADMIN")throw new Error("Conta sem acesso administrativo");setMe(who);const [p,o,u,c,d,ca,w,pc]=await Promise.all([api("/admin/pending",t),api("/admin/orders",t),api("/admin/users",t),api("/admin/catalog",t),api("/admin/dashboard",t),api("/admin/couriers",t),api("/admin/withdrawals",t),api("/delivery/pricing-config",t)]);setPending(p);setOrders(o);setUsers(u);setCatalog(c);setDash(d);setCourierApps(ca);setWithdrawals(w);setPricing(pc);setLastSync(new Date());const current=localStorage.getItem("pp_admin_token")||t;if(current)setToken(current)}catch(e:any){setError(e.message);setMe(null);localStorage.removeItem("pp_admin_token");localStorage.removeItem("pp_admin_refresh");localStorage.removeItem("pp_admin_session")}finally{setBusy(false)}}
  useEffect(()=>{const t=localStorage.getItem("pp_admin_token");if(t){setToken(t);load(t);return}api("/auth/bootstrap-admin").then(d=>setBootstrap(!!d.available)).catch(()=>setBootstrap(false))},[]);
- useEffect(()=>{if(!me||!token)return;let previous={orders:orders.length,pending:pending.length};const sync=async()=>{if(document.visibilityState!=="visible")return;try{const [p,o,u,c,d,ca]=await Promise.all([api("/admin/pending",token),api("/admin/orders",token),api("/admin/users",token),api("/admin/catalog",token),api("/admin/dashboard",token),api("/admin/couriers",token)]);const changes:string[]=[];if(o.length>previous.orders)changes.push((o.length-previous.orders)+" novo(s) pedido(s)");if(p.length>previous.pending)changes.push((p.length-previous.pending)+" novo(s) cadastro(s) aguardando aprovação");previous={orders:o.length,pending:p.length};setPending(p);setOrders(o);setUsers(u);setCatalog(c);setDash(d);setCourierApps(ca);setLastSync(new Date());if(changes.length){setActivityNotice(changes.join(" · "));setTimeout(()=>setActivityNotice(""),7000)}}catch{}};const id=window.setInterval(sync,5000);const visible=()=>{if(document.visibilityState==="visible")sync()};document.addEventListener("visibilitychange",visible);return()=>{window.clearInterval(id);document.removeEventListener("visibilitychange",visible)}},[me,token]);
+ useEffect(()=>{if(!me||!token)return;let previous={orders:orders.length,pending:pending.length};const sync=async()=>{if(document.visibilityState!=="visible")return;try{const current=localStorage.getItem("pp_admin_token")||token;const [p,o,u,c,d,ca,w,pc]=await Promise.all([api("/admin/pending",current),api("/admin/orders",current),api("/admin/users",current),api("/admin/catalog",current),api("/admin/dashboard",current),api("/admin/couriers",current),api("/admin/withdrawals",current),api("/delivery/pricing-config",current)]);const changes:string[]=[];if(o.length>previous.orders)changes.push((o.length-previous.orders)+" novo(s) pedido(s)");if(p.length>previous.pending)changes.push((p.length-previous.pending)+" novo(s) cadastro(s) aguardando aprovação");previous={orders:o.length,pending:p.length};setPending(p);setOrders(o);setUsers(u);setCatalog(c);setDash(d);setCourierApps(ca);setWithdrawals(w);setPricing(pc);setLastSync(new Date());const fresh=localStorage.getItem("pp_admin_token");if(fresh&&fresh!==token)setToken(fresh);if(changes.length){setActivityNotice(changes.join(" · "));setTimeout(()=>setActivityNotice(""),7000)}}catch{}};const id=window.setInterval(sync,10000);const visible=()=>{if(document.visibilityState==="visible")sync()};document.addEventListener("visibilitychange",visible);return()=>{window.clearInterval(id);document.removeEventListener("visibilitychange",visible)}},[me,token]);
+
+ useEffect(()=>{if(!me||!token)return;let refreshTimer:ReturnType<typeof setTimeout>|null=null;const current=localStorage.getItem("pp_admin_token")||token;const socket=io(realtimeOrigin(),{transports:["websocket"],auth:{token:current},reconnection:true,reconnectionAttempts:30,reconnectionDelay:1000});const refresh=()=>{if(refreshTimer)clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>{const fresh=localStorage.getItem("pp_admin_token")||token;load(fresh)},180)};["order.created","order.updated","dispatch.offer","dispatch.offer.closed","courier.presence","wallet.updated"].forEach(event=>socket.on(event,refresh));socket.on("reconnect_attempt",()=>{socket.auth={token:localStorage.getItem("pp_admin_token")||token}});return()=>{if(refreshTimer)clearTimeout(refreshTimer);socket.disconnect()}},[me,token]);
  async function login(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");try{const d=await api("/auth/login","","POST",{email,password});const access=d.accessToken||d.token;localStorage.setItem("pp_admin_token",access);if(d.refreshToken)localStorage.setItem("pp_admin_refresh",d.refreshToken);if(d.sessionId)localStorage.setItem("pp_admin_session",d.sessionId);setToken(access);await load(access)}catch(e:any){setError(e.message);setBusy(false)}}
  async function createAdmin(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");try{await api("/auth/bootstrap-admin","","POST",{name,email,password});setBootstrap(false);await login(e)}catch(e:any){setError(e.message);setBusy(false)}}
  async function act(path:string,method="PATCH",body?:any){try{setBusy(true);setError("");await api(path,token,method,body);await load()}catch(e:any){setError(e.message);setBusy(false)}}
@@ -63,7 +70,7 @@ export default function Home(){
  return <div className="shell"><aside><div className="logo"><b>P</b><div><strong>PORTO PRIME</strong><span>OPERAÇÕES</span></div></div><nav>{nav.map(n=><button key={n} className={tab===n?"active":""} onClick={()=>{setTab(n);setSearch("")}}><i>•</i>{n}{n==="Aprovações"&&pending.length>0&&<em>{pending.length}</em>}</button>)}</nav><div className="admin"><span>{me.name?.[0]}</span><div><b>{me.name}</b><small>Administrador</small></div><button title="Sair" onClick={async()=>{try{await api("/auth/logout",token,"POST")}catch{}localStorage.removeItem("pp_admin_token");localStorage.removeItem("pp_admin_refresh");localStorage.removeItem("pp_admin_session");location.reload()}}>↗</button></div></aside>
  <main className="content"><header><div><small>CENTRAL PORTO PRIME</small><h1>{tab}</h1></div><div className="headActions">{tab!=="Visão geral"&&tab!=="Configurações"&&<input className="search" placeholder="Buscar..." value={search} onChange={e=>setSearch(e.target.value)}/>}<button className="live" title="Clique para sincronizar agora" onClick={()=>load()}>● Sincronização automática · 5s{lastSync&&<small> · {lastSync.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}</small>}</button></div></header>{activityNotice&&<div className="activityToast"><b>Nova atividade</b><span>{activityNotice}</span></div>}{error&&<div className="error top">{error}</div>}{busy&&<div className="loading">Sincronizando dados...</div>}
  {tab==="Visão geral"&&<Dashboard dash={dash} orders={orders} pending={pending}/>}
- {tab==="Pedidos"&&<Orders rows={filtered(orders)} couriers={couriers} act={act} ask={setConfirmBox}/>}
+ {tab==="Pedidos"&&<Orders rows={filtered(orders)} act={act} ask={setConfirmBox} token={token}/>} 
  {tab==="Aprovações"&&<Pending rows={filtered(pending)} act={act} courierByUser={courierByUser} requestRequirement={requestRequirement}/>}
  {tab==="Motoboys"&&<People rows={filtered(couriers)} kind="Motoboy" act={act} ask={setConfirmBox} courierByUser={courierByUser} requestRequirement={requestRequirement}/>}
  {tab==="Clientes"&&<People rows={filtered(customers)} kind="Cliente" act={act} ask={setConfirmBox} courierByUser={courierByUser} requestRequirement={requestRequirement}/>}
