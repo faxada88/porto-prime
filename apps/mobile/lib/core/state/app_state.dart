@@ -74,6 +74,30 @@ class AppState extends ChangeNotifier {
   }
 
   void _handleRealtimeEvent(String event, dynamic payload) {
+    if (event == 'session.revoked') {
+      Future<void>(() async {
+        realtime.disconnect();
+        await api.clearSession();
+        user=null;
+        addresses=[];
+        orders=[];
+        activeOrder=null;
+        courierDelivery=null;
+        courierOffers=[];
+        courierOnline=false;
+        courierPresenceStatus='OFFLINE';
+        walletSummary={};
+        walletLedger=[];
+        withdrawals=[];
+        courierHistory=[];
+        courierProfile={};
+        deliveryQuote={};
+        cart.clear();
+        notifyListeners();
+      });
+      return;
+    }
+
     if (!loggedIn) return;
 
     if (isCustomer &&
