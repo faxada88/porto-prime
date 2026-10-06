@@ -498,6 +498,7 @@ model DeliveryPricingConfig {
   heartbeatTimeoutSeconds Int  @default(45)
 
   platformCommissionPercent Decimal @default(0.00) @db.Decimal(5, 2)
+  regionRules Json?
   active Boolean @default(true)
 
   createdAt DateTime @default(now())
