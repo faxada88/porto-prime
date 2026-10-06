@@ -28,7 +28,11 @@ export class OrdersService {
   }
 
   private withoutDeliveryPin<T extends Record<string, any>>(order: T) {
-    const { deliveryPin: _deliveryPin, ...safe } = order;
+    const {
+      deliveryPin: _deliveryPin,
+      deliveryPinAttempts: _deliveryPinAttempts,
+      ...safe
+    } = order;
     return safe;
   }
 
