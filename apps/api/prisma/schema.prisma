@@ -185,7 +185,8 @@ model CourierProfile {
   ledger       CourierLedgerEntry[]
   withdrawals  Withdrawal[]
   requirements CourierRequirement[]
-  deliveryOffers DeliveryOffer[]
+  deliveryOffers  DeliveryOffer[]
+  devicePresences CourierDevicePresence[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -456,6 +457,7 @@ model AuthSession {
   revokedReason    String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courierPresence CourierDevicePresence?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -463,6 +465,25 @@ model AuthSession {
   @@index([userId, revokedAt])
   @@index([expiresAt])
   @@index([refreshExpiresAt])
+}
+
+model CourierDevicePresence {
+  id        String @id @default(cuid())
+  courierId String
+  sessionId String @unique
+
+  onlineRequested Boolean @default(false)
+  lastHeartbeatAt DateTime @default(now())
+  latitude  Decimal? @db.Decimal(10, 7)
+  longitude Decimal? @db.Decimal(10, 7)
+
+  courier CourierProfile @relation(fields: [courierId], references: [id], onDelete: Cascade)
+  session AuthSession     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courierId, lastHeartbeatAt])
 }
 
 model PasswordResetToken {
