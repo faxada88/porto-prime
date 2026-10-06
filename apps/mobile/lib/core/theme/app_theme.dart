@@ -1,33 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 abstract final class AppColors {
-  // Porto Prime 2026: vibrante, tropical e claro. Vermelho forte removido.
-  static const coral = Color(0xFFFF8A72);
-  static const coralStrong = Color(0xFFE96F5B);
-  static const orange = Color(0xFFFFAD66);
-  static const sun = Color(0xFFFFD76A);
-  static const peach = Color(0xFFFFE9DD);
-  static const cream = Color(0xFFFFFBF5);
-  static const mint = Color(0xFFEAF8F1);
-  static const mintStrong = Color(0xFFCDEDDD);
-  static const ocean = Color(0xFF53B8A5);
-  static const oceanDeep = Color(0xFF238A79);
-  static const turquoise = Color(0xFF66C8B5);
-  static const lavender = Color(0xFFEDE8FF);
-  static const sky = Color(0xFFE5F4FA);
-  static const ink = Color(0xFF25312F);
-  static const muted = Color(0xFF78827F);
-  static const canvas = Color(0xFFFFFBF7);
-  static const surface = Color(0xFFFFFFFF);
-  static const stroke = Color(0xFFECE9E3);
-  static const sand = Color(0xFFFFF0CB);
-  static const success = Color(0xFF3CA57E);
+  // Identidade visual original Porto Prime.
+  static const ocean = Color(0xFF007F73);
+  static const oceanDeep = Color(0xFF00675E);
+  static const turquoise = Color(0xFF17B7A6);
+  static const sun = Color(0xFFFFB84D);
+  static const coral = Color(0xFFFF7456);
+  static const ink = Color(0xFF17201E);
+  static const muted = Color(0xFF6E7A76);
+  static const canvas = Color(0xFFF7F8F4);
+  static const sand = Color(0xFFFFF1D5);
+  static const mint = Color(0xFFE8F7F2);
   static const white = Colors.white;
 
-  // Ações principais usam verde-petróleo claro para não transformar a UI em vermelho.
-  static const primary = oceanDeep;
-  static const primaryDark = Color(0xFF1D7467);
+  // Tokens adicionais mantidos apenas para compatibilidade das telas funcionais
+  // (cadastro, checkout, candidatura etc.), sem alterar a identidade original.
+  static const coralStrong = Color(0xFFE95F45);
+  static const orange = Color(0xFFFFA95C);
+  static const peach = Color(0xFFFFE9DD);
+  static const cream = Color(0xFFFFFAF3);
+  static const mintStrong = Color(0xFFCDEDDD);
+  static const lavender = Color(0xFFE9E4FF);
+  static const sky = Color(0xFFDDEEFF);
+  static const surface = Colors.white;
+  static const stroke = Color(0xFFE9ECE7);
+  static const success = Color(0xFF3CA57E);
+
+  static const primary = ocean;
+  static const primaryDark = oceanDeep;
   static const accent = coral;
 }
 
@@ -49,11 +50,12 @@ abstract final class AppSpacing {
 abstract final class AppShadows {
   static final soft = [
     BoxShadow(
-      color: const Color(0xFF40534E).withValues(alpha: .07),
+      color: const Color(0xFF17201E).withValues(alpha: .07),
       blurRadius: 22,
       offset: const Offset(0, 8),
     ),
   ];
+
   static final elevated = [
     BoxShadow(
       color: AppColors.oceanDeep.withValues(alpha: .13),
@@ -68,89 +70,75 @@ abstract final class AppTheme {
     useMaterial3: true,
     scaffoldBackgroundColor: AppColors.canvas,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
-      primary: AppColors.primary,
-      secondary: AppColors.accent,
-      surface: AppColors.surface,
-      brightness: Brightness.light,
+      seedColor: AppColors.ocean,
+      primary: AppColors.ocean,
+      secondary: AppColors.coral,
+      surface: AppColors.white,
     ),
-    splashFactory: NoSplash.splashFactory,
-    hoverColor: Colors.transparent,
-    splashColor: Colors.transparent,
-    highlightColor: Colors.transparent,
-    focusColor: Colors.transparent,
-    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    textTheme: GoogleFonts.manropeTextTheme().copyWith(
-      headlineLarge: GoogleFonts.manrope(
+    textTheme: const TextTheme(
+      headlineLarge: TextStyle(
         fontSize: 31,
-        height: 1.04,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -1.15,
+        height: 1.05,
+        fontWeight: FontWeight.w900,
+        letterSpacing: -1.1,
         color: AppColors.ink,
       ),
-      headlineMedium: GoogleFonts.manrope(
+      headlineMedium: TextStyle(
         fontSize: 25,
         height: 1.08,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -.75,
+        fontWeight: FontWeight.w900,
+        letterSpacing: -.7,
         color: AppColors.ink,
       ),
-      titleLarge: GoogleFonts.manrope(
+      titleLarge: TextStyle(
         fontSize: 20,
-        height: 1.15,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -.45,
+        fontWeight: FontWeight.w900,
+        letterSpacing: -.4,
         color: AppColors.ink,
       ),
-      titleMedium: GoogleFonts.manrope(
+      titleMedium: TextStyle(
         fontSize: 16,
-        height: 1.2,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -.2,
+        fontWeight: FontWeight.w800,
         color: AppColors.ink,
       ),
-      bodyLarge: GoogleFonts.manrope(
+      bodyLarge: TextStyle(
         fontSize: 16,
         height: 1.4,
-        fontWeight: FontWeight.w500,
         color: AppColors.ink,
       ),
-      bodyMedium: GoogleFonts.manrope(
+      bodyMedium: TextStyle(
         fontSize: 14,
         height: 1.4,
-        fontWeight: FontWeight.w500,
         color: AppColors.muted,
       ),
-      labelLarge: GoogleFonts.manrope(
+      labelLarge: TextStyle(
         fontSize: 13,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w800,
         color: AppColors.ink,
       ),
     ),
-    fontFamily: GoogleFonts.manrope().fontFamily,
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderRadius: BorderRadius.circular(17),
         borderSide: const BorderSide(color: AppColors.stroke),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderRadius: BorderRadius.circular(17),
         borderSide: const BorderSide(color: AppColors.stroke),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        borderRadius: BorderRadius.circular(17),
+        borderSide: const BorderSide(color: AppColors.ocean, width: 1.5),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.oceanDeep,
         foregroundColor: Colors.white,
         minimumSize: const Size(48, 50),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 0,
         textStyle: const TextStyle(fontWeight: FontWeight.w900),
@@ -158,7 +146,7 @@ abstract final class AppTheme {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primary,
+        foregroundColor: AppColors.oceanDeep,
         side: const BorderSide(color: AppColors.stroke),
         minimumSize: const Size(48, 50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -167,7 +155,7 @@ abstract final class AppTheme {
     ),
     navigationBarTheme: const NavigationBarThemeData(
       backgroundColor: AppColors.white,
-      indicatorColor: AppColors.mintStrong,
+      indicatorColor: AppColors.mint,
       height: 70,
       elevation: 0,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
