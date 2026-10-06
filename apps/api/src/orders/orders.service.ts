@@ -368,6 +368,23 @@ export class OrdersService {
     return offer ? [offer] : [];
   }
 
+  async courierHistory(authorization?: string) {
+    const { profile } = await this.courier(authorization);
+    return this.prisma.order.findMany({
+      where: {
+        courierId: profile.id,
+        status: { in: [OrderStatus.DELIVERED, OrderStatus.CANCELED] },
+      },
+      include: {
+        items: true,
+        address: true,
+        customer: { select: { name: true } },
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 100,
+    });
+  }
+
   async courierCurrent(authorization?: string) {
     const { profile } = await this.courier(authorization);
 
