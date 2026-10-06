@@ -1,10 +1,10 @@
-import { randomInt } from 'node:crypto';
 import {
   BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { randomInt } from 'node:crypto';
 import {
   CourierStatus,
   OrderStatus,
@@ -13,7 +13,11 @@ import {
   UserStatus,
 } from '../generated/prisma/client.js';
 import { AuthService } from '../auth/auth.service.js';
+import { DeliveryPricingService } from '../delivery/delivery-pricing.service.js';
+import { DispatchService } from '../dispatch/dispatch.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { RealtimeGateway } from '../realtime/realtime.gateway.js';
+import { WalletService } from '../wallet/wallet.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 
 @Injectable()
@@ -21,13 +25,17 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auth: AuthService,
+    private readonly pricing: DeliveryPricingService,
+    private readonly dispatch: DispatchService,
+    private readonly wallet: WalletService,
+    private readonly realtime: RealtimeGateway,
   ) {}
 
   private newDeliveryPin() {
     return randomInt(1000, 10000).toString();
   }
 
-  private withoutDeliveryPin<T extends Record<string, any>>(order: T) {
+  private withoutDeliverySecrets<T extends Record<string, any>>(order: T) {
     const {
       deliveryPin: _deliveryPin,
       deliveryPinAttempts: _deliveryPinAttempts,
@@ -67,16 +75,21 @@ export class OrdersService {
     });
     if (!address) throw new NotFoundException('Endereço não encontrado');
 
+    const quote = await this.pricing.quoteForAddress(address);
+
     const ids = [...new Set(data.items.map((item) => item.productId))];
     const products = await this.prisma.product.findMany({
       where: { id: { in: ids }, active: true },
     });
     if (products.length !== ids.length) {
-      throw new BadRequestException('Um ou mais produtos estão indisponíveis');
+      throw new BadRequestException(
+        'Um ou mais produtos estão indisponíveis',
+      );
     }
 
     const byId = new Map(products.map((product) => [product.id, product]));
     let subtotal = 0;
+
     const items = data.items.map((item) => {
       const product = byId.get(item.productId)!;
       if (product.stock < item.quantity) {
@@ -98,20 +111,29 @@ export class OrdersService {
       };
     });
 
-    const deliveryFee = 5.9;
+    const deliveryFee = quote.deliveryFee;
 
-    return this.prisma.order.create({
+    const order = await this.prisma.order.create({
       data: {
         customerId: user.id,
         addressId: address.id,
         subtotal,
         deliveryFee,
         total: subtotal + deliveryFee,
+        routeDistanceKm: quote.distanceKm,
+        routeDurationMinutes: quote.durationMinutes,
         deliveryPin: this.newDeliveryPin(),
         items: { create: items },
       },
       include: { items: true, address: true },
     });
+
+    this.realtime.emitToRole('ADMIN', 'order.created', {
+      orderId: order.id,
+      at: new Date().toISOString(),
+    });
+
+    return order;
   }
 
   async clearPending(authorization?: string) {
@@ -123,7 +145,9 @@ export class OrdersService {
     const pending = await this.prisma.order.findMany({
       where: {
         customerId: user.id,
-        paymentStatus: { in: [PaymentStatus.PENDING, PaymentStatus.FAILED] },
+        paymentStatus: {
+          in: [PaymentStatus.PENDING, PaymentStatus.FAILED],
+        },
       },
       select: { id: true },
     });
@@ -153,7 +177,9 @@ export class OrdersService {
         address: true,
         courier: {
           include: {
-            user: { select: { name: true, phone: true } },
+            user: {
+              select: { name: true, phone: true },
+            },
           },
         },
       },
@@ -172,14 +198,18 @@ export class OrdersService {
     const order = await this.prisma.order.findFirst({
       where: {
         customerId: user.id,
-        status: { notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED] },
+        status: {
+          notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED],
+        },
       },
       include: {
         items: true,
         address: true,
         courier: {
           include: {
-            user: { select: { name: true, phone: true } },
+            user: {
+              select: { name: true, phone: true },
+            },
           },
         },
       },
@@ -210,128 +240,171 @@ export class OrdersService {
       );
     }
 
-    return profile;
+    return { user, profile };
   }
 
-  async courierOnline(online: boolean, authorization?: string) {
-    const courier = await this.courier(authorization);
+  async courierPresence(authorization?: string) {
+    const { profile } = await this.courier(authorization);
+    return {
+      isOnline: profile.isOnline,
+      presenceStatus: (profile as any).presenceStatus ?? 'OFFLINE',
+      lastHeartbeatAt: (profile as any).lastHeartbeatAt ?? null,
+      availableSince: (profile as any).availableSince ?? null,
+      locationUpdatedAt: (profile as any).locationUpdatedAt ?? null,
+    };
+  }
 
-    return this.prisma.courierProfile.update({
-      where: { id: courier.id },
-      data: { isOnline: !!online },
+  async courierHeartbeat(
+    body: {
+      online?: boolean;
+      latitude?: number;
+      longitude?: number;
+    },
+    authorization?: string,
+  ) {
+    const { profile } = await this.courier(authorization);
+    const now = new Date();
+
+    const [activeDelivery, pendingOffer] = await Promise.all([
+      this.prisma.order.findFirst({
+        where: {
+          courierId: profile.id,
+          status: {
+            notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED],
+          },
+        },
+        select: { id: true },
+      }),
+      (this.prisma as any).deliveryOffer.findFirst({
+        where: {
+          courierId: profile.id,
+          status: 'PENDING',
+          expiresAt: { gt: now },
+        },
+        select: { id: true },
+      }),
+    ]);
+
+    const requestedOnline = body.online ?? profile.isOnline;
+
+    let presenceStatus: string;
+    if (activeDelivery) {
+      presenceStatus = 'DELIVERING';
+    } else if (!requestedOnline) {
+      presenceStatus = 'OFFLINE';
+    } else if (pendingOffer) {
+      presenceStatus = 'OFFERED';
+    } else {
+      presenceStatus = 'AVAILABLE';
+    }
+
+    const latitude =
+      body.latitude === undefined ? undefined : Number(body.latitude);
+    const longitude =
+      body.longitude === undefined ? undefined : Number(body.longitude);
+
+    if (
+      latitude !== undefined &&
+      (!Number.isFinite(latitude) || latitude < -90 || latitude > 90)
+    ) {
+      throw new BadRequestException('Latitude inválida');
+    }
+    if (
+      longitude !== undefined &&
+      (!Number.isFinite(longitude) ||
+        longitude < -180 ||
+        longitude > 180)
+    ) {
+      throw new BadRequestException('Longitude inválida');
+    }
+
+    const updated = await (this.prisma as any).courierProfile.update({
+      where: { id: profile.id },
+      data: {
+        isOnline:
+          presenceStatus === 'AVAILABLE' ||
+          presenceStatus === 'OFFERED',
+        presenceStatus,
+        lastHeartbeatAt: now,
+        availableSince:
+          presenceStatus === 'AVAILABLE'
+            ? (profile as any).availableSince ?? now
+            : null,
+        ...(latitude !== undefined && longitude !== undefined
+          ? {
+              currentLatitude: latitude,
+              currentLongitude: longitude,
+              locationUpdatedAt: now,
+            }
+          : {}),
+      },
     });
+
+    this.realtime.emitToRole('ADMIN', 'courier.presence', {
+      courierId: profile.id,
+      presenceStatus,
+      at: now.toISOString(),
+    });
+
+    return {
+      isOnline: updated.isOnline,
+      presenceStatus: updated.presenceStatus,
+      lastHeartbeatAt: updated.lastHeartbeatAt,
+      availableSince: updated.availableSince,
+      locationUpdatedAt: updated.locationUpdatedAt,
+    };
+  }
+
+  async courierOnline(
+    online: boolean,
+    authorization?: string,
+  ) {
+    return this.courierHeartbeat({ online }, authorization);
   }
 
   async courierAvailable(authorization?: string) {
-    const courier = await this.courier(authorization);
-    if (!courier.isOnline) return [];
-
-    const orders = await this.prisma.order.findMany({
-      where: {
-        status: OrderStatus.READY_FOR_PICKUP,
-        courierId: null,
-        paymentStatus: PaymentStatus.PAID,
-      },
-      include: {
-        items: true,
-        address: true,
-        customer: { select: { name: true, phone: true } },
-      },
-      orderBy: { createdAt: 'asc' },
-      take: 10,
-    });
-
-    return orders.map((order) => this.withoutDeliveryPin(order));
+    const { profile } = await this.courier(authorization);
+    const offer = await this.dispatch.currentOfferForCourier(profile.id);
+    return offer ? [offer] : [];
   }
 
   async courierCurrent(authorization?: string) {
-    const courier = await this.courier(authorization);
+    const { profile } = await this.courier(authorization);
 
     const order = await this.prisma.order.findFirst({
       where: {
-        courierId: courier.id,
-        status: { notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED] },
+        courierId: profile.id,
+        status: {
+          notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED],
+        },
       },
       include: {
         items: true,
         address: true,
-        customer: { select: { name: true, phone: true } },
+        customer: {
+          select: { name: true, phone: true },
+        },
       },
       orderBy: { updatedAt: 'desc' },
     });
 
-    return order ? this.withoutDeliveryPin(order) : null;
+    return order ? this.withoutDeliverySecrets(order) : null;
   }
 
-  async courierAccept(orderId: string, authorization?: string) {
-    const courier = await this.courier(authorization);
-    if (!courier.isOnline) {
-      throw new BadRequestException('Fique online para aceitar entregas');
-    }
+  async courierAccept(
+    orderId: string,
+    authorization?: string,
+  ) {
+    const { user, profile } = await this.courier(authorization);
+    return this.dispatch.acceptOffer(profile.id, user.id, orderId);
+  }
 
-    const current = await this.prisma.order.findFirst({
-      where: {
-        courierId: courier.id,
-        status: { notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED] },
-      },
-      select: { id: true },
-    });
-    if (current) {
-      throw new BadRequestException(
-        'Finalize sua entrega atual antes de aceitar outra',
-      );
-    }
-
-    return this.prisma.$transaction(async (tx) => {
-      const claimed = await tx.order.updateMany({
-        where: {
-          id: orderId,
-          status: OrderStatus.READY_FOR_PICKUP,
-          courierId: null,
-          paymentStatus: PaymentStatus.PAID,
-        },
-        data: {
-          courierId: courier.id,
-          status: OrderStatus.COURIER_ASSIGNED,
-        },
-      });
-
-      if (claimed.count !== 1) {
-        throw new BadRequestException(
-          'Esta entrega já foi aceita por outro motoboy',
-        );
-      }
-
-      await tx.courierProfile.update({
-        where: { id: courier.id },
-        data: { isOnline: false },
-      });
-
-      let order = await tx.order.findUnique({
-        where: { id: orderId },
-        include: {
-          items: true,
-          address: true,
-          customer: { select: { name: true, phone: true } },
-        },
-      });
-
-      if (!order) throw new NotFoundException('Entrega não encontrada');
-
-      if (!order.deliveryPin) {
-        order = await tx.order.update({
-          where: { id: orderId },
-          data: { deliveryPin: this.newDeliveryPin() },
-          include: {
-            items: true,
-            address: true,
-            customer: { select: { name: true, phone: true } },
-          },
-        });
-      }
-
-      return this.withoutDeliveryPin(order);
-    });
+  async courierReject(
+    orderId: string,
+    authorization?: string,
+  ) {
+    const { user, profile } = await this.courier(authorization);
+    return this.dispatch.declineOffer(profile.id, user.id, orderId);
   }
 
   async courierStatus(
@@ -340,20 +413,20 @@ export class OrdersService {
     pin: string | undefined,
     authorization?: string,
   ) {
-    const courier = await this.courier(authorization);
+    const { profile } = await this.courier(authorization);
     const status = raw as OrderStatus;
+
     const allowed: OrderStatus[] = [
       OrderStatus.PICKED_UP,
       OrderStatus.OUT_FOR_DELIVERY,
       OrderStatus.DELIVERED,
     ];
-
     if (!allowed.includes(status)) {
       throw new BadRequestException('Etapa de entrega inválida');
     }
 
     const order = await this.prisma.order.findFirst({
-      where: { id: orderId, courierId: courier.id },
+      where: { id: orderId, courierId: profile.id },
     });
     if (!order) throw new NotFoundException('Entrega não encontrada');
 
@@ -389,7 +462,9 @@ export class OrdersService {
       if (informed !== expected) {
         await this.prisma.order.update({
           where: { id: order.id },
-          data: { deliveryPinAttempts: { increment: 1 } },
+          data: {
+            deliveryPinAttempts: { increment: 1 },
+          },
         });
         throw new BadRequestException(
           'PIN incorreto. Confirme o código com o cliente e tente novamente',
@@ -397,29 +472,96 @@ export class OrdersService {
       }
     }
 
-    return this.prisma.$transaction(async (tx) => {
-      const updated = await tx.order.update({
-        where: { id: orderId },
+    const eventType =
+      status === OrderStatus.PICKED_UP
+        ? 'COURIER_PICKED_UP'
+        : status === OrderStatus.OUT_FOR_DELIVERY
+          ? 'OUT_FOR_DELIVERY'
+          : 'DELIVERED';
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const changed = await tx.order.updateMany({
+        where: {
+          id: orderId,
+          courierId: profile.id,
+          status: order.status,
+        },
         data: {
           status,
           deliveredAt:
             status === OrderStatus.DELIVERED ? new Date() : undefined,
         },
-        include: {
-          items: true,
-          address: true,
-          customer: { select: { name: true, phone: true } },
+      });
+
+      if (changed.count !== 1) {
+        throw new BadRequestException(
+          'A etapa da entrega já foi atualizada em outro dispositivo',
+        );
+      }
+
+      await (tx as any).dispatchEvent.create({
+        data: {
+          orderId,
+          courierId: profile.id,
+          type: eventType,
         },
       });
 
       if (status === OrderStatus.DELIVERED) {
-        await tx.courierProfile.update({
-          where: { id: courier.id },
-          data: { isOnline: true },
+        const freshOrder = await tx.order.findUnique({
+          where: { id: orderId },
+          select: {
+            id: true,
+            courierId: true,
+            deliveryFee: true,
+          },
+        });
+
+        if (!freshOrder) {
+          throw new NotFoundException('Pedido não encontrado');
+        }
+
+        await this.wallet.creditDeliveryTx(tx, freshOrder);
+
+        await (tx as any).courierProfile.update({
+          where: { id: profile.id },
+          data: {
+            presenceStatus: 'AVAILABLE',
+            isOnline: true,
+            availableSince: new Date(),
+            lastHeartbeatAt: new Date(),
+          },
+        });
+      } else {
+        await (tx as any).courierProfile.update({
+          where: { id: profile.id },
+          data: {
+            presenceStatus: 'DELIVERING',
+            isOnline: false,
+            lastHeartbeatAt: new Date(),
+          },
         });
       }
 
-      return this.withoutDeliveryPin(updated);
+      return tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          items: true,
+          address: true,
+          customer: {
+            select: { name: true, phone: true },
+          },
+        },
+      });
     });
+
+    if (!updated) throw new NotFoundException('Entrega não encontrada');
+
+    this.realtime.emitOrderUpdated(updated);
+    if (status === OrderStatus.DELIVERED) {
+      await this.wallet.notifyWallet(profile.id);
+    }
+
+    return this.withoutDeliverySecrets(updated);
   }
 }
