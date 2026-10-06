@@ -111,6 +111,32 @@ export class AdminController {
     return this.adminService.releaseOrder(id, authorization);
   }
 
+  @Get('orders/:id/audit')
+  dispatchAudit(
+    @Param('id') id: string,
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.adminService.dispatchAudit(id, authorization);
+  }
+
+  @Get('withdrawals')
+  withdrawals(@Headers('authorization') authorization?: string) {
+    return this.adminService.withdrawals(authorization);
+  }
+
+  @Patch('withdrawals/:id/status')
+  updateWithdrawalStatus(
+    @Param('id') id: string,
+    @Body('status') status: string,
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.adminService.updateWithdrawalStatus(
+      id,
+      status,
+      authorization,
+    );
+  }
+
   @Delete('orders/:id')
   deleteOrder(
     @Param('id') id: string,
