@@ -79,8 +79,9 @@ export class WalletService {
     });
     if (existing) return existing;
 
-    const entry = await tx.courierLedgerEntry.create({
-      data: {
+    const entry = await tx.courierLedgerEntry.upsert({
+      where: { idempotencyKey },
+      create: {
         courierId: order.courierId,
         orderId: order.id,
         type: 'DELIVERY_CREDIT',
@@ -93,20 +94,32 @@ export class WalletService {
           courierCredit: Number(net.toFixed(2)),
         },
       },
+      update: {},
     });
 
-    await tx.dispatchEvent.create({
-      data: {
+    const existingEvent = await tx.dispatchEvent.findFirst({
+      where: {
         orderId: order.id,
         courierId: order.courierId,
         type: 'WALLET_CREDITED',
-        payload: {
-          deliveryFee: Number(gross.toFixed(2)),
-          credited: Number(net.toFixed(2)),
-          idempotencyKey,
-        },
       },
+      select: { id: true },
     });
+
+    if (!existingEvent) {
+      await tx.dispatchEvent.create({
+        data: {
+          orderId: order.id,
+          courierId: order.courierId,
+          type: 'WALLET_CREDITED',
+          payload: {
+            deliveryFee: Number(gross.toFixed(2)),
+            credited: Number(net.toFixed(2)),
+            idempotencyKey,
+          },
+        },
+      });
+    }
 
     return entry;
   }
@@ -242,6 +255,11 @@ export class WalletService {
     const withdrawalId = randomUUID();
 
     const withdrawal = await this.prisma.$transaction(async (tx) => {
+      await (tx as any).$queryRawUnsafe(
+        'SELECT "id" FROM "CourierProfile" WHERE "id" = $1 FOR UPDATE',
+        courier.id,
+      );
+
       const available = await this.availableBalance(courier.id, tx);
       if (amount > available + 0.0001) {
         throw new BadRequestException('Saldo disponível insuficiente');
