@@ -14,23 +14,43 @@ class CourierPage extends StatefulWidget {
 }
 
 class _CourierPageState extends State<CourierPage> {
-  Timer? _timer;
+  Timer? _heartbeatTimer;
+  Timer? _refreshTimer;
   String? _lastPresentedOfferId;
   bool _offerModalOpen = false;
 
   @override
   void initState() {
     super.initState();
-    AppState.instance.refreshCourier();
-    _timer = Timer.periodic(
-      const Duration(seconds: 4),
-      (_) => AppState.instance.refreshCourier(),
+    Future<void>(() async {
+      try {
+        await AppState.instance.refreshCourier();
+        await AppState.instance.loadWallet();
+        await AppState.instance.heartbeatCourier();
+      } catch (_) {}
+    });
+    _heartbeatTimer = Timer.periodic(
+      const Duration(seconds: 15),
+      (_) async {
+        try {
+          await AppState.instance.heartbeatCourier();
+        } catch (_) {}
+      },
+    );
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 12),
+      (_) async {
+        try {
+          await AppState.instance.refreshCourier();
+        } catch (_) {}
+      },
     );
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _heartbeatTimer?.cancel();
+    _refreshTimer?.cancel();
     super.dispose();
   }
 
@@ -46,7 +66,8 @@ class _CourierPageState extends State<CourierPage> {
     }
 
     final offer = Map<String, dynamic>.from(state.courierOffers.first);
-    final id = offer['id']?.toString();
+    final id =
+        offer['offerId']?.toString() ?? offer['orderId']?.toString();
     if (id == null || id == _lastPresentedOfferId) return;
 
     _lastPresentedOfferId = id;
@@ -80,7 +101,7 @@ class _CourierPageState extends State<CourierPage> {
             ? () async {
                 try {
                   await AppState.instance.acceptDelivery(
-                    order['id'].toString(),
+                    (incoming ? order['orderId'] : order['id']).toString(),
                   );
                   if (sheetContext.mounted) {
                     Navigator.pop(sheetContext);
@@ -94,6 +115,19 @@ class _CourierPageState extends State<CourierPage> {
                         ),
                       ),
                     );
+                  }
+                }
+              }
+            : null,
+        onReject: incoming
+            ? () async {
+                try {
+                  await AppState.instance.rejectDelivery(
+                    order['orderId'].toString(),
+                  );
+                } finally {
+                  if (sheetContext.mounted) {
+                    Navigator.pop(sheetContext);
                   }
                 }
               }
@@ -946,12 +980,14 @@ class _DeliveryDetailsSheet extends StatelessWidget {
     required this.order,
     required this.incoming,
     this.onAccept,
+    this.onReject,
     this.onAdvance,
   });
 
   final Map<String, dynamic> order;
   final bool incoming;
   final Future<void> Function()? onAccept;
+  final Future<void> Function()? onReject;
   final Future<void> Function(String status)? onAdvance;
 
   @override
