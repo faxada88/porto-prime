@@ -403,6 +403,7 @@ class _CourierPageState extends State<CourierPage> {
     BuildContext context,
     String section,
   ) async {
+    if (section == 'home') return;
     try {
       await Future.wait([
         AppState.instance.refreshCourier(),
@@ -1105,9 +1106,8 @@ class _OfferCard extends StatelessWidget {
                     ),
                   ),
                   _OfferCountdown(
-                  expiresAt: order['expiresAt'],
-                  autoClose: true,
-                ),
+                    expiresAt: order['expiresAt'],
+                  ),
                 ],
               ),
             ],
@@ -1855,7 +1855,10 @@ class _SheetHero extends StatelessWidget {
               ),
               const Spacer(),
               if (incoming)
-                _OfferCountdown(expiresAt: order['expiresAt'])
+                _OfferCountdown(
+                  expiresAt: order['expiresAt'],
+                  autoClose: true,
+                )
               else
                 Text(
                   '#' + _shortId(id),
