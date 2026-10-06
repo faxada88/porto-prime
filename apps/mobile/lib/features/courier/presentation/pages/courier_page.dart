@@ -1125,7 +1125,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
-                                  minWidth: 34,
+                                  constraints: const BoxConstraints(minWidth: 34),
                                   height: 34,
                                   alignment: Alignment.center,
                                   padding:
