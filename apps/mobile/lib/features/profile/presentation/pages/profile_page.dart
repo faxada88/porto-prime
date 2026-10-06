@@ -37,66 +37,329 @@ class _GuestState extends State<_Guest> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) => SafeArea(
     bottom: false,
-    child: FadeTransition(
-      opacity: _fade,
-      child: SlideTransition(
-        position: _rise,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
-          children: [
-            const _PrimeMark(),
-            const SizedBox(height: 25),
-            Container(
-              padding: const EdgeInsets.fromLTRB(22, 30, 22, 24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF1F8374), Color(0xFF62C9B5)]),
-                borderRadius: BorderRadius.circular(34),
-                boxShadow: AppShadows.elevated,
+    child: ListView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 120),
+      children: [
+        Text('Seu espaço', style: Theme.of(context).textTheme.headlineLarge),
+        const SizedBox(height: 18),
+        GestureDetector(
+          onTap: () => _accountMenu(context),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF15211F), Color(0xFF29403B)],
               ),
-              child: Column(
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: .16), shape: BoxShape.circle, border: Border.all(color: Colors.white.withValues(alpha: .26))),
-                    child: const Icon(Icons.person_outline_rounded, color: Colors.white, size: 33),
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: const Row(
+              children: [
+                CircleAvatar(
+                  radius: 31,
+                  backgroundColor: AppColors.mint,
+                  child: Icon(
+                    Icons.person_rounded,
+                    color: AppColors.oceanDeep,
+                    size: 31,
                   ),
-                  const SizedBox(height: 19),
-                  const Text('Bem-vindo', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 30, height: 1, fontWeight: FontWeight.w800, letterSpacing: -1)),
-                  const SizedBox(height: 10),
-                  const Text('Sua Porto Prime começa aqui.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 7),
-                  Text('Acompanhe pedidos, salve endereços e compre novamente em poucos toques.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withValues(alpha: .82), fontSize: 11, height: 1.5, fontWeight: FontWeight.w500)),
-                  const SizedBox(height: 23),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: FilledButton.icon(
-                      style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
-                      onPressed: () => _auth(context),
-                      icon: const Icon(Icons.arrow_forward_rounded, size: 19),
-                      label: const Text('Entrar na minha conta', style: TextStyle(fontWeight: FontWeight.w800)),
-                    ),
+                ),
+                SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Olá, seja bem-vindo',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Entre para viver a experiência completa',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
+                Icon(Icons.arrow_forward_rounded, color: Colors.white),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            Expanded(
+              child: _OldQuick(
+                'Pedidos',
+                Icons.receipt_long_rounded,
+                () => _accountMenu(context),
               ),
             ),
-            const SizedBox(height: 28),
-            const Center(child: Text('NOVO POR AQUI?', style: TextStyle(color: AppColors.muted, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1.4))),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _OldQuick(
+                'Endereços',
+                Icons.near_me_rounded,
+                () => _accountMenu(context),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _OldQuick(
+                'Favoritos',
+                Icons.favorite_rounded,
+                () => _accountMenu(context),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        const Text(
+          'Sua conta',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+            color: AppColors.muted,
+          ),
+        ),
+        const SizedBox(height: 8),
+        _OldMenu(
+          'Pagamentos',
+          Icons.credit_card_rounded,
+          'Carteiras e cartões',
+          () => _accountMenu(context),
+        ),
+        _OldMenu(
+          'Notificações',
+          Icons.notifications_none_rounded,
+          'Escolha o que receber',
+          () => _simpleMessage(
+            context,
+            'Notificações',
+            'Entre na sua conta para configurar as notificações.',
+          ),
+        ),
+        _OldMenu(
+          'Ajuda',
+          Icons.support_agent_rounded,
+          'Fale com a Porto Prime',
+          () => _support(context),
+        ),
+        _OldMenu(
+          'Privacidade',
+          Icons.shield_outlined,
+          'Seus dados e segurança',
+          () => _simpleMessage(
+            context,
+            'Privacidade',
+            'Seus dados são usados para sua conta, pedidos e entregas.',
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: AppColors.sand,
+            borderRadius: BorderRadius.circular(23),
+          ),
+          child: const Row(
+            children: [
+              Icon(Icons.wb_sunny_rounded, color: AppColors.sun),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Feito para dias de sol, noites longas e brindes em Porto Seguro.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.35,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _OldQuick extends StatelessWidget {
+  const _OldQuick(this.label, this.icon, this.tap);
+  final String label;
+  final IconData icon;
+  final VoidCallback tap;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: tap,
+    borderRadius: BorderRadius.circular(21),
+    child: Container(
+      height: 88,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(21),
+        border: Border.all(color: const Color(0xFFE9ECE7)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: AppColors.oceanDeep, size: 24),
+          const SizedBox(height: 7),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _OldMenu extends StatelessWidget {
+  const _OldMenu(this.title, this.icon, this.subtitle, this.tap);
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback tap;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: tap,
+    borderRadius: BorderRadius.circular(19),
+    child: Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(19),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppColors.mint,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: AppColors.oceanDeep, size: 21),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppColors.muted,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.muted),
+        ],
+      ),
+    ),
+  );
+}
+
+Future<void> _accountMenu(BuildContext context) async {
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => _Sheet(
+      title: 'Sua Porto Prime',
+      subtitle: 'Entre ou escolha o tipo de conta que deseja criar.',
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _auth(context);
+            },
+            child: const Text('Entrar na minha conta'),
+          ),
+        ),
+        const SizedBox(height: 10),
+        _Role(
+          'Cliente',
+          'Peça, pague e acompanhe sua entrega.',
+          Icons.shopping_bag_outlined,
+          AppColors.sand,
+          () {
+            Navigator.pop(ctx);
+            _register(context, 'CUSTOMER');
+          },
+        ),
+        _Role(
+          'Motoboy',
+          'Faça sua candidatura para realizar entregas.',
+          Icons.delivery_dining_outlined,
+          AppColors.mint,
+          () {
+            Navigator.pop(ctx);
+            _register(context, 'COURIER');
+          },
+        ),
+        _Role(
+          'Parceiro',
+          'Divulgue a Porto Prime e acompanhe sua parceria.',
+          Icons.storefront_outlined,
+          AppColors.lavender,
+          () {
+            Navigator.pop(ctx);
+            _register(context, 'PARTNER');
+          },
+        ),
+      ],
+    ),
+  );
+}
+
+void _simpleMessage(BuildContext context, String title, String message) {
+  showModalBottomSheet<void>(
+    context: context,
+    builder: (ctx) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+            ),
             const SizedBox(height: 8),
-            const Center(child: Text('Escolha sua experiência', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: -.45))),
-            const SizedBox(height: 5),
-            const Center(child: Text('Um acesso para cada jeito de viver a Porto Prime.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.muted, fontSize: 10.5, height: 1.4, fontWeight: FontWeight.w500))),
-            const SizedBox(height: 17),
-            _Role('Cliente', 'Peça, pague e acompanhe sua entrega.', Icons.shopping_bag_outlined, AppColors.sand, () => _register(context, 'CUSTOMER')),
-            _Role('Motoboy', 'Entregas e rotina operacional.', Icons.delivery_dining_outlined, AppColors.mint, () => _register(context, 'COURIER')),
-            _Role('Parceiro', 'Divulgação e relacionamento Porto Prime.', Icons.storefront_outlined, AppColors.lavender, () => _register(context, 'PARTNER')),
-            const SizedBox(height: 8),
-            const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.lock_outline_rounded, color: AppColors.muted, size: 15),
-              SizedBox(width: 6),
-              Text('Acesso protegido • Porto Prime', style: TextStyle(color: AppColors.muted, fontSize: 9.5, fontWeight: FontWeight.w600)),
-            ]),
+            Text(
+              message,
+              style: const TextStyle(color: AppColors.muted, height: 1.4),
+            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
