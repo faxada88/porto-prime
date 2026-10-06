@@ -14,6 +14,7 @@ import {
 } from '../generated/prisma/client.js';
 import { AuthService } from '../auth/auth.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { RealtimeGateway } from '../realtime/realtime.gateway.js';
 import { CreateCheckoutDto } from './dto/create-checkout.dto.js';
 
 @Injectable()
@@ -21,6 +22,7 @@ export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auth: AuthService,
+    private readonly realtime: RealtimeGateway,
   ) {}
 
   async createCheckout(data: CreateCheckoutDto, authorization?: string) {
@@ -142,6 +144,17 @@ export class PaymentsService {
           stripePaymentIntentId: intent.id,
         },
       });
+
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        select: {
+          id: true,
+          customerId: true,
+          courierId: true,
+          status: true,
+        },
+      });
+      if (order) this.realtime.emitOrderUpdated(order);
     }
 
     if (
@@ -159,6 +172,17 @@ export class PaymentsService {
           paymentMethod: PaymentMethod.CARD,
         },
       });
+
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        select: {
+          id: true,
+          customerId: true,
+          courierId: true,
+          status: true,
+        },
+      });
+      if (order) this.realtime.emitOrderUpdated(order);
     }
 
     return { received: true };
