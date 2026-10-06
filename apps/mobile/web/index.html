@@ -50,9 +50,29 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
-  <script src="https://js.stripe.com/v3/"></script>
   <script>
-    window.portoPrimeStripeMount = function(containerId, publishableKey, clientSecret, attempt) {
+    window.portoPrimeLoadStripe = function() {
+      if (window.Stripe) return Promise.resolve(window.Stripe);
+      if (window.__portoPrimeStripePromise) return window.__portoPrimeStripePromise;
+
+      window.__portoPrimeStripePromise = new Promise(function(resolve, reject) {
+        const script = document.createElement('script');
+        script.src = 'https://js.stripe.com/v3/';
+        script.async = true;
+        script.onload = function() {
+          if (window.Stripe) resolve(window.Stripe);
+          else reject(new Error('Stripe não ficou disponível após o carregamento.'));
+        };
+        script.onerror = function() {
+          reject(new Error('Não foi possível carregar o Stripe.'));
+        };
+        document.head.appendChild(script);
+      });
+
+      return window.__portoPrimeStripePromise;
+    };
+
+    window.portoPrimeStripeMount = async function(containerId, publishableKey, clientSecret, attempt) {
       attempt = attempt || 0;
       const host = document.getElementById(containerId);
       if (!host) {
@@ -72,7 +92,8 @@
         '<div style="margin-top:12px;text-align:center;color:#6e7a76;font:600 11px Arial,sans-serif">Pagamento criptografado e processado pelo Stripe</div>';
 
       try {
-        const stripe = Stripe(publishableKey);
+        await window.portoPrimeLoadStripe();
+        const stripe = window.Stripe(publishableKey);
         const elements = stripe.elements({
           clientSecret: clientSecret,
           appearance: {
