@@ -28,6 +28,47 @@ enum CourierStatus {
   SUSPENDED
 }
 
+enum CourierPresenceStatus {
+  OFFLINE
+  AVAILABLE
+  OFFERED
+  DELIVERING
+  UNAVAILABLE
+}
+
+enum DeliveryOfferStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  CANCELED
+}
+
+enum WalletEntryType {
+  DELIVERY_CREDIT
+  WITHDRAWAL_DEBIT
+  BONUS_CREDIT
+  ADJUSTMENT_CREDIT
+  ADJUSTMENT_DEBIT
+  REVERSAL
+}
+
+enum DispatchEventType {
+  ADMIN_RELEASED
+  SEARCH_STARTED
+  OFFER_CREATED
+  OFFER_DECLINED
+  OFFER_EXPIRED
+  OFFER_CANCELED
+  OFFER_ACCEPTED
+  COURIER_PICKED_UP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  WALLET_CREDITED
+  WITHDRAWAL_REQUESTED
+  WITHDRAWAL_STATUS_CHANGED
+}
+
 enum RequirementStatus {
   OPEN
   ANSWERED
@@ -39,6 +80,7 @@ enum OrderStatus {
   CONFIRMED
   PREPARING
   READY_FOR_PICKUP
+  SEARCHING_COURIER
   COURIER_ASSIGNED
   PICKED_UP
   OUT_FOR_DELIVERY
@@ -116,8 +158,15 @@ model CourierProfile {
   id     String @id @default(cuid())
   userId String @unique
 
-  approvalStatus CourierStatus @default(PENDING)
-  isOnline       Boolean       @default(false)
+  approvalStatus CourierStatus         @default(PENDING)
+  isOnline       Boolean               @default(false)
+  presenceStatus CourierPresenceStatus @default(OFFLINE)
+  lastHeartbeatAt DateTime?
+  availableSince  DateTime?
+  lastOfferAt     DateTime?
+  currentLatitude  Decimal? @db.Decimal(10, 7)
+  currentLongitude Decimal? @db.Decimal(10, 7)
+  locationUpdatedAt DateTime?
 
   document       String? @unique
   cnh            String?
@@ -136,6 +185,7 @@ model CourierProfile {
   ledger       CourierLedgerEntry[]
   withdrawals  Withdrawal[]
   requirements CourierRequirement[]
+  deliveryOffers DeliveryOffer[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -253,6 +303,9 @@ model Order {
 
   stripePaymentIntentId String? @unique
 
+  routeDistanceKm      Decimal? @db.Decimal(10, 3)
+  routeDurationMinutes Int?
+
   // Código de 4 dígitos exibido somente ao cliente e exigido do motoboy
   // para confirmar a entrega. Nullable para compatibilidade com pedidos
   // criados antes desta funcionalidade.
@@ -263,8 +316,10 @@ model Order {
   courier  CourierProfile? @relation("CourierOrders", fields: [courierId], references: [id])
   address  Address         @relation(fields: [addressId], references: [id])
 
-  items         OrderItem[]
-  courierLedger CourierLedgerEntry[]
+  items          OrderItem[]
+  courierLedger  CourierLedgerEntry[]
+  deliveryOffers DeliveryOffer[]
+  dispatchEvents DispatchEvent[]
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -296,20 +351,66 @@ model OrderItem {
   @@index([productId])
 }
 
+model DeliveryOffer {
+  id        String @id @default(cuid())
+  orderId   String
+  courierId String
+
+  status    DeliveryOfferStatus @default(PENDING)
+  score     Decimal? @db.Decimal(12, 4)
+  expiresAt DateTime
+  offeredAt DateTime @default(now())
+  respondedAt DateTime?
+  acceptedAt DateTime?
+  declinedAt DateTime?
+  expiredAt  DateTime?
+  canceledAt DateTime?
+
+  distanceToPickupKm Decimal? @db.Decimal(10, 3)
+  metadata Json?
+
+  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  courier CourierProfile @relation(fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, status])
+  @@index([courierId, status])
+  @@index([expiresAt, status])
+}
+
+model DispatchEvent {
+  id        String @id @default(cuid())
+  orderId   String
+  courierId String?
+  offerId   String?
+
+  type      DispatchEventType
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+  @@index([courierId, createdAt])
+}
+
 model CourierLedgerEntry {
   id        String @id @default(cuid())
   courierId String
   orderId   String?
 
-  amount      Decimal @db.Decimal(10, 2)
-  description String
+  type           WalletEntryType
+  amount         Decimal @db.Decimal(10, 2)
+  description    String
+  idempotencyKey String  @unique
+  availableAt    DateTime @default(now())
+  metadata       Json?
 
   courier CourierProfile @relation(fields: [courierId], references: [id])
   order   Order?         @relation(fields: [orderId], references: [id])
 
   createdAt DateTime @default(now())
 
-  @@index([courierId])
+  @@index([courierId, availableAt])
   @@index([orderId])
   @@index([createdAt])
 }
@@ -338,17 +439,28 @@ model Withdrawal {
 }
 
 model AuthSession {
-  id        String   @id @default(cuid())
-  userId    String
-  tokenHash String   @unique
-  expiresAt DateTime
+  id               String   @id @default(cuid())
+  userId           String
+  tokenHash        String   @unique
+  refreshTokenHash String?  @unique
+  deviceId         String?
+  deviceName       String?
+  userAgent        String?
+  ipAddress        String?
+  expiresAt        DateTime
+  refreshExpiresAt DateTime?
+  lastSeenAt       DateTime @default(now())
+  revokedAt        DateTime?
+  revokedReason    String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([userId])
+  @@index([userId, revokedAt])
   @@index([expiresAt])
+  @@index([refreshExpiresAt])
 }
 
 model PasswordResetToken {
@@ -364,4 +476,28 @@ model PasswordResetToken {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model DeliveryPricingConfig {
+  id String @id @default("default")
+
+  distributorName      String  @default("Porto Prime Delivery")
+  distributorAddress   String?
+  distributorLatitude  Decimal? @db.Decimal(10, 7)
+  distributorLongitude Decimal? @db.Decimal(10, 7)
+
+  baseFee              Decimal @default(5.90) @db.Decimal(10, 2)
+  includedKm           Decimal @default(3.00) @db.Decimal(10, 2)
+  pricePerAdditionalKm Decimal @default(2.00) @db.Decimal(10, 2)
+  maxDistanceKm        Decimal @default(25.00) @db.Decimal(10, 2)
+  minDeliveryFee       Decimal @default(5.90) @db.Decimal(10, 2)
+  maxDeliveryFee       Decimal @default(80.00) @db.Decimal(10, 2)
+  offerTimeoutSeconds  Int     @default(30)
+  heartbeatTimeoutSeconds Int  @default(45)
+
+  platformCommissionPercent Decimal @default(0.00) @db.Decimal(5, 2)
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
