@@ -534,6 +534,16 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
   Widget field(_F f) {
     if (courier && const ['cnhCategory','vehicleType','vehicleBrand','vehicleModel','state'].contains(f.key)) return choiceField(f);
+    final accent = customer
+        ? AppColors.ocean
+        : courier
+            ? const Color(0xFFB77818)
+            : const Color(0xFF6D5AA8);
+    final soft = customer
+        ? AppColors.mint
+        : courier
+            ? AppColors.sand
+            : AppColors.lavender;
     return Padding(
     padding: const EdgeInsets.only(bottom: 13),
     child: TextFormField(
@@ -588,10 +598,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: AppColors.mint,
+              color: soft,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(f.icon, color: AppColors.primary, size: 20),
+            child: Icon(f.icon, color: accent, size: 20),
           ),
         ),
         prefixIconConstraints: const BoxConstraints(minWidth: 62, minHeight: 58),
@@ -616,7 +626,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: accent, width: 1.5),
         ),
       ),
     ),
@@ -624,6 +634,16 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   Widget choiceField(_F f) {
+    final accent = customer
+        ? AppColors.ocean
+        : courier
+            ? const Color(0xFFB77818)
+            : const Color(0xFF6D5AA8);
+    final soft = customer
+        ? AppColors.mint
+        : courier
+            ? AppColors.sand
+            : AppColors.lavender;
     List<String> options;
     if (f.key == 'state') {
       options = const ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
@@ -640,10 +660,19 @@ class _RegistrationPageState extends State<RegistrationPage> {
     return Padding(padding:const EdgeInsets.only(bottom:13),child:InkWell(
       borderRadius:BorderRadius.circular(18),onTap:()=>openPicker(f,options),
       child:InputDecorator(decoration:InputDecoration(labelText:f.label,filled:true,fillColor:AppColors.canvas,
-        prefixIcon:Icon(f.icon,color:AppColors.primary),suffixIcon:const Icon(Icons.keyboard_arrow_down_rounded),
+        prefixIcon:Padding(
+          padding:const EdgeInsets.all(11),
+          child:Container(
+            width:38,height:38,
+            decoration:BoxDecoration(color:soft,borderRadius:BorderRadius.circular(12)),
+            child:Icon(f.icon,color:accent,size:20),
+          ),
+        ),
+        prefixIconConstraints:const BoxConstraints(minWidth:62,minHeight:58),
+        suffixIcon:Icon(Icons.unfold_more_rounded,color:accent,size:20),
         enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:const BorderSide(color:AppColors.stroke)),
         border:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:BorderSide.none)),
-        child:Text(value.isEmpty?'Toque para selecionar':value,style:TextStyle(fontWeight:FontWeight.w700,color:value.isEmpty?AppColors.muted:AppColors.ink))),
+        child:Text(value.isEmpty?'Toque para selecionar':value,style:TextStyle(fontWeight:FontWeight.w800,fontSize:12,color:value.isEmpty?AppColors.muted:AppColors.ink))),
     ));
   }
 
