@@ -36,6 +36,7 @@ model User {
 model CustomerProfile {
   id String @id @default(cuid())
   userId String @unique
+  onboardingData Json?
   user User @relation(fields:[userId],references:[id],onDelete:Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -52,6 +53,7 @@ model CourierProfile {
   vehicleModel String?
   vehiclePlate String?
   vehicleYear Int?
+  onboardingData Json?
   pixKeyType PixKeyType?
   pixKey String?
   user User @relation(fields:[userId],references:[id],onDelete:Cascade)
@@ -82,6 +84,7 @@ model PartnerProfile {
   userId String @unique
   businessName String
   document String?
+  onboardingData Json?
   approved Boolean @default(false)
   user User @relation(fields:[userId],references:[id],onDelete:Cascade)
   createdAt DateTime @default(now())
