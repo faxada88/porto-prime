@@ -13,13 +13,19 @@ const realtimeOrigin=()=>{
  const host=u.hostname.replace(/-8085(?=\.)/,"-3000");
  return u.protocol+"//"+host;
 };
+const adminDeviceId=()=>{
+ if(typeof window==="undefined")return "admin-server";
+ let id=localStorage.getItem("pp_admin_device_id");
+ if(!id){id="admin-"+crypto.randomUUID();localStorage.setItem("pp_admin_device_id",id)}
+ return id;
+};
 let adminRefreshPromise:Promise<string>|null=null;
 async function refreshAdminSession(){
  if(adminRefreshPromise)return adminRefreshPromise;
  adminRefreshPromise=(async()=>{
   const refreshToken=typeof window!=="undefined"?localStorage.getItem("pp_admin_refresh"):"";
   if(!refreshToken)throw new Error("Sessão expirada");
-  const rr=await fetch(base()+"/auth/refresh",{method:"POST",headers:{"Content-Type":"application/json","X-Device-Id":"porto-prime-admin-web","X-Device-Name":"Porto Prime Admin"},body:JSON.stringify({refreshToken}),cache:"no-store"});
+  const rr=await fetch(base()+"/auth/refresh",{method:"POST",headers:{"Content-Type":"application/json","X-Device-Id":adminDeviceId(),"X-Device-Name":"Porto Prime Admin"},body:JSON.stringify({refreshToken}),cache:"no-store"});
   const rd=await rr.json().catch(()=>null);
   if(!rr.ok||!rd?.accessToken)throw new Error(Array.isArray(rd?.message)?rd.message.join(", "):rd?.message||"Sessão expirada");
   localStorage.setItem("pp_admin_token",rd.accessToken);
@@ -31,7 +37,7 @@ async function refreshAdminSession(){
 }
 async function api(path:string,token="",method="GET",body?:any,retry=true){
  let active=(typeof window!=="undefined"?localStorage.getItem("pp_admin_token")||"":"")||token;
- const send=(t:string)=>fetch(base()+path,{method,headers:{"Content-Type":"application/json","X-Device-Id":"porto-prime-admin-web","X-Device-Name":"Porto Prime Admin",...(t?{Authorization:"Bearer "+t}:{})},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store"});
+ const send=(t:string)=>fetch(base()+path,{method,headers:{"Content-Type":"application/json","X-Device-Id":adminDeviceId(),"X-Device-Name":"Porto Prime Admin",...(t?{Authorization:"Bearer "+t}:{})},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store"});
  let r=await send(active);
  if(r.status===401&&retry&&!["/auth/login","/auth/refresh"].includes(path)){
   try{active=await refreshAdminSession();r=await send(active)}catch{}
