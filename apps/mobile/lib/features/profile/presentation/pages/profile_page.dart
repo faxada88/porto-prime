@@ -325,6 +325,15 @@ Future<void> _accountMenu(BuildContext context) async {
             _register(context, 'COURIER');
           },
         ),
+        TextButton.icon(
+          onPressed: () {
+            Navigator.pop(ctx);
+            _courierStatus(context);
+          },
+          icon: const Icon(Icons.fact_check_outlined),
+          label: const Text('Já me candidatei • verificar status'),
+        ),
+        const SizedBox(height: 6),
         _Role(
           'Parceiro',
           'Divulgue a Porto Prime e acompanhe sua parceria.',
@@ -338,6 +347,242 @@ Future<void> _accountMenu(BuildContext context) async {
       ],
     ),
   );
+}
+
+Future<void> _courierStatus(BuildContext context) async {
+  final cpf = TextEditingController();
+  Map<String, dynamic>? application;
+  String? error;
+  bool loading = false;
+
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (sheetContext) => StatefulBuilder(
+      builder: (sheetContext, setSheetState) {
+        Future<void> search() async {
+          setSheetState(() {
+            loading = true;
+            error = null;
+          });
+          try {
+            final result = await AppState.instance.courierApplicationStatus(
+              cpf.text,
+            );
+            if (!sheetContext.mounted) return;
+            setSheetState(() => application = result);
+          } catch (e) {
+            if (!sheetContext.mounted) return;
+            setSheetState(() {
+              application = null;
+              error = e.toString().replaceFirst('Exception: ', '');
+            });
+          } finally {
+            if (sheetContext.mounted) {
+              setSheetState(() => loading = false);
+            }
+          }
+        }
+
+        Future<void> answer(dynamic requirement) async {
+          final response = TextEditingController();
+          final ok = await showDialog<bool>(
+            context: sheetContext,
+            builder: (dialogContext) => AlertDialog(
+              title: Text((requirement['title'] ?? 'Pendência').toString()),
+              content: TextField(
+                controller: response,
+                minLines: 3,
+                maxLines: 6,
+                decoration: const InputDecoration(
+                  labelText: 'Resposta / informação solicitada',
+                  alignLabelWithHint: true,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                  child: const Text('Enviar'),
+                ),
+              ],
+            ),
+          );
+
+          if (ok != true || response.text.trim().isEmpty) return;
+
+          try {
+            await AppState.instance.respondCourierApplicationRequirement(
+              requirement['id'].toString(),
+              cpf.text,
+              response.text,
+            );
+            await search();
+          } catch (e) {
+            if (sheetContext.mounted) {
+              ScaffoldMessenger.of(sheetContext).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    e.toString().replaceFirst('Exception: ', ''),
+                  ),
+                ),
+              );
+            }
+          }
+        }
+
+        final requirements = application?['requirements'] is List
+            ? List<dynamic>.from(application!['requirements'])
+            : <dynamic>[];
+
+        return _Sheet(
+          title: 'Acompanhar candidatura',
+          subtitle:
+              'Informe seu CPF para consultar a análise e responder solicitações do Admin.',
+          children: [
+            _field(
+              cpf,
+              'CPF',
+              Icons.badge_outlined,
+              type: TextInputType.number,
+            ),
+            if (error != null) ...[
+              Text(
+                error!,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+            if (application != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: AppColors.mint,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      (application!['name'] ?? '').toString(),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Status: ' +
+                          (application!['approvalStatus'] ?? 'PENDING')
+                              .toString(),
+                      style: const TextStyle(
+                        color: AppColors.oceanDeep,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (requirements.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    'Nenhuma pendência em aberto.',
+                    style: TextStyle(
+                      color: AppColors.muted,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                )
+              else
+                ...requirements.map(
+                  (requirement) => Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.stroke),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          (requirement['title'] ?? 'Pendência').toString(),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          (requirement['description'] ?? '').toString(),
+                          style: const TextStyle(
+                            color: AppColors.muted,
+                            fontSize: 11,
+                          ),
+                        ),
+                        if (requirement['response'] != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            'Sua resposta: ' +
+                                requirement['response'].toString(),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                        if (requirement['status'] == 'OPEN') ...[
+                          const SizedBox(height: 10),
+                          OutlinedButton(
+                            onPressed: () => answer(requirement),
+                            child: const Text('Responder pendência'),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: FilledButton(
+                onPressed: loading ? null : search,
+                child: loading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        application == null
+                            ? 'Consultar candidatura'
+                            : 'Atualizar status',
+                      ),
+              ),
+            ),
+          ],
+        );
+      },
+    ),
+  );
+
+  cpf.dispose();
 }
 
 void _simpleMessage(BuildContext context, String title, String message) {
