@@ -30,7 +30,7 @@ export class OrdersService {
       return { productId: product.id, productName: product.name, unitPrice, quantity: item.quantity, total };
     });
 
-    const deliveryFee = 0;
+    const deliveryFee = 5.90;
     return this.prisma.order.create({
       data: {
         customerId: user.id,
