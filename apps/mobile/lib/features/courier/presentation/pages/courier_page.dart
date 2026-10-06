@@ -418,6 +418,7 @@ class _CourierPageState extends State<CourierPage> {
       barrierColor: Colors.black.withValues(alpha: .50),
       builder: (_) => _DriverSectionSheet(
         section: section,
+        onWithdraw: () => _requestWithdrawal(context),
         onOpenDelivery: (order) => _showDeliverySheet(
           context,
           order: order,
@@ -2184,6 +2185,923 @@ class _StatusMark extends StatelessWidget {
         ),
       );
 }
+
+class _CourierSnapshot extends StatelessWidget {
+  const _CourierSnapshot({
+    required this.summary,
+    required this.presence,
+  });
+
+  final Map<String, dynamic> summary;
+  final String presence;
+
+  @override
+  Widget build(BuildContext context) => GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 2,
+        mainAxisSpacing: 9,
+        crossAxisSpacing: 9,
+        childAspectRatio: 1.7,
+        children: [
+          _SnapshotCard(
+            icon: Icons.account_balance_wallet_rounded,
+            label: 'Saldo disponível',
+            value: _money(summary['availableBalance']),
+          ),
+          _SnapshotCard(
+            icon: Icons.trending_up_rounded,
+            label: 'Ganhos hoje',
+            value: _money(summary['earningsToday']),
+          ),
+          _SnapshotCard(
+            icon: Icons.check_circle_rounded,
+            label: 'Entregas hoje',
+            value: (summary['deliveriesToday'] ?? 0).toString(),
+          ),
+          _SnapshotCard(
+            icon: Icons.calendar_view_week_rounded,
+            label: 'Entregas semana',
+            value: (summary['deliveriesWeek'] ?? 0).toString(),
+          ),
+        ],
+      );
+}
+
+class _SnapshotCard extends StatelessWidget {
+  const _SnapshotCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.stroke),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: AppColors.mint,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: AppColors.oceanDeep,
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.muted,
+                      fontSize: 7.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+class _DriverMenuSheet extends StatelessWidget {
+  const _DriverMenuSheet({required this.onSelect});
+  final ValueChanged<String> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    const items = [
+      ('home', 'Início', Icons.home_rounded),
+      ('deliveries', 'Entregas', Icons.delivery_dining_rounded),
+      ('earnings', 'Ganhos', Icons.trending_up_rounded),
+      ('wallet', 'Carteira', Icons.account_balance_wallet_rounded),
+      ('withdrawals', 'Saques', Icons.payments_rounded),
+      ('history', 'Histórico', Icons.history_rounded),
+      ('profile', 'Perfil', Icons.person_rounded),
+      ('vehicle', 'Veículo / Documentos', Icons.two_wheeler_rounded),
+      ('settings', 'Configurações', Icons.settings_rounded),
+    ];
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * .88,
+      ),
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 20),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(34)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            Container(
+              width: 43,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.stroke,
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            const SizedBox(height: 17),
+            const Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'PORTO PRIME DRIVER',
+                        style: TextStyle(
+                          color: AppColors.ocean,
+                          fontSize: 8,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Central do motoboy',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.dashboard_customize_rounded,
+                  color: AppColors.oceanDeep,
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Expanded(
+              child: ListView.separated(
+                itemCount: items.length,
+                separatorBuilder: (_, __) =>
+                    const Divider(height: 1, color: AppColors.stroke),
+                itemBuilder: (_, index) {
+                  final item = items[index];
+                  return ListTile(
+                    onTap: () => onSelect(item.$1),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                    leading: Container(
+                      width: 43,
+                      height: 43,
+                      decoration: BoxDecoration(
+                        color: AppColors.mint,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(
+                        item.$3,
+                        color: AppColors.oceanDeep,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      item.$2,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    trailing: const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.muted,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DriverSectionSheet extends StatelessWidget {
+  const _DriverSectionSheet({
+    required this.section,
+    required this.onWithdraw,
+    required this.onOpenDelivery,
+  });
+
+  final String section;
+  final VoidCallback onWithdraw;
+  final ValueChanged<Map<String, dynamic>> onOpenDelivery;
+
+  String get title => switch (section) {
+        'deliveries' => 'Entregas',
+        'earnings' => 'Ganhos',
+        'wallet' => 'Carteira',
+        'withdrawals' => 'Saques',
+        'history' => 'Histórico',
+        'profile' => 'Perfil',
+        'vehicle' => 'Veículo / Documentos',
+        'settings' => 'Configurações',
+        _ => 'Início',
+      };
+
+  IconData get icon => switch (section) {
+        'deliveries' => Icons.delivery_dining_rounded,
+        'earnings' => Icons.trending_up_rounded,
+        'wallet' => Icons.account_balance_wallet_rounded,
+        'withdrawals' => Icons.payments_rounded,
+        'history' => Icons.history_rounded,
+        'profile' => Icons.person_rounded,
+        'vehicle' => Icons.two_wheeler_rounded,
+        'settings' => Icons.settings_rounded,
+        _ => Icons.home_rounded,
+      };
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: AppState.instance,
+        builder: (_, __) {
+          final state = AppState.instance;
+          return Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * .93,
+            ),
+            decoration: const BoxDecoration(
+              color: AppColors.canvas,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(34)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 12, 12, 10),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: AppColors.mint,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            icon,
+                            color: AppColors.oceanDeep,
+                            size: 23,
+                          ),
+                        ),
+                        const SizedBox(width: 11),
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -.4,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(18, 5, 18, 24),
+                      children: _content(context, state),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+
+  List<Widget> _content(BuildContext context, AppState state) {
+    final summary = state.walletSummary;
+
+    if (section == 'earnings') {
+      final credits = state.walletLedger
+          .map((x) => Map<String, dynamic>.from(x as Map))
+          .where((x) => x['type'] == 'DELIVERY_CREDIT')
+          .toList();
+      return [
+        _FinanceHero(
+          eyebrow: 'GANHOS DE HOJE',
+          value: _money(summary['earningsToday']),
+          subtitle: 'Semana: ' + _money(summary['earningsWeek']),
+          icon: Icons.trending_up_rounded,
+        ),
+        const SizedBox(height: 16),
+        ..._ledgerWidgets(credits),
+      ];
+    }
+
+    if (section == 'wallet') {
+      final ledger = state.walletLedger
+          .map((x) => Map<String, dynamic>.from(x as Map))
+          .toList();
+      return [
+        _FinanceHero(
+          eyebrow: 'SALDO DISPONÍVEL',
+          value: _money(summary['availableBalance']),
+          subtitle: 'Saldo total: ' + _money(summary['totalBalance']),
+          icon: Icons.account_balance_wallet_rounded,
+        ),
+        const SizedBox(height: 11),
+        SizedBox(
+          width: double.infinity,
+          height: 53,
+          child: FilledButton.icon(
+            onPressed: onWithdraw,
+            icon: const Icon(Icons.payments_rounded),
+            label: const Text('Solicitar saque'),
+          ),
+        ),
+        const SizedBox(height: 16),
+        ..._ledgerWidgets(ledger),
+      ];
+    }
+
+    if (section == 'withdrawals') {
+      final rows = state.withdrawals
+          .map((x) => Map<String, dynamic>.from(x as Map))
+          .toList();
+      return [
+        _FinanceHero(
+          eyebrow: 'DISPONÍVEL PARA SAQUE',
+          value: _money(summary['availableBalance']),
+          subtitle: 'Em processamento: ' +
+              _money(summary['pendingWithdrawals']),
+          icon: Icons.payments_rounded,
+        ),
+        const SizedBox(height: 11),
+        SizedBox(
+          width: double.infinity,
+          height: 53,
+          child: FilledButton.icon(
+            onPressed: onWithdraw,
+            icon: const Icon(Icons.add_card_rounded),
+            label: const Text('Nova solicitação'),
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (rows.isEmpty)
+          const _DriverEmpty(
+            icon: Icons.account_balance_rounded,
+            title: 'Nenhum saque solicitado',
+            subtitle:
+                'Solicitações aparecerão aqui como pendente, processamento, pago ou rejeitado.',
+          )
+        else
+          ...rows.map((row) => _WithdrawalRow(row: row)),
+      ];
+    }
+
+    if (section == 'profile') {
+      final user = state.user ?? {};
+      return [
+        _DataPanel(
+          title: 'Conta',
+          icon: Icons.person_rounded,
+          rows: [
+            ('Nome', (user['name'] ?? '—').toString()),
+            ('E-mail', (user['email'] ?? '—').toString()),
+            ('Telefone', (user['phone'] ?? '—').toString()),
+            ('Perfil', 'Motoboy'),
+          ],
+        ),
+      ];
+    }
+
+    if (section == 'vehicle') {
+      final p = state.courierProfile;
+      return [
+        _DataPanel(
+          title: 'Documentos',
+          icon: Icons.badge_rounded,
+          rows: [
+            ('CPF', (p['document'] ?? '—').toString()),
+            ('CNH', (p['cnh'] ?? '—').toString()),
+            ('Categoria', (p['cnhCategory'] ?? '—').toString()),
+          ],
+        ),
+        const SizedBox(height: 10),
+        _DataPanel(
+          title: 'Veículo',
+          icon: Icons.two_wheeler_rounded,
+          rows: [
+            ('Marca', (p['vehicleBrand'] ?? '—').toString()),
+            ('Modelo', (p['vehicleModel'] ?? '—').toString()),
+            ('Placa', (p['vehiclePlate'] ?? '—').toString()),
+            ('Ano', (p['vehicleYear'] ?? '—').toString()),
+          ],
+        ),
+      ];
+    }
+
+    if (section == 'settings') {
+      return [
+        _DataPanel(
+          title: 'Disponibilidade',
+          icon: Icons.radar_rounded,
+          custom: SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            value: state.courierOnline,
+            onChanged: state.courierDelivery == null
+                ? state.setCourierOnline
+                : null,
+            title: const Text(
+              'Receber novas ofertas',
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            subtitle: Text(
+              state.courierPresenceStatus.replaceAll('_', ' '),
+              style: const TextStyle(
+                fontSize: 9,
+                color: AppColors.muted,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          height: 53,
+          child: OutlinedButton.icon(
+            onPressed: state.logout,
+            icon: const Icon(Icons.logout_rounded),
+            label: const Text('Sair deste dispositivo'),
+          ),
+        ),
+      ];
+    }
+
+    final history = state.courierHistory
+        .map((x) => Map<String, dynamic>.from(x as Map))
+        .toList();
+
+    if (section == 'deliveries') {
+      return [
+        if (state.courierDelivery != null) ...[
+          const _SectionTitle(
+            eyebrow: 'AGORA',
+            title: 'Entrega atual',
+            subtitle: 'Pedido vinculado exclusivamente ao seu perfil.',
+          ),
+          const SizedBox(height: 10),
+          _ActiveDeliveryCard(
+            order: Map<String, dynamic>.from(state.courierDelivery!),
+            onOpen: () => onOpenDelivery(
+              Map<String, dynamic>.from(state.courierDelivery!),
+            ),
+            onPrimaryAction: () => onOpenDelivery(
+              Map<String, dynamic>.from(state.courierDelivery!),
+            ),
+          ),
+          const SizedBox(height: 18),
+        ],
+        const _SectionTitle(
+          eyebrow: 'HISTÓRICO',
+          title: 'Últimas entregas',
+          subtitle: 'Registros reais da sua operação.',
+        ),
+        const SizedBox(height: 10),
+        ..._historyWidgets(history),
+      ];
+    }
+
+    return [
+      const _SectionTitle(
+        eyebrow: 'HISTÓRICO',
+        title: 'Entregas realizadas',
+        subtitle: 'Todos os pedidos concluídos ou encerrados.',
+      ),
+      const SizedBox(height: 10),
+      ..._historyWidgets(history),
+    ];
+  }
+
+  List<Widget> _ledgerWidgets(List<Map<String, dynamic>> rows) {
+    if (rows.isEmpty) {
+      return const [
+        _DriverEmpty(
+          icon: Icons.receipt_long_rounded,
+          title: 'Sem movimentações',
+          subtitle:
+              'Créditos, débitos, saques e estornos aparecerão neste ledger.',
+        ),
+      ];
+    }
+    return rows.take(80).map((x) => _LedgerRow(entry: x)).toList();
+  }
+
+  List<Widget> _historyWidgets(List<Map<String, dynamic>> rows) {
+    if (rows.isEmpty) {
+      return const [
+        _DriverEmpty(
+          icon: Icons.history_rounded,
+          title: 'Histórico vazio',
+          subtitle: 'Entregas finalizadas aparecerão aqui.',
+        ),
+      ];
+    }
+    return rows.take(80).map((x) => _HistoryRow(order: x)).toList();
+  }
+}
+
+class _FinanceHero extends StatelessWidget {
+  const _FinanceHero({
+    required this.eyebrow,
+    required this.value,
+    required this.subtitle,
+    required this.icon,
+  });
+
+  final String eyebrow;
+  final String value;
+  final String subtitle;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF102923), Color(0xFF087568)],
+          ),
+          borderRadius: BorderRadius.circular(27),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .11),
+                borderRadius: BorderRadius.circular(17),
+              ),
+              child: Icon(icon, color: Colors.white, size: 25),
+            ),
+            const SizedBox(width: 13),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    eyebrow,
+                    style: const TextStyle(
+                      color: Color(0xFF91E8D5),
+                      fontSize: 7.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 23,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+class _LedgerRow extends StatelessWidget {
+  const _LedgerRow({required this.entry});
+  final Map<String, dynamic> entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final amount = double.tryParse(entry['amount']?.toString() ?? '0') ?? 0;
+    final positive = amount >= 0;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 9),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.stroke),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            positive ? Icons.south_west_rounded : Icons.north_east_rounded,
+            color: positive
+                ? AppColors.oceanDeep
+                : const Color(0xFF966619),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  (entry['description'] ?? 'Movimentação').toString(),
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _date(entry['createdAt']),
+                  style: const TextStyle(
+                    color: AppColors.muted,
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            (positive ? '+ ' : '- ') + _money(amount.abs()),
+            style: TextStyle(
+              color: positive
+                  ? AppColors.oceanDeep
+                  : const Color(0xFF966619),
+              fontSize: 10.5,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WithdrawalRow extends StatelessWidget {
+  const _WithdrawalRow({required this.row});
+  final Map<String, dynamic> row;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        margin: const EdgeInsets.only(bottom: 9),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.stroke),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.payments_rounded,
+              color: AppColors.oceanDeep,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _money(row['amount']),
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _date(row['requestedAt']),
+                    style: const TextStyle(
+                      color: AppColors.muted,
+                      fontSize: 8.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Text(
+            _withdrawalStatus((row['status'] ?? '').toString()),
+            style: const TextStyle(
+              color: AppColors.oceanDeep,
+              fontSize: 8,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+}
+
+class _HistoryRow extends StatelessWidget {
+  const _HistoryRow({required this.order});
+  final Map<String, dynamic> order;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        margin: const EdgeInsets.only(bottom: 9),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.stroke),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              order['status'] == 'DELIVERED'
+                  ? Icons.check_circle_rounded
+                  : Icons.cancel_rounded,
+              color: order['status'] == 'DELIVERED'
+                  ? AppColors.oceanDeep
+                  : AppColors.coralStrong,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Entrega #' + _shortId(order['id']),
+                    style: const TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _date(order['deliveredAt'] ?? order['updatedAt']),
+                    style: const TextStyle(
+                      color: AppColors.muted,
+                      fontSize: 8.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              _money(order['deliveryFee']),
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+class _DataPanel extends StatelessWidget {
+  const _DataPanel({
+    required this.title,
+    required this.icon,
+    this.rows = const [],
+    this.custom,
+  });
+
+  final String title;
+  final IconData icon;
+  final List<(String, String)> rows;
+  final Widget? custom;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: AppColors.stroke),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: AppColors.oceanDeep, size: 20),
+                const SizedBox(width: 9),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            if (custom != null)
+              custom!
+            else
+              ...rows.map(
+                (row) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 100,
+                        child: Text(
+                          row.$1,
+                          style: const TextStyle(
+                            color: AppColors.muted,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          row.$2,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+}
+
+String _date(dynamic value) {
+  final date = DateTime.tryParse(value?.toString() ?? '')?.toLocal();
+  if (date == null) return '—';
+  String two(int n) => n.toString().padLeft(2, '0');
+  return two(date.day) +
+      '/' +
+      two(date.month) +
+      '/' +
+      date.year.toString() +
+      ' • ' +
+      two(date.hour) +
+      ':' +
+      two(date.minute);
+}
+
+String _withdrawalStatus(String value) => switch (value) {
+      'PENDING' => 'PENDENTE',
+      'PROCESSING' => 'PROCESSANDO',
+      'PAID' => 'PAGO',
+      'REJECTED' => 'REJEITADO',
+      _ => value,
+    };
 
 class _DriverEmpty extends StatelessWidget {
   const _DriverEmpty({
