@@ -262,42 +262,26 @@ export class OrdersService {
     },
     authorization?: string,
   ) {
-    const { profile } = await this.courier(authorization);
-    const now = new Date();
-
-    const [activeDelivery, pendingOffer] = await Promise.all([
-      this.prisma.order.findFirst({
-        where: {
-          courierId: profile.id,
-          status: {
-            notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED],
-          },
-        },
-        select: { id: true },
-      }),
-      (this.prisma as any).deliveryOffer.findFirst({
-        where: {
-          courierId: profile.id,
-          status: 'PENDING',
-          expiresAt: { gt: now },
-        },
-        select: { id: true },
-      }),
-    ]);
-
-    const requestedOnline = body.online ?? profile.isOnline;
-
-    let presenceStatus: string;
-    if (activeDelivery) {
-      presenceStatus = 'DELIVERING';
-    } else if (!requestedOnline) {
-      presenceStatus = 'OFFLINE';
-    } else if (pendingOffer) {
-      presenceStatus = 'OFFERED';
-    } else {
-      presenceStatus = 'AVAILABLE';
+    const session = await this.auth.authenticateSession(authorization);
+    const user = session.user;
+    if (user.role !== UserRole.COURIER) {
+      throw new ForbiddenException('Acesso exclusivo de motoboy');
     }
 
+    const profile = await this.prisma.courierProfile.findUnique({
+      where: { userId: user.id },
+    });
+    if (
+      !profile ||
+      profile.approvalStatus !== CourierStatus.APPROVED ||
+      user.status !== UserStatus.ACTIVE
+    ) {
+      throw new ForbiddenException(
+        'Cadastro de motoboy ainda não está liberado',
+      );
+    }
+
+    const now = new Date();
     const latitude =
       body.latitude === undefined ? undefined : Number(body.latitude);
     const longitude =
@@ -318,23 +302,114 @@ export class OrdersService {
       throw new BadRequestException('Longitude inválida');
     }
 
+    const previousDevice = await (this.prisma as any)
+      .courierDevicePresence.findUnique({
+        where: { sessionId: session.id },
+      });
+
+    const onlineRequested =
+      body.online ?? previousDevice?.onlineRequested ?? false;
+
+    await (this.prisma as any).courierDevicePresence.upsert({
+      where: { sessionId: session.id },
+      create: {
+        courierId: profile.id,
+        sessionId: session.id,
+        onlineRequested,
+        lastHeartbeatAt: now,
+        ...(latitude !== undefined && longitude !== undefined
+          ? { latitude, longitude }
+          : {}),
+      },
+      update: {
+        onlineRequested,
+        lastHeartbeatAt: now,
+        ...(latitude !== undefined && longitude !== undefined
+          ? { latitude, longitude }
+          : {}),
+      },
+    });
+
+    const cfg = await (this.prisma as any).deliveryPricingConfig.upsert({
+      where: { id: 'default' },
+      create: { id: 'default' },
+      update: {},
+      select: { heartbeatTimeoutSeconds: true },
+    });
+    const cutoff = new Date(
+      Date.now() -
+        Math.max(20, Number(cfg.heartbeatTimeoutSeconds || 45)) * 1000,
+    );
+
+    const [activeDelivery, pendingOffer, activeDevices, locationDevice] =
+      await Promise.all([
+        this.prisma.order.findFirst({
+          where: {
+            courierId: profile.id,
+            status: {
+              notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED],
+            },
+          },
+          select: { id: true },
+        }),
+        (this.prisma as any).deliveryOffer.findFirst({
+          where: {
+            courierId: profile.id,
+            status: 'PENDING',
+            expiresAt: { gt: now },
+          },
+          select: { id: true },
+        }),
+        (this.prisma as any).courierDevicePresence.findMany({
+          where: {
+            courierId: profile.id,
+            onlineRequested: true,
+            lastHeartbeatAt: { gte: cutoff },
+          },
+          select: { id: true, lastHeartbeatAt: true },
+        }),
+        (this.prisma as any).courierDevicePresence.findFirst({
+          where: {
+            courierId: profile.id,
+            lastHeartbeatAt: { gte: cutoff },
+            latitude: { not: null },
+            longitude: { not: null },
+          },
+          orderBy: { lastHeartbeatAt: 'desc' },
+          select: {
+            latitude: true,
+            longitude: true,
+            lastHeartbeatAt: true,
+          },
+        }),
+      ]);
+
+    const hasOnlineDevice = activeDevices.length > 0;
+    const presenceStatus = activeDelivery
+      ? 'DELIVERING'
+      : pendingOffer
+        ? 'OFFERED'
+        : hasOnlineDevice
+          ? 'AVAILABLE'
+          : 'OFFLINE';
+
     const updated = await (this.prisma as any).courierProfile.update({
       where: { id: profile.id },
       data: {
+        presenceStatus,
         isOnline:
           presenceStatus === 'AVAILABLE' ||
           presenceStatus === 'OFFERED',
-        presenceStatus,
-        lastHeartbeatAt: now,
+        lastHeartbeatAt: hasOnlineDevice ? now : profile.lastHeartbeatAt,
         availableSince:
           presenceStatus === 'AVAILABLE'
             ? (profile as any).availableSince ?? now
             : null,
-        ...(latitude !== undefined && longitude !== undefined
+        ...(locationDevice
           ? {
-              currentLatitude: latitude,
-              currentLongitude: longitude,
-              locationUpdatedAt: now,
+              currentLatitude: locationDevice.latitude,
+              currentLongitude: locationDevice.longitude,
+              locationUpdatedAt: locationDevice.lastHeartbeatAt,
             }
           : {}),
       },
@@ -352,6 +427,7 @@ export class OrdersService {
       lastHeartbeatAt: updated.lastHeartbeatAt,
       availableSince: updated.availableSince,
       locationUpdatedAt: updated.locationUpdatedAt,
+      activeDevices: activeDevices.length,
     };
   }
 
