@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsInt, IsNotEmpty, IsObject, IsOptional, IsString, Min, MinLength } from 'class-validator';
 import { Type } from 'class-transformer';
 import { UserRole } from '../../generated/prisma/client.js';
 export class RegisterDto {
@@ -15,4 +15,5 @@ export class RegisterDto {
  @IsOptional() @IsString() vehicleModel?:string;
  @IsOptional() @IsString() vehiclePlate?:string;
  @IsOptional() @Type(()=>Number) @IsInt() @Min(1980) vehicleYear?:number;
+ @IsOptional() @IsObject() profileData?:Record<string,unknown>;
 }
