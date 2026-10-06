@@ -96,6 +96,7 @@ class AppState extends ChangeNotifier {
         'businessName': businessName,
       if (document != null && document.trim().isNotEmpty)
         'document': document,
+      if (profileData != null) 'profileData': profileData,
       if (role == 'COURIER' && profileData != null) ...{
         if ((profileData['cnh'] ?? '').toString().trim().isNotEmpty)
           'cnh': profileData['cnh'].toString().trim(),
