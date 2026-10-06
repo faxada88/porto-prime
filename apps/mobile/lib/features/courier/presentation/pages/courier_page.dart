@@ -94,6 +94,8 @@ class _CourierPageState extends State<CourierPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: .58),
+      isDismissible: !incoming,
+      enableDrag: !incoming,
       builder: (sheetContext) => _DeliveryDetailsSheet(
         order: order,
         incoming: incoming,
@@ -767,8 +769,12 @@ class _OfferCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final address = Map<String, dynamic>.from(order['address'] ?? {});
-    final items = (order['items'] as List?) ?? const [];
+    final dropoff =
+        Map<String, dynamic>.from(order['dropoff'] ?? const {});
+    final distance = double.tryParse(
+      order['routeDistanceKm']?.toString() ?? '',
+    );
+    final duration = order['routeDurationMinutes'];
 
     return Material(
       color: Colors.white,
@@ -780,7 +786,7 @@ class _OfferCard extends StatelessWidget {
           padding: const EdgeInsets.all(17),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(25),
-            border: Border.all(color: AppColors.stroke),
+            border: Border.all(color: const Color(0xFFF0DBB4)),
             boxShadow: AppShadows.soft,
           ),
           child: Column(
@@ -806,7 +812,7 @@ class _OfferCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'NOVA CHAMADA',
+                          'NOVA OFERTA',
                           style: TextStyle(
                             color: Color(0xFFA26A14),
                             fontSize: 7.5,
@@ -826,9 +832,9 @@ class _OfferCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    _money(order['total']),
+                    _money(order['deliveryFee']),
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 15,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -837,23 +843,38 @@ class _OfferCard extends StatelessWidget {
               const SizedBox(height: 14),
               _CompactInfo(
                 icon: Icons.location_on_rounded,
-                title:
-                    '${address['street'] ?? ''}, ${address['number'] ?? ''}',
-                subtitle:
-                    '${address['neighborhood'] ?? ''} • ${address['city'] ?? ''}',
+                title: (dropoff['neighborhood'] ?? 'Região de entrega')
+                    .toString(),
+                subtitle: (dropoff['city'] ?? 'Porto Seguro').toString(),
               ),
-              const SizedBox(height: 8),
-              _CompactInfo(
-                icon: Icons.shopping_bag_rounded,
-                title: '${items.length} ${items.length == 1 ? 'item' : 'itens'}',
-                subtitle: 'Toque para ver o pedido completo',
+              const SizedBox(height: 9),
+              Row(
+                children: [
+                  Expanded(
+                    child: _CompactMetric(
+                      icon: Icons.route_rounded,
+                      text: distance == null
+                          ? 'Rota calculando'
+                          : distance.toStringAsFixed(1) + ' km',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _CompactMetric(
+                      icon: Icons.schedule_rounded,
+                      text: duration == null
+                          ? 'Tempo estimado —'
+                          : duration.toString() + ' min',
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   const Expanded(
                     child: Text(
-                      'Ver chamada completa',
+                      'Toque para decidir',
                       style: TextStyle(
                         color: AppColors.oceanDeep,
                         fontSize: 10,
@@ -861,19 +882,7 @@ class _OfferCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Container(
-                    width: 37,
-                    height: 37,
-                    decoration: BoxDecoration(
-                      color: AppColors.mint,
-                      borderRadius: BorderRadius.circular(13),
-                    ),
-                    child: const Icon(
-                      Icons.arrow_forward_rounded,
-                      color: AppColors.oceanDeep,
-                      size: 19,
-                    ),
-                  ),
+                  _OfferCountdown(expiresAt: order['expiresAt']),
                 ],
               ),
             ],
@@ -882,6 +891,96 @@ class _OfferCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _CompactMetric extends StatelessWidget {
+  const _CompactMetric({
+    required this.icon,
+    required this.text,
+  });
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        decoration: BoxDecoration(
+          color: AppColors.canvas,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.oceanDeep, size: 15),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+class _OfferCountdown extends StatefulWidget {
+  const _OfferCountdown({required this.expiresAt});
+  final dynamic expiresAt;
+
+  @override
+  State<_OfferCountdown> createState() => _OfferCountdownState();
+}
+
+class _OfferCountdownState extends State<_OfferCountdown> {
+  Timer? timer;
+  int seconds = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _tick();
+    timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+  }
+
+  void _tick() {
+    final expiry = DateTime.tryParse(widget.expiresAt?.toString() ?? '');
+    final next = expiry == null
+        ? 0
+        : expiry.difference(DateTime.now()).inSeconds.clamp(0, 999);
+    if (!mounted) return;
+    setState(() => seconds = next);
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Container(
+        constraints: const BoxConstraints(minWidth: 48),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: seconds <= 8 ? AppColors.peach : AppColors.sand,
+          borderRadius: BorderRadius.circular(13),
+        ),
+        child: Text(
+          seconds.toString() + 's',
+          style: TextStyle(
+            color: seconds <= 8
+                ? AppColors.coralStrong
+                : const Color(0xFF936417),
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      );
 }
 
 class _ActiveDeliveryCard extends StatelessWidget {
