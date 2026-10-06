@@ -376,6 +376,214 @@ class _CourierPageState extends State<CourierPage> {
     pin.dispose();
   }
 
+  Future<void> _openDriverMenu(BuildContext context) async {
+    await AppState.instance.loadWallet();
+    if (!mounted) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: .48),
+      builder: (menuContext) => _DriverMenuSheet(
+        onSelect: (section) {
+          Navigator.pop(menuContext);
+          Future<void>.delayed(
+            const Duration(milliseconds: 120),
+            () {
+              if (mounted) _openDriverSection(context, section);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _openDriverSection(
+    BuildContext context,
+    String section,
+  ) async {
+    try {
+      await Future.wait([
+        AppState.instance.refreshCourier(),
+        AppState.instance.loadWallet(),
+      ]);
+    } catch (_) {}
+    if (!mounted) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: .50),
+      builder: (_) => _DriverSectionSheet(
+        section: section,
+        onOpenDelivery: (order) => _showDeliverySheet(
+          context,
+          order: order,
+          incoming: false,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _requestWithdrawal(BuildContext context) async {
+    final controller = TextEditingController();
+    String? error;
+    bool loading = false;
+
+    await showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: .55),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 22),
+          child: Container(
+            padding: const EdgeInsets.all(21),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(29),
+              boxShadow: AppShadows.elevated,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Solicitar saque',
+                  style: TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -.4,
+                  ),
+                ),
+                const SizedBox(height: 7),
+                Text(
+                  'Disponível: ' +
+                      _money(
+                        AppState.instance
+                            .walletSummary['availableBalance'],
+                      ),
+                  style: const TextStyle(
+                    color: AppColors.muted,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 15),
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Valor',
+                    prefixText: 'R\$ ',
+                    prefixIcon: Icon(Icons.payments_rounded),
+                  ),
+                ),
+                if (error != null) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.peach,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Text(
+                      error!,
+                      style: const TextStyle(
+                        color: AppColors.coralStrong,
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 12),
+                const Text(
+                  'A solicitação ficará pendente até processamento. O app não simula transferência bancária.',
+                  style: TextStyle(
+                    color: AppColors.muted,
+                    fontSize: 9.3,
+                    height: 1.4,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 17),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: loading
+                            ? null
+                            : () => Navigator.pop(dialogContext),
+                        child: const Text('Cancelar'),
+                      ),
+                    ),
+                    const SizedBox(width: 9),
+                    Expanded(
+                      flex: 2,
+                      child: FilledButton(
+                        onPressed: loading
+                            ? null
+                            : () async {
+                                final raw = controller.text
+                                    .replaceAll(',', '.')
+                                    .trim();
+                                final amount = double.tryParse(raw);
+                                if (amount == null || amount <= 0) {
+                                  setDialogState(
+                                    () => error = 'Informe um valor válido.',
+                                  );
+                                  return;
+                                }
+                                setDialogState(() {
+                                  loading = true;
+                                  error = null;
+                                });
+                                try {
+                                  await AppState.instance
+                                      .requestWithdrawal(amount);
+                                  if (dialogContext.mounted) {
+                                    Navigator.pop(dialogContext);
+                                  }
+                                } catch (e) {
+                                  if (dialogContext.mounted) {
+                                    setDialogState(() {
+                                      loading = false;
+                                      error = e
+                                          .toString()
+                                          .replaceFirst('Exception: ', '');
+                                    });
+                                  }
+                                }
+                              },
+                        child: loading
+                            ? const SizedBox(
+                                width: 19,
+                                height: 19,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text('Solicitar'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    controller.dispose();
+  }
+
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
         animation: AppState.instance,
@@ -408,6 +616,7 @@ class _CourierPageState extends State<CourierPage> {
                     _DriverHeader(
                       firstName: first,
                       online: state.courierOnline,
+                      onMenu: () => _openDriverMenu(context),
                       onLogout: state.logout,
                     ),
                     const SizedBox(height: 18),
@@ -416,6 +625,11 @@ class _CourierPageState extends State<CourierPage> {
                       online: state.courierOnline,
                       onChanged:
                           current == null ? state.setCourierOnline : null,
+                    ),
+                    const SizedBox(height: 12),
+                    _CourierSnapshot(
+                      summary: state.walletSummary,
+                      presence: state.courierPresenceStatus,
                     ),
                     if (current != null) ...[
                       const SizedBox(height: 22),
@@ -518,11 +732,13 @@ class _DriverHeader extends StatelessWidget {
   const _DriverHeader({
     required this.firstName,
     required this.online,
+    required this.onMenu,
     required this.onLogout,
   });
 
   final String firstName;
   final bool online;
+  final VoidCallback onMenu;
   final VoidCallback onLogout;
 
   @override
@@ -598,6 +814,11 @@ class _DriverHeader extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          IconButton(
+            tooltip: 'Menu do motoboy',
+            onPressed: onMenu,
+            icon: const Icon(Icons.grid_view_rounded, size: 20),
           ),
           IconButton(
             tooltip: 'Sair',
@@ -882,7 +1103,10 @@ class _OfferCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  _OfferCountdown(expiresAt: order['expiresAt']),
+                  _OfferCountdown(
+                  expiresAt: order['expiresAt'],
+                  autoClose: true,
+                ),
                 ],
               ),
             ],
@@ -928,8 +1152,12 @@ class _CompactMetric extends StatelessWidget {
 }
 
 class _OfferCountdown extends StatefulWidget {
-  const _OfferCountdown({required this.expiresAt});
+  const _OfferCountdown({
+    required this.expiresAt,
+    this.autoClose = false,
+  });
   final dynamic expiresAt;
+  final bool autoClose;
 
   @override
   State<_OfferCountdown> createState() => _OfferCountdownState();
@@ -953,6 +1181,14 @@ class _OfferCountdownState extends State<_OfferCountdown> {
         : expiry.difference(DateTime.now()).inSeconds.clamp(0, 999);
     if (!mounted) return;
     setState(() => seconds = next);
+    if (next <= 0 && widget.autoClose) {
+      timer?.cancel();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      });
+    }
   }
 
   @override
