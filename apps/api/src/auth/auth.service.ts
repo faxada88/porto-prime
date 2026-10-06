@@ -11,6 +11,7 @@ import {
   timingSafeEqual,
 } from 'node:crypto';
 import {
+  Prisma,
   UserRole,
   UserStatus,
 } from '../generated/prisma/client.js';
@@ -338,6 +339,10 @@ export class AuthService {
       data.role === UserRole.COURIER ||
       data.role === UserRole.PARTNER;
 
+    const onboardingData = data.profileData
+      ? (data.profileData as Prisma.InputJsonObject)
+      : undefined;
+
     const user = await this.prisma.user.create({
       data: {
         name: data.name.trim(),
@@ -350,7 +355,7 @@ export class AuthService {
           : UserStatus.ACTIVE,
         customerProfile:
           data.role === UserRole.CUSTOMER
-            ? { create: {} }
+            ? { create: { onboardingData } }
             : undefined,
         courierProfile:
           data.role === UserRole.COURIER
@@ -369,6 +374,7 @@ export class AuthService {
                       .toUpperCase() || null,
                   vehicleYear:
                     data.vehicleYear || null,
+                  onboardingData,
                 },
               }
             : undefined,
@@ -379,6 +385,7 @@ export class AuthService {
                   businessName:
                     data.businessName!.trim(),
                   document: partnerDocument,
+                  onboardingData,
                 },
               }
             : undefined,
