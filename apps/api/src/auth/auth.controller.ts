@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
+  Param,
   Post,
   Query,
 } from '@nestjs/common';
@@ -58,8 +60,31 @@ export class AuthController {
   }
 
   @Post('login')
-  login(@Body() body: LoginDto) {
-    return this.authService.login(body);
+  login(
+    @Body() body: LoginDto,
+    @Headers('x-device-id') deviceId?: string,
+    @Headers('x-device-name') deviceName?: string,
+    @Headers('user-agent') userAgent?: string,
+  ) {
+    return this.authService.login(body, {
+      deviceId,
+      deviceName,
+      userAgent,
+    });
+  }
+
+  @Post('refresh')
+  refresh(
+    @Body('refreshToken') refreshToken: string,
+    @Headers('x-device-id') deviceId?: string,
+    @Headers('x-device-name') deviceName?: string,
+    @Headers('user-agent') userAgent?: string,
+  ) {
+    return this.authService.refresh(refreshToken, {
+      deviceId,
+      deviceName,
+      userAgent,
+    });
   }
 
   @Get('me')
@@ -67,8 +92,26 @@ export class AuthController {
     return this.authService.me(authorization);
   }
 
+  @Get('sessions')
+  sessions(@Headers('authorization') authorization?: string) {
+    return this.authService.sessions(authorization);
+  }
+
+  @Delete('sessions/:id')
+  revokeSession(
+    @Param('id') id: string,
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.authService.revokeSession(id, authorization);
+  }
+
   @Post('logout')
   logout(@Headers('authorization') authorization?: string) {
     return this.authService.logout(authorization);
+  }
+
+  @Post('logout-all')
+  logoutAll(@Headers('authorization') authorization?: string) {
+    return this.authService.logoutAll(authorization);
   }
 }
