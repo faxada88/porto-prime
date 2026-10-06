@@ -443,7 +443,7 @@ export class AdminService {
       select: { id: true, status: true },
     });
     if (!order) throw new NotFoundException('Pedido não encontrado');
-    if ([OrderStatus.PICKED_UP, OrderStatus.OUT_FOR_DELIVERY].includes(order.status)) {
+    if (order.status === OrderStatus.PICKED_UP || order.status === OrderStatus.OUT_FOR_DELIVERY) {
       throw new BadRequestException('Pedido em entrega não pode ser excluído');
     }
 
