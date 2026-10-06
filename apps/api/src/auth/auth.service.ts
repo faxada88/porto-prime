@@ -810,48 +810,81 @@ export class AuthService {
       throw new UnauthorizedException('Sessão não encontrada');
     }
 
-    await this.prisma.authSession.update({
-      where: { id: target.id },
-      data: {
-        revokedAt: new Date(),
-        revokedReason: 'USER_REVOKED',
-      },
-    });
+    await this.prisma.$transaction([
+      this.prisma.authSession.update({
+        where: { id: target.id },
+        data: {
+          revokedAt: new Date(),
+          revokedReason: 'USER_REVOKED',
+        },
+      }),
+      (this.prisma as any).courierDevicePresence.updateMany({
+        where: { sessionId: target.id },
+        data: { onlineRequested: false },
+      }),
+    ]);
 
     return { success: true };
   }
 
   async logout(authorization?: string) {
     const token = this.bearer(authorization);
-    if (token) {
-      await this.prisma.authSession.updateMany({
+    if (!token) return { success: true };
+
+    const session = await this.prisma.authSession.findUnique({
+      where: { tokenHash: this.tokenHash(token) },
+      select: { id: true },
+    });
+
+    if (!session) return { success: true };
+
+    await this.prisma.$transaction([
+      this.prisma.authSession.updateMany({
         where: {
-          tokenHash: this.tokenHash(token),
+          id: session.id,
           revokedAt: null,
         },
         data: {
           revokedAt: new Date(),
           revokedReason: 'LOGOUT',
         },
-      });
-    }
+      }),
+      (this.prisma as any).courierDevicePresence.updateMany({
+        where: { sessionId: session.id },
+        data: { onlineRequested: false },
+      }),
+    ]);
 
     return { success: true };
   }
 
   async logoutAll(authorization?: string) {
     const current = await this.authenticateSession(authorization);
-
-    await this.prisma.authSession.updateMany({
+    const sessions = await this.prisma.authSession.findMany({
       where: {
         userId: current.userId,
         revokedAt: null,
       },
-      data: {
-        revokedAt: new Date(),
-        revokedReason: 'LOGOUT_ALL',
-      },
+      select: { id: true },
     });
+    const ids = sessions.map((row) => row.id);
+
+    await this.prisma.$transaction([
+      this.prisma.authSession.updateMany({
+        where: {
+          id: { in: ids },
+          revokedAt: null,
+        },
+        data: {
+          revokedAt: new Date(),
+          revokedReason: 'LOGOUT_ALL',
+        },
+      }),
+      (this.prisma as any).courierDevicePresence.updateMany({
+        where: { sessionId: { in: ids } },
+        data: { onlineRequested: false },
+      }),
+    ]);
 
     return { success: true };
   }
