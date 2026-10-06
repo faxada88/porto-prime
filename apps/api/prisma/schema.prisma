@@ -253,6 +253,12 @@ model Order {
 
   stripePaymentIntentId String? @unique
 
+  // Código de 4 dígitos exibido somente ao cliente e exigido do motoboy
+  // para confirmar a entrega. Nullable para compatibilidade com pedidos
+  // criados antes desta funcionalidade.
+  deliveryPin         String?
+  deliveryPinAttempts Int     @default(0)
+
   customer User            @relation("CustomerOrders", fields: [customerId], references: [id])
   courier  CourierProfile? @relation("CourierOrders", fields: [courierId], references: [id])
   address  Address         @relation(fields: [addressId], references: [id])
