@@ -65,9 +65,24 @@ class AppState extends ChangeNotifier {
       'password': password,
       'phone': phone,
       'role': role,
-      if (businessName != null) 'businessName': businessName,
-      if (document != null) 'document': document,
-      if (profileData != null) 'profileData': profileData,
+      if (businessName != null && businessName.trim().isNotEmpty)
+        'businessName': businessName,
+      if (document != null && document.trim().isNotEmpty)
+        'document': document,
+      if (role == 'COURIER' && profileData != null) ...{
+        if ((profileData['cnh'] ?? '').toString().trim().isNotEmpty)
+          'cnh': profileData['cnh'].toString().trim(),
+        if ((profileData['cnhCategory'] ?? '').toString().trim().isNotEmpty)
+          'cnhCategory': profileData['cnhCategory'].toString().trim(),
+        if ((profileData['vehicleBrand'] ?? '').toString().trim().isNotEmpty)
+          'vehicleBrand': profileData['vehicleBrand'].toString().trim(),
+        if ((profileData['vehicleModel'] ?? '').toString().trim().isNotEmpty)
+          'vehicleModel': profileData['vehicleModel'].toString().trim(),
+        if ((profileData['vehiclePlate'] ?? '').toString().trim().isNotEmpty)
+          'vehiclePlate': profileData['vehiclePlate'].toString().trim(),
+        if (int.tryParse((profileData['vehicleYear'] ?? '').toString()) != null)
+          'vehicleYear': int.parse(profileData['vehicleYear'].toString()),
+      },
     };
     loading = true;
     error = null;
