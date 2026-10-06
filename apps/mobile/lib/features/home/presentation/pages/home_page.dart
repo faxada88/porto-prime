@@ -11,20 +11,78 @@ class HomePage extends StatelessWidget {
     ('Vinhos',Icons.wine_bar_rounded,Color(0xFFFFDFE6)),
     ('Sem álcool',Icons.local_drink_rounded,Color(0xFFDDEFFF)),
   ];
-  @override Widget build(BuildContext context)=>SafeArea(bottom:false,child:CustomScrollView(
-    physics:const BouncingScrollPhysics(),slivers:[
-      const SliverPadding(padding:EdgeInsets.fromLTRB(20,13,20,0),sliver:SliverToBoxAdapter(child:_Header())),
-      const SliverPadding(padding:EdgeInsets.fromLTRB(20,17,20,0),sliver:SliverToBoxAdapter(child:_Search())),
-      const SliverPadding(padding:EdgeInsets.fromLTRB(20,14,20,0),sliver:SliverToBoxAdapter(child:_Hero())),
-      const SliverPadding(padding:EdgeInsets.fromLTRB(20,22,20,11),sliver:SliverToBoxAdapter(child:_Title('Seu momento','Ver tudo'))),
-      SliverToBoxAdapter(child:SizedBox(height:96,child:ListView.separated(padding:const EdgeInsets.symmetric(horizontal:20),scrollDirection:Axis.horizontal,itemCount:cats.length,separatorBuilder:(_,__)=>const SizedBox(width:10),itemBuilder:(_,i)=>_Cat(cats[i])))),
-      const SliverPadding(padding:EdgeInsets.fromLTRB(20,20,20,11),sliver:SliverToBoxAdapter(child:_Title('Gelou, chegou','Ver mais'))),
-      SliverToBoxAdapter(child:AnimatedBuilder(animation:AppState.instance,builder:(_,__) { final ps=AppState.instance.products; return SizedBox(height:239,child:ps.isEmpty?const Center(child:Text('Carregando catálogo...')):ListView.separated(padding:const EdgeInsets.symmetric(horizontal:20),scrollDirection:Axis.horizontal,itemCount:ps.length>8?8:ps.length,separatorBuilder:(_,__)=>const SizedBox(width:12),itemBuilder:(_,i)=>_LiveProduct(ps[i])); })),
-      const SliverPadding(padding:EdgeInsets.fromLTRB(20,23,20,11),sliver:SliverToBoxAdapter(child:_Title('Escolha pelo rolê',''))),
-      const SliverToBoxAdapter(child:_Moments()),
-      const SliverPadding(padding:EdgeInsets.fromLTRB(20,22,20,125),sliver:SliverToBoxAdapter(child:_PrimeCard())),
-    ],
-  ));
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          const SliverPadding(
+            padding: EdgeInsets.fromLTRB(20, 13, 20, 0),
+            sliver: SliverToBoxAdapter(child: _Header()),
+          ),
+          const SliverPadding(
+            padding: EdgeInsets.fromLTRB(20, 17, 20, 0),
+            sliver: SliverToBoxAdapter(child: _Search()),
+          ),
+          const SliverPadding(
+            padding: EdgeInsets.fromLTRB(20, 14, 20, 0),
+            sliver: SliverToBoxAdapter(child: _Hero()),
+          ),
+          const SliverPadding(
+            padding: EdgeInsets.fromLTRB(20, 22, 20, 11),
+            sliver: SliverToBoxAdapter(child: _Title('Seu momento', 'Ver tudo')),
+          ),
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 96,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                scrollDirection: Axis.horizontal,
+                itemCount: cats.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (_, i) => _Cat(cats[i]),
+              ),
+            ),
+          ),
+          const SliverPadding(
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 11),
+            sliver: SliverToBoxAdapter(child: _Title('Gelou, chegou', 'Ver mais')),
+          ),
+          SliverToBoxAdapter(
+            child: AnimatedBuilder(
+              animation: AppState.instance,
+              builder: (_, __) {
+                final ps = AppState.instance.products;
+                return SizedBox(
+                  height: 239,
+                  child: ps.isEmpty
+                      ? const Center(child: Text('Carregando catálogo...'))
+                      : ListView.separated(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: ps.length > 8 ? 8 : ps.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 12),
+                          itemBuilder: (_, i) => _LiveProduct(ps[i]),
+                        ),
+                );
+              },
+            ),
+          ),
+          const SliverPadding(
+            padding: EdgeInsets.fromLTRB(20, 23, 20, 11),
+            sliver: SliverToBoxAdapter(child: _Title('Escolha pelo rolê', '')),
+          ),
+          const SliverToBoxAdapter(child: _Moments()),
+          const SliverPadding(
+            padding: EdgeInsets.fromLTRB(20, 22, 20, 125),
+            sliver: SliverToBoxAdapter(child: _PrimeCard()),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _Header extends StatelessWidget{const _Header();@override Widget build(BuildContext context)=>Row(children:[
