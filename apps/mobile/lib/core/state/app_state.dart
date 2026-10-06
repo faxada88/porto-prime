@@ -30,6 +30,8 @@ class AppState extends ChangeNotifier {
   Map<String,dynamic> walletSummary={};
   List<dynamic> walletLedger=[];
   List<dynamic> withdrawals=[];
+  List<dynamic> courierHistory=[];
+  Map<String,dynamic> courierProfile={};
   final Map<String,int> cart={};
   bool loading=false;
   String? error;
@@ -263,6 +265,8 @@ class AppState extends ChangeNotifier {
     walletSummary={};
     walletLedger=[];
     withdrawals=[];
+    courierHistory=[];
+    courierProfile={};
     cart.clear();
     error=null;
     notifyListeners();
@@ -291,6 +295,8 @@ class AppState extends ChangeNotifier {
       api.request('GET','/orders/courier/current'),
       api.request('GET','/orders/courier/available'),
       api.request('GET','/wallet/summary'),
+      api.request('GET','/orders/courier/history'),
+      api.request('GET','/couriers/application/me'),
     ]);
 
     final presence=Map<String,dynamic>.from(results[0] as Map);
@@ -305,6 +311,8 @@ class AppState extends ChangeNotifier {
         :Map<String,dynamic>.from(current as Map);
     courierOffers=List<dynamic>.from(results[2] as List);
     walletSummary=Map<String,dynamic>.from(results[3] as Map);
+    courierHistory=List<dynamic>.from(results[4] as List);
+    courierProfile=Map<String,dynamic>.from(results[5] as Map);
     notifyListeners();
   }
 
