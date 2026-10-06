@@ -156,7 +156,7 @@ export class AuthService {
     if (!valid) return { valid: false, available: false };
 
     if (field === 'cpf') {
-      const exists = await this.prisma.courierProfile.findUnique({
+      const exists = await this.prisma.courierProfile.findFirst({
         where: { document },
         select: { id: true },
       });
@@ -308,7 +308,7 @@ export class AuthService {
         throw new BadRequestException('Modelo da moto é obrigatório');
       }
 
-      const usedCpf = await this.prisma.courierProfile.findUnique({
+      const usedCpf = await this.prisma.courierProfile.findFirst({
         where: { document: courierDocument },
         select: { id: true },
       });
