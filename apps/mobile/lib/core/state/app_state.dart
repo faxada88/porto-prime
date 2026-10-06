@@ -32,6 +32,7 @@ class AppState extends ChangeNotifier {
   List<dynamic> withdrawals=[];
   List<dynamic> courierHistory=[];
   Map<String,dynamic> courierProfile={};
+  Map<String,dynamic> deliveryQuote={};
   final Map<String,int> cart={};
   bool loading=false;
   String? error;
@@ -267,6 +268,7 @@ class AppState extends ChangeNotifier {
     withdrawals=[];
     courierHistory=[];
     courierProfile={};
+    deliveryQuote={};
     cart.clear();
     error=null;
     notifyListeners();
@@ -279,7 +281,24 @@ class AppState extends ChangeNotifier {
   void selectCatalogCategory(String name){catalogCategory=name;notifyListeners();}
   dynamic product(String id){for(final p in products){if(p['id']==id)return p;}return null;}
 
-  Future<void> loadAddresses()async{if(!isCustomer)return;addresses=List<dynamic>.from(await api.request('GET','/addresses'));notifyListeners();}
+  Future<void> loadAddresses() async {
+    if(!isCustomer)return;
+    addresses=List<dynamic>.from(await api.request('GET','/addresses'));
+    if(addresses.isNotEmpty){
+      final selected=addresses.firstWhere(
+        (a)=>a['isDefault']==true,
+        orElse:()=>addresses.first,
+      );
+      try{
+        deliveryQuote=await quoteDelivery(selected['id'].toString());
+      }catch(_){
+        deliveryQuote={};
+      }
+    }else{
+      deliveryQuote={};
+    }
+    notifyListeners();
+  }
   Future<void> addAddress(Map<String,dynamic>d)async{await api.request('POST','/addresses',body:d);await loadAddresses();}
   Future<void> updateAddress(String id,Map<String,dynamic>d)async{await api.request('PATCH','/addresses/$id',body:d);await loadAddresses();}
   Future<void> removeAddress(String id)async{await api.request('DELETE','/addresses/$id');await loadAddresses();}
@@ -420,9 +439,12 @@ class AppState extends ChangeNotifier {
 
   Future<Map<String,dynamic>> quoteDelivery(String addressId) async {
     final query=Uri(queryParameters:{'addressId':addressId}).query;
-    return Map<String,dynamic>.from(
+    final quote=Map<String,dynamic>.from(
       await api.request('GET','/delivery/quote?$query'),
     );
+    deliveryQuote=quote;
+    notifyListeners();
+    return quote;
   }
 
   Future<Map<String,dynamic>> createOrder(String addressId)async{
