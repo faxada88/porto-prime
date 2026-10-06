@@ -114,20 +114,47 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
       Date.now() - Math.max(20, cfg.heartbeatTimeoutSeconds) * 1000,
     );
 
-    await (this.prisma as any).courierProfile.updateMany({
+    await (this.prisma as any).courierDevicePresence.updateMany({
+      where: {
+        lastHeartbeatAt: { lt: cutoff },
+        onlineRequested: true,
+      },
+      data: { onlineRequested: false },
+    });
+
+    const profiles = await (this.prisma as any).courierProfile.findMany({
       where: {
         presenceStatus: { in: ['AVAILABLE', 'OFFERED'] },
-        OR: [
-          { lastHeartbeatAt: null },
-          { lastHeartbeatAt: { lt: cutoff } },
-        ],
       },
-      data: {
-        presenceStatus: 'OFFLINE',
-        isOnline: false,
-        availableSince: null,
-      },
+      select: { id: true },
+      take: 500,
     });
+
+    for (const profile of profiles) {
+      const onlineDevice = await (this.prisma as any)
+        .courierDevicePresence.findFirst({
+          where: {
+            courierId: profile.id,
+            onlineRequested: true,
+            lastHeartbeatAt: { gte: cutoff },
+          },
+          select: { id: true },
+        });
+
+      if (onlineDevice) continue;
+
+      await (this.prisma as any).courierProfile.updateMany({
+        where: {
+          id: profile.id,
+          presenceStatus: { in: ['AVAILABLE', 'OFFERED'] },
+        },
+        data: {
+          presenceStatus: 'OFFLINE',
+          isOnline: false,
+          availableSince: null,
+        },
+      });
+    }
   }
 
   async startDispatch(orderId: string) {
@@ -713,6 +740,12 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async expireOffers() {
+    const cfg = await this.config();
+    const heartbeatCutoff = new Date(
+      Date.now() -
+        Math.max(20, cfg.heartbeatTimeoutSeconds) * 1000,
+    );
+
     const expired = await (this.prisma as any).deliveryOffer.findMany({
       where: {
         status: 'PENDING',
@@ -755,25 +788,23 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
             data: { activeOfferId: null },
           });
 
-          const profile = await tx.courierProfile.findUnique({
-            where: { id: offer.courierId },
-            select: { lastHeartbeatAt: true },
+          const onlineDevice = await tx.courierDevicePresence.findFirst({
+            where: {
+              courierId: offer.courierId,
+              onlineRequested: true,
+              lastHeartbeatAt: { gte: heartbeatCutoff },
+            },
+            select: { id: true },
           });
-          const cfg = await this.config();
-          const heartbeatCutoff = new Date(
-            Date.now() -
-              Math.max(20, cfg.heartbeatTimeoutSeconds) * 1000,
-          );
-          const online =
-            profile?.lastHeartbeatAt &&
-            new Date(profile.lastHeartbeatAt) >= heartbeatCutoff;
+
+          const stillOnline = !!onlineDevice;
 
           await tx.courierProfile.update({
             where: { id: offer.courierId },
             data: {
-              presenceStatus: online ? 'AVAILABLE' : 'OFFLINE',
-              isOnline: !!online,
-              availableSince: online ? now : null,
+              presenceStatus: stillOnline ? 'AVAILABLE' : 'OFFLINE',
+              isOnline: stillOnline,
+              availableSince: stillOnline ? now : null,
             },
           });
 
@@ -805,6 +836,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
         courierId: offer.courierId,
         reason: 'EXPIRED',
       });
+
       setTimeout(() => void this.dispatchOrder(offer.orderId), 0);
     }
   }
