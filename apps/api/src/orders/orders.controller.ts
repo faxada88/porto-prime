@@ -35,7 +35,18 @@ export class OrdersController {
   courierAccept(@Param('id') id: string, @Headers('authorization') authorization?: string) { return this.ordersService.courierAccept(id, authorization); }
 
   @Patch(':id/courier/status')
-  courierStatus(@Param('id') id: string, @Body() body: { status: string }, @Headers('authorization') authorization?: string) { return this.ordersService.courierStatus(id, body.status, authorization); }
+  courierStatus(
+    @Param('id') id: string,
+    @Body() body: { status: string; pin?: string },
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.ordersService.courierStatus(
+      id,
+      body.status,
+      body.pin,
+      authorization,
+    );
+  }
 
   @Patch('courier/online')
   courierOnline(@Body() body: { online: boolean }, @Headers('authorization') authorization?: string) { return this.ordersService.courierOnline(body.online, authorization); }
