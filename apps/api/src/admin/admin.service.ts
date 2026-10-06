@@ -398,34 +398,15 @@ export class AdminService {
     });
   }
 
-  async assignCourier(orderId: string, courierId: string, authorization?: string) {
+  async assignCourier(
+    _orderId: string,
+    _courierId: string,
+    authorization?: string,
+  ) {
     await this.requireAdmin(authorization);
-    const [order, courier] = await Promise.all([
-      this.prisma.order.findUnique({ where: { id: orderId } }),
-      this.prisma.courierProfile.findUnique({
-        where: { id: courierId },
-        include: { user: true },
-      }),
-    ]);
-    if (!order) throw new NotFoundException('Pedido não encontrado');
-    if (!courier) throw new NotFoundException('Motoboy não encontrado');
-    if (
-      courier.approvalStatus !== CourierStatus.APPROVED ||
-      courier.user.status !== UserStatus.ACTIVE
-    ) {
-      throw new BadRequestException('Motoboy não está aprovado e ativo');
-    }
-
-    return this.prisma.order.update({
-      where: { id: orderId },
-      data: {
-        courierId,
-        status: OrderStatus.COURIER_ASSIGNED,
-      },
-      include: {
-        courier: { include: { user: { select: { name: true, phone: true } } } },
-      },
-    });
+    throw new BadRequestException(
+      'Atribuição manual desativada. Use Liberar pedido para iniciar o despacho automático.',
+    );
   }
 
   async releaseOrder(
