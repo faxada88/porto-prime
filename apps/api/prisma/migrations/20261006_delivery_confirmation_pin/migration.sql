@@ -1,0 +1,3 @@
+ALTER TABLE "Order"
+ADD COLUMN "deliveryPin" TEXT,
+ADD COLUMN "deliveryPinAttempts" INTEGER NOT NULL DEFAULT 0;
