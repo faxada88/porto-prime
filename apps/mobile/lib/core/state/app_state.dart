@@ -159,7 +159,26 @@ class AppState extends ChangeNotifier {
   Future<void> refreshCourier()async{if(!isCourier)return;final current=await api.request('GET','/orders/courier/current');courierDelivery=current==null?null:Map<String,dynamic>.from(current);courierOffers=List<dynamic>.from(await api.request('GET','/orders/courier/available'));notifyListeners();}
   Future<void> setCourierOnline(bool online)async{await api.request('PATCH','/orders/courier/online',body:{'online':online});courierOnline=online;await refreshCourier();}
   Future<void> acceptDelivery(String id)async{courierDelivery=Map<String,dynamic>.from(await api.request('PATCH','/orders/$id/courier/accept'));courierOnline=false;await refreshCourier();}
-  Future<void> advanceDelivery(String id,String status)async{courierDelivery=Map<String,dynamic>.from(await api.request('PATCH','/orders/$id/courier/status',body:{'status':status}));if(status=='DELIVERED'){courierOnline=true;}await refreshCourier();}
+  Future<void> advanceDelivery(
+    String id,
+    String status, {
+    String? pin,
+  }) async {
+    courierDelivery = Map<String, dynamic>.from(
+      await api.request(
+        'PATCH',
+        '/orders/$id/courier/status',
+        body: {
+          'status': status,
+          if (pin != null && pin.trim().isNotEmpty) 'pin': pin.trim(),
+        },
+      ),
+    );
+    if (status == 'DELIVERED') {
+      courierOnline = true;
+    }
+    await refreshCourier();
+  }
 
   Future<Map<String,dynamic>> createOrder(String addressId)async{
     if(!isCustomer)throw Exception('Entre como cliente para finalizar');
