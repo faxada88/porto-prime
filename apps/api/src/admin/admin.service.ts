@@ -12,13 +12,17 @@ import {
   UserStatus,
 } from '../generated/prisma/client.js';
 import { AuthService } from '../auth/auth.service.js';
+import { DispatchService } from '../dispatch/dispatch.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { WalletService } from '../wallet/wallet.service.js';
 
 @Injectable()
 export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auth: AuthService,
+    private readonly dispatch: DispatchService,
+    private readonly wallet: WalletService,
   ) {}
 
   private async requireAdmin(authorization?: string) {
@@ -35,9 +39,9 @@ export class AdminService {
       this.prisma.user.count(),
       this.prisma.product.count({ where: { active: true } }),
       this.prisma.order.count(),
-      this.prisma.courierProfile.count({
+      (this.prisma as any).courierProfile.count({
         where: {
-          isOnline: true,
+          presenceStatus: { in: ['AVAILABLE', 'OFFERED', 'DELIVERING'] },
           approvalStatus: CourierStatus.APPROVED,
           user: { status: UserStatus.ACTIVE },
         },
@@ -350,28 +354,32 @@ export class AdminService {
     });
   }
 
-  async updateOrderStatus(orderId: string, status: string, authorization?: string) {
+  async updateOrderStatus(
+    orderId: string,
+    status: string,
+    authorization?: string,
+  ) {
     await this.requireAdmin(authorization);
+
     const allowed = [
       'PENDING',
       'CONFIRMED',
       'PREPARING',
       'READY_FOR_PICKUP',
-      'COURIER_ASSIGNED',
-      'PICKED_UP',
-      'OUT_FOR_DELIVERY',
-      'DELIVERED',
       'CANCELED',
     ];
     if (!allowed.includes(status)) {
-      throw new BadRequestException('Status de pedido inválido');
+      throw new BadRequestException(
+        'Etapas operacionais do motoboy são atualizadas somente pelo fluxo de entrega',
+      );
     }
 
-    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
     if (!order) throw new NotFoundException('Pedido não encontrado');
 
     const data: any = { status: status as OrderStatus };
-    if (status === 'DELIVERED') data.deliveredAt = new Date();
     if (status === 'CANCELED') data.canceledAt = new Date();
 
     return this.prisma.order.update({
@@ -379,7 +387,11 @@ export class AdminService {
       data,
       include: {
         customer: { select: { id: true, name: true, phone: true } },
-        courier: { include: { user: { select: { name: true, phone: true } } } },
+        courier: {
+          include: {
+            user: { select: { name: true, phone: true } },
+          },
+        },
         address: true,
         items: true,
       },
@@ -416,43 +428,36 @@ export class AdminService {
     });
   }
 
-  async releaseOrder(orderId: string, authorization?: string) {
+  async releaseOrder(
+    orderId: string,
+    authorization?: string,
+  ) {
     await this.requireAdmin(authorization);
-    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
-    if (!order) throw new NotFoundException('Pedido não encontrado');
-    if (order.paymentStatus !== PaymentStatus.PAID) {
-      throw new BadRequestException('O pedido precisa estar pago antes de ser liberado');
-    }
+    return this.dispatch.startDispatch(orderId);
+  }
 
-    if (order.courierId) {
-      return this.prisma.order.update({
-        where: { id: orderId },
-        data: { status: OrderStatus.COURIER_ASSIGNED },
-      });
-    }
+  async dispatchAudit(
+    orderId: string,
+    authorization?: string,
+  ) {
+    await this.requireAdmin(authorization);
+    return this.dispatch.audit(orderId);
+  }
 
-    const courier = await this.prisma.courierProfile.findFirst({
-      where: {
-        approvalStatus: CourierStatus.APPROVED,
-        isOnline: true,
-        user: { status: UserStatus.ACTIVE },
-      },
-      orderBy: { updatedAt: 'asc' },
-    });
-    if (!courier) {
-      throw new BadRequestException('Nenhum motoboy disponível no momento');
-    }
+  async withdrawals(authorization?: string) {
+    return this.wallet.adminWithdrawals(authorization);
+  }
 
-    return this.prisma.order.update({
-      where: { id: orderId },
-      data: {
-        courierId: courier.id,
-        status: OrderStatus.COURIER_ASSIGNED,
-      },
-      include: {
-        courier: { include: { user: { select: { name: true, phone: true } } } },
-      },
-    });
+  async updateWithdrawalStatus(
+    id: string,
+    status: string,
+    authorization?: string,
+  ) {
+    return this.wallet.updateWithdrawalStatus(
+      id,
+      status,
+      authorization,
+    );
   }
 
   async deleteOrder(orderId: string, authorization?: string) {
