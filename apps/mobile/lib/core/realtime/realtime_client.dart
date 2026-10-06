@@ -36,6 +36,7 @@ class RealtimeClient {
 
     const events = [
       'session.ready',
+      'session.revoked',
       'order.created',
       'order.updated',
       'delivery.offer',
