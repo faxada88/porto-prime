@@ -1091,10 +1091,20 @@ class _DeliveryDetailsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final address = Map<String, dynamic>.from(order['address'] ?? {});
-    final customer = Map<String, dynamic>.from(order['customer'] ?? {});
-    final items = (order['items'] as List?) ?? const [];
-    final status = order['status']?.toString() ?? 'READY_FOR_PICKUP';
+    final address = incoming
+        ? <String, dynamic>{}
+        : Map<String, dynamic>.from(order['address'] ?? {});
+    final customer = incoming
+        ? <String, dynamic>{}
+        : Map<String, dynamic>.from(order['customer'] ?? {});
+    final pickup =
+        Map<String, dynamic>.from(order['pickup'] ?? const {});
+    final dropoff =
+        Map<String, dynamic>.from(order['dropoff'] ?? const {});
+    final items = incoming ? const [] : ((order['items'] as List?) ?? const []);
+    final status = incoming
+        ? 'READY_FOR_PICKUP'
+        : order['status']?.toString() ?? 'COURIER_ASSIGNED';
     final next = incoming ? null : _nextStatus(status);
 
     return Container(
@@ -1162,7 +1172,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(
                               incoming
-                                  ? 'Confira antes de aceitar'
+                                  ? 'Confira a oferta antes de decidir'
                                   : 'Sua rota atual',
                               style: const TextStyle(
                                 fontSize: 20,
@@ -1173,10 +1183,11 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                           ],
                         ),
                       ),
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close_rounded),
-                      ),
+                      if (!incoming)
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
                     ],
                   ),
                 ],
@@ -1187,58 +1198,25 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(18, 4, 18, 18),
                 children: [
-                  _SheetHero(
-                    order: order,
-                    incoming: incoming,
-                  ),
+                  _SheetHero(order: order, incoming: incoming),
                   const SizedBox(height: 12),
-                  _DetailSection(
-                    icon: Icons.person_rounded,
-                    title: 'Cliente',
-                    child: Column(
-                      children: [
-                        _DetailRow(
-                          label: 'Nome',
-                          value: customer['name']?.toString() ?? '—',
-                        ),
-                        _DetailRow(
-                          label: 'Telefone',
-                          value: customer['phone']?.toString() ?? '—',
-                          last: true,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  _DetailSection(
-                    icon: Icons.location_on_rounded,
-                    title: 'Destino',
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${address['street'] ?? ''}, ${address['number'] ?? ''}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
+                  if (incoming) ...[
+                    _DetailSection(
+                      icon: Icons.storefront_rounded,
+                      title: 'Retirada',
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            (pickup['name'] ?? 'Porto Prime').toString(),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${address['neighborhood'] ?? ''} • ${address['city'] ?? ''} - ${address['state'] ?? ''}',
-                          style: const TextStyle(
-                            color: AppColors.muted,
-                            fontSize: 9.5,
-                            height: 1.4,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if ((address['complement'] ?? '')
-                            .toString()
-                            .isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text(
-                            address['complement'].toString(),
+                            (pickup['region'] ?? 'Base Porto Prime').toString(),
                             style: const TextStyle(
                               color: AppColors.muted,
                               fontSize: 9.5,
@@ -1246,74 +1224,204 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  _DetailSection(
-                    icon: Icons.shopping_bag_rounded,
-                    title: 'Itens do pedido',
-                    child: Column(
-                      children: [
-                        ...items.map(
-                          (item) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  constraints: const BoxConstraints(minWidth: 34),
-                                  height: 34,
-                                  alignment: Alignment.center,
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 6),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.mint,
-                                    borderRadius: BorderRadius.circular(11),
-                                  ),
-                                  child: Text(
-                                    '${item['quantity'] ?? 0}x',
-                                    style: const TextStyle(
-                                      color: AppColors.oceanDeep,
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    item['productName']?.toString() ??
-                                        'Produto',
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      height: 1.35,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  _money(item['total']),
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                              ],
+                    const SizedBox(height: 10),
+                    _DetailSection(
+                      icon: Icons.location_on_rounded,
+                      title: 'Região de entrega',
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            (dropoff['neighborhood'] ?? 'Região informada')
+                                .toString(),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
                             ),
                           ),
+                          const SizedBox(height: 4),
+                          Text(
+                            (dropoff['city'] ?? 'Porto Seguro').toString(),
+                            style: const TextStyle(
+                              color: AppColors.muted,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _CompactMetric(
+                            icon: Icons.route_rounded,
+                            text: order['routeDistanceKm'] == null
+                                ? 'Distância —'
+                                : double.tryParse(
+                                          order['routeDistanceKm'].toString(),
+                                        )?.toStringAsFixed(1) ==
+                                        null
+                                    ? 'Distância —'
+                                    : double.parse(
+                                              order['routeDistanceKm']
+                                                  .toString(),
+                                            ).toStringAsFixed(1) +
+                                        ' km',
+                          ),
                         ),
-                        const Divider(color: AppColors.stroke),
-                        _DetailRow(
-                          label: 'Valor do pedido',
-                          value: _money(order['total']),
-                          last: true,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _CompactMetric(
+                            icon: Icons.schedule_rounded,
+                            text: order['routeDurationMinutes'] == null
+                                ? 'Percurso —'
+                                : order['routeDurationMinutes'].toString() +
+                                    ' min',
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  if (!incoming) ...[
+                    const SizedBox(height: 10),
+                    _CompactMetric(
+                      icon: Icons.shopping_bag_rounded,
+                      text: (order['itemCount'] ?? 0).toString() +
+                          ' item(ns) no pedido',
+                    ),
+                    const SizedBox(height: 12),
+                    const _PrivacyOfferNotice(),
+                  ] else ...[
+                    _DetailSection(
+                      icon: Icons.person_rounded,
+                      title: 'Cliente',
+                      child: Column(
+                        children: [
+                          _DetailRow(
+                            label: 'Nome',
+                            value: customer['name']?.toString() ?? '—',
+                          ),
+                          _DetailRow(
+                            label: 'Telefone',
+                            value: customer['phone']?.toString() ?? '—',
+                            last: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _DetailSection(
+                      icon: Icons.location_on_rounded,
+                      title: 'Destino',
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            (address['street'] ?? '').toString() +
+                                ', ' +
+                                (address['number'] ?? '').toString(),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            (address['neighborhood'] ?? '').toString() +
+                                ' • ' +
+                                (address['city'] ?? '').toString() +
+                                ' - ' +
+                                (address['state'] ?? '').toString(),
+                            style: const TextStyle(
+                              color: AppColors.muted,
+                              fontSize: 9.5,
+                              height: 1.4,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if ((address['complement'] ?? '')
+                              .toString()
+                              .isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              address['complement'].toString(),
+                              style: const TextStyle(
+                                color: AppColors.muted,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _DetailSection(
+                      icon: Icons.shopping_bag_rounded,
+                      title: 'Itens do pedido',
+                      child: Column(
+                        children: [
+                          ...items.map(
+                            (raw) {
+                              final item =
+                                  Map<String, dynamic>.from(raw as Map);
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      constraints:
+                                          const BoxConstraints(minWidth: 34),
+                                      height: 34,
+                                      alignment: Alignment.center,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.mint,
+                                        borderRadius:
+                                            BorderRadius.circular(11),
+                                      ),
+                                      child: Text(
+                                        (item['quantity'] ?? 0).toString() +
+                                            'x',
+                                        style: const TextStyle(
+                                          color: AppColors.oceanDeep,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        item['productName']?.toString() ??
+                                            'Produto',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          height: 1.35,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      _money(item['total']),
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 10),
                     _DetailSection(
                       icon: Icons.timeline_rounded,
@@ -1322,50 +1430,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                     ),
                     if (next == 'DELIVERED') ...[
                       const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.all(15),
-                        decoration: BoxDecoration(
-                          color: AppColors.sand,
-                          borderRadius: BorderRadius.circular(20),
-                          border:
-                              Border.all(color: const Color(0xFFEFDCAF)),
-                        ),
-                        child: const Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(
-                              Icons.pin_rounded,
-                              color: Color(0xFF9A6818),
-                              size: 21,
-                            ),
-                            SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Entrega protegida por PIN',
-                                    style: TextStyle(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                  SizedBox(height: 3),
-                                  Text(
-                                    'Na porta, peça ao cliente o código de 4 dígitos. Sem o PIN correto o pedido não pode ser finalizado.',
-                                    style: TextStyle(
-                                      color: Color(0xFF846A3C),
-                                      fontSize: 9.5,
-                                      height: 1.4,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      const _PinNotice(),
                     ],
                   ],
                 ],
@@ -1382,17 +1447,32 @@ class _DeliveryDetailsSheet extends StatelessWidget {
               child: SafeArea(
                 top: false,
                 child: incoming
-                    ? SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: FilledButton.icon(
-                          onPressed: () async {
-                            await onAccept?.call();
-                          },
-                          icon:
-                              const Icon(Icons.check_circle_rounded, size: 19),
-                          label: const Text('Aceitar esta entrega'),
-                        ),
+                    ? Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                await onReject?.call();
+                              },
+                              icon: const Icon(Icons.close_rounded, size: 18),
+                              label: const Text('RECUSAR'),
+                            ),
+                          ),
+                          const SizedBox(width: 9),
+                          Expanded(
+                            flex: 2,
+                            child: FilledButton.icon(
+                              onPressed: () async {
+                                await onAccept?.call();
+                              },
+                              icon: const Icon(
+                                Icons.check_circle_rounded,
+                                size: 19,
+                              ),
+                              label: const Text('ACEITAR ENTREGA'),
+                            ),
+                          ),
+                        ],
                       )
                     : Row(
                         children: [
@@ -1426,6 +1506,77 @@ class _DeliveryDetailsSheet extends StatelessWidget {
   }
 }
 
+class _PrivacyOfferNotice extends StatelessWidget {
+  const _PrivacyOfferNotice();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+          color: AppColors.mint,
+          borderRadius: BorderRadius.circular(17),
+        ),
+        child: const Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.privacy_tip_rounded,
+              color: AppColors.oceanDeep,
+              size: 18,
+            ),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Nome, telefone, rua, número e itens detalhados são liberados somente depois que você aceitar a entrega.',
+                style: TextStyle(
+                  color: AppColors.oceanDeep,
+                  fontSize: 9.3,
+                  height: 1.4,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+class _PinNotice extends StatelessWidget {
+  const _PinNotice();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: AppColors.sand,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFEFDCAF)),
+        ),
+        child: const Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.pin_rounded,
+              color: Color(0xFF9A6818),
+              size: 21,
+            ),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Na porta, peça ao cliente o PIN de 4 dígitos. Sem o código correto o pedido não pode ser finalizado.',
+                style: TextStyle(
+                  color: Color(0xFF846A3C),
+                  fontSize: 9.5,
+                  height: 1.4,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
 class _SheetHero extends StatelessWidget {
   const _SheetHero({
     required this.order,
@@ -1436,30 +1587,41 @@ class _SheetHero extends StatelessWidget {
   final bool incoming;
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF112C27), Color(0xFF08675C)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(25),
+  Widget build(BuildContext context) {
+    final id = incoming ? order['orderId'] : order['id'];
+    final customerName = incoming
+        ? 'Oferta protegida'
+        : order['customer']?['name']?.toString() ?? 'Cliente Porto Prime';
+    final amount =
+        incoming ? order['deliveryFee'] : order['total'];
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF112C27), Color(0xFF08675C)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                _StatusMark(
-                  status: incoming
-                      ? 'READY_FOR_PICKUP'
-                      : order['status']?.toString() ?? '',
-                  dark: true,
-                ),
-                const Spacer(),
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _StatusMark(
+                status: incoming
+                    ? 'READY_FOR_PICKUP'
+                    : order['status']?.toString() ?? '',
+                dark: true,
+              ),
+              const Spacer(),
+              if (incoming)
+                _OfferCountdown(expiresAt: order['expiresAt'])
+              else
                 Text(
-                  '#${_shortId(order['id'])}',
+                  '#' + _shortId(id),
                   style: const TextStyle(
                     color: Colors.white60,
                     fontSize: 8.5,
@@ -1467,58 +1629,61 @@ class _SheetHero extends StatelessWidget {
                     letterSpacing: .7,
                   ),
                 ),
-              ],
+            ],
+          ),
+          const SizedBox(height: 17),
+          Text(
+            customerName,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 21,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -.5,
             ),
-            const SizedBox(height: 17),
-            Text(
-              order['customer']?['name']?.toString() ?? 'Cliente Porto Prime',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 21,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -.5,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            incoming
+                ? 'Veja somente os dados necessários para decidir.'
+                : 'Pedido aceito e vinculado ao seu perfil.',
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 9.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Icon(
+                Icons.payments_rounded,
+                color: Color(0xFF93F2D9),
+                size: 18,
               ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Pedido pago e liberado pela operação.',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 9.5,
-                fontWeight: FontWeight.w600,
+              const SizedBox(width: 7),
+              Text(
+                incoming ? 'Taxa da entrega' : 'Valor do pedido',
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Icon(
-                  Icons.payments_rounded,
-                  color: Color(0xFF93F2D9),
-                  size: 18,
+              const Spacer(),
+              Text(
+                _money(amount),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
                 ),
-                const SizedBox(width: 7),
-                const Text(
-                  'Valor do pedido',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  _money(order['total']),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _DetailSection extends StatelessWidget {
