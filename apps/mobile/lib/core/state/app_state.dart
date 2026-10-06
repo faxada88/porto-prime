@@ -48,6 +48,33 @@ class AppState extends ChangeNotifier {
     final q=Uri(queryParameters:{'field':field,'value':value}).query;
     return Map<String,dynamic>.from(await api.request('GET','/auth/availability?$q'));
   }
+  Future<Map<String,dynamic>> courierApplicationStatus(String document) async {
+    return Map<String,dynamic>.from(
+      await api.request(
+        'POST',
+        '/couriers/application/status',
+        body: {'document': document},
+      ),
+    );
+  }
+
+  Future<Map<String,dynamic>> respondCourierApplicationRequirement(
+    String requirementId,
+    String document,
+    String response,
+  ) async {
+    return Map<String,dynamic>.from(
+      await api.request(
+        'POST',
+        '/couriers/application/requirements/' + requirementId + '/respond',
+        body: {
+          'document': document,
+          'response': response,
+        },
+      ),
+    );
+  }
+
 
   Future<Map<String,dynamic>> register({
     required String name,
