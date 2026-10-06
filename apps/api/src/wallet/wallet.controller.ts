@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Headers,
-  Patch,
   Post,
   Query,
 } from '@nestjs/common';
@@ -49,10 +48,4 @@ export class WalletController {
     return this.wallet.adminWithdrawals(authorization);
   }
 
-  @Patch('admin/withdrawals/:id')
-  updateWithdrawal() {
-    // Mantido fora deste controller para evitar duplicar rota dinâmica.
-    // A atualização administrativa é exposta pelo AdminController.
-    return { unsupported: true };
-  }
 }
