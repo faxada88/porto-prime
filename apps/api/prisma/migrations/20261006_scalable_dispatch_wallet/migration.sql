@@ -138,3 +138,24 @@ ALTER TABLE "Order"
   ADD COLUMN IF NOT EXISTS "activeOfferId" TEXT;
 
 CREATE INDEX IF NOT EXISTS "Order_activeOfferId_idx" ON "Order"("activeOfferId");
+
+CREATE TABLE IF NOT EXISTS "CourierDevicePresence" (
+  "id" TEXT NOT NULL,
+  "courierId" TEXT NOT NULL,
+  "sessionId" TEXT NOT NULL,
+  "onlineRequested" BOOLEAN NOT NULL DEFAULT false,
+  "lastHeartbeatAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "latitude" DECIMAL(10,7),
+  "longitude" DECIMAL(10,7),
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "CourierDevicePresence_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "CourierDevicePresence_courierId_fkey" FOREIGN KEY ("courierId") REFERENCES "CourierProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT "CourierDevicePresence_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "AuthSession"("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "CourierDevicePresence_sessionId_key"
+ON "CourierDevicePresence"("sessionId");
+
+CREATE INDEX IF NOT EXISTS "CourierDevicePresence_courierId_lastHeartbeatAt_idx"
+ON "CourierDevicePresence"("courierId","lastHeartbeatAt");
