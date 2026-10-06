@@ -15,7 +15,9 @@ class CartPage extends StatelessWidget {
     builder: (_, __) {
       final s = AppState.instance;
       final entries = s.cart.entries.toList();
-      final delivery = entries.isEmpty ? 0.0 : 5.90;
+      final quotedFee =
+          double.tryParse(s.deliveryQuote['deliveryFee']?.toString() ?? '');
+      final delivery = entries.isEmpty ? 0.0 : (quotedFee ?? 0.0);
       final total = s.cartSubtotal + delivery;
 
       return SafeArea(
@@ -62,7 +64,7 @@ class CartPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 22),
-            const _Delivery(),
+            _Delivery(quote: s.deliveryQuote),
             const SizedBox(height: 14),
 
             if (entries.isEmpty)
@@ -87,7 +89,12 @@ class CartPage extends StatelessWidget {
                       _brl(s.cartSubtotal),
                     ),
                     const SizedBox(height: 10),
-                    _Price('Entrega', _brl(delivery)),
+                    _Price(
+                      'Entrega',
+                      entries.isNotEmpty && quotedFee == null
+                          ? 'Calculada no endereço'
+                          : _brl(delivery),
+                    ),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 14),
                       child: Divider(height: 1),
@@ -157,53 +164,66 @@ String _brl(double value) =>
     'R\$ ' + value.toStringAsFixed(2).replaceAll('.', ',');
 
 class _Delivery extends StatelessWidget {
-  const _Delivery();
+  const _Delivery({required this.quote});
+  final Map<String,dynamic> quote;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: AppColors.sand,
-      borderRadius: BorderRadius.circular(22),
-    ),
-    child: const Row(
-      children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
+  Widget build(BuildContext context) {
+    final fee=double.tryParse(quote['deliveryFee']?.toString()??'');
+    final distance=double.tryParse(quote['distanceKm']?.toString()??'');
+    final duration=quote['durationMinutes'];
+    final detail=fee==null
+        ?'O valor é calculado pelo endereço e pela rota viária.'
+        :distance==null
+            ?_brl(fee)+' • taxa configurada'
+            :_brl(fee)+' • '+distance.toStringAsFixed(1)+' km • ~'+duration.toString()+' min';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.sand,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Row(
+        children: [
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Icon(Icons.route_rounded, color: AppColors.coral),
+            ),
           ),
-          child: SizedBox(
-            width: 44,
-            height: 44,
-            child: Icon(Icons.bolt_rounded, color: AppColors.coral),
-          ),
-        ),
-        SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Entrega Prime',
-                style: TextStyle(fontWeight: FontWeight.w900),
-              ),
-              SizedBox(height: 2),
-              Text(
-                'Estimativa visual • 25–40 min',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: AppColors.muted,
-                  fontWeight: FontWeight.w600,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Entrega Prime',
+                  style: TextStyle(fontWeight: FontWeight.w900),
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  detail,
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                    color: AppColors.muted,
+                    height: 1.35,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        Icon(Icons.chevron_right_rounded),
-      ],
-    ),
-  );
+          const Icon(Icons.chevron_right_rounded),
+        ],
+      ),
+    );
+  }
 }
 
 class _LiveItem extends StatelessWidget {
@@ -426,6 +446,17 @@ Future<void> _checkout(BuildContext context) async {
       )['id']
       .toString();
 
+  Map<String,dynamic> quote={};
+  String? quoteError;
+  bool quoteLoading=true;
+  try{
+    quote=await s.quoteDelivery(selected);
+    quoteLoading=false;
+  }catch(e){
+    quoteLoading=false;
+    quoteError=e.toString().replaceFirst('Exception: ','');
+  }
+
   final ok = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
@@ -468,8 +499,30 @@ Future<void> _checkout(BuildContext context) async {
                   (a) => RadioListTile<String>(
                     value: a['id'].toString(),
                     groupValue: selected,
-                    onChanged: (v) =>
-                        setSheetState(() => selected = v ?? selected),
+                    onChanged: (v) async {
+                      if(v==null)return;
+                      setSheetState((){
+                        selected=v;
+                        quoteLoading=true;
+                        quoteError=null;
+                      });
+                      try{
+                        final next=await s.quoteDelivery(v);
+                        if(sheetContext.mounted){
+                          setSheetState((){
+                            quote=next;
+                            quoteLoading=false;
+                          });
+                        }
+                      }catch(e){
+                        if(sheetContext.mounted){
+                          setSheetState((){
+                            quoteLoading=false;
+                            quoteError=e.toString().replaceFirst('Exception: ','');
+                          });
+                        }
+                      }
+                    },
                     contentPadding: EdgeInsets.zero,
                     activeColor: AppColors.oceanDeep,
                     title: Text(
@@ -487,6 +540,41 @@ Future<void> _checkout(BuildContext context) async {
                       style: const TextStyle(fontSize: 10),
                     ),
                   ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width:double.infinity,
+                  padding:const EdgeInsets.all(14),
+                  decoration:BoxDecoration(
+                    color:quoteError!=null?AppColors.peach:AppColors.sand,
+                    borderRadius:BorderRadius.circular(17),
+                  ),
+                  child:quoteLoading
+                      ?const Row(children:[
+                          SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)),
+                          SizedBox(width:10),
+                          Text('Calculando rota e taxa de entrega...',style:TextStyle(fontSize:9.5,fontWeight:FontWeight.w700)),
+                        ])
+                      :quoteError!=null
+                          ?Row(children:[
+                              const Icon(Icons.error_outline_rounded,color:AppColors.coralStrong,size:19),
+                              const SizedBox(width:9),
+                              Expanded(child:Text(quoteError!,style:const TextStyle(color:AppColors.coralStrong,fontSize:9.5,height:1.35,fontWeight:FontWeight.w700))),
+                            ])
+                          :Row(children:[
+                              const Icon(Icons.route_rounded,color:Color(0xFF986414),size:20),
+                              const SizedBox(width:9),
+                              Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                                Text('Entrega '+_brl(double.tryParse(quote['deliveryFee']?.toString()??'')??0),style:const TextStyle(fontSize:11.5,fontWeight:FontWeight.w900)),
+                                const SizedBox(height:2),
+                                Text(
+                                  quote['distanceKm']==null
+                                      ?'Taxa base configurada pela operação.'
+                                      :(double.tryParse(quote['distanceKm'].toString())??0).toStringAsFixed(1)+' km por rota • ~'+(quote['durationMinutes']??'—').toString()+' min',
+                                  style:const TextStyle(fontSize:9,color:AppColors.muted,fontWeight:FontWeight.w600),
+                                ),
+                              ])),
+                            ]),
                 ),
                 const SizedBox(height: 8),
                 Container(
@@ -522,7 +610,9 @@ Future<void> _checkout(BuildContext context) async {
                   width: double.infinity,
                   height: 54,
                   child: FilledButton(
-                    onPressed: () => Navigator.pop(sheetContext, true),
+                    onPressed: quoteLoading || quoteError!=null
+                        ? null
+                        : () => Navigator.pop(sheetContext, true),
                     child: const Text(
                       'Continuar para pagamento',
                       style: TextStyle(fontWeight: FontWeight.w900),
@@ -540,6 +630,7 @@ Future<void> _checkout(BuildContext context) async {
   if (ok != true) return;
 
   try {
+    await s.quoteDelivery(selected);
     final order = await s.createOrder(selected);
     if (!context.mounted) return;
 
