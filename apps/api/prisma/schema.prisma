@@ -305,6 +305,7 @@ model Order {
 
   routeDistanceKm      Decimal? @db.Decimal(10, 3)
   routeDurationMinutes Int?
+  activeOfferId        String?
 
   // Código de 4 dígitos exibido somente ao cliente e exigido do motoboy
   // para confirmar a entrega. Nullable para compatibilidade com pedidos
@@ -329,6 +330,7 @@ model Order {
   @@index([customerId])
   @@index([courierId])
   @@index([status])
+  @@index([activeOfferId])
   @@index([createdAt])
 }
 
