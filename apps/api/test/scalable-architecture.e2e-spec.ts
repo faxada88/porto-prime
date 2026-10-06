@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
+import { DispatchService } from '../src/dispatch/dispatch.service.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
 
 const unique = () =>
@@ -23,6 +24,7 @@ function cpfFromSeed(seed: number) {
 describe('Arquitetura escalável Porto Prime (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let dispatch: DispatchService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -32,6 +34,7 @@ describe('Arquitetura escalável Porto Prime (e2e)', () => {
     app = moduleFixture.createNestApplication();
     await app.init();
     prisma = moduleFixture.get(PrismaService);
+    dispatch = moduleFixture.get(DispatchService);
   });
 
   afterAll(async () => {
@@ -493,4 +496,171 @@ describe('Arquitetura escalável Porto Prime (e2e)', () => {
       await cleanupUsers(userIds);
     }
   });
+
+  it('despacha vários pedidos entre 10 motoboys e reencaminha recusa/expiração', async () => {
+    const customer = await registerCustomer(5000);
+    const couriers = await Promise.all(
+      Array.from({ length: 10 }, (_, i) => registerCourier(5100 + i)),
+    );
+    const userIds = [customer.id, ...couriers.map((x) => x.id)];
+
+    try {
+      const sessions = await Promise.all(
+        couriers.map((courier, i) =>
+          login(
+            courier.email,
+            courier.password,
+            'dispatch-device-' + i + '-' + courier.tag,
+          ),
+        ),
+      );
+
+      await Promise.all(
+        sessions.map((session, i) =>
+          request(app.getHttpServer())
+            .patch('/orders/courier/heartbeat')
+            .set(
+              'Authorization',
+              `Bearer ${session.accessToken}`,
+            )
+            .send({
+              online: true,
+              latitude: -16.449 + i * 0.0002,
+              longitude: -39.064 + i * 0.0002,
+            })
+            .expect(200),
+        ),
+      );
+
+      const available = await prisma.courierProfile.count({
+        where: {
+          id: { in: couriers.map((x) => x.courierId) },
+          presenceStatus: 'AVAILABLE',
+        },
+      });
+      expect(available).toBe(10);
+
+      const address = await prisma.address.create({
+        data: {
+          userId: customer.id,
+          label: 'Carga',
+          street: 'Avenida Operacional',
+          number: '200',
+          neighborhood: 'Centro',
+          city: 'Porto Seguro',
+          state: 'BA',
+          postalCode: '45810000',
+          latitude: -16.444,
+          longitude: -39.065,
+          isDefault: true,
+        },
+      });
+
+      const orders = await Promise.all(
+        Array.from({ length: 5 }, (_, i) =>
+          prisma.order.create({
+            data: {
+              customerId: customer.id,
+              addressId: address.id,
+              status: 'READY_FOR_PICKUP',
+              paymentStatus: 'PAID',
+              paymentMethod: 'CARD',
+              subtotal: 80 + i,
+              deliveryFee: 18.5 + i,
+              total: 98.5 + i * 2,
+              deliveryPin: String(6000 + i),
+            },
+          }),
+        ),
+      );
+
+      await Promise.all(
+        orders.map((order) => dispatch.startDispatch(order.id)),
+      );
+
+      const initialOffers = await (prisma as any).deliveryOffer.findMany({
+        where: {
+          orderId: { in: orders.map((x) => x.id) },
+          status: 'PENDING',
+        },
+      });
+
+      expect(initialOffers).toHaveLength(5);
+      expect(
+        new Set(initialOffers.map((x: any) => x.courierId)).size,
+      ).toBe(5);
+
+      const sessionByCourier = new Map(
+        couriers.map((courier, i) => [
+          courier.courierId,
+          sessions[i],
+        ]),
+      );
+
+      const declined = initialOffers[0];
+      const declineSession = sessionByCourier.get(declined.courierId)!;
+
+      await request(app.getHttpServer())
+        .patch(
+          `/orders/${declined.orderId}/courier/reject`,
+        )
+        .set(
+          'Authorization',
+          `Bearer ${declineSession.accessToken}`,
+        )
+        .expect(200);
+
+      await dispatch.dispatchOrder(declined.orderId);
+
+      const replacementAfterDecline =
+        await (prisma as any).deliveryOffer.findFirst({
+          where: {
+            orderId: declined.orderId,
+            status: 'PENDING',
+          },
+          orderBy: { offeredAt: 'desc' },
+        });
+
+      expect(replacementAfterDecline).toBeTruthy();
+      expect(replacementAfterDecline.courierId).not.toBe(
+        declined.courierId,
+      );
+
+      const expiring = initialOffers[1];
+      await (prisma as any).deliveryOffer.update({
+        where: { id: expiring.id },
+        data: { expiresAt: new Date(Date.now() - 1000) },
+      });
+
+      await (dispatch as any).expireOffers();
+      await dispatch.dispatchOrder(expiring.orderId);
+
+      const replacementAfterExpiry =
+        await (prisma as any).deliveryOffer.findFirst({
+          where: {
+            orderId: expiring.orderId,
+            status: 'PENDING',
+          },
+          orderBy: { offeredAt: 'desc' },
+        });
+
+      expect(replacementAfterExpiry).toBeTruthy();
+      expect(replacementAfterExpiry.courierId).not.toBe(
+        expiring.courierId,
+      );
+
+      const expiredRow = await (prisma as any).deliveryOffer.findUnique({
+        where: { id: expiring.id },
+      });
+      expect(expiredRow.status).toBe('EXPIRED');
+
+      const declinedRow = await (prisma as any).deliveryOffer.findUnique({
+        where: { id: declined.id },
+      });
+      expect(declinedRow.status).toBe('DECLINED');
+    } finally {
+      await cleanupUsers(userIds);
+    }
+  });
+
 });
