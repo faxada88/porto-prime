@@ -516,11 +516,67 @@ export class AuthService {
     return { success: true };
   }
 
-  async login(data: LoginDto) {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        email: data.email.trim().toLowerCase(),
+  private async issueSession(
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      phone: string | null;
+      role: UserRole;
+      status: UserStatus;
+    },
+    meta?: {
+      deviceId?: string;
+      deviceName?: string;
+      userAgent?: string;
+      ipAddress?: string;
+    },
+  ) {
+    const accessToken = randomBytes(48).toString('base64url');
+    const refreshToken = randomBytes(64).toString('base64url');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    const refreshExpiresAt = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000,
+    );
+
+    const session = await this.prisma.authSession.create({
+      data: {
+        userId: user.id,
+        tokenHash: this.tokenHash(accessToken),
+        refreshTokenHash: this.tokenHash(refreshToken),
+        deviceId: meta?.deviceId?.trim() || null,
+        deviceName: meta?.deviceName?.trim() || null,
+        userAgent: meta?.userAgent?.slice(0, 500) || null,
+        ipAddress: meta?.ipAddress?.slice(0, 120) || null,
+        expiresAt,
+        refreshExpiresAt,
+        lastSeenAt: new Date(),
       },
+      select: { id: true },
+    });
+
+    return {
+      token: accessToken,
+      accessToken,
+      refreshToken,
+      sessionId: session.id,
+      expiresAt,
+      refreshExpiresAt,
+      user: this.publicUser(user),
+    };
+  }
+
+  async login(
+    data: LoginDto,
+    meta?: {
+      deviceId?: string;
+      deviceName?: string;
+      userAgent?: string;
+      ipAddress?: string;
+    },
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: data.email.trim().toLowerCase() },
       select: {
         id: true,
         name: true,
@@ -532,16 +588,8 @@ export class AuthService {
       },
     });
 
-    if (
-      !user ||
-      !this.verifyPassword(
-        data.password,
-        user.passwordHash,
-      )
-    ) {
-      throw new UnauthorizedException(
-        'E-mail ou senha inválidos',
-      );
+    if (!user || !this.verifyPassword(data.password, user.passwordHash)) {
+      throw new UnauthorizedException('E-mail ou senha inválidos');
     }
 
     if (user.status === UserStatus.PENDING) {
@@ -554,88 +602,58 @@ export class AuthService {
       user.status === UserStatus.BLOCKED ||
       user.status === UserStatus.SUSPENDED
     ) {
-      throw new UnauthorizedException(
-        'Conta indisponível',
-      );
+      throw new UnauthorizedException('Conta indisponível');
     }
 
-    const token = randomBytes(48).toString('base64url');
-    const expiresAt = new Date(
-      Date.now() + 30 * 24 * 60 * 60 * 1000,
-    );
+    await this.prisma.authSession.deleteMany({
+      where: {
+        OR: [
+          { refreshExpiresAt: { lte: new Date() } },
+          {
+            refreshExpiresAt: null,
+            expiresAt: { lte: new Date() },
+          },
+        ],
+      },
+    });
 
-    try {
-      await this.prisma.authSession.create({
-        data: {
-          userId: user.id,
-          tokenHash: this.tokenHash(token),
-          expiresAt,
-        },
-      });
-    } catch {
-      await this.prisma.authSession.deleteMany({
-        where: {
-          OR: [
-            { expiresAt: { lte: new Date() } },
-            { userId: user.id },
-          ],
-        },
-      });
-
-      await this.prisma.authSession.create({
-        data: {
-          userId: user.id,
-          tokenHash: this.tokenHash(token),
-          expiresAt,
-        },
-      });
-    }
-
-    return {
-      token,
-      expiresAt,
-      user: this.publicUser(user),
-    };
+    return this.issueSession(user, meta);
   }
 
-  async authenticate(authorization?: string) {
-    const token =
-      authorization?.startsWith('Bearer ')
-        ? authorization.slice(7).trim()
-        : '';
+  private bearer(authorization?: string) {
+    return authorization?.startsWith('Bearer ')
+      ? authorization.slice(7).trim()
+      : '';
+  }
 
+  async authenticateSession(authorization?: string) {
+    const token = this.bearer(authorization);
     if (!token) {
-      throw new UnauthorizedException(
-        'Autenticação obrigatória',
-      );
+      throw new UnauthorizedException('Autenticação obrigatória');
     }
 
-    const session =
-      await this.prisma.authSession.findUnique({
-        where: {
-          tokenHash: this.tokenHash(token),
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              phone: true,
-              role: true,
-              status: true,
-            },
+    const session = await this.prisma.authSession.findUnique({
+      where: { tokenHash: this.tokenHash(token) },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            role: true,
+            status: true,
           },
         },
-      });
+      },
+    });
 
     if (
       !session ||
+      session.revokedAt ||
       session.expiresAt <= new Date()
     ) {
-      throw new UnauthorizedException(
-        'Sessão inválida ou expirada',
-      );
+      throw new UnauthorizedException('Sessão inválida ou expirada');
     }
 
     if (session.user.status === UserStatus.PENDING) {
@@ -648,34 +666,194 @@ export class AuthService {
       session.user.status === UserStatus.BLOCKED ||
       session.user.status === UserStatus.SUSPENDED
     ) {
-      throw new UnauthorizedException(
-        'Conta indisponível',
-      );
+      throw new UnauthorizedException('Conta indisponível');
     }
 
-    return session.user;
+    const now = new Date();
+    if (now.getTime() - session.lastSeenAt.getTime() > 60_000) {
+      await this.prisma.authSession.update({
+        where: { id: session.id },
+        data: { lastSeenAt: now },
+      });
+    }
+
+    return session;
+  }
+
+  async authenticate(authorization?: string) {
+    return (await this.authenticateSession(authorization)).user;
+  }
+
+  async refresh(
+    refreshToken: string,
+    meta?: {
+      deviceId?: string;
+      deviceName?: string;
+      userAgent?: string;
+      ipAddress?: string;
+    },
+  ) {
+    const raw = refreshToken?.trim();
+    if (!raw) throw new UnauthorizedException('Refresh token obrigatório');
+
+    const session = await this.prisma.authSession.findUnique({
+      where: { refreshTokenHash: this.tokenHash(raw) },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            role: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    if (
+      !session ||
+      session.revokedAt ||
+      !session.refreshExpiresAt ||
+      session.refreshExpiresAt <= new Date()
+    ) {
+      throw new UnauthorizedException('Refresh token inválido ou expirado');
+    }
+
+    if (session.user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('Conta indisponível');
+    }
+
+    if (
+      meta?.deviceId &&
+      session.deviceId &&
+      meta.deviceId !== session.deviceId
+    ) {
+      throw new UnauthorizedException('Sessão pertence a outro dispositivo');
+    }
+
+    const accessToken = randomBytes(48).toString('base64url');
+    const nextRefreshToken = randomBytes(64).toString('base64url');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    const refreshExpiresAt = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000,
+    );
+
+    await this.prisma.authSession.update({
+      where: { id: session.id },
+      data: {
+        tokenHash: this.tokenHash(accessToken),
+        refreshTokenHash: this.tokenHash(nextRefreshToken),
+        expiresAt,
+        refreshExpiresAt,
+        lastSeenAt: new Date(),
+        userAgent: meta?.userAgent?.slice(0, 500) ?? session.userAgent,
+        ipAddress: meta?.ipAddress?.slice(0, 120) ?? session.ipAddress,
+      },
+    });
+
+    return {
+      token: accessToken,
+      accessToken,
+      refreshToken: nextRefreshToken,
+      sessionId: session.id,
+      expiresAt,
+      refreshExpiresAt,
+      user: this.publicUser(session.user),
+    };
   }
 
   async me(authorization?: string) {
-    return this.publicUser(
-      await this.authenticate(authorization),
-    );
+    return this.publicUser(await this.authenticate(authorization));
+  }
+
+  async sessions(authorization?: string) {
+    const current = await this.authenticateSession(authorization);
+    const rows = await this.prisma.authSession.findMany({
+      where: {
+        userId: current.userId,
+        revokedAt: null,
+        refreshExpiresAt: { gt: new Date() },
+      },
+      select: {
+        id: true,
+        deviceId: true,
+        deviceName: true,
+        userAgent: true,
+        ipAddress: true,
+        createdAt: true,
+        lastSeenAt: true,
+        expiresAt: true,
+        refreshExpiresAt: true,
+      },
+      orderBy: { lastSeenAt: 'desc' },
+    });
+
+    return rows.map((row) => ({
+      ...row,
+      current: row.id === current.id,
+    }));
+  }
+
+  async revokeSession(
+    sessionId: string,
+    authorization?: string,
+  ) {
+    const current = await this.authenticateSession(authorization);
+    const target = await this.prisma.authSession.findFirst({
+      where: { id: sessionId, userId: current.userId },
+      select: { id: true },
+    });
+
+    if (!target) {
+      throw new UnauthorizedException('Sessão não encontrada');
+    }
+
+    await this.prisma.authSession.update({
+      where: { id: target.id },
+      data: {
+        revokedAt: new Date(),
+        revokedReason: 'USER_REVOKED',
+      },
+    });
+
+    return { success: true };
   }
 
   async logout(authorization?: string) {
-    const token =
-      authorization?.startsWith('Bearer ')
-        ? authorization.slice(7).trim()
-        : '';
-
+    const token = this.bearer(authorization);
     if (token) {
-      await this.prisma.authSession.deleteMany({
+      await this.prisma.authSession.updateMany({
         where: {
           tokenHash: this.tokenHash(token),
+          revokedAt: null,
+        },
+        data: {
+          revokedAt: new Date(),
+          revokedReason: 'LOGOUT',
         },
       });
     }
 
     return { success: true };
   }
+
+  async logoutAll(authorization?: string) {
+    const current = await this.authenticateSession(authorization);
+
+    await this.prisma.authSession.updateMany({
+      where: {
+        userId: current.userId,
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
+        revokedReason: 'LOGOUT_ALL',
+      },
+    });
+
+    return { success: true };
+  }
+
 }
