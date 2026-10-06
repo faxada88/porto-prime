@@ -11,3 +11,111 @@ select{font:inherit;border:1px solid var(--line);border-radius:11px;padding:10px
 .headActions .live{border:1px solid #dce9e4;background:#f5fbf8;color:#238a79;border-radius:14px;padding:10px 13px;font-weight:800;cursor:pointer}
 .headActions .live small{font-weight:650;color:#78827f}
 @keyframes adminNotice{from{opacity:0;transform:translateY(-10px) scale(.98)}to{opacity:1;transform:none}}
+
+
+/* Porto Prime · Central de Aprovações */
+.approvalHero{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:28px;margin-bottom:20px;padding:34px 36px;border:1px solid #dcebe5;border-radius:28px;background:linear-gradient(125deg,#163c34 0%,#1f6f61 58%,#28927e 100%);color:#fff;box-shadow:0 22px 60px rgba(23,51,46,.14)}
+.approvalHero:after{content:"";position:absolute;width:320px;height:320px;border-radius:50%;right:-80px;top:-180px;background:rgba(255,255,255,.07);box-shadow:-130px 210px 0 35px rgba(255,184,77,.08)}
+.approvalHero>div:first-child{position:relative;z-index:1;max-width:660px}
+.approvalHero small{color:#9fe2cf;font-size:9px;letter-spacing:1.8px;font-weight:900}
+.approvalHero h2{margin:10px 0 12px;font-size:36px;line-height:1.04;letter-spacing:-1.5px}
+.approvalHero p{margin:0;max-width:590px;color:#d6eee8;font-size:13px;line-height:1.65}
+.approvalCount{position:relative;z-index:1;min-width:170px;height:150px;border:1px solid rgba(255,255,255,.15);border-radius:26px;background:rgba(255,255,255,.1);backdrop-filter:blur(14px);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.approvalCount b{font-size:48px;line-height:1}
+.approvalCount span{margin-top:9px;font-size:10px;color:#daf2eb;text-align:center;max-width:120px}
+.approvalGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(410px,1fr));gap:18px}
+.approvalCard{position:relative;background:#fff;border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:0 14px 40px rgba(23,51,46,.06);transition:.22s ease}
+.approvalCard:hover{transform:translateY(-2px);box-shadow:0 22px 55px rgba(23,51,46,.09);border-color:#dbe7e2}
+.approvalCardTop{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;padding-bottom:18px;border-bottom:1px solid #edf0ed}
+.approvalIdentity{display:flex;gap:13px;align-items:center}
+.approvalAvatar{width:52px;height:52px;border-radius:17px;background:linear-gradient(145deg,#dff5ec,#fff3dc);display:grid;place-items:center;color:#197561;font-size:21px;font-weight:900;box-shadow:inset 0 0 0 1px rgba(35,138,121,.09)}
+.approvalIdentity h3{margin:3px 0 3px;font-size:17px;letter-spacing:-.4px}
+.approvalIdentity span{font-size:9px;color:var(--muted)}
+.approvalRole{font-size:8px;letter-spacing:1.5px;color:var(--green);font-weight:900}
+.approvalFacts{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin:17px 0}
+.approvalFacts>div{min-height:84px;padding:13px 14px;border:1px solid #edf0ed;border-radius:16px;background:#fafbf9;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.approvalFacts span,.profileDataGrid span,.profileSummary span{font-size:8px;letter-spacing:.8px;text-transform:uppercase;color:#87938f;font-weight:900}
+.approvalFacts b{font-size:11px;line-height:1.35;word-break:break-word}
+.approvalFacts small{font-size:9px;color:var(--muted);word-break:break-word}
+.approvalRequirements{margin:4px 0 17px;border:1px solid #dcece6;border-radius:18px;background:#f7fcfa;overflow:hidden}
+.approvalRequirements.hasPending{background:#fffaf1;border-color:#f1dfbd}
+.approvalRequirementsHead{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:14px}
+.approvalRequirementsHead>div{display:flex;align-items:center;gap:9px}
+.approvalRequirementsHead>div>div{display:flex;flex-direction:column;gap:3px}
+.approvalRequirementsHead b{font-size:10px}
+.approvalRequirementsHead small{font-size:9px;color:var(--muted)}
+.approvalDot{width:10px;height:10px;border-radius:50%;background:#35a27e;box-shadow:0 0 0 5px #e2f5ed}
+.hasPending .approvalDot{background:#e5a13c;box-shadow:0 0 0 5px #fff0cf}
+.requirementTrigger{white-space:nowrap;background:#fff!important;border:1px solid #dfe9e5!important;color:var(--green)!important;font-size:9px!important;padding:9px 11px!important}
+.approvalRequirementList{border-top:1px solid #eceee9}
+.approvalRequirement{padding:12px 14px;border-top:1px solid #eff1ee}
+.approvalRequirement:first-child{border-top:0}
+.approvalRequirement>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.approvalRequirement b{font-size:10px}
+.approvalRequirement p{margin:6px 0;font-size:10px;line-height:1.5;color:#65716e}
+.approvalRequirement button{margin-top:7px;padding:8px 10px;font-size:9px}
+.approvalResponse{padding:9px 10px;border-radius:11px;background:#fff;display:flex;flex-direction:column;gap:3px}
+.approvalResponse small{font-size:8px;color:var(--green);font-weight:900}
+.approvalResponse span{font-size:10px;font-weight:700;color:#42534f}
+.approvalFooter{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:16px;border-top:1px solid #edf0ed}
+.approvalActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.approvalFooter button{font-size:10px}
+.profileButton{background:#f0f5f2!important;color:#36544c!important}
+.approvalFooter button:disabled{cursor:not-allowed;opacity:.55;background:#ecefec!important;color:#87918e!important}
+.approvalEmpty{display:flex;align-items:center;gap:18px;padding:30px;border:1px solid #dceae5;border-radius:24px;background:linear-gradient(120deg,#f6fcf9,#fffaf0)}
+.approvalEmptyIcon{width:60px;height:60px;border-radius:20px;background:#e2f5ed;color:#248469;display:grid;place-items:center;font-size:26px;font-weight:900}
+.approvalEmpty small{font-size:8px;letter-spacing:1.5px;color:var(--green);font-weight:900}.approvalEmpty h2{margin:5px 0;font-size:22px}.approvalEmpty p{margin:0;color:var(--muted);font-size:12px}
+
+/* Modal de pendência */
+.requirementModal{width:min(610px,100%);max-height:92vh;overflow:auto;background:#fff;border:1px solid #dfebe6;border-radius:30px;padding:28px;box-shadow:0 35px 110px rgba(17,47,40,.3);animation:modalRise .24s cubic-bezier(.2,.8,.2,1);display:grid;gap:17px;margin:0}
+.requirementModalHead{display:flex;gap:15px;align-items:flex-start}
+.requirementModalIcon{flex:0 0 auto;width:54px;height:54px;border-radius:18px;background:linear-gradient(145deg,#fff4da,#ffe4b1);color:#a46a12;display:grid;place-items:center;font-size:24px;font-weight:900}
+.requirementModalHead>div:last-child{flex:1}
+.requirementModalHead small{font-size:8px;letter-spacing:1.5px;color:#9c731d;font-weight:900}
+.requirementModal h2{margin:5px 0 7px;font-size:25px;letter-spacing:-.7px}
+.requirementModal p{margin:0;color:#697772;font-size:12px;line-height:1.55}
+.requirementGuide{display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:15px;background:#f5faf7;border:1px solid #e4ece8}
+.requirementGuide>span{width:28px;height:28px;border-radius:10px;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:900;font-size:11px}
+.requirementGuide>div{display:flex;flex-direction:column;gap:2px}.requirementGuide b{font-size:10px}.requirementGuide small{font-size:9px;color:var(--muted)}
+.requirementModal label{font-size:10px;letter-spacing:.2px}
+.requirementModal input,.requirementModal textarea{display:block;width:100%;margin-top:7px;border:1px solid #dfe7e3;border-radius:14px;background:#fbfcfb;color:var(--ink);padding:13px 14px;outline:none;font:inherit;font-size:12px}
+.requirementModal textarea{min-height:130px;resize:vertical;line-height:1.55}
+.requirementModal input:focus,.requirementModal textarea:focus{border-color:#45a28f;box-shadow:0 0 0 3px rgba(69,162,143,.09);background:#fff}
+.requirementError{padding:11px 13px;border-radius:13px;background:#fff0ed;border:1px solid #f3d8d2;color:#9d493b;font-size:10px;font-weight:700}
+
+/* Modal de dados completos */
+.profileBackdrop{align-items:start;overflow:auto;padding:28px}
+.profileModal{width:min(900px,100%);margin:auto;background:#fff;border:1px solid #dfe8e4;border-radius:30px;box-shadow:0 35px 120px rgba(15,43,36,.32);overflow:hidden;animation:modalRise .24s cubic-bezier(.2,.8,.2,1)}
+.profileModalHero{position:relative;padding:28px 30px;background:linear-gradient(125deg,#163c34,#238a79);color:#fff;display:flex;align-items:center;gap:16px}
+.profileModalHero>div:nth-child(3){flex:1;min-width:0}
+.profileModalAvatar{width:68px;height:68px;border-radius:22px;background:#fff4db;color:#185f51;display:grid;place-items:center;font-size:28px;font-weight:900;box-shadow:0 12px 35px rgba(0,0,0,.12)}
+.profileModalHero small{font-size:8px;letter-spacing:1.7px;color:#9edfcf;font-weight:900}
+.profileModalHero h2{font-size:27px;letter-spacing:-.8px;margin:5px 0 3px}
+.profileModalHero p{margin:0;color:#d5ece6;font-size:10px}
+.profileClose{position:absolute;right:15px;top:13px;width:34px;height:34px;border-radius:50%;padding:0;background:rgba(255,255,255,.1);color:#fff;font-size:23px;line-height:1}
+.profileSummary{display:grid;grid-template-columns:1fr 1fr 2fr;gap:10px;padding:18px 26px;background:#f7f9f7;border-bottom:1px solid #e8ece9}
+.profileSummary>div{padding:11px 13px;background:#fff;border:1px solid #e8ece9;border-radius:14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.profileSummary b{font-size:10px;word-break:break-all}
+.profileSection{padding:23px 28px;border-bottom:1px solid #edf0ed}
+.profileSectionTitle{display:flex;align-items:center;gap:11px;margin-bottom:15px}
+.profileSectionTitle>span{width:34px;height:34px;border-radius:11px;background:#e5f5ef;color:#247b68;display:grid;place-items:center;font-size:9px;font-weight:900}
+.profileSectionTitle>div{display:flex;flex-direction:column;gap:2px}.profileSectionTitle b{font-size:12px}.profileSectionTitle small{font-size:9px;color:var(--muted)}
+.profileDataGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.profileDataGrid.full{grid-template-columns:repeat(2,1fr)}
+.profileDataGrid>div{min-width:0;padding:12px 13px;border-radius:14px;background:#fafbf9;border:1px solid #e9ece9;display:flex;flex-direction:column;gap:5px}
+.profileDataGrid b{font-size:10px;line-height:1.45;word-break:break-word}
+.profileNoData{grid-column:1/-1!important;padding:20px!important;text-align:center}.profileNoData span{font-size:9px;color:var(--muted);text-transform:none;letter-spacing:0}
+.profileHistory{display:grid;gap:8px}
+.profileHistory>div{padding:13px 14px;border:1px solid #e8ece9;border-radius:14px;background:#fafbf9}
+.profileHistory>div>div{display:flex;align-items:center;justify-content:space-between;gap:10px}.profileHistory p{font-size:10px;color:#64716d;line-height:1.5}.profileHistory strong{display:block;font-size:9px;color:#2e6f60;background:#eef8f4;padding:9px;border-radius:10px}
+.profileModalFooter{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:18px 28px;background:#f7f9f7}.profileModalFooter span{font-size:8px;letter-spacing:1.2px;color:#8b9692;font-weight:900}.profileModalFooter button{min-width:170px}
+
+@media(max-width:800px){
+ .approvalHero{padding:25px;align-items:flex-start}.approvalCount{min-width:120px;height:120px}.approvalCount b{font-size:38px}.approvalHero h2{font-size:29px}
+ .approvalGrid{grid-template-columns:1fr}.approvalFacts{grid-template-columns:1fr 1fr}.approvalFooter{align-items:flex-start;flex-direction:column}.approvalActions{width:100%;justify-content:flex-start}
+ .profileSummary{grid-template-columns:1fr}.profileDataGrid,.profileDataGrid.full{grid-template-columns:1fr 1fr}.profileModalHero{padding:24px 20px}.profileModalHero>.badge{display:none}
+}
+@media(max-width:540px){
+ .approvalHero{flex-direction:column}.approvalCount{width:100%;height:auto;min-height:95px}.approvalFacts{grid-template-columns:1fr}.approvalRequirementsHead{align-items:flex-start;flex-direction:column}.requirementTrigger{width:100%}
+ .profileBackdrop{padding:8px}.profileModal{border-radius:22px}.profileModalHero{align-items:flex-start;flex-wrap:wrap}.profileModalAvatar{width:54px;height:54px;border-radius:17px}.profileDataGrid,.profileDataGrid.full{grid-template-columns:1fr}.profileSection{padding:20px 17px}.profileSummary{padding:14px 17px}.profileModalFooter{align-items:stretch;flex-direction:column;padding:15px 17px}.profileModalFooter button{width:100%}
+}
