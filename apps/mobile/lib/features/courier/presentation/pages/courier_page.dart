@@ -274,20 +274,22 @@ class _CourierPageState extends State<CourierPage> {
                     Expanded(
                       flex: 2,
                       child: FilledButton.icon(
-                        onPressed: loading || pin.text.length != 4
-                            ? () {
+                        onPressed: loading
+                            ? null
+                            : () async {
                                 if (pin.text.length != 4) {
                                   setDialogState(
                                     () => error =
                                         'Digite os 4 dígitos informados pelo cliente.',
                                   );
+                                  return;
                                 }
-                              }
-                            : () async {
+
                                 setDialogState(() {
                                   loading = true;
                                   error = null;
                                 });
+
                                 try {
                                   await AppState.instance.advanceDelivery(
                                     orderId,
