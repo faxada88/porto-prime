@@ -41,6 +41,11 @@ export class OrdersController {
   @Get('courier/available')
   courierAvailable(@Headers('authorization') authorization?: string) { return this.ordersService.courierAvailable(authorization); }
 
+  @Get('courier/history')
+  courierHistory(@Headers('authorization') authorization?: string) {
+    return this.ordersService.courierHistory(authorization);
+  }
+
   @Get('courier/current')
   courierCurrent(@Headers('authorization') authorization?: string) { return this.ordersService.courierCurrent(authorization); }
 
