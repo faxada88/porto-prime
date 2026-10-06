@@ -14,6 +14,7 @@ class ApiClient {
   String? sessionId;
   String? deviceId;
   Future<bool>? _refreshing;
+  void Function(String? token)? onAccessTokenChanged;
 
   String get baseUrl {
     const configured = String.fromEnvironment('API_URL');
@@ -82,6 +83,7 @@ class ApiClient {
     if (sessionId != null) {
       await prefs.setString('pp_session_id', sessionId!);
     }
+    onAccessTokenChanged?.call(token);
   }
 
   Future<void> clearSession() async {
@@ -93,6 +95,7 @@ class ApiClient {
     await prefs.remove('pp_access_token');
     await prefs.remove('pp_refresh_token');
     await prefs.remove('pp_session_id');
+    onAccessTokenChanged?.call(null);
   }
 
   Future<http.Response> _send(
