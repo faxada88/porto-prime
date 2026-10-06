@@ -36,141 +36,408 @@ class _RegistrationPageState extends State<RegistrationPage> {
   @override
   Widget build(BuildContext context) {
     final total = groups.length;
+    final accent = customer
+        ? AppColors.ocean
+        : courier
+            ? const Color(0xFFB77818)
+            : const Color(0xFF6D5AA8);
+    final soft = customer
+        ? AppColors.mint
+        : courier
+            ? AppColors.sand
+            : AppColors.lavender;
+    final roleIcon = customer
+        ? Icons.shopping_bag_rounded
+        : courier
+            ? Icons.two_wheeler_rounded
+            : Icons.storefront_rounded;
+    final stepIcons = courier
+        ? const [
+            Icons.person_rounded,
+            Icons.location_on_rounded,
+            Icons.badge_rounded,
+            Icons.two_wheeler_rounded,
+            Icons.shield_rounded,
+            Icons.fact_check_rounded,
+          ]
+        : [
+            Icons.person_rounded,
+            customer ? Icons.location_on_rounded : Icons.storefront_rounded,
+            Icons.shield_rounded,
+          ];
+
     return Scaffold(
       backgroundColor: AppColors.canvas,
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 20, 8),
-              child: Row(
+            Container(
+              margin: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+              padding: const EdgeInsets.fromLTRB(8, 8, 16, 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: AppColors.stroke),
+                boxShadow: AppShadows.soft,
+              ),
+              child: Column(
                 children: [
-                  IconButton(
-                    onPressed: () => step == 0 ? Navigator.pop(context) : setState(() => step--),
-                    icon: const Icon(Icons.arrow_back_rounded),
+                  Row(
+                    children: [
+                      IconButton(
+                        tooltip: step == 0 ? 'Fechar' : 'Voltar',
+                        onPressed: () => step == 0
+                            ? Navigator.pop(context)
+                            : setState(() => step--),
+                        icon: Icon(
+                          step == 0
+                              ? Icons.close_rounded
+                              : Icons.arrow_back_rounded,
+                        ),
+                      ),
+                      Container(
+                        width: 43,
+                        height: 43,
+                        decoration: BoxDecoration(
+                          color: soft,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(roleIcon, color: accent, size: 21),
+                      ),
+                      const SizedBox(width: 11),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Conta de $title',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -.25,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              'Etapa ${step + 1} de $total',
+                              style: const TextStyle(
+                                fontSize: 9,
+                                color: AppColors.muted,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: soft,
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Text(
+                          customer
+                              ? 'CLIENTE'
+                              : courier
+                                  ? 'MOTOBOY'
+                                  : 'PARCEIRO',
+                          style: TextStyle(
+                            color: accent,
+                            fontSize: 7.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: .8,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Conta de $title', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-                        Text('Etapa ${step + 1} de $total', style: const TextStyle(fontSize: 9.5, color: AppColors.muted, fontWeight: FontWeight.w600)),
-                      ],
+                  const SizedBox(height: 13),
+                  Row(
+                    children: List.generate(
+                      total,
+                      (index) => Expanded(
+                        child: Container(
+                          margin: EdgeInsets.only(
+                            left: index == 0 ? 5 : 3,
+                            right: index == total - 1 ? 5 : 3,
+                          ),
+                          child: Column(
+                            children: [
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 220),
+                                height: 5,
+                                decoration: BoxDecoration(
+                                  color: index <= step ? accent : AppColors.stroke,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                              const SizedBox(height: 7),
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 220),
+                                width: 29,
+                                height: 29,
+                                decoration: BoxDecoration(
+                                  color: index == step
+                                      ? soft
+                                      : index < step
+                                          ? AppColors.mint
+                                          : AppColors.canvas,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  index < step
+                                      ? Icons.check_rounded
+                                      : stepIcons[index],
+                                  size: 15,
+                                  color: index <= step
+                                      ? (index < step
+                                          ? AppColors.oceanDeep
+                                          : accent)
+                                      : AppColors.muted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: customer ? AppColors.mint : courier ? AppColors.sand : AppColors.lavender,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(customer ? 'CLIENTE' : courier ? 'MOTOBOY' : 'PARCEIRO', style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w800, letterSpacing: .7)),
                   ),
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: LinearProgressIndicator(value: (step + 1) / total, minHeight: 5, backgroundColor: AppColors.stroke, color: AppColors.primary),
-              ),
-            ),
             Expanded(
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 280),
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(begin: const Offset(.04, 0), end: Offset.zero).animate(animation),
-                    child: child,
-                  ),
-                ),
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, animation) {
+                  final curved = CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  );
+                  return FadeTransition(
+                    opacity: curved,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(.035, 0),
+                        end: Offset.zero,
+                      ).animate(curved),
+                      child: child,
+                    ),
+                  );
+                },
                 child: SingleChildScrollView(
                   key: ValueKey(step),
-                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
-                  child: Container(
-                    padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(color: AppColors.stroke),
-                      boxShadow: AppShadows.soft,
-                    ),
-                    child: Form(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
+                  child: Form(
                     key: form,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          width: 52,
-                          height: 52,
+                          width: 58,
+                          height: 58,
                           decoration: BoxDecoration(
-                            color: step == 0 ? AppColors.mint : step == 1 ? AppColors.sand : AppColors.lavender,
-                            borderRadius: BorderRadius.circular(18),
+                            gradient: LinearGradient(
+                              colors: [soft, Colors.white],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: accent.withValues(alpha: .12),
+                            ),
                           ),
-                          child: Icon(step == 0 ? Icons.person_rounded : step == 1 ? (customer ? Icons.location_on_rounded : courier ? Icons.two_wheeler_rounded : Icons.store_rounded) : Icons.shield_outlined, color: AppColors.primary),
+                          child: Icon(
+                            stepIcons[step],
+                            color: accent,
+                            size: 27,
+                          ),
                         ),
-                        const SizedBox(height: 18),
-                        Text(heading(), style: const TextStyle(fontSize: 27, height: 1.05, fontWeight: FontWeight.w800, letterSpacing: -.8)),
-                        const SizedBox(height: 8),
-                        Text(sub(), style: const TextStyle(fontSize: 11.5, height: 1.5, color: AppColors.muted, fontWeight: FontWeight.w500)),
-                        const SizedBox(height: 24),
-                        ...groups[step].map(field),
-                        if(courier && step==3 && ctl('vehicleBrand').text=='Outra marca') field(const _F('customVehicleBrand','Informe a marca',Icons.edit_rounded)),
-                        if(courier && step==3 && ctl('vehicleModel').text=='Outro modelo') field(const _F('customVehicleModel','Informe o modelo',Icons.edit_rounded)),
-                        if(courier && step==groups.length-1) reviewCard(),
-                        if (step == total - 1) ...[
-                          const SizedBox(height: 2),
-                          GestureDetector(
-                            onTap: () => setState(() => accepted = !accepted),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 180),
-                                  width: 22,
-                                  height: 22,
-                                  decoration: BoxDecoration(
-                                    color: accepted ? AppColors.primary : Colors.white,
-                                    borderRadius: BorderRadius.circular(7),
-                                    border: Border.all(color: accepted ? AppColors.primary : AppColors.stroke),
+                        const SizedBox(height: 17),
+                        Text(
+                          heading(),
+                          style: const TextStyle(
+                            fontSize: 29,
+                            height: 1.02,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                        const SizedBox(height: 9),
+                        Text(
+                          sub(),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            height: 1.5,
+                            color: AppColors.muted,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(16, 17, 16, 5),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(26),
+                            border: Border.all(color: AppColors.stroke),
+                            boxShadow: AppShadows.soft,
+                          ),
+                          child: Column(
+                            children: [
+                              ...groups[step].map(field),
+                              if (courier &&
+                                  step == 3 &&
+                                  ctl('vehicleBrand').text == 'Outra marca')
+                                field(
+                                  const _F(
+                                    'customVehicleBrand',
+                                    'Informe a marca',
+                                    Icons.edit_rounded,
                                   ),
-                                  child: accepted ? const Icon(Icons.check_rounded, color: Colors.white, size: 15) : null,
                                 ),
-                                const SizedBox(width: 10),
-                                const Expanded(
-                                  child: Text('Confirmo que os dados informados são verdadeiros e aceito os termos e a política de privacidade.', style: TextStyle(fontSize: 10, height: 1.45, color: AppColors.muted, fontWeight: FontWeight.w600)),
+                              if (courier &&
+                                  step == 3 &&
+                                  ctl('vehicleModel').text == 'Outro modelo')
+                                field(
+                                  const _F(
+                                    'customVehicleModel',
+                                    'Informe o modelo',
+                                    Icons.edit_rounded,
+                                  ),
                                 ),
-                              ],
+                              if (courier &&
+                                  step == groups.length - 1)
+                                reviewCard(),
+                            ],
+                          ),
+                        ),
+                        if (step == total - 1) ...[
+                          const SizedBox(height: 14),
+                          Material(
+                            color: accepted
+                                ? AppColors.mint
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            child: InkWell(
+                              onTap: () =>
+                                  setState(() => accepted = !accepted),
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: accepted
+                                        ? AppColors.mintStrong
+                                        : AppColors.stroke,
+                                  ),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    AnimatedContainer(
+                                      duration:
+                                          const Duration(milliseconds: 180),
+                                      width: 25,
+                                      height: 25,
+                                      decoration: BoxDecoration(
+                                        color: accepted
+                                            ? AppColors.oceanDeep
+                                            : AppColors.canvas,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: accepted
+                                              ? AppColors.oceanDeep
+                                              : AppColors.stroke,
+                                        ),
+                                      ),
+                                      child: accepted
+                                          ? const Icon(
+                                              Icons.check_rounded,
+                                              color: Colors.white,
+                                              size: 17,
+                                            )
+                                          : null,
+                                    ),
+                                    const SizedBox(width: 11),
+                                    const Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Confirmação dos dados',
+                                            style: TextStyle(
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.w900,
+                                            ),
+                                          ),
+                                          SizedBox(height: 3),
+                                          Text(
+                                            'Confirmo que as informações são verdadeiras e aceito os termos e a política de privacidade.',
+                                            style: TextStyle(
+                                              fontSize: 9.5,
+                                              height: 1.45,
+                                              color: AppColors.muted,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ],
                     ),
                   ),
-                  ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+              decoration: const BoxDecoration(
+                color: AppColors.canvas,
+              ),
               child: SafeArea(
                 top: false,
                 child: SizedBox(
                   width: double.infinity,
-                  height: 56,
-                  child: FilledButton(
+                  height: 58,
+                  child: FilledButton.icon(
                     onPressed: AppState.instance.loading ? null : next,
-                    child: AppState.instance.loading
-                        ? const SizedBox(width: 21, height: 21, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(step == total - 1 ? (courier ? 'Enviar cadastro para análise' : 'Criar minha conta') : 'Continuar'),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.arrow_forward_rounded, size: 19),
-                            ],
+                    icon: AppState.instance.loading
+                        ? const SizedBox.shrink()
+                        : Icon(
+                            step == total - 1
+                                ? Icons.verified_user_rounded
+                                : Icons.arrow_forward_rounded,
+                            size: 20,
+                          ),
+                    label: AppState.instance.loading
+                        ? const SizedBox(
+                            width: 21,
+                            height: 21,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            step == total - 1
+                                ? (courier
+                                    ? 'Enviar cadastro para análise'
+                                    : 'Criar minha conta')
+                                : 'Continuar',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                   ),
                 ),
@@ -181,6 +448,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       ),
     );
   }
+
   String heading() {
     if(!courier) return step==0?'Conte um pouco\nsobre você':step==1?(customer?'Onde vamos\nentregar?':'Sobre o seu\nnegócio'):'Seu acesso\nPorto Prime';
     return const ['Dados pessoais','Contato e endereço','Sua CNH','Seu veículo','Segurança','Revise seu cadastro'][step];
