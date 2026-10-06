@@ -27,118 +27,181 @@ class _Guest extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 126),
           children: [
             const _ProfileHeader(),
-            const SizedBox(height: 22),
-            _GuestHero(onTap: () => _accountMenu(context)),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _QuickAction(
-                    icon: Icons.receipt_long_rounded,
-                    label: 'Pedidos',
-                    subtitle: 'Acompanhar',
-                    onTap: () => _accountMenu(context),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _QuickAction(
-                    icon: Icons.location_on_rounded,
-                    label: 'Endereços',
-                    subtitle: 'Gerenciar',
-                    onTap: () => _accountMenu(context),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _QuickAction(
-                    icon: Icons.support_agent_rounded,
-                    label: 'Suporte',
-                    subtitle: 'Falar conosco',
-                    onTap: () => _support(context),
-                  ),
-                ),
-              ],
+            const SizedBox(height: 24),
+            _GuestAccessHero(
+              onLogin: () => _auth(context),
+              onCreate: () => _accountMenu(context),
             ),
-            const SizedBox(height: 28),
-            const _SectionLabel(
-              eyebrow: 'ACESSO PORTO PRIME',
-              title: 'Escolha como você faz parte',
-              subtitle:
-                  'Cliente, motoboy ou parceiro: cada perfil tem uma experiência própria.',
-            ),
-            const SizedBox(height: 13),
-            _AccessCard(
-              icon: Icons.shopping_bag_rounded,
-              iconBackground: AppColors.sand,
-              title: 'Quero comprar',
-              subtitle: 'Crie sua conta de cliente e peça em poucos passos.',
-              badge: 'CLIENTE',
-              onTap: () => _register(context, 'CUSTOMER'),
-            ),
-            const SizedBox(height: 10),
-            _AccessCard(
-              icon: Icons.two_wheeler_rounded,
-              iconBackground: AppColors.mint,
-              title: 'Quero entregar',
-              subtitle:
-                  'Candidate-se como motoboy e acompanhe toda a análise do cadastro.',
-              badge: 'MOTOBOY',
-              onTap: () => _register(context, 'COURIER'),
-            ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
             _ApplicationShortcut(
               onTap: () => _courierStatus(context),
             ),
-            const SizedBox(height: 10),
-            _AccessCard(
-              icon: Icons.storefront_rounded,
-              iconBackground: AppColors.lavender,
-              title: 'Quero ser parceiro',
-              subtitle:
-                  'Cadastre seu negócio para participar do ecossistema Porto Prime.',
-              badge: 'PARCEIRO',
-              onTap: () => _register(context, 'PARTNER'),
-            ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 24),
             const _SectionLabel(
-              eyebrow: 'CONTA & SEGURANÇA',
-              title: 'Tudo organizado em um só lugar',
+              eyebrow: 'PORTO PRIME',
+              title: 'Simples por design',
+              subtitle:
+                  'Sua conta concentra pedidos, endereços e acompanhamento. Você só vê o que realmente precisa.',
             ),
             const SizedBox(height: 12),
             _MenuSurface(
               children: [
                 _MenuLine(
-                  icon: Icons.credit_card_rounded,
-                  title: 'Pagamentos',
-                  subtitle: 'Métodos, cobranças e segurança',
-                  onTap: () => _accountMenu(context),
-                ),
-                _MenuLine(
-                  icon: Icons.notifications_active_rounded,
-                  title: 'Notificações',
-                  subtitle: 'Acompanhe cada etapa do seu pedido',
-                  onTap: () => _simpleMessage(
-                    context,
-                    'Notificações',
-                    'Entre na sua conta para configurar alertas, pedidos e atualizações.',
-                  ),
+                  icon: Icons.support_agent_rounded,
+                  title: 'Ajuda e suporte',
+                  subtitle: 'Fale com a equipe Porto Prime',
+                  onTap: () => _support(context),
                 ),
                 _MenuLine(
                   icon: Icons.shield_rounded,
-                  title: 'Privacidade',
-                  subtitle: 'Proteção e uso dos seus dados',
+                  title: 'Privacidade e segurança',
+                  subtitle: 'Como protegemos sua conta e seus dados',
                   onTap: () => _simpleMessage(
                     context,
-                    'Privacidade',
-                    'Seus dados são usados somente nos fluxos necessários para conta, pedidos, pagamentos e entregas.',
+                    'Privacidade e segurança',
+                    'Seus dados são usados somente nos fluxos necessários para sua conta, pedidos, pagamentos e entregas.',
                   ),
                   last: true,
                 ),
               ],
             ),
-            const SizedBox(height: 18),
-            const _BahiaSignature(),
+          ],
+        ),
+      );
+}
+
+class _GuestAccessHero extends StatelessWidget {
+  const _GuestAccessHero({
+    required this.onLogin,
+    required this.onCreate,
+  });
+
+  final VoidCallback onLogin;
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.fromLTRB(21, 22, 21, 20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF102B27),
+              Color(0xFF075E54),
+              Color(0xFF0B8172),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(31),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.oceanDeep.withValues(alpha: .22),
+              blurRadius: 34,
+              offset: const Offset(0, 17),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: .11),
+                    borderRadius: BorderRadius.circular(17),
+                  ),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: Colors.white,
+                    size: 26,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: .10),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.shield_rounded,
+                        size: 12,
+                        color: Color(0xFFFFD889),
+                      ),
+                      SizedBox(width: 5),
+                      Text(
+                        'CONTA SEGURA',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 7.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: .8,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Sua experiência,\ndo seu jeito.',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                height: 1.02,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -.9,
+              ),
+            ),
+            const SizedBox(height: 9),
+            const Text(
+              'Entre para continuar ou crie uma conta em poucos passos.',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 10.5,
+                height: 1.45,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 21),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: FilledButton.icon(
+                onPressed: onLogin,
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppColors.oceanDeep,
+                ),
+                icon: const Icon(Icons.login_rounded, size: 19),
+                label: const Text('Entrar na minha conta'),
+              ),
+            ),
+            const SizedBox(height: 9),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton.icon(
+                onPressed: onCreate,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: BorderSide(
+                    color: Colors.white.withValues(alpha: .24),
+                  ),
+                  backgroundColor: Colors.white.withValues(alpha: .06),
+                ),
+                icon: const Icon(Icons.person_add_alt_1_rounded, size: 19),
+                label: const Text('Criar uma conta'),
+              ),
+            ),
           ],
         ),
       );
