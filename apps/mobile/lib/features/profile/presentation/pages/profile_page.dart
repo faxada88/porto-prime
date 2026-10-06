@@ -1622,7 +1622,7 @@ class _SmallCounter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        minWidth: 34,
+        constraints: const BoxConstraints(minWidth: 34),
         height: 34,
         padding: const EdgeInsets.symmetric(horizontal: 9),
         alignment: Alignment.center,
