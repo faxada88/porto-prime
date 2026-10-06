@@ -1,10 +1,22 @@
 import 'package:flutter/foundation.dart';
 import '../network/api_client.dart';
+import '../realtime/realtime_client.dart';
 
 class AppState extends ChangeNotifier {
-  AppState._();
+  AppState._() {
+    realtime.onEvent = _handleRealtimeEvent;
+    api.onAccessTokenChanged = (freshToken) {
+      if (freshToken == null) {
+        realtime.disconnect();
+      } else if (user != null) {
+        realtime.reconnect(freshToken);
+      }
+    };
+  }
+
   static final instance=AppState._();
   final api=ApiClient.instance;
+  final realtime=RealtimeClient.instance;
 
   Map<String,dynamic>? user;
   List<dynamic> products=[];
@@ -14,6 +26,10 @@ class AppState extends ChangeNotifier {
   Map<String,dynamic>? courierDelivery;
   List<dynamic> courierOffers=[];
   bool courierOnline=false;
+  String courierPresenceStatus='OFFLINE';
+  Map<String,dynamic> walletSummary={};
+  List<dynamic> walletLedger=[];
+  List<dynamic> withdrawals=[];
   final Map<String,int> cart={};
   bool loading=false;
   String? error;
@@ -26,7 +42,69 @@ class AppState extends ChangeNotifier {
   int get cartCount=>cart.values.fold(0,(a,b)=>a+b);
   double get cartSubtotal=>cart.entries.fold(0,(sum,e){final p=product(e.key);return sum+(p==null?0:(double.tryParse(p['price'].toString())??0)*e.value);});
 
-  Future<void> bootstrap()async{await loadProducts();startCatalogSync();if(loggedIn&&isCustomer){await Future.wait([loadAddresses(),loadOrders(),loadActiveOrder()]);}}
+  Future<void> bootstrap() async {
+    await loadProducts();
+    startCatalogSync();
+
+    if (api.token != null || api.refreshToken != null) {
+      try {
+        final me = await api.request('GET', '/auth/me');
+        user = Map<String, dynamic>.from(me as Map);
+        if (api.token != null) realtime.connect(api.token!);
+      } catch (_) {
+        await api.clearSession();
+        user = null;
+      }
+    }
+
+    if (loggedIn && isCustomer) {
+      await Future.wait([
+        loadAddresses(),
+        loadOrders(),
+        loadActiveOrder(),
+      ]);
+    }
+    if (loggedIn && isCourier) {
+      await refreshCourier();
+    }
+    notifyListeners();
+  }
+
+  void _handleRealtimeEvent(String event, dynamic payload) {
+    if (!loggedIn) return;
+
+    if (isCustomer &&
+        (event == 'order.updated' || event == 'order.created')) {
+      Future<void>(() async {
+        try {
+          await Future.wait([loadOrders(), loadActiveOrder()]);
+        } catch (_) {}
+      });
+      return;
+    }
+
+    if (isCourier &&
+        (event == 'delivery.offer' ||
+            event == 'delivery.offer.closed' ||
+            event == 'delivery.accepted' ||
+            event == 'order.updated' ||
+            event == 'courier.presence')) {
+      Future<void>(() async {
+        try {
+          await refreshCourier();
+        } catch (_) {}
+      });
+      return;
+    }
+
+    if (isCourier && event == 'wallet.updated') {
+      Future<void>(() async {
+        try {
+          await loadWallet();
+        } catch (_) {}
+      });
+    }
+  }
   void startCatalogSync(){
     if(_catalogPolling)return;
     _catalogPolling=true;
@@ -124,7 +202,8 @@ class AppState extends ChangeNotifier {
       }
       // Motoboy e parceiro aguardam aprovação: não criamos sessão local.
       user = null;
-      api.token = null;
+      await api.clearSession();
+      realtime.disconnect();
       return created;
     } catch (e) {
       error = e.toString().replaceFirst('Exception: ', '');
@@ -138,8 +217,56 @@ class AppState extends ChangeNotifier {
   Future<Map<String,dynamic>> forgotPassword(String email) async => Map<String,dynamic>.from(await api.request('POST','/auth/forgot-password',body:{'email':email.trim()}));
   Future<void> resetPassword(String token,String password) async { await api.request('POST','/auth/reset-password',body:{'token':token,'password':password}); }
 
-  Future<Map<String,dynamic>> login(String email,String password)async{loading=true;error=null;notifyListeners();try{final x=Map<String,dynamic>.from(await api.request('POST','/auth/login',body:{'email':email.trim(),'password':password}));api.token=x['token'];user=Map<String,dynamic>.from(x['user']);if(isCustomer){await Future.wait([loadAddresses(),loadOrders(),loadActiveOrder()]);}if(isCourier){await refreshCourier();}return x;}catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}}
-  Future<void> logout()async{try{await api.request('POST','/auth/logout');}catch(_){}api.token=null;user=null;addresses=[];orders=[];activeOrder=null;cart.clear();error=null;notifyListeners();}
+  Future<Map<String,dynamic>> login(String email,String password) async {
+    loading=true;
+    error=null;
+    notifyListeners();
+    try {
+      final x=Map<String,dynamic>.from(
+        await api.request(
+          'POST',
+          '/auth/login',
+          body:{'email':email.trim(),'password':password},
+        ),
+      );
+      await api.setSession(x);
+      user=Map<String,dynamic>.from(x['user']);
+      if(api.token!=null)realtime.connect(api.token!);
+      if(isCustomer){
+        await Future.wait([loadAddresses(),loadOrders(),loadActiveOrder()]);
+      }
+      if(isCourier){
+        await refreshCourier();
+      }
+      return x;
+    } catch(e) {
+      error=e.toString().replaceFirst('Exception: ','');
+      rethrow;
+    } finally {
+      loading=false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> logout() async {
+    try{await api.request('POST','/auth/logout');}catch(_){}
+    realtime.disconnect();
+    await api.clearSession();
+    user=null;
+    addresses=[];
+    orders=[];
+    activeOrder=null;
+    courierDelivery=null;
+    courierOffers=[];
+    courierOnline=false;
+    courierPresenceStatus='OFFLINE';
+    walletSummary={};
+    walletLedger=[];
+    withdrawals=[];
+    cart.clear();
+    error=null;
+    notifyListeners();
+  }
 
   void addProduct(String id){cart[id]=(cart[id]??0)+1;notifyListeners();}
   void changeQty(String id,int d){final n=(cart[id]??0)+d;if(n<=0)cart.remove(id);else cart[id]=n;notifyListeners();}
@@ -156,28 +283,138 @@ class AppState extends ChangeNotifier {
   Future<void> loadOrders()async{if(!isCustomer)return;orders=List<dynamic>.from(await api.request('GET','/orders/mine'));notifyListeners();}
   Future<void> loadActiveOrder()async{if(!isCustomer)return;final x=await api.request('GET','/orders/active');activeOrder=x==null?null:Map<String,dynamic>.from(x);notifyListeners();}
 
-  Future<void> refreshCourier()async{if(!isCourier)return;final current=await api.request('GET','/orders/courier/current');courierDelivery=current==null?null:Map<String,dynamic>.from(current);courierOffers=List<dynamic>.from(await api.request('GET','/orders/courier/available'));notifyListeners();}
-  Future<void> setCourierOnline(bool online)async{await api.request('PATCH','/orders/courier/online',body:{'online':online});courierOnline=online;await refreshCourier();}
-  Future<void> acceptDelivery(String id)async{courierDelivery=Map<String,dynamic>.from(await api.request('PATCH','/orders/$id/courier/accept'));courierOnline=false;await refreshCourier();}
+  Future<void> refreshCourier() async {
+    if(!isCourier)return;
+
+    final results=await Future.wait([
+      api.request('GET','/orders/courier/presence'),
+      api.request('GET','/orders/courier/current'),
+      api.request('GET','/orders/courier/available'),
+      api.request('GET','/wallet/summary'),
+    ]);
+
+    final presence=Map<String,dynamic>.from(results[0] as Map);
+    courierPresenceStatus=(presence['presenceStatus']??'OFFLINE').toString();
+    courierOnline=presence['isOnline']==true ||
+        courierPresenceStatus=='AVAILABLE' ||
+        courierPresenceStatus=='OFFERED';
+
+    final current=results[1];
+    courierDelivery=current==null
+        ?null
+        :Map<String,dynamic>.from(current as Map);
+    courierOffers=List<dynamic>.from(results[2] as List);
+    walletSummary=Map<String,dynamic>.from(results[3] as Map);
+    notifyListeners();
+  }
+
+  Future<void> heartbeatCourier({
+    double? latitude,
+    double? longitude,
+  }) async {
+    if(!isCourier)return;
+    final result=Map<String,dynamic>.from(
+      await api.request(
+        'PATCH',
+        '/orders/courier/heartbeat',
+        body:{
+          'online':courierOnline,
+          if(latitude!=null)'latitude':latitude,
+          if(longitude!=null)'longitude':longitude,
+        },
+      ),
+    );
+    courierPresenceStatus=(result['presenceStatus']??'OFFLINE').toString();
+    courierOnline=result['isOnline']==true ||
+        courierPresenceStatus=='AVAILABLE' ||
+        courierPresenceStatus=='OFFERED';
+    notifyListeners();
+  }
+
+  Future<void> setCourierOnline(bool online) async {
+    final result=Map<String,dynamic>.from(
+      await api.request(
+        'PATCH',
+        '/orders/courier/online',
+        body:{'online':online},
+      ),
+    );
+    courierPresenceStatus=(result['presenceStatus']??'OFFLINE').toString();
+    courierOnline=result['isOnline']==true ||
+        courierPresenceStatus=='AVAILABLE' ||
+        courierPresenceStatus=='OFFERED';
+    await refreshCourier();
+  }
+
+  Future<void> acceptDelivery(String id) async {
+    courierDelivery=Map<String,dynamic>.from(
+      await api.request('PATCH','/orders/$id/courier/accept'),
+    );
+    courierOnline=false;
+    courierPresenceStatus='DELIVERING';
+    await refreshCourier();
+  }
+
+  Future<void> rejectDelivery(String id) async {
+    await api.request('PATCH','/orders/$id/courier/reject');
+    await refreshCourier();
+  }
+
   Future<void> advanceDelivery(
     String id,
     String status, {
     String? pin,
   }) async {
-    courierDelivery = Map<String, dynamic>.from(
+    courierDelivery=Map<String,dynamic>.from(
       await api.request(
         'PATCH',
         '/orders/$id/courier/status',
-        body: {
-          'status': status,
-          if (pin != null && pin.trim().isNotEmpty) 'pin': pin.trim(),
+        body:{
+          'status':status,
+          if(pin!=null&&pin.trim().isNotEmpty)'pin':pin.trim(),
         },
       ),
     );
-    if (status == 'DELIVERED') {
-      courierOnline = true;
+    if(status=='DELIVERED'){
+      courierOnline=true;
+      courierPresenceStatus='AVAILABLE';
+      await loadWallet();
+    }else{
+      courierPresenceStatus='DELIVERING';
     }
     await refreshCourier();
+  }
+
+  Future<void> loadWallet() async {
+    if(!isCourier)return;
+    final result=await Future.wait([
+      api.request('GET','/wallet/summary'),
+      api.request('GET','/wallet/ledger?take=100'),
+      api.request('GET','/wallet/withdrawals'),
+    ]);
+    walletSummary=Map<String,dynamic>.from(result[0] as Map);
+    walletLedger=List<dynamic>.from(result[1] as List);
+    withdrawals=List<dynamic>.from(result[2] as List);
+    notifyListeners();
+  }
+
+  Future<Map<String,dynamic>> requestWithdrawal(double amount) async {
+    final created=Map<String,dynamic>.from(
+      await api.request(
+        'POST',
+        '/wallet/withdrawals',
+        body:{'amount':amount},
+      ),
+    );
+    await loadWallet();
+    return created;
+  }
+
+  Future<Map<String,dynamic>> quoteDelivery(String addressId) async {
+    final query=Uri(queryParameters:{'addressId':addressId}).query;
+    return Map<String,dynamic>.from(
+      await api.request('GET','/delivery/quote?$query'),
+    );
   }
 
   Future<Map<String,dynamic>> createOrder(String addressId)async{
