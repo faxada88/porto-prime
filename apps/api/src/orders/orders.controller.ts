@@ -25,6 +25,19 @@ export class OrdersController {
   active(@Headers('authorization') authorization?: string) {
     return this.ordersService.active(authorization);
   }
+  @Get('courier/presence')
+  courierPresence(@Headers('authorization') authorization?: string) {
+    return this.ordersService.courierPresence(authorization);
+  }
+
+  @Patch('courier/heartbeat')
+  courierHeartbeat(
+    @Body() body: { online?: boolean; latitude?: number; longitude?: number },
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.ordersService.courierHeartbeat(body, authorization);
+  }
+
   @Get('courier/available')
   courierAvailable(@Headers('authorization') authorization?: string) { return this.ordersService.courierAvailable(authorization); }
 
@@ -32,7 +45,20 @@ export class OrdersController {
   courierCurrent(@Headers('authorization') authorization?: string) { return this.ordersService.courierCurrent(authorization); }
 
   @Patch(':id/courier/accept')
-  courierAccept(@Param('id') id: string, @Headers('authorization') authorization?: string) { return this.ordersService.courierAccept(id, authorization); }
+  courierAccept(
+    @Param('id') id: string,
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.ordersService.courierAccept(id, authorization);
+  }
+
+  @Patch(':id/courier/reject')
+  courierReject(
+    @Param('id') id: string,
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.ordersService.courierReject(id, authorization);
+  }
 
   @Patch(':id/courier/status')
   courierStatus(
