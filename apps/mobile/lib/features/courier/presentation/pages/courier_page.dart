@@ -1755,5 +1755,5 @@ String _shortId(dynamic value) {
 
 String _money(dynamic value) {
   final number = double.tryParse(value?.toString() ?? '') ?? 0;
-  return 'R$ ${number.toStringAsFixed(2).replaceAll('.', ',')}';
+  return 'R\\$ ${number.toStringAsFixed(2).replaceAll('.', ',')}';
 }
