@@ -282,27 +282,39 @@ export class AdminService {
     authorization?: string,
   ) {
     await this.requireAdmin(authorization);
-    if (!body.title?.trim() || !body.description?.trim()) {
+
+    const title = body.title?.trim();
+    const description = body.description?.trim();
+
+    if (!title || !description) {
       throw new BadRequestException('Título e descrição são obrigatórios');
     }
 
-    const profile = await (this.prisma as any).courierProfile.findUnique({
-      where: { id: courierId },
+    const profile = await (this.prisma as any).courierProfile.findFirst({
+      where: {
+        OR: [
+          { id: courierId },
+          { userId: courierId },
+        ],
+      },
       include: { user: true },
     });
-    if (!profile) throw new NotFoundException('Motoboy não encontrado');
+
+    if (!profile) {
+      throw new NotFoundException('Candidatura do motoboy não encontrada');
+    }
 
     return this.prisma.$transaction(async (tx) => {
       const requirement = await (tx as any).courierRequirement.create({
         data: {
-          courierId,
-          title: body.title.trim(),
-          description: body.description.trim(),
+          courierId: profile.id,
+          title,
+          description,
         },
       });
 
-      await tx.courierProfile.update({
-        where: { id: courierId },
+      await (tx as any).courierProfile.update({
+        where: { id: profile.id },
         data: {
           approvalStatus: CourierStatus.PENDING,
           isOnline: false,
@@ -314,7 +326,14 @@ export class AdminService {
         data: { status: UserStatus.PENDING },
       });
 
-      return requirement;
+      return {
+        ...requirement,
+        courier: {
+          id: profile.id,
+          userId: profile.userId,
+          name: profile.user?.name ?? null,
+        },
+      };
     });
   }
 
