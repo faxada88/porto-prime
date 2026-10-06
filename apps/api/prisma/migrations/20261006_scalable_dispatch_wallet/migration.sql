@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS "DeliveryPricingConfig" (
   "offerTimeoutSeconds" INTEGER NOT NULL DEFAULT 30,
   "heartbeatTimeoutSeconds" INTEGER NOT NULL DEFAULT 45,
   "platformCommissionPercent" DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+  "regionRules" JSONB,
   "active" BOOLEAN NOT NULL DEFAULT true,
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
