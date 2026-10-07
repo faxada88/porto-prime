@@ -737,17 +737,24 @@ input:focus,select:focus,.pricingForm input:focus,.requirementModal input:focus,
     box-shadow:0 20px 55px rgba(4,35,30,.28);
   }
   .logo,.admin{display:none}
+  aside{overflow:hidden}
   aside nav{
     height:100%;
     margin:0;
     display:flex;
-    gap:2px;
+    gap:3px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scrollbar-width:none;
+    scroll-snap-type:x proximity;
   }
+  aside nav::-webkit-scrollbar{display:none}
   nav button{
     position:relative;
-    flex:1;
-    min-width:0;
+    flex:0 0 68px;
+    min-width:68px;
     min-height:54px;
+    scroll-snap-align:center;
     padding:7px 3px;
     flex-direction:column;
     justify-content:center;
@@ -804,3 +811,7 @@ input:focus,select:focus,.pricingForm input:focus,.requirementModal input:focus,
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+.actions button,.profileClose,.live{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.actions button svg{flex:0 0 auto}
+.profileClose{display:grid;place-items:center}
