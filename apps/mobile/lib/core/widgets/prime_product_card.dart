@@ -20,6 +20,7 @@ class PrimeProductCard extends StatefulWidget {
 
 class _PrimeProductCardState extends State<PrimeProductCard> {
   bool _pressed = false;
+  bool _hovered = false;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +34,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
     final qty = state.cart[id] ?? 0;
     final image = p['imageUrl']?.toString() ?? '';
     final description = (p['description'] ?? '').toString().trim();
+    final category = (p['category']?['name'] ?? 'Porto Prime').toString();
 
     final discount = oldPrice != null && oldPrice > price && oldPrice > 0
         ? (((oldPrice - price) / oldPrice) * 100).round()
@@ -41,181 +43,235 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
     return Semantics(
       button: widget.onOpen != null,
       label: (p['name'] ?? 'Produto').toString(),
-      child: AnimatedScale(
-        scale: _pressed ? .985 : 1,
-        duration: AppMotion.fast,
-        child: GestureDetector(
-          onTapDown: widget.onOpen == null
-              ? null
-              : (_) => setState(() => _pressed = true),
-          onTapCancel: widget.onOpen == null
-              ? null
-              : () => setState(() => _pressed = false),
-          onTapUp: widget.onOpen == null
-              ? null
-              : (_) {
-                  setState(() => _pressed = false);
-                  widget.onOpen?.call();
-                },
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(color: AppColors.stroke),
-              boxShadow: AppShadows.soft,
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 58,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceSoft,
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: image.isNotEmpty
-                            ? Image.network(
-                                image,
-                                fit: BoxFit.contain,
-                                filterQuality: FilterQuality.medium,
-                                errorBuilder: (_, __, ___) =>
-                                    const _FallbackProduct(),
-                              )
-                            : const _FallbackProduct(),
-                      ),
-                      if (discount != null)
-                        Positioned(
-                          top: 14,
-                          left: 14,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 9,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.coral600,
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.pill),
-                            ),
-                            child: Text(
-                              '-' + discount.toString() + '%',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: AnimatedScale(
+          scale: _pressed ? .985 : 1,
+          duration: AppMotion.fast,
+          child: GestureDetector(
+            onTapDown: widget.onOpen == null
+                ? null
+                : (_) => setState(() => _pressed = true),
+            onTapCancel: widget.onOpen == null
+                ? null
+                : () => setState(() => _pressed = false),
+            onTapUp: widget.onOpen == null
+                ? null
+                : (_) {
+                    setState(() => _pressed = false);
+                    widget.onOpen?.call();
+                  },
+            child: AnimatedContainer(
+              duration: AppMotion.standard,
+              curve: AppMotion.curve,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(
+                  color:
+                      _hovered ? AppColors.strokeStrong : AppColors.stroke,
                 ),
-                Expanded(
-                  flex: 42,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                boxShadow:
+                    _hovered ? AppShadows.elevated : AppShadows.soft,
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 58,
+                    child: Stack(
+                      fit: StackFit.expand,
                       children: [
-                        Text(
-                          (p['name'] ?? '').toString(),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    fontSize: 12.5,
-                                    height: 1.2,
-                                    fontWeight: FontWeight.w800,
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceSoft,
+                            borderRadius:
+                                BorderRadius.circular(AppRadius.md),
+                            border: Border.all(
+                              color: AppColors.stroke.withValues(alpha: .6),
+                            ),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: image.isNotEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.all(7),
+                                  child: Image.network(
+                                    image,
+                                    fit: BoxFit.contain,
+                                    filterQuality: FilterQuality.medium,
+                                    errorBuilder: (_, __, ___) =>
+                                        const _FallbackProduct(),
                                   ),
+                                )
+                              : const _FallbackProduct(),
                         ),
-                        if (description.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            description,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall,
+                        if (discount != null)
+                          Positioned(
+                            top: 14,
+                            left: 14,
+                            child: _DiscountBadge(value: discount),
                           ),
-                        ] else ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            (p['category']?['name'] ?? 'Porto Prime')
-                                .toString(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                        const Spacer(),
-                        if (oldPrice != null && oldPrice > price)
-                          Text(
-                            'R\$ ' +
-                                oldPrice
-                                    .toStringAsFixed(2)
-                                    .replaceAll('.', ','),
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      decoration: TextDecoration.lineThrough,
-                                      color: AppColors.subtle,
-                                      fontSize: 9.5,
-                                    ),
-                          ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'R\$ ' +
-                                    price
-                                        .toStringAsFixed(2)
-                                        .replaceAll('.', ','),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                              ),
-                            ),
-                            AnimatedSwitcher(
-                              duration: AppMotion.standard,
-                              switchInCurve: AppMotion.curve,
-                              switchOutCurve: AppMotion.curve,
-                              child: qty == 0
-                                  ? _AddButton(
-                                      key: const ValueKey('add'),
-                                      onTap: () => state.addProduct(id),
-                                      productName:
-                                          (p['name'] ?? 'produto').toString(),
-                                    )
-                                  : _QuantityControl(
-                                      key: const ValueKey('qty'),
-                                      qty: qty,
-                                      onMinus: () => state.changeQty(id, -1),
-                                      onPlus: () => state.changeQty(id, 1),
-                                    ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),
-                ),
-              ],
+                  Expanded(
+                    flex: 42,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 6, 12, 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            category.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style:
+                                Theme.of(context).textTheme.labelSmall?.copyWith(
+                                      color: AppColors.ocean600,
+                                      fontSize: 7.6,
+                                      letterSpacing: .72,
+                                    ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            (p['name'] ?? '').toString(),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style:
+                                Theme.of(context).textTheme.labelLarge?.copyWith(
+                                      fontSize: 12.6,
+                                      height: 1.18,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -.15,
+                                    ),
+                          ),
+                          if (description.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              description,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(fontSize: 9.5),
+                            ),
+                          ],
+                          const Spacer(),
+                          if (oldPrice != null && oldPrice > price)
+                            Text(
+                              'R\$ ' +
+                                  oldPrice
+                                      .toStringAsFixed(2)
+                                      .replaceAll('.', ','),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    decoration: TextDecoration.lineThrough,
+                                    color: AppColors.subtle,
+                                    fontSize: 9.2,
+                                  ),
+                            ),
+                          const SizedBox(height: 1),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'R\$ ' +
+                                      price
+                                          .toStringAsFixed(2)
+                                          .replaceAll('.', ','),
+                                  maxLines: 1,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontSize: 15.5,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -.35,
+                                      ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              AnimatedSwitcher(
+                                duration: AppMotion.standard,
+                                switchInCurve: AppMotion.curve,
+                                switchOutCurve: AppMotion.curve,
+                                transitionBuilder: (child, animation) =>
+                                    FadeTransition(
+                                  opacity: animation,
+                                  child: ScaleTransition(
+                                    scale: Tween<double>(
+                                      begin: .92,
+                                      end: 1,
+                                    ).animate(animation),
+                                    child: child,
+                                  ),
+                                ),
+                                child: qty == 0
+                                    ? _AddButton(
+                                        key: const ValueKey('add'),
+                                        onTap: () => state.addProduct(id),
+                                        productName:
+                                            (p['name'] ?? 'produto').toString(),
+                                      )
+                                    : _QuantityControl(
+                                        key: const ValueKey('qty'),
+                                        qty: qty,
+                                        onMinus: () =>
+                                            state.changeQty(id, -1),
+                                        onPlus: () => state.changeQty(id, 1),
+                                      ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
+
+class _DiscountBadge extends StatelessWidget {
+  const _DiscountBadge({required this.value});
+
+  final int value;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.coral600,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.coral600.withValues(alpha: .18),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Text(
+          '-' + value.toString() + '%',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 8.5,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      );
 }
 
 class _AddButton extends StatelessWidget {
@@ -239,12 +295,28 @@ class _AddButton extends StatelessWidget {
             onTap: onTap,
             borderRadius: BorderRadius.circular(AppRadius.md),
             child: const SizedBox(
-              width: 38,
-              height: 38,
-              child: Icon(
-                AppIcons.plus,
-                color: Colors.white,
-                size: 18,
+              height: 36,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 9),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      AppIcons.plus,
+                      color: Colors.white,
+                      size: 15,
+                    ),
+                    SizedBox(width: 5),
+                    Text(
+                      'Adicionar',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 8.8,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -266,8 +338,8 @@ class _QuantityControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        height: 38,
-        padding: const EdgeInsets.symmetric(horizontal: 3),
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 2),
         decoration: BoxDecoration(
           color: AppColors.ocean50,
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -278,13 +350,14 @@ class _QuantityControl extends StatelessWidget {
           children: [
             _QtyButton(icon: AppIcons.minus, onTap: onMinus),
             SizedBox(
-              width: 24,
+              width: 21,
               child: Text(
                 qty.toString(),
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: AppColors.ocean800,
                       fontWeight: FontWeight.w800,
+                      fontSize: 9.2,
                     ),
               ),
             ),
@@ -301,16 +374,19 @@ class _QtyButton extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        child: SizedBox(
-          width: 30,
-          height: 32,
-          child: Icon(
-            icon,
-            size: 15,
-            color: AppColors.ocean800,
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          child: SizedBox(
+            width: 26,
+            height: 31,
+            child: Icon(
+              icon,
+              size: 14,
+              color: AppColors.ocean800,
+            ),
           ),
         ),
       );
@@ -320,11 +396,19 @@ class _FallbackProduct extends StatelessWidget {
   const _FallbackProduct();
 
   @override
-  Widget build(BuildContext context) => const Center(
-        child: Icon(
-          AppIcons.package,
-          size: 44,
-          color: AppColors.ocean600,
+  Widget build(BuildContext context) => Center(
+        child: Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: AppColors.ocean50,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
+          child: const Icon(
+            AppIcons.package,
+            size: 30,
+            color: AppColors.ocean600,
+          ),
         ),
       );
 }
