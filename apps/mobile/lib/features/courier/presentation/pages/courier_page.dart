@@ -190,7 +190,7 @@ class _CourierPageState extends State<CourierPage> {
             padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(AppRadius.xl),
               boxShadow: AppShadows.elevated,
             ),
             child: Column(
@@ -792,7 +792,7 @@ class _DriverHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
             decoration: BoxDecoration(
               color: online ? AppColors.mint : const Color(0xFFF0F2F0),
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(AppRadius.xl),
             ),
             child: Row(
               children: [
@@ -851,19 +851,13 @@ class _AvailabilityHero extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF102923),
-              Color(0xFF075C51),
-              Color(0xFF0A7B6D),
+              AppColors.ocean900,
+              AppColors.ocean800,
+              AppColors.ocean700,
             ],
           ),
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.oceanDeep.withValues(alpha: .22),
-              blurRadius: 34,
-              offset: const Offset(0, 16),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          boxShadow: AppShadows.elevated,
         ),
         child: Row(
           children: [
@@ -1001,16 +995,16 @@ class _OfferCard extends StatelessWidget {
     final duration = order['routeDurationMinutes'];
 
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(25),
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Container(
           padding: const EdgeInsets.all(17),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25),
-            border: Border.all(color: const Color(0xFFF0DBB4)),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(color: AppColors.sun200),
             boxShadow: AppShadows.soft,
           ),
           child: Column(
@@ -1200,25 +1194,52 @@ class _OfferCountdownState extends State<_OfferCountdown> {
   }
 
   @override
-  Widget build(BuildContext context) => Container(
-        constraints: const BoxConstraints(minWidth: 48),
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: seconds <= 8 ? AppColors.peach : AppColors.sand,
-          borderRadius: BorderRadius.circular(13),
+  Widget build(BuildContext context) {
+    final urgent = seconds <= 8;
+    final progress = (seconds.clamp(0, 30) / 30).toDouble();
+    final foreground =
+        urgent ? AppColors.coral600 : AppColors.ocean700;
+    final background =
+        urgent ? AppColors.coral100 : AppColors.ocean50;
+
+    return Semantics(
+      label: 'Tempo restante da oferta: ' + seconds.toString() + ' segundos',
+      child: SizedBox(
+        width: 50,
+        height: 50,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: background,
+                shape: BoxShape.circle,
+              ),
+            ),
+            SizedBox(
+              width: 44,
+              height: 44,
+              child: CircularProgressIndicator(
+                value: progress,
+                strokeWidth: 3,
+                strokeCap: StrokeCap.round,
+                color: foreground,
+                backgroundColor: foreground.withValues(alpha: .12),
+              ),
+            ),
+            Text(
+              seconds.toString() + 's',
+              style: TextStyle(
+                color: foreground,
+                fontSize: 9.5,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
         ),
-        child: Text(
-          seconds.toString() + 's',
-          style: TextStyle(
-            color: seconds <= 8
-                ? AppColors.coralStrong
-                : const Color(0xFF936417),
-            fontSize: 10,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-      );
+      ),
+    );
+  }
 }
 
 class _ActiveDeliveryCard extends StatelessWidget {
@@ -1242,7 +1263,7 @@ class _ActiveDeliveryCard extends StatelessWidget {
       padding: const EdgeInsets.all(19),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(27),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
         border: Border.all(color: AppColors.stroke),
         boxShadow: AppShadows.soft,
       ),
@@ -1841,7 +1862,7 @@ class _SheetHero extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2176,7 +2197,7 @@ class _StatusMark extends StatelessWidget {
           color: dark
               ? Colors.white.withValues(alpha: .10)
               : _statusBackground(status),
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
         ),
         child: Text(
           _statusLabel(status),
@@ -2247,9 +2268,10 @@ class _SnapshotCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(color: AppColors.stroke),
+          boxShadow: AppShadows.soft,
         ),
         child: Row(
           children: [
@@ -2257,8 +2279,8 @@ class _SnapshotCard extends StatelessWidget {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: AppColors.mint,
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.ocean50,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Icon(
                 icon,
@@ -2775,9 +2797,9 @@ class _FinanceHero extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF102923), Color(0xFF087568)],
+            colors: [AppColors.ocean900, AppColors.ocean700],
           ),
-          borderRadius: BorderRadius.circular(27),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
         ),
         child: Row(
           children: [
@@ -3123,7 +3145,7 @@ class _DriverEmpty extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(26, 31, 26, 31),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(27),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
           border: Border.all(color: AppColors.stroke),
         ),
         child: Column(
