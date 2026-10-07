@@ -1,104 +1,969 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../../../../core/navigation/app_nav.dart';
 import '../../../../core/state/app_state.dart';
+import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/prime_ui.dart';
 
-class OrderTrackingPage extends StatefulWidget{
- const OrderTrackingPage({super.key,required this.orderId});final String orderId;
- @override State<OrderTrackingPage> createState()=>_OrderTrackingPageState();
+class OrderTrackingPage extends StatefulWidget {
+  const OrderTrackingPage({
+    super.key,
+    required this.orderId,
+  });
+
+  final String orderId;
+
+  @override
+  State<OrderTrackingPage> createState() => _OrderTrackingPageState();
 }
-class _OrderTrackingPageState extends State<OrderTrackingPage>{
- Timer? timer;
- @override void initState(){super.initState();_refresh();timer=Timer.periodic(const Duration(seconds:4),(_)=>_refresh());}
- Future<void> _refresh()async{try{await Future.wait([AppState.instance.loadOrders(),AppState.instance.loadActiveOrder()]);}catch(_){}}
- @override void dispose(){timer?.cancel();super.dispose();}
- Map<String,dynamic>? get order{for(final x in AppState.instance.orders){final o=Map<String,dynamic>.from(x);if(o['id'].toString()==widget.orderId)return o;}final a=AppState.instance.activeOrder;return a?['id'].toString()==widget.orderId?a:null;}
- @override Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(_,__){final o=order;if(o==null)return Scaffold(backgroundColor:AppColors.canvas,appBar:AppBar(backgroundColor:AppColors.canvas),body:const Center(child:CircularProgressIndicator()));final status=o['status'].toString(),step=_step(status),courier=o['courier'],items=(o['items'] as List?)??const [],address=o['address'];return Scaffold(backgroundColor:AppColors.canvas,
- appBar:AppBar(backgroundColor:AppColors.canvas,surfaceTintColor:AppColors.canvas,title:const Text('Detalhes do pedido',style:TextStyle(fontSize:16,fontWeight:FontWeight.w900)),actions:[IconButton(tooltip:'Início',onPressed:(){AppNav.instance.home();},icon:const Icon(Icons.home_rounded))]),
- body:SafeArea(child:RefreshIndicator(onRefresh:_refresh,child:ListView(padding:const EdgeInsets.fromLTRB(20,8,20,34),children:[
- _Hero(order:o,status:status,id:widget.orderId),
- const SizedBox(height:16),_Journey(status:status,step:step),
- if(courier!=null)...[const SizedBox(height:16),_Courier(courier:courier)],
- if(courier!=null&&status!='DELIVERED'&&status!='CANCELED'&&(o['deliveryPin']??'').toString().isNotEmpty)...[
-   const SizedBox(height:16),
-   _DeliveryPin(pin:o['deliveryPin'].toString()),
- ],
- if(status=='DELIVERED')...[
-   const SizedBox(height:16),
-   const _PinConfirmed(),
- ],
- const SizedBox(height:16),_Section(title:'Seu pedido',icon:Icons.shopping_bag_rounded,child:Column(children:[...items.map((x)=>Padding(padding:const EdgeInsets.only(bottom:11),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Container(width:34,height:34,alignment:Alignment.center,decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(11)),child:Text('${x['quantity']}x',style:const TextStyle(fontSize:10,fontWeight:FontWeight.w900,color:AppColors.oceanDeep))),const SizedBox(width:10),Expanded(child:Text(x['productName']?.toString()??'Produto',style:const TextStyle(fontSize:12,fontWeight:FontWeight.w800))),Text(_money(x['total']),style:const TextStyle(fontSize:11,fontWeight:FontWeight.w900))]))),const Divider(),_value('Subtotal',o['subtotal']),_value('Entrega',o['deliveryFee']),const SizedBox(height:7),_value('Total',o['total'],strong:true)])),
- if(address!=null)...[const SizedBox(height:16),_Section(title:'Entrega',icon:Icons.location_on_rounded,child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${address['street']??''}, ${address['number']??''}',style:const TextStyle(fontSize:13,fontWeight:FontWeight.w900)),const SizedBox(height:4),Text('${address['neighborhood']??''} • ${address['city']??''} - ${address['state']??''}',style:const TextStyle(fontSize:10,color:AppColors.muted,height:1.4)),if((address['complement']??'').toString().isNotEmpty)Text(address['complement'].toString(),style:const TextStyle(fontSize:10,color:AppColors.muted))]))],
- const SizedBox(height:16),_Section(title:'Pagamento e identificação',icon:Icons.verified_user_rounded,child:Column(children:[_info('Pedido','#${widget.orderId.substring(0,widget.orderId.length<8?widget.orderId.length:8).toUpperCase()}'),_info('Pagamento',o['paymentStatus']=='PAID'?'Aprovado':'${o['paymentStatus']}'),_info('Forma',o['paymentMethod']=='CARD'?'Cartão • Stripe':(o['paymentMethod']??'—').toString()),_info('Criado em',_date(o['createdAt'])),if(o['deliveredAt']!=null)_info('Entregue em',_date(o['deliveredAt']))])),
- const SizedBox(height:18),OutlinedButton.icon(onPressed:(){AppNav.instance.home();},icon:const Icon(Icons.home_rounded),label:const Text('Voltar para o início',style:TextStyle(fontWeight:FontWeight.w900)),style:OutlinedButton.styleFrom(minimumSize:const Size.fromHeight(54),foregroundColor:AppColors.oceanDeep,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(18)))),
- ]))));});
+
+class _OrderTrackingPageState extends State<OrderTrackingPage> {
+  Timer? timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+    timer = Timer.periodic(
+      const Duration(seconds: 4),
+      (_) => _refresh(),
+    );
+  }
+
+  Future<void> _refresh() async {
+    try {
+      await Future.wait([
+        AppState.instance.loadOrders(),
+        AppState.instance.loadActiveOrder(),
+      ]);
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
+  Map<String, dynamic>? get order {
+    for (final value in AppState.instance.orders) {
+      final current = Map<String, dynamic>.from(value);
+      if (current['id'].toString() == widget.orderId) return current;
+    }
+    final active = AppState.instance.activeOrder;
+    return active?['id'].toString() == widget.orderId ? active : null;
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: AppState.instance,
+        builder: (_, __) {
+          final current = order;
+          if (current == null) {
+            return Scaffold(
+              backgroundColor: AppColors.canvas,
+              appBar: AppBar(),
+              body: const Padding(
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    PrimeSkeleton(height: 190, radius: AppRadius.xl),
+                    SizedBox(height: 16),
+                    PrimeSkeleton(height: 380, radius: AppRadius.lg),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          final status = current['status'].toString();
+          final step = _step(status);
+          final courier = current['courier'];
+          final items = (current['items'] as List?) ?? const [];
+          final address = current['address'];
+
+          return Scaffold(
+            backgroundColor: AppColors.canvas,
+            appBar: AppBar(
+              title: const Text('Acompanhar pedido'),
+              actions: [
+                IconButton(
+                  tooltip: 'Início',
+                  onPressed: AppNav.instance.home,
+                  icon: const Icon(AppIcons.home),
+                ),
+              ],
+            ),
+            body: SafeArea(
+              child: RefreshIndicator(
+                onRefresh: _refresh,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 34),
+                  children: [
+                    _Hero(
+                      order: current,
+                      status: status,
+                      id: widget.orderId,
+                    ),
+                    const SizedBox(height: 16),
+                    _Journey(status: status, step: step),
+                    if (courier != null) ...[
+                      const SizedBox(height: 16),
+                      _Courier(courier: courier),
+                    ],
+                    if (courier != null &&
+                        status != 'DELIVERED' &&
+                        status != 'CANCELED' &&
+                        (current['deliveryPin'] ?? '').toString().isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _DeliveryPin(
+                        pin: current['deliveryPin'].toString(),
+                      ),
+                    ],
+                    if (status == 'DELIVERED') ...[
+                      const SizedBox(height: 16),
+                      const _PinConfirmed(),
+                    ],
+                    const SizedBox(height: 16),
+                    _Section(
+                      title: 'Seu pedido',
+                      icon: AppIcons.bag,
+                      child: Column(
+                        children: [
+                          ...items.map(
+                            (item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 38,
+                                    height: 38,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.ocean50,
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.sm),
+                                    ),
+                                    child: Text(
+                                      item['quantity'].toString() + 'x',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelMedium
+                                          ?.copyWith(
+                                            color: AppColors.ocean800,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      (item['productName'] ?? 'Produto')
+                                          .toString(),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelLarge,
+                                    ),
+                                  ),
+                                  Text(
+                                    _money(item['total']),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelLarge
+                                        ?.copyWith(fontWeight: FontWeight.w800),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const Divider(),
+                          _value('Subtotal', current['subtotal']),
+                          _value('Entrega', current['deliveryFee']),
+                          const SizedBox(height: 7),
+                          _value('Total', current['total'], strong: true),
+                        ],
+                      ),
+                    ),
+                    if (address != null) ...[
+                      const SizedBox(height: 16),
+                      _Section(
+                        title: 'Entrega',
+                        icon: AppIcons.mapPin,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              (address['street'] ?? '').toString() +
+                                  ', ' +
+                                  (address['number'] ?? '').toString(),
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              (address['neighborhood'] ?? '').toString() +
+                                  ' • ' +
+                                  (address['city'] ?? '').toString() +
+                                  ' - ' +
+                                  (address['state'] ?? '').toString(),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            if ((address['complement'] ?? '')
+                                .toString()
+                                .isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 3),
+                                child: Text(
+                                  address['complement'].toString(),
+                                  style:
+                                      Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    _Section(
+                      title: 'Pagamento e identificação',
+                      icon: AppIcons.shield,
+                      child: Column(
+                        children: [
+                          _info(
+                            'Pedido',
+                            '#' +
+                                widget.orderId
+                                    .substring(
+                                      0,
+                                      widget.orderId.length < 8
+                                          ? widget.orderId.length
+                                          : 8,
+                                    )
+                                    .toUpperCase(),
+                          ),
+                          _info(
+                            'Pagamento',
+                            current['paymentStatus'] == 'PAID'
+                                ? 'Aprovado'
+                                : current['paymentStatus'].toString(),
+                          ),
+                          _info(
+                            'Forma',
+                            current['paymentMethod'] == 'CARD'
+                                ? 'Cartão • Stripe'
+                                : (current['paymentMethod'] ?? '—').toString(),
+                          ),
+                          _info('Criado em', _date(current['createdAt'])),
+                          if (current['deliveredAt'] != null)
+                            _info(
+                              'Entregue em',
+                              _date(current['deliveredAt']),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    OutlinedButton.icon(
+                      onPressed: AppNav.instance.home,
+                      icon: const Icon(AppIcons.home, size: 18),
+                      label: const Text('Voltar para o início'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
 }
-class _Hero extends StatelessWidget{const _Hero({required this.order,required this.status,required this.id});final dynamic order;final String status,id;@override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF102D28),Color(0xFF08786D)]),borderRadius:BorderRadius.circular(30),boxShadow:const [BoxShadow(color:Color(0x1C000000),blurRadius:28,offset:Offset(0,14))]),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Row(children:[Container(padding:const EdgeInsets.symmetric(horizontal:10,vertical:7),decoration:BoxDecoration(color:Colors.white12,borderRadius:BorderRadius.circular(12)),child:Row(children:[Icon(status=='DELIVERED'?Icons.check_circle_rounded:Icons.radio_button_checked_rounded,color:const Color(0xFF8CFFE4),size:12),const SizedBox(width:5),Text(status=='DELIVERED'?'PEDIDO CONCLUÍDO':'ACOMPANHAMENTO AO VIVO',style:const TextStyle(color:Colors.white,fontSize:8,fontWeight:FontWeight.w900,letterSpacing:.7))])),const Spacer(),Text('#'+id.substring(0,id.length<8?id.length:8).toUpperCase(),style:const TextStyle(color:Colors.white60,fontSize:10,fontWeight:FontWeight.w800))]),const SizedBox(height:22),Text(_title(status),style:const TextStyle(color:Colors.white,fontSize:27,height:1.05,fontWeight:FontWeight.w900,letterSpacing:-.8)),const SizedBox(height:8),Text(_subtitle(status),style:const TextStyle(color:Color(0xFFD4ECE7),fontSize:11,height:1.45,fontWeight:FontWeight.w600)),const SizedBox(height:22),Row(children:[const Icon(Icons.payments_rounded,color:Color(0xFF8CFFE4),size:18),const SizedBox(width:8),Text(order['paymentStatus']=='PAID'?'Pagamento aprovado':'Pagamento ${order['paymentStatus']}',style:const TextStyle(color:Colors.white,fontSize:11,fontWeight:FontWeight.w800)),const Spacer(),Text(_money(order['total']),style:const TextStyle(color:Colors.white,fontSize:14,fontWeight:FontWeight.w900))]) ]));}
-class _Journey extends StatelessWidget{const _Journey({required this.status,required this.step});final String status;final int step;@override Widget build(BuildContext context){final stages=[('Pagamento aprovado','Cobrança confirmada pelo Stripe.',Icons.verified_rounded),('Pedido recebido','A Porto Prime recebeu seu pedido.',Icons.receipt_long_rounded),('Em análise / confirmação','A distribuidora confere disponibilidade e libera os itens.',Icons.storefront_rounded),('Preparando','Seus produtos estão sendo separados.',Icons.inventory_2_rounded),('Procurando entregador','Buscando automaticamente um motoboy online e disponível.',Icons.search_rounded),('Motoboy a caminho da retirada','Entregador encontrado e conectado ao pedido.',Icons.delivery_dining_rounded),('Saiu para entrega','Seu pedido está a caminho.',Icons.route_rounded),('Entregue','Pedido concluído.',Icons.home_filled)];return _Section(title:'Jornada do pedido',icon:Icons.timeline_rounded,child:Column(children:[for(var i=0;i<stages.length;i++)_Stage(stages[i].$3,stages[i].$1,stages[i].$2,i<=step,i==step,last:i==stages.length-1)]));}}
-class _Stage extends StatelessWidget{const _Stage(this.icon,this.title,this.subtitle,this.done,this.current,{this.last=false});final IconData icon;final String title,subtitle;final bool done,current,last;@override Widget build(BuildContext context)=>IntrinsicHeight(child:Row(crossAxisAlignment:CrossAxisAlignment.stretch,children:[SizedBox(width:42,child:Column(children:[AnimatedContainer(duration:const Duration(milliseconds:300),width:38,height:38,decoration:BoxDecoration(color:done?AppColors.oceanDeep:AppColors.canvas,borderRadius:BorderRadius.circular(13),boxShadow:current?[BoxShadow(color:AppColors.oceanDeep.withValues(alpha:.18),blurRadius:14)]:null),child:Icon(done&& !current?Icons.check_rounded:icon,color:done?Colors.white:AppColors.muted,size:19)),if(!last)Expanded(child:Container(width:2,margin:const EdgeInsets.symmetric(vertical:5),color:iColor(done))) ])),const SizedBox(width:11),Expanded(child:Padding(padding:EdgeInsets.only(top:3,bottom:last?0:20),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(title,style:TextStyle(fontSize:12.5,fontWeight:FontWeight.w900,color:done?AppColors.ink:AppColors.muted)),const SizedBox(height:3),Text(subtitle,style:const TextStyle(fontSize:9.5,height:1.4,color:AppColors.muted,fontWeight:FontWeight.w600))])))]));Color iColor(bool done)=>done?AppColors.oceanDeep:const Color(0xFFE5EAE7);}
-class _DeliveryPin extends StatelessWidget{
- const _DeliveryPin({required this.pin});final String pin;
- @override Widget build(BuildContext context){
-  final digits=pin.split('').join('  ');
-  return Container(
-   padding:const EdgeInsets.all(19),
-   decoration:BoxDecoration(
-    gradient:const LinearGradient(colors:[Color(0xFFFFF1D5),Color(0xFFFFFAF0)]),
-    borderRadius:BorderRadius.circular(26),
-    border:Border.all(color:const Color(0xFFF0D9AA)),
-   ),
-   child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-    Row(children:[
-     Container(width:46,height:46,decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(15)),child:const Icon(Icons.pin_rounded,color:Color(0xFF986414),size:23)),
-     const SizedBox(width:11),
-     const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-      Text('PIN DE ENTREGA',style:TextStyle(fontSize:8,color:Color(0xFF986414),fontWeight:FontWeight.w900,letterSpacing:1.2)),
-      SizedBox(height:3),
-      Text('Seu código de confirmação',style:TextStyle(fontSize:14,fontWeight:FontWeight.w900)),
-     ])),
-     Container(padding:const EdgeInsets.symmetric(horizontal:10,vertical:6),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(20)),child:const Text('NÃO ENVIE ANTES',style:TextStyle(fontSize:7,color:Color(0xFF986414),fontWeight:FontWeight.w900,letterSpacing:.5))),
-    ]),
-    const SizedBox(height:16),
-    Container(
-     width:double.infinity,
-     padding:const EdgeInsets.symmetric(vertical:16,horizontal:12),
-     decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(18)),
-     child:Text(digits,textAlign:TextAlign.center,style:const TextStyle(fontSize:30,letterSpacing:5,fontWeight:FontWeight.w900,color:AppColors.ink)),
-    ),
-    const SizedBox(height:11),
-    const Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
-     Icon(Icons.shield_rounded,color:Color(0xFF986414),size:17),
-     SizedBox(width:8),
-     Expanded(child:Text('Informe este PIN ao motoboy somente quando estiver com o pedido em mãos. Ele precisa do código correto para concluir a entrega.',style:TextStyle(fontSize:9.5,height:1.45,color:Color(0xFF7D6841),fontWeight:FontWeight.w700))),
-    ]),
-   ]),
+
+class _Hero extends StatelessWidget {
+  const _Hero({
+    required this.order,
+    required this.status,
+    required this.id,
+  });
+
+  final dynamic order;
+  final String status;
+  final String id;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.ocean900,
+              AppColors.ocean700,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          boxShadow: AppShadows.elevated,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                PrimeStatusPill(
+                  label: status == 'DELIVERED'
+                      ? 'PEDIDO CONCLUÍDO'
+                      : 'ACOMPANHAMENTO AO VIVO',
+                  tone: PrimeStatusTone.success,
+                ),
+                const Spacer(),
+                Text(
+                  '#' +
+                      id
+                          .substring(0, id.length < 8 ? id.length : 8)
+                          .toUpperCase(),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Colors.white60,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 22),
+            Text(
+              _title(status),
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: Colors.white,
+                    fontSize: 27,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _subtitle(status),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: const Color(0xFFD4ECE7),
+                  ),
+            ),
+            const SizedBox(height: 22),
+            Row(
+              children: [
+                const Icon(
+                  AppIcons.creditCard,
+                  color: Color(0xFF9FFFE7),
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    order['paymentStatus'] == 'PAID'
+                        ? 'Pagamento aprovado'
+                        : 'Pagamento ' + order['paymentStatus'].toString(),
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: Colors.white,
+                        ),
+                  ),
+                ),
+                Text(
+                  _money(order['total']),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+}
+
+class _Journey extends StatelessWidget {
+  const _Journey({
+    required this.status,
+    required this.step,
+  });
+
+  final String status;
+  final int step;
+
+  @override
+  Widget build(BuildContext context) {
+    const stages = [
+      (
+        'Pagamento aprovado',
+        'Cobrança confirmada pelo Stripe.',
+        AppIcons.creditCard,
+      ),
+      (
+        'Pedido recebido',
+        'A Porto Prime recebeu seu pedido.',
+        AppIcons.receipt,
+      ),
+      (
+        'Pedido confirmado',
+        'A distribuidora confere disponibilidade e libera os itens.',
+        AppIcons.store,
+      ),
+      (
+        'Preparando',
+        'Seus produtos estão sendo separados.',
+        AppIcons.package,
+      ),
+      (
+        'Procurando entregador',
+        'Buscando automaticamente um motoboy online e disponível.',
+        AppIcons.search,
+      ),
+      (
+        'Motoboy a caminho da retirada',
+        'Entregador encontrado e conectado ao pedido.',
+        AppIcons.bike,
+      ),
+      (
+        'Saiu para entrega',
+        'Seu pedido está a caminho.',
+        AppIcons.route,
+      ),
+      (
+        'Entregue',
+        'Pedido concluído.',
+        AppIcons.home,
+      ),
+    ];
+
+    return _Section(
+      title: 'Jornada do pedido',
+      icon: AppIcons.route,
+      child: Column(
+        children: [
+          for (var i = 0; i < stages.length; i++)
+            _Stage(
+              icon: stages[i].$3,
+              title: stages[i].$1,
+              subtitle: stages[i].$2,
+              done: i <= step,
+              current: i == step,
+              last: i == stages.length - 1,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Stage extends StatelessWidget {
+  const _Stage({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.done,
+    required this.current,
+    this.last = false,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool done;
+  final bool current;
+  final bool last;
+
+  @override
+  Widget build(BuildContext context) => IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 42,
+              child: Column(
+                children: [
+                  _TimelineDot(
+                    icon: done && !current ? AppIcons.check : icon,
+                    active: done,
+                    current: current,
+                  ),
+                  if (!last)
+                    Expanded(
+                      child: Container(
+                        width: 2,
+                        margin: const EdgeInsets.symmetric(vertical: 5),
+                        color: done ? AppColors.ocean700 : AppColors.stroke,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(top: 3, bottom: last ? 0 : 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: done ? AppColors.ink : AppColors.muted,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+class _TimelineDot extends StatefulWidget {
+  const _TimelineDot({
+    required this.icon,
+    required this.active,
+    required this.current,
+  });
+
+  final IconData icon;
+  final bool active;
+  final bool current;
+
+  @override
+  State<_TimelineDot> createState() => _TimelineDotState();
+}
+
+class _TimelineDotState extends State<_TimelineDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
   );
- }
-}
-class _PinConfirmed extends StatelessWidget{
- const _PinConfirmed();
- @override Widget build(BuildContext context)=>Container(
-  padding:const EdgeInsets.all(16),
-  decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(22),border:Border.all(color:AppColors.mintStrong)),
-  child:const Row(children:[
-   Icon(Icons.verified_user_rounded,color:AppColors.oceanDeep,size:23),
-   SizedBox(width:11),
-   Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-    Text('Entrega confirmada com segurança',style:TextStyle(fontSize:12.5,fontWeight:FontWeight.w900)),
-    SizedBox(height:3),
-    Text('O PIN foi validado pelo motoboy no momento da entrega.',style:TextStyle(fontSize:9.5,color:AppColors.muted,fontWeight:FontWeight.w600)),
-   ])),
-  ]),
- );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.current) controller.repeat(reverse: true);
+  }
+
+  @override
+  void didUpdateWidget(covariant _TimelineDot oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.current && !controller.isAnimating) {
+      controller.repeat(reverse: true);
+    } else if (!widget.current && controller.isAnimating) {
+      controller.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: controller,
+        builder: (_, __) => Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: widget.active ? AppColors.ocean800 : AppColors.surfaceSoft,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            border: Border.all(
+              color: widget.active
+                  ? AppColors.ocean800
+                  : AppColors.stroke,
+            ),
+            boxShadow: widget.current
+                ? [
+                    BoxShadow(
+                      color: AppColors.ocean600.withValues(
+                        alpha: .12 + controller.value * .12,
+                      ),
+                      blurRadius: 8 + controller.value * 10,
+                      spreadRadius: controller.value * 2,
+                    ),
+                  ]
+                : null,
+          ),
+          child: Icon(
+            widget.icon,
+            color: widget.active ? Colors.white : AppColors.subtle,
+            size: 18,
+          ),
+        ),
+      );
 }
 
-class _Courier extends StatelessWidget{const _Courier({required this.courier});final dynamic courier;@override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(24)),child:Row(children:[Container(width:52,height:52,decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(17)),child:const Icon(Icons.delivery_dining_rounded,color:AppColors.oceanDeep,size:28)),const SizedBox(width:13),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('SEU MOTOBOY',style:TextStyle(fontSize:8,color:AppColors.muted,fontWeight:FontWeight.w900)),Text(courier['user']?['name']??'Motoboy Porto Prime',style:const TextStyle(fontSize:15,fontWeight:FontWeight.w900)),if(courier['user']?['phone']!=null)Text(courier['user']['phone'].toString(),style:const TextStyle(fontSize:10,color:AppColors.muted))]))]));}
-class _Section extends StatelessWidget{const _Section({required this.title,required this.icon,required this.child});final String title;final IconData icon;final Widget child;@override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(19),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(26),border:Border.all(color:const Color(0xFFE5EAE7))),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Row(children:[Container(width:36,height:36,decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(12)),child:Icon(icon,size:19,color:AppColors.oceanDeep)),const SizedBox(width:10),Text(title,style:const TextStyle(fontSize:16,fontWeight:FontWeight.w900))]),const SizedBox(height:17),child]));}
-Widget _value(String a,dynamic b,{bool strong=false})=>Padding(padding:const EdgeInsets.only(top:7),child:Row(children:[Expanded(child:Text(a,style:TextStyle(fontSize:strong?13:10,color:strong?AppColors.ink:AppColors.muted,fontWeight:strong?FontWeight.w900:FontWeight.w700))),Text(_money(b),style:TextStyle(fontSize:strong?15:10,fontWeight:FontWeight.w900))]));
-Widget _info(String a,String b)=>Padding(padding:const EdgeInsets.only(bottom:10),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[SizedBox(width:100,child:Text(a,style:const TextStyle(fontSize:10,color:AppColors.muted,fontWeight:FontWeight.w700))),Expanded(child:Text(b,textAlign:TextAlign.right,style:const TextStyle(fontSize:10,fontWeight:FontWeight.w900)))]));
-String _money(dynamic v){final n=double.tryParse(v.toString())??0;return 'R\$ ${n.toStringAsFixed(2).replaceAll('.',',')}';}
-String _date(dynamic v){if(v==null)return '—';final d=DateTime.tryParse(v.toString())?.toLocal();if(d==null)return v.toString();String t(int n)=>n.toString().padLeft(2,'0');return '${t(d.day)}/${t(d.month)}/${d.year} • ${t(d.hour)}:${t(d.minute)}';}
-int _step(String s)=>switch(s){'PENDING'=>1,'CONFIRMED'=>2,'PREPARING'=>3,'READY_FOR_PICKUP'=>4,'SEARCHING_COURIER'=>4,'COURIER_ASSIGNED'=>5,'PICKED_UP'=>5,'OUT_FOR_DELIVERY'=>6,'DELIVERED'=>7,'CANCELED'=>1,_=>1};
-String _title(String s)=>switch(s){'PENDING'=>'Pedido recebido.','CONFIRMED'=>'Pedido em confirmação.','PREPARING'=>'Estamos preparando.','READY_FOR_PICKUP'=>'Pronto para coleta.','SEARCHING_COURIER'=>'Procurando entregador.','COURIER_ASSIGNED'=>'Motoboy encontrado.','PICKED_UP'=>'Pedido coletado.','OUT_FOR_DELIVERY'=>'Está chegando!','DELIVERED'=>'Pedido entregue.','CANCELED'=>'Pedido cancelado.',_=>'Pedido recebido.'};
-String _subtitle(String s)=>switch(s){'PENDING'=>'Recebemos o pedido e aguardamos a confirmação do pagamento.','CONFIRMED'=>'Pagamento aprovado. A distribuidora está conferindo e liberando os itens.','PREPARING'=>'Seus produtos estão sendo separados com cuidado.','READY_FOR_PICKUP'=>'Tudo pronto para iniciar o despacho.','SEARCHING_COURIER'=>'O sistema está oferecendo a entrega automaticamente aos motoboys online e disponíveis.','COURIER_ASSIGNED'=>'Um motoboy aceitou e seguirá para a retirada.','PICKED_UP'=>'Seu pedido já está com o motoboy.','OUT_FOR_DELIVERY'=>'O motoboy está levando seu pedido até você.','DELIVERED'=>'Tudo certo. O histórico completo continua disponível aqui.','CANCELED'=>'Este pedido não seguirá para entrega.',_=>'Acompanhe as próximas etapas por aqui.'};
+class _DeliveryPin extends StatelessWidget {
+  const _DeliveryPin({required this.pin});
+
+  final String pin;
+
+  @override
+  Widget build(BuildContext context) {
+    final digits = pin.split('').join('  ');
+
+    return Container(
+      padding: const EdgeInsets.all(19),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.sand100, AppColors.sand50],
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.sun200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: const Icon(
+                  AppIcons.lock,
+                  color: AppColors.warning,
+                  size: 21,
+                ),
+              ),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'PIN DE ENTREGA',
+                      style:
+                          Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: AppColors.warning,
+                              ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'Seu código de confirmação',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding:
+                const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: Text(
+              digits,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 29,
+                letterSpacing: 5,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+              ),
+            ),
+          ),
+          const SizedBox(height: 11),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                AppIcons.shield,
+                color: AppColors.warning,
+                size: 17,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Informe este PIN ao motoboy somente quando estiver com o pedido em mãos.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF7D6841),
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PinConfirmed extends StatelessWidget {
+  const _PinConfirmed();
+
+  @override
+  Widget build(BuildContext context) => PrimeSurface(
+        background: AppColors.ocean50,
+        borderColor: AppColors.ocean100,
+        child: Row(
+          children: [
+            const Icon(
+              AppIcons.shield,
+              color: AppColors.ocean800,
+              size: 23,
+            ),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Entrega confirmada com segurança',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    'O PIN foi validado pelo motoboy no momento da entrega.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+class _Courier extends StatelessWidget {
+  const _Courier({required this.courier});
+
+  final dynamic courier;
+
+  @override
+  Widget build(BuildContext context) => PrimeSurface(
+        background: AppColors.ocean50,
+        borderColor: AppColors.ocean100,
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: const Icon(
+                AppIcons.bike,
+                color: AppColors.ocean800,
+                size: 25,
+              ),
+            ),
+            const SizedBox(width: 13),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'SEU MOTOBOY',
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    (courier['user']?['name'] ?? 'Motoboy Porto Prime')
+                        .toString(),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  if (courier['user']?['phone'] != null)
+                    Text(
+                      courier['user']['phone'].toString(),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                ],
+              ),
+            ),
+            const PrimeStatusPill(
+              label: 'EM ROTA',
+              tone: PrimeStatusTone.success,
+            ),
+          ],
+        ),
+      );
+}
+
+class _Section extends StatelessWidget {
+  const _Section({
+    required this.title,
+    required this.icon,
+    required this.child,
+  });
+
+  final String title;
+  final IconData icon;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => PrimeSurface(
+        padding: const EdgeInsets.all(19),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.ocean50,
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 18,
+                    color: AppColors.ocean800,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 17),
+            child,
+          ],
+        ),
+      );
+}
+
+Widget _value(String label, dynamic value, {bool strong = false}) => Padding(
+      padding: const EdgeInsets.only(top: 7),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: strong ? 13 : 10,
+                color: strong ? AppColors.ink : AppColors.muted,
+                fontWeight: strong ? FontWeight.w800 : FontWeight.w600,
+              ),
+            ),
+          ),
+          Text(
+            _money(value),
+            style: TextStyle(
+              fontSize: strong ? 16 : 11,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+
+Widget _info(String label, String value) => Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppColors.muted,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+String _money(dynamic value) {
+  final number = double.tryParse(value.toString()) ?? 0;
+  return 'R\$ ' + number.toStringAsFixed(2).replaceAll('.', ',');
+}
+
+String _date(dynamic value) {
+  if (value == null) return '—';
+  final date = DateTime.tryParse(value.toString())?.toLocal();
+  if (date == null) return value.toString();
+  String two(int number) => number.toString().padLeft(2, '0');
+  return two(date.day) +
+      '/' +
+      two(date.month) +
+      '/' +
+      date.year.toString() +
+      ' • ' +
+      two(date.hour) +
+      ':' +
+      two(date.minute);
+}
+
+int _step(String status) => switch (status) {
+      'PENDING' => 1,
+      'CONFIRMED' => 2,
+      'PREPARING' => 3,
+      'READY_FOR_PICKUP' => 4,
+      'SEARCHING_COURIER' => 4,
+      'COURIER_ASSIGNED' => 5,
+      'PICKED_UP' => 5,
+      'OUT_FOR_DELIVERY' => 6,
+      'DELIVERED' => 7,
+      'CANCELED' => 1,
+      _ => 1,
+    };
+
+String _title(String status) => switch (status) {
+      'PENDING' => 'Pedido recebido.',
+      'CONFIRMED' => 'Pedido confirmado.',
+      'PREPARING' => 'Estamos preparando.',
+      'READY_FOR_PICKUP' => 'Pronto para coleta.',
+      'SEARCHING_COURIER' => 'Procurando entregador.',
+      'COURIER_ASSIGNED' => 'Motoboy encontrado.',
+      'PICKED_UP' => 'Pedido coletado.',
+      'OUT_FOR_DELIVERY' => 'Está chegando!',
+      'DELIVERED' => 'Pedido entregue.',
+      'CANCELED' => 'Pedido cancelado.',
+      _ => 'Pedido recebido.',
+    };
+
+String _subtitle(String status) => switch (status) {
+      'PENDING' =>
+        'Recebemos o pedido e aguardamos a confirmação do pagamento.',
+      'CONFIRMED' =>
+        'Pagamento aprovado. A distribuidora está conferindo e liberando os itens.',
+      'PREPARING' => 'Seus produtos estão sendo separados com cuidado.',
+      'READY_FOR_PICKUP' => 'Tudo pronto para iniciar o despacho.',
+      'SEARCHING_COURIER' =>
+        'O sistema está oferecendo a entrega automaticamente aos motoboys online e disponíveis.',
+      'COURIER_ASSIGNED' =>
+        'Um motoboy aceitou e seguirá para a retirada.',
+      'PICKED_UP' => 'Seu pedido já está com o motoboy.',
+      'OUT_FOR_DELIVERY' => 'O motoboy está levando seu pedido até você.',
+      'DELIVERED' =>
+        'Tudo certo. O histórico completo continua disponível aqui.',
+      'CANCELED' => 'Este pedido não seguirá para entrega.',
+      _ => 'Acompanhe as próximas etapas por aqui.',
+    };
