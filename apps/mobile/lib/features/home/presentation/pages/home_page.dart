@@ -2,380 +2,347 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/navigation/app_nav.dart';
 import '../../../../core/state/app_state.dart';
+import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/prime_category_tile.dart';
+import '../../../../core/widgets/prime_product_card.dart';
+import '../../../../core/widgets/prime_ui.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  static const cats = [
-    ('Cerveja', Icons.sports_bar_rounded, Color(0xFFFFE4A8)),
-    ('Whisky', Icons.liquor_rounded, Color(0xFFFFD9C6)),
-    ('Drinks', Icons.local_bar_rounded, Color(0xFFDDF5EF)),
-    ('Vinhos', Icons.wine_bar_rounded, Color(0xFFFFDFE6)),
-    ('Sem álcool', Icons.local_drink_rounded, Color(0xFFDDEFFF)),
-  ];
-
   @override
   Widget build(BuildContext context) => SafeArea(
-    bottom: false,
-    child: CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        const SliverPadding(
-          padding: EdgeInsets.fromLTRB(20, 13, 20, 0),
-          sliver: SliverToBoxAdapter(child: _Header()),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 17, 20, 0),
-          sliver: SliverToBoxAdapter(
-            child: _Search(onTap: () => AppNav.instance.go(1)),
-          ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-          sliver: SliverToBoxAdapter(
-            child: _Hero(onTap: () => AppNav.instance.go(1)),
-          ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 22, 20, 11),
-          sliver: SliverToBoxAdapter(
-            child: _Title(
-              'Seu momento',
-              'Ver tudo',
-              onTap: () => AppNav.instance.go(1),
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: SizedBox(
-            height: 96,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              scrollDirection: Axis.horizontal,
-              itemCount: cats.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
-              itemBuilder: (_, i) => _Cat(
-                cats[i],
-                onTap: () => AppNav.instance.go(1),
-              ),
-            ),
-          ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 11),
-          sliver: SliverToBoxAdapter(
-            child: _Title(
-              'Gelou, chegou',
-              'Ver mais',
-              onTap: () => AppNav.instance.go(1),
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: AnimatedBuilder(
-            animation: AppState.instance,
-            builder: (_, __) {
-              final products = AppState.instance.products;
-              return SizedBox(
-                height: 239,
-                child: products.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'Carregando catálogo...',
-                          style: TextStyle(
-                            color: AppColors.muted,
-                            fontWeight: FontWeight.w700,
+        bottom: false,
+        child: AnimatedBuilder(
+          animation: AppState.instance,
+          builder: (_, __) {
+            final state = AppState.instance;
+            final products = state.products;
+            final categories = _categories(products);
+            final featured = products.take(8).toList();
+            final recommended =
+                products.length > 4 ? products.skip(4).take(8).toList() : products;
+
+            return RefreshIndicator(
+              onRefresh: state.loadProducts,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: AppControl.maxContentWidth,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.lg,
+                            14,
+                            AppSpacing.lg,
+                            0,
+                          ),
+                          child: _Header(state: state),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: AppControl.maxContentWidth,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.lg,
+                            16,
+                            AppSpacing.lg,
+                            0,
+                          ),
+                          child: PrimeSearchField(
+                            readOnly: true,
+                            onTap: () => AppNav.instance.go(1),
                           ),
                         ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        scrollDirection: Axis.horizontal,
-                        itemCount: products.length > 8 ? 8 : products.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 12),
-                        itemBuilder: (_, i) => _Product(products[i]),
                       ),
-              );
-            },
-          ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: AppControl.maxContentWidth,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.lg,
+                            14,
+                            AppSpacing.lg,
+                            0,
+                          ),
+                          child: _Hero(
+                            onTap: () => AppNav.instance.go(1),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: AppControl.maxContentWidth,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.lg,
+                            24,
+                            AppSpacing.lg,
+                            10,
+                          ),
+                          child: PrimeSectionHeader(
+                            eyebrow: 'EXPLORE',
+                            title: 'Categorias',
+                            subtitle: 'Tudo organizado para você chegar mais rápido.',
+                            actionLabel: 'Ver tudo',
+                            onAction: () => AppNav.instance.go(1),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: AppControl.maxContentWidth,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.lg,
+                          ),
+                          child: _CategoryGrid(categories: categories),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: AppControl.maxContentWidth,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.lg,
+                            26,
+                            AppSpacing.lg,
+                            10,
+                          ),
+                          child: const PrimeSectionHeader(
+                            eyebrow: 'DESTAQUES',
+                            title: 'Gelou, chegou',
+                            subtitle: 'Uma seleção rápida para começar.',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: _HorizontalProducts(
+                      products: featured,
+                      loading: products.isEmpty,
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: AppControl.maxContentWidth,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.lg,
+                            26,
+                            AppSpacing.lg,
+                            10,
+                          ),
+                          child: const PrimeSectionHeader(
+                            eyebrow: 'PORTO PRIME',
+                            title: 'Para o seu momento',
+                            subtitle:
+                                'Praia, encontro, descanso ou festa — escolha no seu ritmo.',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: _Moments()),
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: AppControl.maxContentWidth,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.lg,
+                            26,
+                            AppSpacing.lg,
+                            10,
+                          ),
+                          child: const PrimeSectionHeader(
+                            eyebrow: 'RECOMENDADOS',
+                            title: 'Mais opções para você',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: _HorizontalProducts(
+                      products: recommended,
+                      loading: products.isEmpty,
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: AppControl.maxContentWidth,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.lg,
+                            26,
+                            AppSpacing.lg,
+                            128,
+                          ),
+                          child: _PrimePromise(
+                            onTap: () => AppNav.instance.go(1),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
-        const SliverPadding(
-          padding: EdgeInsets.fromLTRB(20, 23, 20, 11),
-          sliver: SliverToBoxAdapter(child: _Title('Escolha pelo rolê', '')),
-        ),
-        const SliverToBoxAdapter(child: _Moments()),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 22, 20, 125),
-          sliver: SliverToBoxAdapter(
-            child: _PrimeCard(onTap: () => AppNav.instance.go(1)),
-          ),
-        ),
-      ],
-    ),
-  );
+      );
+
+  static List<String> _categories(List<dynamic> products) {
+    final names = <String>[];
+    for (final product in products) {
+      final name = (product['category']?['name'] ?? '').toString().trim();
+      if (name.isNotEmpty && !names.contains(name)) names.add(name);
+    }
+    const preferred = [
+      'Cervejas',
+      'Destilados',
+      'Vinhos',
+      'Refrigerantes',
+      'Energéticos',
+      'Águas',
+      'Gelo',
+      'Conveniência',
+      'Combos',
+      'Ofertas',
+    ];
+    if (names.isEmpty) return preferred;
+    return names.take(10).toList();
+  }
 }
 
 class _Header extends StatelessWidget {
-  const _Header();
+  const _Header({required this.state});
+
+  final AppState state;
 
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Container(
-        width: 46,
-        height: 46,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.oceanDeep, AppColors.turquoise],
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        alignment: Alignment.center,
-        child: const Text(
-          'P',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-      ),
-      const SizedBox(width: 11),
-      const Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'PORTO PRIME',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -.4,
-              ),
-            ),
-            SizedBox(height: 2),
-            Row(
-              children: [
-                Icon(
-                  Icons.near_me_rounded,
-                  size: 12,
-                  color: AppColors.coral,
-                ),
-                SizedBox(width: 4),
-                Text(
-                  'Entregar em Porto Seguro',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.muted,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Icon(Icons.keyboard_arrow_down_rounded, size: 15),
-              ],
-            ),
-          ],
-        ),
-      ),
-      const _Btn(Icons.notifications_none_rounded),
-    ],
-  );
-}
+  Widget build(BuildContext context) {
+    String address = 'Porto Seguro';
+    if (state.isCustomer && state.addresses.isNotEmpty) {
+      final selected = state.addresses.firstWhere(
+        (a) => a['isDefault'] == true,
+        orElse: () => state.addresses.first,
+      );
+      final street = (selected['street'] ?? '').toString();
+      final number = (selected['number'] ?? '').toString();
+      if (street.isNotEmpty) {
+        address = number.isEmpty ? street : street + ', ' + number;
+      }
+    }
 
-class _Btn extends StatelessWidget {
-  const _Btn(this.icon);
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: 43,
-    height: 43,
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(15),
-      border: Border.all(color: const Color(0xFFE9ECE7)),
-    ),
-    child: Icon(icon, size: 21),
-  );
-}
-
-class _Search extends StatelessWidget {
-  const _Search({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(18),
-    child: Container(
-      height: 53,
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE8EBE6)),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.search_rounded, size: 22),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Busque sua bebida, marca ou combo',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.muted,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          Icon(Icons.tune_rounded, size: 19, color: AppColors.oceanDeep),
-        ],
-      ),
-    ),
-  );
-}
-
-class _Hero extends StatelessWidget {
-  const _Hero({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(30),
-    child: Container(
-      height: 252,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF063F3A), Color(0xFF008D7F)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.ocean.withValues(alpha: .2),
-            blurRadius: 28,
-            offset: const Offset(0, 13),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -70,
-            top: -75,
-            child: Container(
-              width: 220,
-              height: 220,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.sun.withValues(alpha: .98),
-              ),
-            ),
-          ),
-          Positioned(
-            right: 16,
-            bottom: -15,
-            child: Transform.rotate(
-              angle: -.10,
-              child: const Icon(
-                Icons.sports_bar_rounded,
-                size: 135,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          Positioned(
-            right: 88,
-            bottom: 18,
-            child: Container(
-              width: 15,
-              height: 15,
-              decoration: BoxDecoration(
-                color: AppColors.coral,
-                borderRadius: BorderRadius.circular(5),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(22),
-            child: SizedBox(
-              width: 220,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      children: [
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => AppNav.instance.go(3),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 7,
-                        height: 7,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF7FF2D8),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Text(
-                        'PORTO SEGURO • ONLINE',
-                        style: TextStyle(
-                          color: Color(0xFFD9FFF6),
-                          fontSize: 9,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: .8,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 15),
-                  const Text(
-                    'Seu brinde.\nNo seu tempo.',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 31,
-                      height: 1,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -1.1,
-                    ),
-                  ),
-                  const SizedBox(height: 9),
-                  const Text(
-                    'Gelada do jeito certo, sem tirar você do momento.',
-                    style: TextStyle(
-                      color: Color(0xFFD5F4EE),
-                      fontSize: 12,
-                      height: 1.35,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 15,
-                      vertical: 11,
-                    ),
+                    width: 42,
+                    height: 42,
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
+                      color: AppColors.ocean900,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'P',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 21,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 11),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 220),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Pedir agora',
-                          style: TextStyle(
-                            color: AppColors.oceanDeep,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                          ),
+                          'ENTREGAR EM',
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: AppColors.ocean600,
+                                    letterSpacing: 1.1,
+                                  ),
                         ),
-                        SizedBox(width: 7),
-                        Icon(
-                          Icons.arrow_forward_rounded,
-                          size: 16,
-                          color: AppColors.oceanDeep,
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            const Icon(
+                              AppIcons.mapPin,
+                              size: 14,
+                              color: AppColors.ink,
+                            ),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                address,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
+                                    ?.copyWith(fontSize: 12),
+                              ),
+                            ),
+                            const SizedBox(width: 3),
+                            const Icon(AppIcons.chevronDown, size: 14),
+                          ],
                         ),
                       ],
                     ),
@@ -384,207 +351,296 @@ class _Hero extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      ),
-    ),
-  );
-}
-
-class _Title extends StatelessWidget {
-  const _Title(this.title, this.action, {this.onTap});
-  final String title;
-  final String action;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Expanded(
-        child: Text(title, style: Theme.of(context).textTheme.titleLarge),
-      ),
-      if (action.isNotEmpty)
-        GestureDetector(
-          onTap: onTap,
-          child: Text(
-            action,
-            style: const TextStyle(
-              color: AppColors.oceanDeep,
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
         ),
-    ],
-  );
+        const Spacer(),
+        PrimeIconButton(
+          icon: AppIcons.bag,
+          badgeCount: state.cartCount,
+          semanticLabel: 'Abrir sacola',
+          onPressed: () => AppNav.instance.go(2),
+        ),
+      ],
+    );
+  }
 }
 
-class _Cat extends StatelessWidget {
-  const _Cat(this.data, {required this.onTap});
-  final (String, IconData, Color) data;
+class _Hero extends StatelessWidget {
+  const _Hero({required this.onTap});
+
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: SizedBox(
-      width: 70,
-      child: Column(
-        children: [
-          Container(
-            width: 62,
-            height: 62,
+  Widget build(BuildContext context) => Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          child: Ink(
+            height: 246,
             decoration: BoxDecoration(
-              color: data.$3,
-              borderRadius: BorderRadius.circular(21),
-            ),
-            child: Icon(data.$2, size: 28, color: AppColors.ink),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            data.$1,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-class _Product extends StatelessWidget {
-  const _Product(this.product);
-  final dynamic product;
-
-  @override
-  Widget build(BuildContext context) {
-    final price = double.tryParse(product['price'].toString()) ?? 0;
-    final image = (product['imageUrl'] ?? '').toString();
-    final category = (product['category']?['name'] ?? 'Porto Prime').toString();
-
-    return Container(
-      width: 164,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE8EBE6)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              Container(
-                height: 112,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.mint,
-                  borderRadius: BorderRadius.circular(19),
-                ),
-                alignment: Alignment.center,
-                clipBehavior: Clip.antiAlias,
-                child: image.isNotEmpty
-                    ? Image.network(
-                        image,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: 112,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.local_drink_rounded,
-                          size: 55,
-                          color: AppColors.ink,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.local_drink_rounded,
-                        size: 55,
-                        color: AppColors.ink,
-                      ),
+              borderRadius: BorderRadius.circular(AppRadius.xl),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.ocean900,
+                  AppColors.ocean700,
+                  Color(0xFF0A9584),
+                ],
               ),
-              Positioned(
-                left: 8,
-                top: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(9),
-                  ),
-                  child: const Text(
-                    'PRIME',
-                    style: TextStyle(
-                      fontSize: 8,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: .5,
+              boxShadow: AppShadows.elevated,
+            ),
+            child: Stack(
+              clipBehavior: Clip.antiAlias,
+              children: [
+                Positioned(
+                  right: -70,
+                  top: -94,
+                  child: Container(
+                    width: 250,
+                    height: 250,
+                    decoration: BoxDecoration(
+                      color: AppColors.sun500.withValues(alpha: .96),
+                      shape: BoxShape.circle,
                     ),
                   ),
                 ),
-              ),
-              const Positioned(
-                right: 8,
-                top: 8,
-                child: Icon(Icons.favorite_border_rounded, size: 18),
-              ),
-            ],
-          ),
-          const SizedBox(height: 9),
-          Text(
-            (product['name'] ?? '').toString(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
-          ),
-          Text(
-            category,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 10,
-              color: AppColors.muted,
-              fontWeight: FontWeight.w600,
+                Positioned(
+                  right: 24,
+                  bottom: 22,
+                  child: Transform.rotate(
+                    angle: -.08,
+                    child: Container(
+                      width: 110,
+                      height: 128,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: .11),
+                        borderRadius: BorderRadius.circular(34),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: .14),
+                        ),
+                      ),
+                      child: const Icon(
+                        AppIcons.beer,
+                        color: Colors.white,
+                        size: 58,
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: -18,
+                  bottom: -34,
+                  child: Container(
+                    width: 118,
+                    height: 118,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: .045),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(22),
+                  child: SizedBox(
+                    width: 235,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: .1),
+                            borderRadius:
+                                BorderRadius.circular(AppRadius.pill),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 7,
+                                height: 7,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFF8EFFE1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                'PORTO SEGURO • ONLINE',
+                                style: TextStyle(
+                                  color: Color(0xFFE1FFF7),
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: .75,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        const Text(
+                          'Verão na porta.
+Sem sair do momento.',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 29,
+                            height: 1.02,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -1.0,
+                          ),
+                        ),
+                        const SizedBox(height: 9),
+                        const Text(
+                          'Bebidas geladas, conveniência e entrega com ritmo de Porto Seguro.',
+                          style: TextStyle(
+                            color: Color(0xFFD3EEE8),
+                            fontSize: 11,
+                            height: 1.45,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 11,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Explorar agora',
+                                style: TextStyle(
+                                  color: AppColors.ocean800,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              SizedBox(width: 7),
+                              Icon(
+                                AppIcons.arrowRight,
+                                size: 15,
+                                color: AppColors.ocean800,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const Spacer(),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'R\$ ' + price.toStringAsFixed(2).replaceAll('.', ','),
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
+        ),
+      );
+}
+
+class _CategoryGrid extends StatelessWidget {
+  const _CategoryGrid({required this.categories});
+
+  final List<String> categories;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (_, constraints) {
+          final width = constraints.maxWidth;
+          final columns = width >= 760
+              ? 5
+              : width >= 500
+                  ? 5
+                  : width >= 360
+                      ? 4
+                      : 3;
+          final visible = categories.take(10).toList();
+          final rows = (visible.length / columns).ceil();
+          final tileHeight = width >= 500 ? 104.0 : 96.0;
+
+          return SizedBox(
+            height: rows * tileHeight,
+            child: GridView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              itemCount: visible.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                mainAxisExtent: tileHeight,
+                crossAxisSpacing: 4,
+                mainAxisSpacing: 2,
+              ),
+              itemBuilder: (_, index) {
+                final name = visible[index];
+                return PrimeCategoryTile(
+                  name: name,
+                  compact: width < 500,
+                  onTap: () {
+                    AppState.instance.selectCatalogCategory(name);
+                    AppNav.instance.go(1);
+                  },
+                );
+              },
+            ),
+          );
+        },
+      );
+}
+
+class _HorizontalProducts extends StatelessWidget {
+  const _HorizontalProducts({
+    required this.products,
+    required this.loading,
+  });
+
+  final List<dynamic> products;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        height: 270,
+        child: loading
+            ? ListView.separated(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                scrollDirection: Axis.horizontal,
+                itemCount: 4,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(width: AppSpacing.sm),
+                itemBuilder: (_, __) => const SizedBox(
+                  width: 172,
+                  child: Column(
+                    children: [
+                      PrimeSkeleton(height: 170, radius: AppRadius.lg),
+                      SizedBox(height: 10),
+                      PrimeSkeleton(height: 16),
+                      SizedBox(height: 7),
+                      PrimeSkeleton(height: 14, width: 110),
+                    ],
                   ),
+                ),
+              )
+            : ListView.separated(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                scrollDirection: Axis.horizontal,
+                itemCount: products.length,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(width: AppSpacing.sm),
+                itemBuilder: (_, i) => SizedBox(
+                  width: 172,
+                  child: PrimeProductCard(product: products[i]),
                 ),
               ),
-              InkWell(
-                onTap: () => AppState.instance.addProduct(
-                  product['id'].toString(),
-                ),
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  width: 35,
-                  height: 35,
-                  decoration: BoxDecoration(
-                    color: AppColors.ink,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.add_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+      );
 }
 
 class _Moments extends StatelessWidget {
@@ -592,147 +648,160 @@ class _Moments extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-    height: 113,
-    child: ListView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      children: [
-        _moment(
-          'Pé na areia',
-          'Praia + cerveja',
-          Icons.beach_access_rounded,
-          AppColors.sand,
+        height: 110,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          children: [
+            _Moment(
+              title: 'Pé na areia',
+              subtitle: 'Geladas para a praia',
+              icon: AppIcons.waves,
+              color: AppColors.sand100,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            _Moment(
+              title: 'Churrasco',
+              subtitle: 'Combos sem erro',
+              icon: AppIcons.packageOpen,
+              color: AppColors.coral100,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            _Moment(
+              title: 'Fim de tarde',
+              subtitle: 'Vinhos & destilados',
+              icon: AppIcons.wine,
+              color: AppColors.ocean100,
+            ),
+          ],
         ),
-        const SizedBox(width: 10),
-        _moment(
-          'Churrasco',
-          'Combo sem erro',
-          Icons.outdoor_grill_rounded,
-          const Color(0xFFFFE0D2),
-        ),
-        const SizedBox(width: 10),
-        _moment(
-          'Noite',
-          'Drinks & destilados',
-          Icons.nightlife_rounded,
-          const Color(0xFFDDF3EE),
-        ),
-      ],
-    ),
-  );
+      );
+}
 
-  Widget _moment(String title, String subtitle, IconData icon, Color color) =>
-      GestureDetector(
-        onTap: () => AppNav.instance.go(1),
-        child: Container(
-          width: 174,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(23),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 45,
-                height: 45,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: .75),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Icon(icon, size: 24),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w900,
-                      ),
+class _Moment extends StatelessWidget {
+  const _Moment({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Material(
+        color: color,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        child: InkWell(
+          onTap: () => AppNav.instance.go(1),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          child: SizedBox(
+            width: 184,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: .78),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontSize: 9,
-                        color: AppColors.muted,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    child: Icon(icon, size: 21, color: AppColors.ink),
+                  ),
+                  const SizedBox(width: 11),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          subtitle,
+                          maxLines: 2,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       );
 }
 
-class _PrimeCard extends StatelessWidget {
-  const _PrimeCard({required this.onTap});
+class _PrimePromise extends StatelessWidget {
+  const _PrimePromise({required this.onTap});
+
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(26),
-    child: Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFF17231F),
-        borderRadius: BorderRadius.circular(26),
-      ),
-      child: const Row(
-        children: [
-          DecoratedBox(
+  Widget build(BuildContext context) => Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          child: Ink(
+            padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
-              color: Color(0xFF263A34),
-              borderRadius: BorderRadius.all(Radius.circular(17)),
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.xl),
+              border: Border.all(color: AppColors.stroke),
             ),
-            child: SizedBox(
-              width: 53,
-              height: 53,
-              child: Icon(
-                Icons.bolt_rounded,
-                color: AppColors.sun,
-                size: 29,
-              ),
-            ),
-          ),
-          SizedBox(width: 13),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  'Prime é chegar antes.',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
+                Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: AppColors.ocean50,
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                  ),
+                  child: const Icon(
+                    AppIcons.sparkles,
+                    color: AppColors.ocean700,
+                    size: 27,
                   ),
                 ),
-                SizedBox(height: 3),
-                Text(
-                  'Uma experiência desenhada para não interromper seu momento.',
-                  style: TextStyle(
-                    color: Colors.white60,
-                    fontSize: 10,
-                    height: 1.35,
-                    fontWeight: FontWeight.w600,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Porto Prime, do seu jeito.',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Catálogo simples, pagamento seguro e acompanhamento do pedido em tempo real.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
                   ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(
+                  AppIcons.chevronRight,
+                  color: AppColors.ocean700,
+                  size: 19,
                 ),
               ],
             ),
           ),
-          Icon(Icons.arrow_forward_rounded, color: Colors.white),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
