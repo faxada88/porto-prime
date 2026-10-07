@@ -239,98 +239,177 @@ class _LiveItem extends StatelessWidget {
     final detail = (p['category']?['name'] ?? 'Porto Prime').toString();
 
     return Container(
-      padding: const EdgeInsets.all(11),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.stroke),
+        boxShadow: AppShadows.soft,
       ),
       child: Row(
         children: [
           Container(
-            width: 76,
-            height: 76,
+            width: 82,
+            height: 82,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: AppColors.mint,
+              gradient: const LinearGradient(
+                colors: [AppColors.surfaceSoft, AppColors.surfaceMuted],
+              ),
               borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: AppColors.stroke),
             ),
             child: image.isEmpty
-                ? const Icon(AppIcons.package, size: 38)
-                : Image.network(
-                    image,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) =>
-                        const Icon(AppIcons.package, size: 38),
+                ? const Icon(
+                    AppIcons.package,
+                    size: 30,
+                    color: AppColors.ocean700,
+                  )
+                : Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Image.network(
+                      image,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.medium,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        AppIcons.package,
+                        size: 30,
+                        color: AppColors.ocean700,
+                      ),
+                    ),
                   ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 13),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  (p['name'] ?? '').toString(),
+                  detail.toUpperCase(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14,
-                  ),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.ocean600,
+                        fontSize: 7.5,
+                        letterSpacing: .65,
+                      ),
                 ),
+                const SizedBox(height: 3),
                 Text(
-                  detail,
-                  style: const TextStyle(
-                    color: AppColors.muted,
-                    fontSize: 10,
-                  ),
+                  (p['name'] ?? '').toString(),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontSize: 13.2,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   _brl(price),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14,
-                  ),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              color: AppColors.canvas,
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            child: Row(
-              children: [
-                InkWell(
-                  onTap: () => s.changeQty(id, -1),
-                  child: const Padding(
-                    padding: EdgeInsets.all(3),
-                    child: Icon(AppIcons.minus, size: 17),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Semantics(
+                button: true,
+                label: 'Remover produto da sacola',
+                child: InkWell(
+                  onTap: () => s.removeProduct(id),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  child: const SizedBox(
+                    width: 34,
+                    height: 34,
+                    child: Icon(
+                      AppIcons.trash,
+                      size: 16,
+                      color: AppColors.subtle,
+                    ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    qty.toString(),
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
+              ),
+              const SizedBox(height: 9),
+              Container(
+                height: 36,
+                padding: const EdgeInsets.symmetric(horizontal: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.ocean50,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(color: AppColors.ocean100),
                 ),
-                InkWell(
-                  onTap: () => s.changeQty(id, 1),
-                  child: const Padding(
-                    padding: EdgeInsets.all(3),
-                    child: Icon(AppIcons.plus, size: 17),
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _CartQtyButton(
+                      icon: AppIcons.minus,
+                      label: 'Diminuir quantidade',
+                      onTap: () => s.changeQty(id, -1),
+                    ),
+                    SizedBox(
+                      width: 23,
+                      child: Text(
+                        qty.toString(),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: AppColors.ocean800,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    _CartQtyButton(
+                      icon: AppIcons.plus,
+                      label: 'Aumentar quantidade',
+                      onTap: () => s.changeQty(id, 1),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+}
+
+class _CartQtyButton extends StatelessWidget {
+  const _CartQtyButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: label,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          child: SizedBox(
+            width: 28,
+            height: 32,
+            child: Icon(
+              icon,
+              size: 14,
+              color: AppColors.ocean800,
+            ),
+          ),
+        ),
+      );
 }
 
 class _Price extends StatelessWidget {
@@ -360,6 +439,92 @@ class _Price extends StatelessWidget {
       ),
     ],
   );
+}
+
+class _CheckoutStages extends StatelessWidget {
+  const _CheckoutStages();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceOcean,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: AppColors.ocean100),
+        ),
+        child: const Row(
+          children: [
+            _CheckoutStage(icon: AppIcons.mapPin, label: 'Endereço', active: true),
+            _StageConnector(active: true),
+            _CheckoutStage(icon: AppIcons.route, label: 'Entrega', active: true),
+            _StageConnector(active: false),
+            _CheckoutStage(icon: AppIcons.creditCard, label: 'Pagamento'),
+          ],
+        ),
+      );
+}
+
+class _CheckoutStage extends StatelessWidget {
+  const _CheckoutStage({
+    required this.icon,
+    required this.label,
+    this.active = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+        child: Column(
+          children: [
+            Container(
+              width: 31,
+              height: 31,
+              decoration: BoxDecoration(
+                color: active ? AppColors.ocean800 : AppColors.surface,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: active ? AppColors.ocean800 : AppColors.strokeStrong,
+                ),
+              ),
+              child: Icon(
+                icon,
+                size: 14,
+                color: active ? Colors.white : AppColors.subtle,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              label,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: 7.8,
+                fontWeight: FontWeight.w800,
+                color: active ? AppColors.ocean800 : AppColors.subtle,
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+class _StageConnector extends StatelessWidget {
+  const _StageConnector({required this.active});
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+        child: Container(
+          height: 2,
+          margin: const EdgeInsets.only(bottom: 17),
+          decoration: BoxDecoration(
+            color: active ? AppColors.ocean300 : AppColors.stroke,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+          ),
+        ),
+      );
 }
 
 class _EmptyCart extends StatelessWidget {
@@ -434,16 +599,7 @@ Future<void> _checkout(BuildContext context) async {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: Container(
-                    width: 42,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD8DDDA),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
+                const PrimeSheetHandle(),
                 const SizedBox(height: 18),
                 const Text(
                   'Confirmar entrega',
@@ -454,7 +610,9 @@ Future<void> _checkout(BuildContext context) async {
                   'Escolha onde receber seu pedido.',
                   style: TextStyle(color: AppColors.muted, fontSize: 11),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
+                const _CheckoutStages(),
+                const SizedBox(height: 16),
                 ...s.addresses.map(
                   (a) => RadioListTile<String>(
                     value: a['id'].toString(),
