@@ -55,6 +55,7 @@ abstract final class AppIcons {
   static const power = LucideIcons.power;
   static const radar = LucideIcons.radar;
   static const sparkles = LucideIcons.sparkles;
+  static const waves = LucideIcons.waves;
   static const tag = LucideIcons.badgePercent;
   static const alert = LucideIcons.circleAlert;
   static const info = LucideIcons.circleHelp;
