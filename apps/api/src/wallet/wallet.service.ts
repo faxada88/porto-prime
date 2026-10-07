@@ -252,6 +252,8 @@ export class WalletService {
       );
     }
 
+    const pixKey = courier.pixKey;
+    const pixKeyType = courier.pixKeyType;
     const withdrawalId = randomUUID();
 
     const withdrawal = await this.prisma.$transaction(async (tx) => {
@@ -271,8 +273,8 @@ export class WalletService {
           courierId: courier.id,
           amount: Number(amount.toFixed(2)),
           status: 'PENDING',
-          pixKeyType: courier.pixKeyType,
-          pixKey: courier.pixKey,
+          pixKeyType,
+          pixKey,
         },
       });
 
