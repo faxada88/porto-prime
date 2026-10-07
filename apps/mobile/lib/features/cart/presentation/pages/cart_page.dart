@@ -111,7 +111,7 @@ class CartPage extends StatelessWidget {
               const SizedBox(height: 14),
               InkWell(
                 onTap: s.loading ? null : () => _checkout(context),
-                borderRadius: BorderRadius.circular(19),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 child: Container(
                   height: 58,
                   alignment: Alignment.center,
@@ -179,7 +179,7 @@ class _Delivery extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.sand,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Row(
         children: [
@@ -242,7 +242,7 @@ class _LiveItem extends StatelessWidget {
       padding: const EdgeInsets.all(11),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(23),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Row(
         children: [
@@ -252,7 +252,7 @@ class _LiveItem extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: AppColors.mint,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: image.isEmpty
                 ? const Icon(AppIcons.package, size: 38)
@@ -299,7 +299,7 @@ class _LiveItem extends StatelessWidget {
             padding: const EdgeInsets.all(5),
             decoration: BoxDecoration(
               color: AppColors.canvas,
-              borderRadius: BorderRadius.circular(13),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Row(
               children: [
@@ -507,7 +507,7 @@ Future<void> _checkout(BuildContext context) async {
                   padding:const EdgeInsets.all(14),
                   decoration:BoxDecoration(
                     color:quoteError!=null?AppColors.peach:AppColors.sand,
-                    borderRadius:BorderRadius.circular(17),
+                    borderRadius:BorderRadius.circular(AppRadius.sm),
                   ),
                   child:quoteLoading
                       ?const Row(children:[
@@ -541,7 +541,7 @@ Future<void> _checkout(BuildContext context) async {
                   padding: const EdgeInsets.all(13),
                   decoration: BoxDecoration(
                     color: AppColors.mint,
-                    borderRadius: BorderRadius.circular(17),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: const Row(
                     children: [
