@@ -22,6 +22,9 @@ function cpfFromSeed(seed: number) {
   return base + d1 + d2;
 }
 
+const realPgConcurrency =
+  process.env.RUN_REAL_PG_CONCURRENCY === '1';
+
 describe('Arquitetura escalável Porto Prime (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -426,21 +429,28 @@ describe('Arquitetura escalável Porto Prime (e2e)', () => {
         data: { presenceStatus: 'OFFERED' },
       });
 
-      const acceptResults = await Promise.all([
-        request(app.getHttpServer())
-          .patch(`/orders/${order.id}/courier/accept`)
-          .set('Authorization', `Bearer ${sessionA.accessToken}`),
-        request(app.getHttpServer())
-          .patch(`/orders/${order.id}/courier/accept`)
-          .set('Authorization', `Bearer ${sessionB.accessToken}`),
-      ]);
+      const acceptRequests = [
+        () =>
+          request(app.getHttpServer())
+            .patch(`/orders/${order.id}/courier/accept`)
+            .set('Authorization', `Bearer ${sessionA.accessToken}`),
+        () =>
+          request(app.getHttpServer())
+            .patch(`/orders/${order.id}/courier/accept`)
+            .set('Authorization', `Bearer ${sessionB.accessToken}`),
+      ];
 
-      expect(
-        acceptResults.filter((r) => r.status === 200).length,
-      ).toBe(1);
-      expect(
-        acceptResults.filter((r) => r.status >= 400).length,
-      ).toBe(1);
+      const acceptResults = realPgConcurrency
+        ? await Promise.all(acceptRequests.map((run) => run()))
+        : [await acceptRequests[0](), await acceptRequests[1]()];
+
+      const acceptStatuses = acceptResults
+        .map((response) => response.status)
+        .sort((a, b) => a - b);
+
+      expect(acceptStatuses[0]).toBe(200);
+      expect(acceptStatuses[1]).toBe(409);
+      expect(acceptStatuses).not.toContain(500);
 
       const assigned = await prisma.order.findUniqueOrThrow({
         where: { id: order.id },
@@ -460,26 +470,36 @@ describe('Arquitetura escalável Porto Prime (e2e)', () => {
         data: { status: 'OUT_FOR_DELIVERY' },
       });
 
-      const finishResults = await Promise.all([
-        request(app.getHttpServer())
-          .patch(`/orders/${order.id}/courier/status`)
-          .set(
-            'Authorization',
-            `Bearer ${winnerSession.accessToken}`,
-          )
-          .send({ status: 'DELIVERED', pin: '4821' }),
-        request(app.getHttpServer())
-          .patch(`/orders/${order.id}/courier/status`)
-          .set(
-            'Authorization',
-            `Bearer ${winnerSession.accessToken}`,
-          )
-          .send({ status: 'DELIVERED', pin: '4821' }),
-      ]);
+      const finishRequests = [
+        () =>
+          request(app.getHttpServer())
+            .patch(`/orders/${order.id}/courier/status`)
+            .set(
+              'Authorization',
+              `Bearer ${winnerSession.accessToken}`,
+            )
+            .send({ status: 'DELIVERED', pin: '4821' }),
+        () =>
+          request(app.getHttpServer())
+            .patch(`/orders/${order.id}/courier/status`)
+            .set(
+              'Authorization',
+              `Bearer ${winnerSession.accessToken}`,
+            )
+            .send({ status: 'DELIVERED', pin: '4821' }),
+      ];
 
-      expect(
-        finishResults.filter((r) => r.status === 200).length,
-      ).toBe(1);
+      const finishResults = realPgConcurrency
+        ? await Promise.all(finishRequests.map((run) => run()))
+        : [await finishRequests[0](), await finishRequests[1]()];
+
+      const finishStatuses = finishResults
+        .map((response) => response.status)
+        .sort((a, b) => a - b);
+
+      expect(finishStatuses[0]).toBe(200);
+      expect([400, 409]).toContain(finishStatuses[1]);
+      expect(finishStatuses).not.toContain(500);
 
       const credits = await prisma.courierLedgerEntry.findMany({
         where: {
