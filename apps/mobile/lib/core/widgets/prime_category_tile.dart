@@ -1,28 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
+import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
-
-class _CategoryLook {
-  const _CategoryLook(this.asset, this.bg);
-  final String asset;
-  final Color bg;
-}
-
-_CategoryLook _look(String name) {
-  final n = name.toLowerCase();
-  if (n == 'todos') return const _CategoryLook('assets/category_icons/all.svg', Color(0xFFF2EEFF));
-  if (n.contains('cervej')) return const _CategoryLook('assets/category_icons/beer.svg', Color(0xFFFFF3D2));
-  if (n.contains('vinh')) return const _CategoryLook('assets/category_icons/wine.svg', Color(0xFFF9EAF0));
-  if (n.contains('whisk') || n.contains('destil') || n.contains('vodk') || n.contains('gin')) return const _CategoryLook('assets/category_icons/spirits.svg', Color(0xFFFFEBD6));
-  if (n.contains('energ')) return const _CategoryLook('assets/category_icons/energy.svg', Color(0xFFEFECFF));
-  if (n.contains('refriger') || n.contains('suco')) return const _CategoryLook('assets/category_icons/softdrink.svg', Color(0xFFFFECE5));
-  if (n.contains('água') || n.contains('agua')) return const _CategoryLook('assets/category_icons/water.svg', Color(0xFFE8F7FB));
-  if (n.contains('gelo')) return const _CategoryLook('assets/category_icons/ice.svg', Color(0xFFEBF8FB));
-  if (n.contains('conveni')) return const _CategoryLook('assets/category_icons/convenience.svg', Color(0xFFECF7EE));
-  if (n.contains('combo') || n.contains('kit')) return const _CategoryLook('assets/category_icons/combo.svg', Color(0xFFFFEEDC));
-  return const _CategoryLook('assets/category_icons/all.svg', Color(0xFFF4F1EC));
-}
 
 class PrimeCategoryTile extends StatefulWidget {
   const PrimeCategoryTile({
@@ -51,13 +30,42 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
     if (_pressed && mounted) setState(() => _pressed = false);
   }
 
+  Color get _soft {
+    final n = widget.name.toLowerCase();
+    if (n.contains('cervej')) return const Color(0xFFFFF2D2);
+    if (n.contains('vinh')) return const Color(0xFFFBE8EE);
+    if (n.contains('destil') ||
+        n.contains('whisk') ||
+        n.contains('vodk') ||
+        n.contains('gin')) {
+      return const Color(0xFFFFEBDD);
+    }
+    if (n.contains('energ')) return const Color(0xFFEDE9FF);
+    if (n.contains('refriger') || n.contains('suco')) {
+      return const Color(0xFFFFEBE4);
+    }
+    if (n.contains('agua') || n.contains('água')) {
+      return const Color(0xFFE5F5FA);
+    }
+    if (n.contains('gelo')) return const Color(0xFFE8F4FA);
+    if (n.contains('conveni')) return const Color(0xFFE7F5EC);
+    if (n.contains('combo') || n.contains('kit')) {
+      return const Color(0xFFFFEFDA);
+    }
+    if (n.contains('oferta') || n.contains('promo')) {
+      return const Color(0xFFFFE8E2);
+    }
+    return AppColors.ocean50;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final look = _look(widget.name);
+    final iconSize = widget.compact ? 25.0 : 29.0;
+
     return Semantics(
       button: true,
       selected: widget.selected,
-      label: 'Categoria ${widget.name}',
+      label: 'Categoria ' + widget.name,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTapDown: (_) => setState(() => _pressed = true),
@@ -67,51 +75,63 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
           widget.onTap();
         },
         child: AnimatedScale(
-          scale: _pressed ? .97 : 1,
-          duration: const Duration(milliseconds: 85),
-          curve: Curves.easeOutCubic,
-          child: Column(
-            children: [
-              Expanded(
-                child: Container(
-                  width: double.infinity,
+          scale: _pressed ? .96 : 1,
+          duration: AppMotion.fast,
+          curve: AppMotion.curve,
+          child: AnimatedContainer(
+            duration: AppMotion.standard,
+            curve: AppMotion.curve,
+            padding: EdgeInsets.symmetric(
+              horizontal: widget.compact ? 7 : 9,
+              vertical: widget.compact ? 8 : 10,
+            ),
+            decoration: BoxDecoration(
+              color: widget.selected ? AppColors.ocean50 : Colors.transparent,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(
+                color: widget.selected
+                    ? AppColors.ocean300
+                    : Colors.transparent,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedContainer(
+                  duration: AppMotion.standard,
+                  width: widget.compact ? 50 : 58,
+                  height: widget.compact ? 50 : 58,
                   decoration: BoxDecoration(
-                    color: look.bg,
-                    borderRadius: BorderRadius.circular(widget.compact ? 20 : 24),
-                    border: Border.all(
-                      color: widget.selected
-                          ? AppColors.ink.withValues(alpha: .12)
-                          : Colors.white.withValues(alpha: .92),
+                    color: _soft,
+                    borderRadius: BorderRadius.circular(
+                      widget.compact ? AppRadius.md : AppRadius.lg,
                     ),
+                    boxShadow: widget.selected ? AppShadows.soft : null,
                   ),
-                  padding: EdgeInsets.all(widget.compact ? 10 : 13),
-                  child: SvgPicture.asset(
-                    look.asset,
-                    fit: BoxFit.contain,
-                    semanticsLabel: widget.name,
-                    placeholderBuilder: (_) => Icon(
-                      Icons.category_rounded,
-                      size: widget.compact ? 32 : 40,
-                      color: AppColors.oceanDeep,
-                    ),
+                  child: Icon(
+                    AppIcons.category(widget.name),
+                    size: iconSize,
+                    color: AppColors.ink,
                   ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                widget.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.ink,
-                  fontSize: widget.compact ? 10.1 : 11.5,
-                  height: 1.05,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -.15,
+                SizedBox(height: widget.compact ? 7 : 9),
+                Text(
+                  widget.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: widget.selected
+                            ? AppColors.ocean800
+                            : AppColors.ink,
+                        fontWeight: widget.selected
+                            ? FontWeight.w800
+                            : FontWeight.w700,
+                        fontSize: widget.compact ? 9.8 : 10.5,
+                      ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
