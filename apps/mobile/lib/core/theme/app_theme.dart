@@ -168,7 +168,7 @@ abstract final class AppTypography {
       titleMedium: manrope.titleMedium?.copyWith(
         fontSize: 15,
         height: 1.2,
-        fontWeight: FontWeight.w750,
+        fontWeight: FontWeight.w700,
         color: AppColors.ink,
       ),
       bodyLarge: manrope.bodyLarge?.copyWith(
@@ -186,12 +186,12 @@ abstract final class AppTypography {
       bodySmall: manrope.bodySmall?.copyWith(
         fontSize: 11,
         height: 1.4,
-        fontWeight: FontWeight.w550,
+        fontWeight: FontWeight.w500,
         color: AppColors.muted,
       ),
       labelLarge: manrope.labelLarge?.copyWith(
         fontSize: 13,
-        fontWeight: FontWeight.w750,
+        fontWeight: FontWeight.w700,
         letterSpacing: -.05,
         color: AppColors.ink,
       ),
@@ -203,7 +203,7 @@ abstract final class AppTypography {
       ),
       labelSmall: manrope.labelSmall?.copyWith(
         fontSize: 9,
-        fontWeight: FontWeight.w750,
+        fontWeight: FontWeight.w700,
         letterSpacing: .7,
         color: AppColors.muted,
       ),
@@ -258,7 +258,7 @@ abstract final class AppTheme {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         labelStyle: textTheme.bodySmall?.copyWith(
-          fontWeight: FontWeight.w650,
+          fontWeight: FontWeight.w600,
         ),
         floatingLabelStyle: textTheme.labelMedium?.copyWith(
           color: AppColors.ocean700,
@@ -270,7 +270,7 @@ abstract final class AppTheme {
         helperStyle: textTheme.bodySmall,
         errorStyle: textTheme.bodySmall?.copyWith(
           color: AppColors.danger,
-          fontWeight: FontWeight.w650,
+          fontWeight: FontWeight.w600,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -355,7 +355,7 @@ abstract final class AppTheme {
         backgroundColor: AppColors.ocean900,
         contentTextStyle: textTheme.bodySmall?.copyWith(
           color: Colors.white,
-          fontWeight: FontWeight.w650,
+          fontWeight: FontWeight.w600,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
