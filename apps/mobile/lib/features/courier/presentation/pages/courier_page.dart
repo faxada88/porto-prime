@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/state/app_state.dart';
+import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class CourierPage extends StatefulWidget {
@@ -206,7 +207,7 @@ class _CourierPageState extends State<CourierPage> {
                     border: Border.all(color: AppColors.mintStrong),
                   ),
                   child: const Icon(
-                    Icons.pin_rounded,
+                    AppIcons.pin_rounded,
                     color: AppColors.oceanDeep,
                     size: 32,
                   ),
@@ -276,7 +277,7 @@ class _CourierPageState extends State<CourierPage> {
                     child: Row(
                       children: [
                         const Icon(
-                          Icons.error_outline_rounded,
+                          AppIcons.error_outline_rounded,
                           color: AppColors.coralStrong,
                           size: 18,
                         ),
@@ -351,7 +352,7 @@ class _CourierPageState extends State<CourierPage> {
                               },
                         icon: loading
                             ? const SizedBox.shrink()
-                            : const Icon(Icons.verified_rounded, size: 18),
+                            : const Icon(AppIcons.verified_rounded, size: 18),
                         label: loading
                             ? const SizedBox(
                                 width: 19,
@@ -482,7 +483,7 @@ class _CourierPageState extends State<CourierPage> {
                   decoration: const InputDecoration(
                     labelText: 'Valor',
                     prefixText: 'R\$ ',
-                    prefixIcon: Icon(Icons.payments_rounded),
+                    prefixIcon: Icon(AppIcons.payments_rounded),
                   ),
                 ),
                 if (error != null) ...[
@@ -694,14 +695,14 @@ class _CourierPageState extends State<CourierPage> {
                       const SizedBox(height: 12),
                       if (!state.courierOnline)
                         const _DriverEmpty(
-                          icon: Icons.power_settings_new_rounded,
+                          icon: AppIcons.power_settings_new_rounded,
                           title: 'Você está offline',
                           subtitle:
                               'Ative o modo online acima para começar a receber chamadas de entrega.',
                         )
                       else if (offers.isEmpty)
                         const _DriverEmpty(
-                          icon: Icons.radar_rounded,
+                          icon: AppIcons.radar_rounded,
                           title: 'Radar ativo',
                           subtitle:
                               'Estamos procurando pedidos liberados pela operação. Assim que uma entrega chegar, você verá a chamada na tela.',
@@ -756,7 +757,7 @@ class _DriverHeader extends StatelessWidget {
               boxShadow: AppShadows.soft,
             ),
             child: const Icon(
-              Icons.two_wheeler_rounded,
+              AppIcons.two_wheeler_rounded,
               color: AppColors.oceanDeep,
               size: 25,
             ),
@@ -820,12 +821,12 @@ class _DriverHeader extends StatelessWidget {
           IconButton(
             tooltip: 'Menu do motoboy',
             onPressed: onMenu,
-            icon: const Icon(Icons.grid_view_rounded, size: 20),
+            icon: const Icon(AppIcons.grid_view_rounded, size: 20),
           ),
           IconButton(
             tooltip: 'Sair',
             onPressed: onLogout,
-            icon: const Icon(Icons.logout_rounded, size: 20),
+            icon: const Icon(AppIcons.logout_rounded, size: 20),
           ),
         ],
       );
@@ -878,10 +879,10 @@ class _AvailabilityHero extends StatelessWidget {
               ),
               child: Icon(
                 hasActiveDelivery
-                    ? Icons.route_rounded
+                    ? AppIcons.route_rounded
                     : online
-                        ? Icons.radar_rounded
-                        : Icons.power_settings_new_rounded,
+                        ? AppIcons.radar_rounded
+                        : AppIcons.power_settings_new_rounded,
                 color: Colors.white,
                 size: 28,
               ),
@@ -1024,7 +1025,7 @@ class _OfferCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: const Icon(
-                      Icons.bolt_rounded,
+                      AppIcons.bolt_rounded,
                       color: Color(0xFFA26A14),
                       size: 23,
                     ),
@@ -1065,7 +1066,7 @@ class _OfferCard extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               _CompactInfo(
-                icon: Icons.location_on_rounded,
+                icon: AppIcons.location_on_rounded,
                 title: (dropoff['neighborhood'] ?? 'Região de entrega')
                     .toString(),
                 subtitle: (dropoff['city'] ?? 'Porto Seguro').toString(),
@@ -1075,7 +1076,7 @@ class _OfferCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _CompactMetric(
-                      icon: Icons.route_rounded,
+                      icon: AppIcons.route_rounded,
                       text: distance == null
                           ? 'Rota calculando'
                           : distance.toStringAsFixed(1) + ' km',
@@ -1084,7 +1085,7 @@ class _OfferCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _CompactMetric(
-                      icon: Icons.schedule_rounded,
+                      icon: AppIcons.schedule_rounded,
                       text: duration == null
                           ? 'Tempo estimado —'
                           : duration.toString() + ' min',
@@ -1274,7 +1275,7 @@ class _ActiveDeliveryCard extends StatelessWidget {
           ),
           const SizedBox(height: 11),
           _CompactInfo(
-            icon: Icons.location_on_rounded,
+            icon: AppIcons.location_on_rounded,
             title:
                 '${address['street'] ?? ''}, ${address['number'] ?? ''}',
             subtitle:
@@ -1288,7 +1289,7 @@ class _ActiveDeliveryCard extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: onOpen,
-                  icon: const Icon(Icons.receipt_long_rounded, size: 18),
+                  icon: const Icon(AppIcons.receipt_long_rounded, size: 18),
                   label: const Text('Ver detalhes'),
                 ),
               ),
@@ -1380,8 +1381,8 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                         ),
                         child: Icon(
                           incoming
-                              ? Icons.notifications_active_rounded
-                              : Icons.route_rounded,
+                              ? AppIcons.notifications_active_rounded
+                              : AppIcons.route_rounded,
                           color: incoming
                               ? const Color(0xFFA26A14)
                               : AppColors.oceanDeep,
@@ -1423,7 +1424,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                       if (!incoming)
                         IconButton(
                           onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.close_rounded),
+                          icon: const Icon(AppIcons.close_rounded),
                         ),
                     ],
                   ),
@@ -1439,7 +1440,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                   const SizedBox(height: 12),
                   if (incoming) ...[
                     _DetailSection(
-                      icon: Icons.storefront_rounded,
+                      icon: AppIcons.storefront_rounded,
                       title: 'Retirada',
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1465,7 +1466,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     _DetailSection(
-                      icon: Icons.location_on_rounded,
+                      icon: AppIcons.location_on_rounded,
                       title: 'Região de entrega',
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1495,7 +1496,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _CompactMetric(
-                            icon: Icons.route_rounded,
+                            icon: AppIcons.route_rounded,
                             text: order['routeDistanceKm'] == null
                                 ? 'Distância —'
                                 : double.tryParse(
@@ -1513,7 +1514,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: _CompactMetric(
-                            icon: Icons.schedule_rounded,
+                            icon: AppIcons.schedule_rounded,
                             text: order['routeDurationMinutes'] == null
                                 ? 'Percurso —'
                                 : order['routeDurationMinutes'].toString() +
@@ -1524,7 +1525,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     _CompactMetric(
-                      icon: Icons.shopping_bag_rounded,
+                      icon: AppIcons.shopping_bag_rounded,
                       text: (order['itemCount'] ?? 0).toString() +
                           ' item(ns) no pedido',
                     ),
@@ -1532,7 +1533,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                     const _PrivacyOfferNotice(),
                   ] else ...[
                     _DetailSection(
-                      icon: Icons.person_rounded,
+                      icon: AppIcons.person_rounded,
                       title: 'Cliente',
                       child: Column(
                         children: [
@@ -1550,7 +1551,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     _DetailSection(
-                      icon: Icons.location_on_rounded,
+                      icon: AppIcons.location_on_rounded,
                       title: 'Destino',
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1596,7 +1597,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     _DetailSection(
-                      icon: Icons.shopping_bag_rounded,
+                      icon: AppIcons.shopping_bag_rounded,
                       title: 'Itens do pedido',
                       child: Column(
                         children: [
@@ -1661,7 +1662,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     _DetailSection(
-                      icon: Icons.timeline_rounded,
+                      icon: AppIcons.timeline_rounded,
                       title: 'Progresso da entrega',
                       child: _DeliveryProgress(status: status),
                     ),
@@ -1691,7 +1692,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                               onPressed: () async {
                                 await onReject?.call();
                               },
-                              icon: const Icon(Icons.close_rounded, size: 18),
+                              icon: const Icon(AppIcons.close_rounded, size: 18),
                               label: const Text('RECUSAR'),
                             ),
                           ),
@@ -1703,7 +1704,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                                 await onAccept?.call();
                               },
                               icon: const Icon(
-                                Icons.check_circle_rounded,
+                                AppIcons.check_circle_rounded,
                                 size: 19,
                               ),
                               label: const Text('ACEITAR ENTREGA'),
@@ -1757,7 +1758,7 @@ class _PrivacyOfferNotice extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
-              Icons.privacy_tip_rounded,
+              AppIcons.privacy_tip_rounded,
               color: AppColors.oceanDeep,
               size: 18,
             ),
@@ -1793,7 +1794,7 @@ class _PinNotice extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
-              Icons.pin_rounded,
+              AppIcons.pin_rounded,
               color: Color(0xFF9A6818),
               size: 21,
             ),
@@ -1896,7 +1897,7 @@ class _SheetHero extends StatelessWidget {
           Row(
             children: [
               const Icon(
-                Icons.payments_rounded,
+                AppIcons.payments_rounded,
                 color: Color(0xFF93F2D9),
                 size: 18,
               ),
@@ -2087,10 +2088,10 @@ class _DeliveryProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stages = [
-      ('COURIER_ASSIGNED', 'Aceita', Icons.check_rounded),
-      ('PICKED_UP', 'Coletada', Icons.inventory_2_rounded),
-      ('OUT_FOR_DELIVERY', 'Em rota', Icons.route_rounded),
-      ('DELIVERED', 'Entregue', Icons.home_rounded),
+      ('COURIER_ASSIGNED', 'Aceita', AppIcons.check_rounded),
+      ('PICKED_UP', 'Coletada', AppIcons.inventory_2_rounded),
+      ('OUT_FOR_DELIVERY', 'Em rota', AppIcons.route_rounded),
+      ('DELIVERED', 'Entregue', AppIcons.home_rounded),
     ];
 
     final currentIndex = switch (status) {
@@ -2123,7 +2124,7 @@ class _DeliveryProgress extends StatelessWidget {
                     ),
                   ),
                   child: Icon(
-                    i < currentIndex ? Icons.check_rounded : stages[i].$3,
+                    i < currentIndex ? AppIcons.check_rounded : stages[i].$3,
                     color:
                         i <= currentIndex ? Colors.white : AppColors.muted,
                     size: 17,
@@ -2208,22 +2209,22 @@ class _CourierSnapshot extends StatelessWidget {
         childAspectRatio: 1.7,
         children: [
           _SnapshotCard(
-            icon: Icons.account_balance_wallet_rounded,
+            icon: AppIcons.account_balance_wallet_rounded,
             label: 'Saldo disponível',
             value: _money(summary['availableBalance']),
           ),
           _SnapshotCard(
-            icon: Icons.trending_up_rounded,
+            icon: AppIcons.trending_up_rounded,
             label: 'Ganhos hoje',
             value: _money(summary['earningsToday']),
           ),
           _SnapshotCard(
-            icon: Icons.check_circle_rounded,
+            icon: AppIcons.check_circle_rounded,
             label: 'Entregas hoje',
             value: (summary['deliveriesToday'] ?? 0).toString(),
           ),
           _SnapshotCard(
-            icon: Icons.calendar_view_week_rounded,
+            icon: AppIcons.calendar_view_week_rounded,
             label: 'Entregas semana',
             value: (summary['deliveriesWeek'] ?? 0).toString(),
           ),
@@ -2306,15 +2307,15 @@ class _DriverMenuSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = [
-      ('home', 'Início', Icons.home_rounded),
-      ('deliveries', 'Entregas', Icons.delivery_dining_rounded),
-      ('earnings', 'Ganhos', Icons.trending_up_rounded),
-      ('wallet', 'Carteira', Icons.account_balance_wallet_rounded),
-      ('withdrawals', 'Saques', Icons.payments_rounded),
-      ('history', 'Histórico', Icons.history_rounded),
-      ('profile', 'Perfil', Icons.person_rounded),
-      ('vehicle', 'Veículo / Documentos', Icons.two_wheeler_rounded),
-      ('settings', 'Configurações', Icons.settings_rounded),
+      ('home', 'Início', AppIcons.home_rounded),
+      ('deliveries', 'Entregas', AppIcons.delivery_dining_rounded),
+      ('earnings', 'Ganhos', AppIcons.trending_up_rounded),
+      ('wallet', 'Carteira', AppIcons.account_balance_wallet_rounded),
+      ('withdrawals', 'Saques', AppIcons.payments_rounded),
+      ('history', 'Histórico', AppIcons.history_rounded),
+      ('profile', 'Perfil', AppIcons.person_rounded),
+      ('vehicle', 'Veículo / Documentos', AppIcons.two_wheeler_rounded),
+      ('settings', 'Configurações', AppIcons.settings_rounded),
     ];
 
     return Container(
@@ -2367,7 +2368,7 @@ class _DriverMenuSheet extends StatelessWidget {
                   ),
                 ),
                 Icon(
-                  Icons.dashboard_customize_rounded,
+                  AppIcons.dashboard_customize_rounded,
                   color: AppColors.oceanDeep,
                 ),
               ],
@@ -2405,7 +2406,7 @@ class _DriverMenuSheet extends StatelessWidget {
                       ),
                     ),
                     trailing: const Icon(
-                      Icons.chevron_right_rounded,
+                      AppIcons.chevron_right_rounded,
                       color: AppColors.muted,
                     ),
                   );
@@ -2443,15 +2444,15 @@ class _DriverSectionSheet extends StatelessWidget {
       };
 
   IconData get icon => switch (section) {
-        'deliveries' => Icons.delivery_dining_rounded,
-        'earnings' => Icons.trending_up_rounded,
-        'wallet' => Icons.account_balance_wallet_rounded,
-        'withdrawals' => Icons.payments_rounded,
-        'history' => Icons.history_rounded,
-        'profile' => Icons.person_rounded,
-        'vehicle' => Icons.two_wheeler_rounded,
-        'settings' => Icons.settings_rounded,
-        _ => Icons.home_rounded,
+        'deliveries' => AppIcons.delivery_dining_rounded,
+        'earnings' => AppIcons.trending_up_rounded,
+        'wallet' => AppIcons.account_balance_wallet_rounded,
+        'withdrawals' => AppIcons.payments_rounded,
+        'history' => AppIcons.history_rounded,
+        'profile' => AppIcons.person_rounded,
+        'vehicle' => AppIcons.two_wheeler_rounded,
+        'settings' => AppIcons.settings_rounded,
+        _ => AppIcons.home_rounded,
       };
 
   @override
@@ -2501,7 +2502,7 @@ class _DriverSectionSheet extends StatelessWidget {
                         ),
                         IconButton(
                           onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.close_rounded),
+                          icon: const Icon(AppIcons.close_rounded),
                         ),
                       ],
                     ),
@@ -2533,7 +2534,7 @@ class _DriverSectionSheet extends StatelessWidget {
           eyebrow: 'GANHOS DE HOJE',
           value: _money(summary['earningsToday']),
           subtitle: 'Semana: ' + _money(summary['earningsWeek']),
-          icon: Icons.trending_up_rounded,
+          icon: AppIcons.trending_up_rounded,
         ),
         const SizedBox(height: 16),
         ..._ledgerWidgets(credits),
@@ -2549,7 +2550,7 @@ class _DriverSectionSheet extends StatelessWidget {
           eyebrow: 'SALDO DISPONÍVEL',
           value: _money(summary['availableBalance']),
           subtitle: 'Saldo total: ' + _money(summary['totalBalance']),
-          icon: Icons.account_balance_wallet_rounded,
+          icon: AppIcons.account_balance_wallet_rounded,
         ),
         const SizedBox(height: 11),
         SizedBox(
@@ -2557,7 +2558,7 @@ class _DriverSectionSheet extends StatelessWidget {
           height: 53,
           child: FilledButton.icon(
             onPressed: onWithdraw,
-            icon: const Icon(Icons.payments_rounded),
+            icon: const Icon(AppIcons.payments_rounded),
             label: const Text('Solicitar saque'),
           ),
         ),
@@ -2576,7 +2577,7 @@ class _DriverSectionSheet extends StatelessWidget {
           value: _money(summary['availableBalance']),
           subtitle: 'Em processamento: ' +
               _money(summary['pendingWithdrawals']),
-          icon: Icons.payments_rounded,
+          icon: AppIcons.payments_rounded,
         ),
         const SizedBox(height: 11),
         SizedBox(
@@ -2584,14 +2585,14 @@ class _DriverSectionSheet extends StatelessWidget {
           height: 53,
           child: FilledButton.icon(
             onPressed: onWithdraw,
-            icon: const Icon(Icons.add_card_rounded),
+            icon: const Icon(AppIcons.add_card_rounded),
             label: const Text('Nova solicitação'),
           ),
         ),
         const SizedBox(height: 16),
         if (rows.isEmpty)
           const _DriverEmpty(
-            icon: Icons.account_balance_rounded,
+            icon: AppIcons.account_balance_rounded,
             title: 'Nenhum saque solicitado',
             subtitle:
                 'Solicitações aparecerão aqui como pendente, processamento, pago ou rejeitado.',
@@ -2606,7 +2607,7 @@ class _DriverSectionSheet extends StatelessWidget {
       return [
         _DataPanel(
           title: 'Conta',
-          icon: Icons.person_rounded,
+          icon: AppIcons.person_rounded,
           rows: [
             ('Nome', (user['name'] ?? '—').toString()),
             ('E-mail', (user['email'] ?? '—').toString()),
@@ -2622,7 +2623,7 @@ class _DriverSectionSheet extends StatelessWidget {
       return [
         _DataPanel(
           title: 'Documentos',
-          icon: Icons.badge_rounded,
+          icon: AppIcons.badge_rounded,
           rows: [
             ('CPF', (p['document'] ?? '—').toString()),
             ('CNH', (p['cnh'] ?? '—').toString()),
@@ -2632,7 +2633,7 @@ class _DriverSectionSheet extends StatelessWidget {
         const SizedBox(height: 10),
         _DataPanel(
           title: 'Veículo',
-          icon: Icons.two_wheeler_rounded,
+          icon: AppIcons.two_wheeler_rounded,
           rows: [
             ('Marca', (p['vehicleBrand'] ?? '—').toString()),
             ('Modelo', (p['vehicleModel'] ?? '—').toString()),
@@ -2647,7 +2648,7 @@ class _DriverSectionSheet extends StatelessWidget {
       return [
         _DataPanel(
           title: 'Disponibilidade',
-          icon: Icons.radar_rounded,
+          icon: AppIcons.radar_rounded,
           custom: SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             value: state.courierOnline,
@@ -2676,7 +2677,7 @@ class _DriverSectionSheet extends StatelessWidget {
           height: 53,
           child: OutlinedButton.icon(
             onPressed: state.logout,
-            icon: const Icon(Icons.logout_rounded),
+            icon: const Icon(AppIcons.logout_rounded),
             label: const Text('Sair deste dispositivo'),
           ),
         ),
@@ -2732,7 +2733,7 @@ class _DriverSectionSheet extends StatelessWidget {
     if (rows.isEmpty) {
       return const [
         _DriverEmpty(
-          icon: Icons.receipt_long_rounded,
+          icon: AppIcons.receipt_long_rounded,
           title: 'Sem movimentações',
           subtitle:
               'Créditos, débitos, saques e estornos aparecerão neste ledger.',
@@ -2746,7 +2747,7 @@ class _DriverSectionSheet extends StatelessWidget {
     if (rows.isEmpty) {
       return const [
         _DriverEmpty(
-          icon: Icons.history_rounded,
+          icon: AppIcons.history_rounded,
           title: 'Histórico vazio',
           subtitle: 'Entregas finalizadas aparecerão aqui.',
         ),
@@ -2848,7 +2849,7 @@ class _LedgerRow extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            positive ? Icons.south_west_rounded : Icons.north_east_rounded,
+            positive ? AppIcons.south_west_rounded : AppIcons.north_east_rounded,
             color: positive
                 ? AppColors.oceanDeep
                 : const Color(0xFF966619),
@@ -2909,7 +2910,7 @@ class _WithdrawalRow extends StatelessWidget {
         child: Row(
           children: [
             const Icon(
-              Icons.payments_rounded,
+              AppIcons.payments_rounded,
               color: AppColors.oceanDeep,
             ),
             const SizedBox(width: 10),
@@ -2965,8 +2966,8 @@ class _HistoryRow extends StatelessWidget {
           children: [
             Icon(
               order['status'] == 'DELIVERED'
-                  ? Icons.check_circle_rounded
-                  : Icons.cancel_rounded,
+                  ? AppIcons.check_circle_rounded
+                  : AppIcons.cancel_rounded,
               color: order['status'] == 'DELIVERED'
                   ? AppColors.oceanDeep
                   : AppColors.coralStrong,
@@ -3176,10 +3177,10 @@ String _nextLabel(String status) => switch (status) {
     };
 
 IconData _nextIcon(String status) => switch (status) {
-      'PICKED_UP' => Icons.inventory_2_rounded,
-      'OUT_FOR_DELIVERY' => Icons.route_rounded,
-      'DELIVERED' => Icons.pin_rounded,
-      _ => Icons.arrow_forward_rounded,
+      'PICKED_UP' => AppIcons.inventory_2_rounded,
+      'OUT_FOR_DELIVERY' => AppIcons.route_rounded,
+      'DELIVERED' => AppIcons.pin_rounded,
+      _ => AppIcons.arrow_forward_rounded,
     };
 
 String _statusLabel(String status) => switch (status) {
