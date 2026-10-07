@@ -178,41 +178,143 @@ export class AdminService {
     });
   }
 
-  async deleteUser(userId: string, authorization?: string) {
-    const admin = await this.requireAdmin(authorization);
-    if (admin.id === userId) {
-      throw new BadRequestException('O administrador não pode excluir a própria conta');
+  private normalizeBulkIds(ids: unknown) {
+    if (!Array.isArray(ids)) {
+      throw new BadRequestException('Selecione ao menos um registro');
+    }
+
+    const unique = [
+      ...new Set(
+        ids
+          .map((id) => String(id ?? '').trim())
+          .filter(Boolean),
+      ),
+    ];
+
+    if (!unique.length) {
+      throw new BadRequestException('Selecione ao menos um registro');
+    }
+    if (unique.length > 100) {
+      throw new BadRequestException('Selecione no máximo 100 registros por operação');
+    }
+
+    return unique;
+  }
+
+  private async removeUser(userId: string, adminId: string) {
+    if (adminId === userId) {
+      throw new BadRequestException(
+        'O administrador não pode excluir a própria conta',
+      );
     }
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { courierProfile: true, _count: { select: { orders: true } } },
+      include: {
+        courierProfile: true,
+        _count: { select: { orders: true } },
+      },
     });
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
+    if (user.role === UserRole.ADMIN) {
+      throw new BadRequestException(
+        'Contas administrativas não podem ser excluídas por esta ação',
+      );
+    }
+
     if (user.role === UserRole.CUSTOMER && user._count.orders > 0) {
-      throw new BadRequestException('Cliente com histórico de pedidos não pode ser excluído');
+      throw new BadRequestException(
+        'Cliente possui histórico de pedidos e não pode ser excluído',
+      );
     }
 
     if (user.courierProfile) {
+      const courierId = user.courierProfile.id;
       const activeDeliveries = await this.prisma.order.count({
         where: {
-          courierId: user.courierProfile.id,
-          status: { notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED] },
+          courierId,
+          status: {
+            notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED],
+          },
         },
       });
       if (activeDeliveries > 0) {
-        throw new BadRequestException('Motoboy possui entrega ativa e não pode ser excluído');
+        throw new BadRequestException(
+          'Motoboy possui entrega ativa e não pode ser excluído',
+        );
       }
 
-      await this.prisma.order.updateMany({
-        where: { courierId: user.courierProfile.id },
-        data: { courierId: null },
+      await this.prisma.$transaction(async (tx) => {
+        await tx.order.updateMany({
+          where: { courierId },
+          data: { courierId: null },
+        });
+        await tx.courierLedgerEntry.deleteMany({
+          where: { courierId },
+        });
+        await tx.withdrawal.deleteMany({
+          where: { courierId },
+        });
+        await (tx as any).deliveryOffer.deleteMany({
+          where: { courierId },
+        });
+        await (tx as any).courierDevicePresence.deleteMany({
+          where: { courierId },
+        });
+        await tx.user.delete({ where: { id: userId } });
       });
+    } else {
+      await this.prisma.user.delete({ where: { id: userId } });
     }
 
-    await this.prisma.user.delete({ where: { id: userId } });
-    return { success: true };
+    return {
+      id: user.id,
+      name: user.name,
+      role: user.role,
+    };
+  }
+
+  async deleteUser(userId: string, authorization?: string) {
+    const admin = await this.requireAdmin(authorization);
+    const deleted = await this.removeUser(userId, admin.id);
+    return {
+      success: true,
+      deleted,
+      message: `${deleted.name} foi excluído com sucesso`,
+    };
+  }
+
+  async bulkDeleteUsers(ids: unknown, authorization?: string) {
+    const admin = await this.requireAdmin(authorization);
+    const normalized = this.normalizeBulkIds(ids);
+    const deleted: Array<{ id: string; name: string; role: UserRole }> = [];
+    const failed: Array<{ id: string; reason: string }> = [];
+
+    for (const id of normalized) {
+      try {
+        deleted.push(await this.removeUser(id, admin.id));
+      } catch (error) {
+        failed.push({
+          id,
+          reason:
+            error instanceof Error
+              ? error.message
+              : 'Não foi possível excluir este usuário',
+        });
+      }
+    }
+
+    const message = failed.length
+      ? `${deleted.length} excluído(s). ${failed.length} registro(s) foram preservados por segurança.`
+      : `${deleted.length} usuário(s) excluído(s) com sucesso`;
+
+    return {
+      success: failed.length === 0,
+      deleted,
+      failed,
+      message,
+    };
   }
 
   async approve(userId: string, authorization?: string) {
@@ -441,20 +543,78 @@ export class AdminService {
     );
   }
 
-  async deleteOrder(orderId: string, authorization?: string) {
-    await this.requireAdmin(authorization);
+  private async removeOrder(orderId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
-      select: { id: true, status: true },
+      select: {
+        id: true,
+        status: true,
+        customer: { select: { name: true } },
+      },
     });
     if (!order) throw new NotFoundException('Pedido não encontrado');
-    if (order.status === OrderStatus.PICKED_UP || order.status === OrderStatus.OUT_FOR_DELIVERY) {
-      throw new BadRequestException('Pedido em entrega não pode ser excluído');
+    if (
+      order.status === OrderStatus.PICKED_UP ||
+      order.status === OrderStatus.OUT_FOR_DELIVERY
+    ) {
+      throw new BadRequestException(
+        'Pedido em entrega não pode ser excluído',
+      );
     }
 
-    await this.prisma.courierLedgerEntry.deleteMany({ where: { orderId } });
-    await this.prisma.order.delete({ where: { id: orderId } });
-    return { success: true };
+    await this.prisma.$transaction(async (tx) => {
+      await tx.courierLedgerEntry.deleteMany({
+        where: { orderId },
+      });
+      await tx.order.delete({ where: { id: orderId } });
+    });
+
+    return {
+      id: order.id,
+      customerName: order.customer?.name ?? null,
+    };
+  }
+
+  async deleteOrder(orderId: string, authorization?: string) {
+    await this.requireAdmin(authorization);
+    const deleted = await this.removeOrder(orderId);
+    return {
+      success: true,
+      deleted,
+      message: `Pedido #${deleted.id.slice(-8).toUpperCase()} excluído com sucesso`,
+    };
+  }
+
+  async bulkDeleteOrders(ids: unknown, authorization?: string) {
+    await this.requireAdmin(authorization);
+    const normalized = this.normalizeBulkIds(ids);
+    const deleted: Array<{ id: string; customerName: string | null }> = [];
+    const failed: Array<{ id: string; reason: string }> = [];
+
+    for (const id of normalized) {
+      try {
+        deleted.push(await this.removeOrder(id));
+      } catch (error) {
+        failed.push({
+          id,
+          reason:
+            error instanceof Error
+              ? error.message
+              : 'Não foi possível excluir este pedido',
+        });
+      }
+    }
+
+    const message = failed.length
+      ? `${deleted.length} pedido(s) excluído(s). ${failed.length} foram preservados por segurança.`
+      : `${deleted.length} pedido(s) excluído(s) com sucesso`;
+
+    return {
+      success: failed.length === 0,
+      deleted,
+      failed,
+      message,
+    };
   }
 
   async createProduct(
