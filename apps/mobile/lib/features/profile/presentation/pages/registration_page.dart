@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/state/app_state.dart';
@@ -11,7 +13,10 @@ class RegistrationPage extends StatefulWidget {
 }
 class _RegistrationPageState extends State<RegistrationPage> {
   final forms=List.generate(6, (_)=>GlobalKey<FormState>()); int step=0; bool accepted=false,obscure=true;
-  final Map<String,String?> remoteError={}; final Map<String,bool> checking={}; final Map<String,int> validationTicket={};
+  final Map<String,String?> remoteError={};
+  final Map<String,bool> checking={};
+  final Map<String,int> validationTicket={};
+  final Map<String,Timer> remoteDebounce={};
   GlobalKey<FormState> get form=>forms[step];
   final Map<String,TextEditingController> c={};
   TextEditingController ctl(String k)=>c.putIfAbsent(k,()=>TextEditingController());
@@ -32,7 +37,16 @@ class _RegistrationPageState extends State<RegistrationPage> {
     [const _F('email','E-mail',Icons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',Icons.lock_outline_rounded,secret:true,hint:'8+ caracteres, maiúscula, minúscula e número'),const _F('confirmPassword','Confirme sua senha',Icons.lock_reset_rounded,secret:true),const _F('pixKey','Chave PIX para recebimentos',Icons.account_balance_wallet_outlined,required:false)],
     [],
   ];
-  @override void dispose(){for(final x in c.values)x.dispose();super.dispose();}
+  @override
+  void dispose() {
+    for (final timer in remoteDebounce.values) {
+      timer.cancel();
+    }
+    for (final x in c.values) {
+      x.dispose();
+    }
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     final total = groups.length;
@@ -556,11 +570,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           : TextCapitalization.words,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       onChanged: (value) {
-        setState(() {
-          remoteError.remove(f.key);
-          checking[f.key] = false;
-        });
-        _checkRemote(f.key, value);
+        _queueRemoteCheck(f.key, value);
         if (courier && f.key == 'cep') _lookupCep(value);
       },
       validator: (v) {
@@ -744,21 +754,89 @@ class _RegistrationPageState extends State<RegistrationPage> {
     }
   }
 
-  Future<void> _checkRemote(String key,String value) async {
-    final field = key == 'cpf' ? 'cpf' : key == 'cnpj' ? 'cnpj' : key == 'email' ? 'email' : key == 'phone' ? 'phone' : null;
-    if (field == null || value.trim().isEmpty) return;
-    final ticket=(validationTicket[key]??0)+1; validationTicket[key]=ticket;
-    await Future<void>.delayed(const Duration(milliseconds:550));
-    if (!mounted || validationTicket[key]!=ticket) return;
-    setState(()=>checking[key]=true);
-    try {
-      final result=await AppState.instance.checkAvailability(field,value);
-      if (!mounted || validationTicket[key]!=ticket) return;
-      setState(() { checking[key]=false; remoteError[key]=result['valid']!=true ? (field=='cpf'?'CPF inválido':field=='cnpj'?'CNPJ inválido':field=='email'?'E-mail inválido':'Telefone inválido') : result['available']==true ? '' : (field=='cpf'?'Este CPF já possui cadastro':field=='cnpj'?'Este CNPJ já possui cadastro':field=='email'?'Este e-mail já está cadastrado':'Este telefone já está cadastrado'); });
-      form.currentState?.validate();
-    } catch (_) {
-      if (mounted && validationTicket[key]==ticket) setState(() { checking[key]=false; remoteError[key]='Não foi possível verificar agora'; });
+  void _queueRemoteCheck(String key, String value) {
+    final field = key == 'cpf'
+        ? 'cpf'
+        : key == 'cnpj'
+            ? 'cnpj'
+            : key == 'email'
+                ? 'email'
+                : key == 'phone'
+                    ? 'phone'
+                    : null;
+    if (field == null) return;
+
+    remoteDebounce[key]?.cancel();
+    final ticket = (validationTicket[key] ?? 0) + 1;
+    validationTicket[key] = ticket;
+
+    final trimmed = value.trim();
+    final digits = trimmed.replaceAll(RegExp(r'\D'), '');
+    final ready = switch (field) {
+      'cpf' => digits.length == 11,
+      'cnpj' => digits.length == 14,
+      'phone' => digits.length == 11,
+      'email' => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(trimmed),
+      _ => false,
+    };
+
+    if (!ready) {
+      final hadVisualState =
+          checking[key] == true || remoteError.containsKey(key);
+      checking[key] = false;
+      remoteError.remove(key);
+      if (hadVisualState && mounted) {
+        setState(() {});
+      }
+      return;
     }
+
+    final needsVisualUpdate =
+        checking[key] != true || remoteError.containsKey(key);
+    checking[key] = true;
+    remoteError.remove(key);
+    if (needsVisualUpdate && mounted) {
+      setState(() {});
+    }
+
+    remoteDebounce[key] = Timer(const Duration(milliseconds: 650), () async {
+      if (!mounted || validationTicket[key] != ticket) return;
+      try {
+        final result =
+            await AppState.instance.checkAvailability(field, trimmed);
+        if (!mounted || validationTicket[key] != ticket) return;
+
+        final message = result['valid'] != true
+            ? (field == 'cpf'
+                ? 'CPF inválido'
+                : field == 'cnpj'
+                    ? 'CNPJ inválido'
+                    : field == 'email'
+                        ? 'E-mail inválido'
+                        : 'Telefone inválido')
+            : result['available'] == true
+                ? ''
+                : (field == 'cpf'
+                    ? 'Este CPF já possui cadastro'
+                    : field == 'cnpj'
+                        ? 'Este CNPJ já possui cadastro'
+                        : field == 'email'
+                            ? 'Este e-mail já está cadastrado'
+                            : 'Este telefone já está cadastrado');
+
+        setState(() {
+          checking[key] = false;
+          remoteError[key] = message;
+        });
+        form.currentState?.validate();
+      } catch (_) {
+        if (!mounted || validationTicket[key] != ticket) return;
+        setState(() {
+          checking[key] = false;
+          remoteError[key] = 'Não foi possível verificar agora';
+        });
+      }
+    });
   }
 
   List<TextInputFormatter>? _formatters(_Format format) {
