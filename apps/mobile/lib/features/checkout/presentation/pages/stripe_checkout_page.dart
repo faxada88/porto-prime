@@ -9,6 +9,7 @@ import 'stripe_web_element_stub.dart'
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/prime_ui.dart';
 
 class StripeCheckoutPage extends StatefulWidget {
   const StripeCheckoutPage({
@@ -490,21 +491,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                 ),
                 if (error != null) ...[
                   const SizedBox(height: 14),
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppColors.sand,
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                    child: Text(
-                      error!,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        height: 1.4,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
+                  PrimeErrorBanner(message: error!),
                 ],
                 if (!kIsWeb) ...[
                   const SizedBox(height: 18),
@@ -537,7 +524,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                 ],
                 if (!ready && error == null) ...[
                   const SizedBox(height: 14),
-                  const Center(child: CircularProgressIndicator()),
+                  const PrimeSkeleton(height: 54, radius: AppRadius.md),
                 ],
                 const SizedBox(height: 14),
                 const Row(
