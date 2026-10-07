@@ -281,7 +281,7 @@ abstract final class AppTheme {
     return base.copyWith(
       textTheme: textTheme,
       primaryTextTheme: textTheme,
-      splashFactory: InkSparkle.splashFactory,
+      splashFactory: InkRipple.splashFactory,
       highlightColor: AppColors.ocean100.withValues(alpha: .42),
       hoverColor: AppColors.ocean50,
       focusColor: AppColors.ocean100.withValues(alpha: .82),
