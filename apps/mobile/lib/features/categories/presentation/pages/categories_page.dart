@@ -219,13 +219,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                       sliver: SliverLayoutBuilder(
                         builder: (_, constraints) {
                           final width = constraints.crossAxisExtent;
-                          final columns = width >= 1040
-                              ? 5
-                              : width >= 780
-                                  ? 4
-                                  : width >= 520
-                                      ? 3
-                                      : 2;
+                          final columns = AppResponsive.productColumns(width);
                           return SliverGrid(
                             delegate: SliverChildBuilderDelegate(
                               (_, i) =>
@@ -275,11 +269,7 @@ class _CategoryGrid extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(
         builder: (_, constraints) {
           final width = constraints.maxWidth;
-          final columns = width >= 390
-              ? 5
-              : width >= 340
-                  ? 4
-                  : 3;
+          final columns = AppResponsive.categoryColumns(width);
           final rows = (categories.length / columns).ceil();
           final height = width >= 390 ? 106.0 : 96.0;
 
