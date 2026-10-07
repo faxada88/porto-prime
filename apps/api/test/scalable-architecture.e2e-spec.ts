@@ -1,4 +1,5 @@
 import { INestApplication } from '@nestjs/common';
+import { setMaxListeners } from 'node:events';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
@@ -32,6 +33,7 @@ describe('Arquitetura escalável Porto Prime (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    setMaxListeners(100, app.getHttpServer());
     await app.init();
     prisma = moduleFixture.get(PrismaService);
     dispatch = moduleFixture.get(DispatchService);
