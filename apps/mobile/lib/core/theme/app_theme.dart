@@ -31,6 +31,10 @@ abstract final class AppColors {
   static const canvas = Color(0xFFF6F7F3);
   static const surface = Color(0xFFFFFFFF);
   static const surfaceSoft = Color(0xFFFBFCFA);
+  static const surfaceMuted = Color(0xFFF1F4F1);
+  static const surfaceSun = Color(0xFFFFFBF3);
+  static const surfaceOcean = Color(0xFFF3FBF8);
+  static const overlay = Color(0x99061210);
   static const stroke = Color(0xFFE4E9E5);
   static const strokeStrong = Color(0xFFD3DDD8);
   static const success = Color(0xFF2D9B70);
@@ -60,6 +64,7 @@ abstract final class AppColors {
 }
 
 abstract final class AppSpacing {
+  static const none = 0.0;
   static const micro = 2.0;
   static const xxs = 4.0;
   static const xs = 8.0;
@@ -83,6 +88,7 @@ abstract final class AppRadius {
 
 abstract final class AppControl {
   static const minTap = 44.0;
+  static const comfortableTap = 48.0;
   static const inputHeight = 56.0;
   static const buttonHeight = 54.0;
   static const compactButtonHeight = 40.0;
@@ -113,6 +119,39 @@ abstract final class AppBreakpoints {
   static const compact = 380.0;
   static const tablet = 720.0;
   static const desktop = 1024.0;
+}
+
+abstract final class AppBorder {
+  static const hairline = 1.0;
+  static const focus = 1.5;
+}
+
+abstract final class AppLayer {
+  static const content = 0;
+  static const sticky = 10;
+  static const navigation = 20;
+  static const overlay = 40;
+  static const modal = 60;
+  static const toast = 80;
+}
+
+abstract final class AppResponsive {
+  static int categoryColumns(double width) {
+    if (width >= 430) return 5;
+    if (width >= 350) return 4;
+    return 3;
+  }
+
+  static int productColumns(double width) {
+    if (width >= 1080) return 5;
+    if (width >= 820) return 4;
+    if (width >= 560) return 3;
+    return 2;
+  }
+
+  static EdgeInsets pagePadding(double width) => EdgeInsets.symmetric(
+        horizontal: width >= AppBreakpoints.tablet ? 28 : 20,
+      );
 }
 
 abstract final class AppShadows {
@@ -242,11 +281,13 @@ abstract final class AppTheme {
     return base.copyWith(
       textTheme: textTheme,
       primaryTextTheme: textTheme,
-      splashFactory: InkRipple.splashFactory,
+      splashFactory: InkSparkle.splashFactory,
       highlightColor: AppColors.ocean100.withValues(alpha: .42),
       hoverColor: AppColors.ocean50,
       focusColor: AppColors.ocean100.withValues(alpha: .82),
       dividerColor: AppColors.stroke,
+      disabledColor: AppColors.subtle.withValues(alpha: .45),
+      visualDensity: VisualDensity.standard,
       iconTheme: const IconThemeData(
         color: AppColors.ink,
         size: AppIconSize.md,
