@@ -21,6 +21,13 @@ abstract final class AppIcons {
   static const more = LucideIcons.ellipsis;
   static const filter = LucideIcons.slidersHorizontal;
   static const refresh = LucideIcons.refreshCw;
+  static const trash = LucideIcons.trash2;
+  static const truck = LucideIcons.truck;
+  static const gift = LucideIcons.gift;
+  static const layers = LucideIcons.layers3;
+  static const circle = LucideIcons.circle;
+  static const menu = LucideIcons.menu;
+  static const externalLink = LucideIcons.externalLink;
 
   // Conta e segurança
   static const mail = LucideIcons.mail;
@@ -181,7 +188,7 @@ abstract final class AppIcons {
   static const south_west_rounded = arrowLeft;
   static const north_east_rounded = arrowRight;
   static const info_outline_rounded = info;
-  static const delete_sweep_outlined = close;
+  static const delete_sweep_outlined = trash;
 
   static CategoryIconSpec categoryVisual(String name) {
     final value = _normalizeCategory(name);
