@@ -52,6 +52,14 @@ export class AdminController {
     return this.adminService.deleteUser(id, authorization);
   }
 
+  @Post('users/bulk-delete')
+  bulkDeleteUsers(
+    @Body('ids') ids: string[],
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.adminService.bulkDeleteUsers(ids, authorization);
+  }
+
   @Patch('users/:id/approve')
   approve(
     @Param('id') id: string,
@@ -143,6 +151,14 @@ export class AdminController {
     @Headers('authorization') authorization?: string,
   ) {
     return this.adminService.deleteOrder(id, authorization);
+  }
+
+  @Post('orders/bulk-delete')
+  bulkDeleteOrders(
+    @Body('ids') ids: string[],
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.adminService.bulkDeleteOrders(ids, authorization);
   }
 
   @Post('products')
