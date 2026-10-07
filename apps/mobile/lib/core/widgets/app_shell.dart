@@ -7,6 +7,7 @@ import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../navigation/app_nav.dart';
 import '../state/app_state.dart';
+import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 
 class AppShell extends StatefulWidget {
@@ -42,65 +43,51 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) => AnimatedBuilder(
         animation: AppState.instance,
         builder: (_, __) {
-          if (AppState.instance.isCourier) return const CourierPage();
+          final state = AppState.instance;
+          if (state.isCourier) return const CourierPage();
 
           final index = AppNav.instance.index.value;
-          final cartCount = AppState.instance.cartCount;
 
           return Scaffold(
             extendBody: true,
             body: IndexedStack(index: index, children: pages),
             bottomNavigationBar: SafeArea(
-              minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              minimum: const EdgeInsets.fromLTRB(14, 0, 14, 10),
               child: Container(
-                height: 76,
-                padding: const EdgeInsets.symmetric(horizontal: 7),
+                height: 70,
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF132420), Color(0xFF1D332E)],
-                  ),
-                  borderRadius: BorderRadius.circular(27),
+                  color: AppColors.ocean900.withValues(alpha: .97),
+                  borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: .06),
+                    color: Colors.white.withValues(alpha: .07),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF0E2722).withValues(alpha: .24),
-                      blurRadius: 34,
-                      offset: const Offset(0, 15),
-                    ),
-                  ],
+                  boxShadow: AppShadows.floating,
                 ),
                 child: Row(
                   children: [
                     _item(
                       value: 0,
-                      icon: Icons.home_outlined,
-                      selectedIcon: Icons.home_rounded,
+                      icon: AppIcons.home,
                       label: 'Início',
                       current: index,
                     ),
                     _item(
                       value: 1,
-                      icon: Icons.grid_view_outlined,
-                      selectedIcon: Icons.grid_view_rounded,
-                      label: 'Descobrir',
+                      icon: AppIcons.search,
+                      label: 'Buscar',
                       current: index,
                     ),
                     _item(
                       value: 2,
-                      icon: Icons.shopping_bag_outlined,
-                      selectedIcon: Icons.shopping_bag_rounded,
+                      icon: AppIcons.bag,
                       label: 'Sacola',
                       current: index,
-                      badgeCount: cartCount,
+                      badgeCount: state.cartCount,
                     ),
                     _item(
                       value: 3,
-                      icon: Icons.person_outline_rounded,
-                      selectedIcon: Icons.person_rounded,
+                      icon: AppIcons.user,
                       label: 'Perfil',
                       current: index,
                     ),
@@ -115,7 +102,6 @@ class _AppShellState extends State<AppShell> {
   Widget _item({
     required int value,
     required IconData icon,
-    required IconData selectedIcon,
     required String label,
     required int current,
     int badgeCount = 0,
@@ -123,88 +109,86 @@ class _AppShellState extends State<AppShell> {
     final selected = current == value;
 
     return Expanded(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(21),
-        onTap: () => AppNav.instance.go(value),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 260),
-          curve: Curves.easeOutCubic,
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: selected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: .10),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.center,
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 190),
-                child: Column(
-                  key: ValueKey(selected),
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          onTap: () => AppNav.instance.go(value),
+          child: AnimatedContainer(
+            duration: AppMotion.standard,
+            curve: AppMotion.curve,
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            decoration: BoxDecoration(
+              color: selected ? Colors.white : Colors.transparent,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      selected ? selectedIcon : icon,
-                      size: selected ? 23 : 22,
-                      color:
-                          selected ? AppColors.oceanDeep : Colors.white70,
+                    AnimatedScale(
+                      scale: selected ? 1.04 : 1,
+                      duration: AppMotion.standard,
+                      child: Icon(
+                        icon,
+                        size: 20,
+                        color: selected
+                            ? AppColors.ocean800
+                            : Colors.white.withValues(alpha: .68),
+                      ),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     Text(
                       label,
-                      style: TextStyle(
-                        fontSize: 9.5,
-                        fontWeight:
-                            selected ? FontWeight.w900 : FontWeight.w700,
-                        letterSpacing: -.1,
-                        color:
-                            selected ? AppColors.ink : Colors.white70,
-                      ),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: selected
+                                ? AppColors.ink
+                                : Colors.white.withValues(alpha: .62),
+                            fontSize: 8.5,
+                            letterSpacing: .1,
+                            fontWeight: selected
+                                ? FontWeight.w800
+                                : FontWeight.w600,
+                          ),
                     ),
                   ],
                 ),
-              ),
-              if (badgeCount > 0)
-                Positioned(
-                  top: 3,
-                  right: 9,
-                  child: Container(
-                    constraints:
-                        const BoxConstraints(minWidth: 18, minHeight: 18),
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppColors.coral,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: selected
-                            ? Colors.white
-                            : const Color(0xFF1A302B),
-                        width: 2,
+                if (badgeCount > 0)
+                  Positioned(
+                    top: 4,
+                    right: 8,
+                    child: Container(
+                      constraints:
+                          const BoxConstraints(minWidth: 18, minHeight: 18),
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppColors.coral600,
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                        border: Border.all(
+                          color:
+                              selected ? Colors.white : AppColors.ocean900,
+                          width: 2,
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      badgeCount > 9 ? '9+' : badgeCount.toString(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 7.5,
-                        fontWeight: FontWeight.w900,
-                        height: 1,
+                      child: Text(
+                        badgeCount > 9 ? '9+' : badgeCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 7.5,
+                          height: 1,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
