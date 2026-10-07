@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/state/app_state.dart';
+import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../orders/presentation/pages/orders_page.dart';
 import 'registration_page.dart';
@@ -47,13 +48,13 @@ class _Guest extends StatelessWidget {
             _MenuSurface(
               children: [
                 _MenuLine(
-                  icon: Icons.support_agent_rounded,
+                  icon: AppIcons.support_agent_rounded,
                   title: 'Ajuda e suporte',
                   subtitle: 'Fale com a equipe Porto Prime',
                   onTap: () => _support(context),
                 ),
                 _MenuLine(
-                  icon: Icons.shield_rounded,
+                  icon: AppIcons.shield_rounded,
                   title: 'Privacidade e segurança',
                   subtitle: 'Como protegemos sua conta e seus dados',
                   onTap: () => _simpleMessage(
@@ -114,7 +115,7 @@ class _GuestAccessHero extends StatelessWidget {
                     borderRadius: BorderRadius.circular(17),
                   ),
                   child: const Icon(
-                    Icons.person_rounded,
+                    AppIcons.person_rounded,
                     color: Colors.white,
                     size: 26,
                   ),
@@ -131,7 +132,7 @@ class _GuestAccessHero extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        Icons.shield_rounded,
+                        AppIcons.shield_rounded,
                         size: 12,
                         color: Color(0xFFFFD889),
                       ),
@@ -181,7 +182,7 @@ class _GuestAccessHero extends StatelessWidget {
                   backgroundColor: Colors.white,
                   foregroundColor: AppColors.oceanDeep,
                 ),
-                icon: const Icon(Icons.login_rounded, size: 19),
+                icon: const Icon(AppIcons.login_rounded, size: 19),
                 label: const Text('Entrar na minha conta'),
               ),
             ),
@@ -198,7 +199,7 @@ class _GuestAccessHero extends StatelessWidget {
                   ),
                   backgroundColor: Colors.white.withValues(alpha: .06),
                 ),
-                icon: const Icon(Icons.person_add_alt_1_rounded, size: 19),
+                icon: const Icon(AppIcons.person_add_alt_1_rounded, size: 19),
                 label: const Text('Criar uma conta'),
               ),
             ),
@@ -256,7 +257,7 @@ class _ProfileHeader extends StatelessWidget {
               boxShadow: AppShadows.soft,
             ),
             child: const Icon(
-              Icons.wb_sunny_rounded,
+              AppIcons.wb_sunny_rounded,
               color: AppColors.sun,
               size: 25,
             ),
@@ -340,7 +341,7 @@ class _GuestHero extends StatelessWidget {
                               ),
                             ),
                             child: const Icon(
-                              Icons.person_rounded,
+                              AppIcons.person_rounded,
                               color: Colors.white,
                               size: 26,
                             ),
@@ -359,7 +360,7 @@ class _GuestHero extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  Icons.lock_rounded,
+                                  AppIcons.lock_rounded,
                                   size: 12,
                                   color: Color(0xFFFFD889),
                                 ),
@@ -412,7 +413,7 @@ class _GuestHero extends StatelessWidget {
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
-                              Icons.arrow_forward_rounded,
+                              AppIcons.arrow_forward_rounded,
                               color: AppColors.oceanDeep,
                               size: 21,
                             ),
@@ -630,7 +631,7 @@ class _AccessCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 const Icon(
-                  Icons.arrow_forward_ios_rounded,
+                  AppIcons.arrow_forward_ios_rounded,
                   size: 14,
                   color: AppColors.muted,
                 ),
@@ -663,7 +664,7 @@ class _ApplicationShortcut extends StatelessWidget {
             child: const Row(
               children: [
                 _MiniIconBox(
-                  icon: Icons.manage_search_rounded,
+                  icon: AppIcons.manage_search_rounded,
                   background: Colors.white,
                   foreground: Color(0xFF9B6817),
                 ),
@@ -693,7 +694,7 @@ class _ApplicationShortcut extends StatelessWidget {
                   ),
                 ),
                 Icon(
-                  Icons.arrow_forward_rounded,
+                  AppIcons.arrow_forward_rounded,
                   color: Color(0xFF9B6817),
                   size: 20,
                 ),
@@ -789,7 +790,7 @@ class _MenuLine extends StatelessWidget {
               ),
             ),
             trailing: const Icon(
-              Icons.chevron_right_rounded,
+              AppIcons.chevron_right_rounded,
               color: AppColors.muted,
               size: 20,
             ),
@@ -820,7 +821,7 @@ class _BahiaSignature extends StatelessWidget {
         child: const Row(
           children: [
             _MiniIconBox(
-              icon: Icons.wb_sunny_rounded,
+              icon: AppIcons.wb_sunny_rounded,
               background: Colors.white,
               foreground: AppColors.sun,
             ),
@@ -849,7 +850,7 @@ Future<void> _accountMenu(BuildContext context) async {
     builder: (ctx) => _PrimeSheet(
       children: [
         const _SheetBrandHeader(
-          icon: Icons.person_rounded,
+          icon: AppIcons.person_rounded,
           eyebrow: 'SUA PORTO PRIME',
           title: 'Entre ou crie sua conta',
           subtitle:
@@ -864,7 +865,7 @@ Future<void> _accountMenu(BuildContext context) async {
               Navigator.pop(ctx);
               _auth(context);
             },
-            icon: const Icon(Icons.login_rounded, size: 20),
+            icon: const Icon(AppIcons.login_rounded, size: 20),
             label: const Text(
               'Entrar na minha conta',
               style: TextStyle(fontWeight: FontWeight.w900),
@@ -894,7 +895,7 @@ Future<void> _accountMenu(BuildContext context) async {
         _RoleCard(
           title: 'Cliente',
           subtitle: 'Peça, pague e acompanhe sua entrega em tempo real.',
-          icon: Icons.shopping_bag_rounded,
+          icon: AppIcons.shopping_bag_rounded,
           accent: AppColors.sun,
           background: AppColors.sand,
           onTap: () {
@@ -906,7 +907,7 @@ Future<void> _accountMenu(BuildContext context) async {
         _RoleCard(
           title: 'Motoboy',
           subtitle: 'Envie sua candidatura e trabalhe com a Porto Prime.',
-          icon: Icons.two_wheeler_rounded,
+          icon: AppIcons.two_wheeler_rounded,
           accent: AppColors.ocean,
           background: AppColors.mint,
           onTap: () {
@@ -918,7 +919,7 @@ Future<void> _accountMenu(BuildContext context) async {
         _RoleCard(
           title: 'Parceiro',
           subtitle: 'Cadastre seu negócio e participe da rede Porto Prime.',
-          icon: Icons.storefront_rounded,
+          icon: AppIcons.storefront_rounded,
           accent: const Color(0xFF6D5AA8),
           background: AppColors.lavender,
           onTap: () {
@@ -945,7 +946,7 @@ Future<void> _accountMenu(BuildContext context) async {
               child: const Row(
                 children: [
                   _MiniIconBox(
-                    icon: Icons.fact_check_rounded,
+                    icon: AppIcons.fact_check_rounded,
                     background: Colors.white,
                     foreground: Color(0xFF9B6817),
                   ),
@@ -974,7 +975,7 @@ Future<void> _accountMenu(BuildContext context) async {
                     ),
                   ),
                   Icon(
-                    Icons.arrow_forward_rounded,
+                    AppIcons.arrow_forward_rounded,
                     color: Color(0xFF9B6817),
                   ),
                 ],
@@ -1054,7 +1055,7 @@ class _RoleCard extends StatelessWidget {
                   ),
                 ),
                 const Icon(
-                  Icons.chevron_right_rounded,
+                  AppIcons.chevron_right_rounded,
                   color: AppColors.muted,
                   size: 21,
                 ),
@@ -1122,7 +1123,7 @@ Future<void> _courierStatus(BuildContext context) async {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const _MiniIconBox(
-                      icon: Icons.edit_note_rounded,
+                      icon: AppIcons.edit_note_rounded,
                       background: AppColors.sand,
                       foreground: Color(0xFF9B6817),
                     ),
@@ -1224,7 +1225,7 @@ Future<void> _courierStatus(BuildContext context) async {
           maxHeightFactor: .93,
           children: [
             const _SheetBrandHeader(
-              icon: Icons.manage_search_rounded,
+              icon: AppIcons.manage_search_rounded,
               eyebrow: 'CENTRAL DO MOTOBOY',
               title: 'Acompanhe sua candidatura',
               subtitle:
@@ -1235,13 +1236,13 @@ Future<void> _courierStatus(BuildContext context) async {
               controller: cpf,
               label: 'CPF da candidatura',
               hint: '000.000.000-00',
-              icon: Icons.badge_rounded,
+              icon: AppIcons.badge_rounded,
               keyboardType: TextInputType.number,
             ),
             if (error != null) ...[
               const SizedBox(height: 2),
               _InlineNotice(
-                icon: Icons.error_outline_rounded,
+                icon: AppIcons.error_outline_rounded,
                 text: error!,
                 background: AppColors.peach,
                 foreground: AppColors.coralStrong,
@@ -1260,7 +1261,7 @@ Future<void> _courierStatus(BuildContext context) async {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
-                      Icons.privacy_tip_rounded,
+                      AppIcons.privacy_tip_rounded,
                       color: AppColors.oceanDeep,
                       size: 20,
                     ),
@@ -1298,7 +1299,7 @@ Future<void> _courierStatus(BuildContext context) async {
               const SizedBox(height: 11),
               if (requirements.isEmpty)
                 const _InlineNotice(
-                  icon: Icons.verified_rounded,
+                  icon: AppIcons.verified_rounded,
                   text:
                       'Nenhuma pendência em aberto. Sua candidatura segue em análise normalmente.',
                   background: AppColors.mint,
@@ -1322,8 +1323,8 @@ Future<void> _courierStatus(BuildContext context) async {
                     ? const SizedBox.shrink()
                     : Icon(
                         application == null
-                            ? Icons.search_rounded
-                            : Icons.refresh_rounded,
+                            ? AppIcons.search_rounded
+                            : AppIcons.refresh_rounded,
                         size: 20,
                       ),
                 label: loading
@@ -1482,10 +1483,10 @@ class _RequirementCard extends StatelessWidget {
             children: [
               _MiniIconBox(
                 icon: open
-                    ? Icons.notification_important_rounded
+                    ? AppIcons.notification_important_rounded
                     : answered
-                        ? Icons.mark_chat_read_rounded
-                        : Icons.verified_rounded,
+                        ? AppIcons.mark_chat_read_rounded
+                        : AppIcons.verified_rounded,
                 background: open ? AppColors.sand : AppColors.mint,
                 foreground:
                     open ? const Color(0xFF9B6817) : AppColors.oceanDeep,
@@ -1559,7 +1560,7 @@ class _RequirementCard extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: onAnswer,
-                icon: const Icon(Icons.reply_rounded, size: 18),
+                icon: const Icon(AppIcons.reply_rounded, size: 18),
                 label: const Text('Responder solicitação'),
               ),
             ),
@@ -1620,7 +1621,7 @@ _StatusConfig _statusConfig(String raw) {
         label: 'APROVADO',
         background: AppColors.mint,
         foreground: AppColors.oceanDeep,
-        icon: Icons.verified_rounded,
+        icon: AppIcons.verified_rounded,
         message:
             'Cadastro aprovado. Seu acesso operacional está liberado conforme as regras da plataforma.',
       );
@@ -1630,7 +1631,7 @@ _StatusConfig _statusConfig(String raw) {
         label: 'NÃO APROVADO',
         background: AppColors.peach,
         foreground: AppColors.coralStrong,
-        icon: Icons.cancel_rounded,
+        icon: AppIcons.cancel_rounded,
         message:
             'A candidatura não foi aprovada. Consulte as orientações recebidas antes de uma nova solicitação.',
       );
@@ -1639,7 +1640,7 @@ _StatusConfig _statusConfig(String raw) {
         label: 'SUSPENSO',
         background: AppColors.lavender,
         foreground: Color(0xFF66569B),
-        icon: Icons.pause_circle_rounded,
+        icon: AppIcons.pause_circle_rounded,
         message:
             'O acesso está temporariamente suspenso. Entre em contato com o suporte para mais informações.',
       );
@@ -1648,7 +1649,7 @@ _StatusConfig _statusConfig(String raw) {
         label: 'RESPONDIDA',
         background: AppColors.sky,
         foreground: Color(0xFF356D8D),
-        icon: Icons.mark_chat_read_rounded,
+        icon: AppIcons.mark_chat_read_rounded,
         message: 'Sua resposta foi enviada e está aguardando revisão.',
       );
     case 'RESOLVED':
@@ -1656,7 +1657,7 @@ _StatusConfig _statusConfig(String raw) {
         label: 'RESOLVIDA',
         background: AppColors.mint,
         foreground: AppColors.oceanDeep,
-        icon: Icons.task_alt_rounded,
+        icon: AppIcons.task_alt_rounded,
         message: 'A solicitação foi resolvida.',
       );
     case 'OPEN':
@@ -1664,7 +1665,7 @@ _StatusConfig _statusConfig(String raw) {
         label: 'AÇÃO NECESSÁRIA',
         background: AppColors.sand,
         foreground: Color(0xFF946316),
-        icon: Icons.notification_important_rounded,
+        icon: AppIcons.notification_important_rounded,
         message: 'Há uma solicitação aguardando sua resposta.',
       );
     default:
@@ -1672,7 +1673,7 @@ _StatusConfig _statusConfig(String raw) {
         label: 'EM ANÁLISE',
         background: AppColors.sand,
         foreground: Color(0xFF946316),
-        icon: Icons.hourglass_top_rounded,
+        icon: AppIcons.hourglass_top_rounded,
         message:
             'Sua candidatura está em análise pela equipe Porto Prime. Acompanhe aqui qualquer atualização.',
       );
@@ -1716,7 +1717,7 @@ Future<void> _auth(BuildContext context) async {
     builder: (ctx) => _PrimeSheet(
       children: [
         const _SheetBrandHeader(
-          icon: Icons.lock_person_rounded,
+          icon: AppIcons.lock_person_rounded,
           eyebrow: 'ACESSO SEGURO',
           title: 'Bem-vindo de volta',
           subtitle:
@@ -1727,7 +1728,7 @@ Future<void> _auth(BuildContext context) async {
           controller: email,
           label: 'E-mail',
           hint: 'seuemail@exemplo.com',
-          icon: Icons.alternate_email_rounded,
+          icon: AppIcons.alternate_email_rounded,
           keyboardType: TextInputType.emailAddress,
         ),
         const SizedBox(height: 11),
@@ -1735,7 +1736,7 @@ Future<void> _auth(BuildContext context) async {
           controller: password,
           label: 'Senha',
           hint: 'Sua senha de acesso',
-          icon: Icons.key_rounded,
+          icon: AppIcons.key_rounded,
           secret: true,
         ),
         const SizedBox(height: 6),
@@ -1746,7 +1747,7 @@ Future<void> _auth(BuildContext context) async {
               Navigator.pop(ctx);
               _passwordRecovery(context);
             },
-            icon: const Icon(Icons.help_outline_rounded, size: 17),
+            icon: const Icon(AppIcons.help_outline_rounded, size: 17),
             label: const Text('Esqueci minha senha'),
           ),
         ),
@@ -1769,7 +1770,7 @@ Future<void> _auth(BuildContext context) async {
           child: const Row(
             children: [
               Icon(
-                Icons.shield_rounded,
+                AppIcons.shield_rounded,
                 color: AppColors.oceanDeep,
                 size: 18,
               ),
@@ -1867,8 +1868,8 @@ class _PremiumFieldState extends State<_PremiumField> {
                   onPressed: () => setState(() => obscure = !obscure),
                   icon: Icon(
                     obscure
-                        ? Icons.visibility_rounded
-                        : Icons.visibility_off_rounded,
+                        ? AppIcons.visibility_rounded
+                        : AppIcons.visibility_off_rounded,
                     color: AppColors.muted,
                     size: 20,
                   ),
@@ -1909,7 +1910,7 @@ class _LoginSubmit extends StatelessWidget {
           children: [
             if (AppState.instance.error != null) ...[
               _InlineNotice(
-                icon: Icons.error_outline_rounded,
+                icon: AppIcons.error_outline_rounded,
                 text: AppState.instance.error!,
                 background: AppColors.peach,
                 foreground: AppColors.coralStrong,
@@ -1929,7 +1930,7 @@ class _LoginSubmit extends StatelessWidget {
                       },
                 icon: AppState.instance.loading
                     ? const SizedBox.shrink()
-                    : const Icon(Icons.login_rounded, size: 20),
+                    : const Icon(AppIcons.login_rounded, size: 20),
                 label: AppState.instance.loading
                     ? const SizedBox(
                         width: 21,
@@ -2068,7 +2069,7 @@ class _SheetBrandHeader extends StatelessWidget {
           IconButton(
             tooltip: 'Fechar',
             onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.close_rounded),
+            icon: const Icon(AppIcons.close_rounded),
           ),
         ],
       );
@@ -2173,7 +2174,7 @@ class _Account extends StatelessWidget {
                   border: Border.all(color: AppColors.stroke),
                 ),
                 child: const Icon(
-                  Icons.notifications_active_rounded,
+                  AppIcons.notifications_active_rounded,
                   color: AppColors.oceanDeep,
                   size: 23,
                 ),
@@ -2185,7 +2186,7 @@ class _Account extends StatelessWidget {
           if (pending) ...[
             const SizedBox(height: 12),
             const _InlineNotice(
-              icon: Icons.hourglass_top_rounded,
+              icon: AppIcons.hourglass_top_rounded,
               text:
                   'Seu cadastro está em análise. O acesso operacional será liberado após a aprovação administrativa.',
               background: AppColors.sand,
@@ -2203,7 +2204,7 @@ class _Account extends StatelessWidget {
               children: [
                 Expanded(
                   child: _QuickAction(
-                    icon: Icons.receipt_long_rounded,
+                    icon: AppIcons.receipt_long_rounded,
                     label: 'Pedidos',
                     subtitle: 'Histórico',
                     onTap: () => _orders(context),
@@ -2212,7 +2213,7 @@ class _Account extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _QuickAction(
-                    icon: Icons.location_on_rounded,
+                    icon: AppIcons.location_on_rounded,
                     label: 'Endereços',
                     subtitle: 'Entrega',
                     onTap: () => _addresses(context),
@@ -2221,7 +2222,7 @@ class _Account extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _QuickAction(
-                    icon: Icons.support_agent_rounded,
+                    icon: AppIcons.support_agent_rounded,
                     label: 'Suporte',
                     subtitle: 'Ajuda',
                     onTap: () => _support(context),
@@ -2233,19 +2234,19 @@ class _Account extends StatelessWidget {
             _MenuSurface(
               children: [
                 _MenuLine(
-                  icon: Icons.receipt_long_rounded,
+                  icon: AppIcons.receipt_long_rounded,
                   title: 'Meus pedidos',
                   subtitle: 'Acompanhe pedidos ativos e histórico',
                   onTap: () => _orders(context),
                 ),
                 _MenuLine(
-                  icon: Icons.location_on_rounded,
+                  icon: AppIcons.location_on_rounded,
                   title: 'Endereços de entrega',
                   subtitle: 'Gerencie seus locais salvos',
                   onTap: () => _addresses(context),
                 ),
                 _MenuLine(
-                  icon: Icons.support_agent_rounded,
+                  icon: AppIcons.support_agent_rounded,
                   title: 'Ajuda e suporte',
                   subtitle: 'Central de atendimento Porto Prime',
                   onTap: () => _support(context),
@@ -2267,7 +2268,7 @@ class _Account extends StatelessWidget {
             child: const Row(
               children: [
                 _MiniIconBox(
-                  icon: Icons.bolt_rounded,
+                  icon: AppIcons.bolt_rounded,
                   background: Colors.white,
                   foreground: AppColors.oceanDeep,
                 ),
@@ -2303,7 +2304,7 @@ class _Account extends StatelessWidget {
             height: 54,
             child: OutlinedButton.icon(
               onPressed: () => state.logout(),
-              icon: const Icon(Icons.logout_rounded, size: 19),
+              icon: const Icon(AppIcons.logout_rounded, size: 19),
               label: const Text('Sair da conta'),
             ),
           ),
@@ -2422,7 +2423,7 @@ class _AccountHero extends StatelessWidget {
             child: const Row(
               children: [
                 Icon(
-                  Icons.verified_user_rounded,
+                  AppIcons.verified_user_rounded,
                   color: Color(0xFFFFD889),
                   size: 18,
                 ),
@@ -2438,7 +2439,7 @@ class _AccountHero extends StatelessWidget {
                   ),
                 ),
                 Icon(
-                  Icons.shield_rounded,
+                  AppIcons.shield_rounded,
                   color: Colors.white54,
                   size: 17,
                 ),
@@ -2462,7 +2463,7 @@ void _passwordRecovery(BuildContext context) {
     builder: (ctx) => _PrimeSheet(
       children: [
         const _SheetBrandHeader(
-          icon: Icons.lock_reset_rounded,
+          icon: AppIcons.lock_reset_rounded,
           eyebrow: 'RECUPERAR ACESSO',
           title: 'Redefina sua senha',
           subtitle:
@@ -2472,7 +2473,7 @@ void _passwordRecovery(BuildContext context) {
         _PremiumField(
           controller: email,
           label: 'E-mail da conta',
-          icon: Icons.alternate_email_rounded,
+          icon: AppIcons.alternate_email_rounded,
           keyboardType: TextInputType.emailAddress,
         ),
         const SizedBox(height: 15),
@@ -2530,7 +2531,7 @@ void _addresses(BuildContext context) {
       maxHeightFactor: .88,
       children: [
         const _SheetBrandHeader(
-          icon: Icons.location_on_rounded,
+          icon: AppIcons.location_on_rounded,
           eyebrow: 'ENTREGA',
           title: 'Seus endereços',
           subtitle: 'Gerencie os locais usados para receber seus pedidos.',
@@ -2538,7 +2539,7 @@ void _addresses(BuildContext context) {
         const SizedBox(height: 16),
         if (AppState.instance.addresses.isEmpty)
           const _InlineNotice(
-            icon: Icons.location_off_rounded,
+            icon: AppIcons.location_off_rounded,
             text: 'Você ainda não cadastrou nenhum endereço de entrega.',
             background: AppColors.canvas,
             foreground: AppColors.muted,
@@ -2556,7 +2557,7 @@ void _addresses(BuildContext context) {
               child: Row(
                 children: [
                   const _MiniIconBox(
-                    icon: Icons.home_rounded,
+                    icon: AppIcons.home_rounded,
                     background: AppColors.mint,
                     foreground: AppColors.oceanDeep,
                   ),
@@ -2594,7 +2595,7 @@ void _addresses(BuildContext context) {
           height: 54,
           child: FilledButton.icon(
             onPressed: () => _newAddress(sheetContext),
-            icon: const Icon(Icons.add_location_alt_rounded),
+            icon: const Icon(AppIcons.add_location_alt_rounded),
             label: const Text('Adicionar endereço'),
           ),
         ),
@@ -2627,7 +2628,7 @@ void _newAddress(BuildContext context) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const _SheetBrandHeader(
-                icon: Icons.add_location_alt_rounded,
+                icon: AppIcons.add_location_alt_rounded,
                 eyebrow: 'NOVO LOCAL',
                 title: 'Adicionar endereço',
                 subtitle: 'Cadastre um local para receber seus pedidos.',
@@ -2636,25 +2637,25 @@ void _newAddress(BuildContext context) {
               _PremiumField(
                 controller: street,
                 label: 'Rua / avenida',
-                icon: Icons.route_rounded,
+                icon: AppIcons.route_rounded,
               ),
               const SizedBox(height: 10),
               _PremiumField(
                 controller: number,
                 label: 'Número',
-                icon: Icons.numbers_rounded,
+                icon: AppIcons.numbers_rounded,
               ),
               const SizedBox(height: 10),
               _PremiumField(
                 controller: neighborhood,
                 label: 'Bairro',
-                icon: Icons.map_rounded,
+                icon: AppIcons.map_rounded,
               ),
               const SizedBox(height: 10),
               _PremiumField(
                 controller: cep,
                 label: 'CEP',
-                icon: Icons.local_post_office_rounded,
+                icon: AppIcons.local_post_office_rounded,
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 16),
@@ -2725,14 +2726,14 @@ void _simpleMessage(
     builder: (ctx) => _PrimeSheet(
       children: [
         _SheetBrandHeader(
-          icon: Icons.support_agent_rounded,
+          icon: AppIcons.support_agent_rounded,
           eyebrow: 'PORTO PRIME',
           title: title,
           subtitle: message,
         ),
         const SizedBox(height: 16),
         const _InlineNotice(
-          icon: Icons.verified_user_rounded,
+          icon: AppIcons.verified_user_rounded,
           text:
               'Use sempre os canais oficiais para proteger seus dados e sua conta.',
           background: AppColors.mint,
