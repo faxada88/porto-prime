@@ -1153,10 +1153,10 @@ tbody tr:hover td{background:#fbfdfb}
   padding:6px;border:1px solid var(--pp-line);border-radius:22px;box-shadow:var(--pp-shadow-floating)
  }
  .logo,.admin{display:none}
- nav{height:100%;margin:0;display:flex;gap:2px}
- nav button{position:relative;flex:1;min-width:0;min-height:54px;padding:5px;border-radius:16px;flex-direction:column;gap:3px;font-size:7px}
+ nav{height:100%;margin:0;display:flex;gap:2px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+ nav::-webkit-scrollbar{display:none}
+ nav button{position:relative;flex:0 0 74px;min-width:74px;min-height:54px;padding:5px;border-radius:16px;flex-direction:column;gap:3px;font-size:7px}
  nav button span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;font-size:7px}
- nav button:nth-child(n+6){display:none}
  nav em{top:3px;right:calc(50% - 19px);transform:none}
  .content{padding:0 14px 92px;max-width:none}
  .content>header{min-height:auto;padding:15px 0 11px;margin:0 0 13px;align-items:flex-start;gap:12px}
