@@ -44,6 +44,13 @@ ALTER TABLE "AuthSession"
   ADD COLUMN IF NOT EXISTS "revokedReason" TEXT,
   ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
+ALTER TABLE "AuthSession"
+  ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
+
+UPDATE "AuthSession"
+SET "updatedAt" = CURRENT_TIMESTAMP
+WHERE "updatedAt" IS NULL;
+
 CREATE UNIQUE INDEX IF NOT EXISTS "AuthSession_refreshTokenHash_key" ON "AuthSession"("refreshTokenHash");
 CREATE INDEX IF NOT EXISTS "AuthSession_userId_revokedAt_idx" ON "AuthSession"("userId","revokedAt");
 CREATE INDEX IF NOT EXISTS "AuthSession_refreshExpiresAt_idx" ON "AuthSession"("refreshExpiresAt");
