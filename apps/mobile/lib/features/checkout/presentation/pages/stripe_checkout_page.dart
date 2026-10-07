@@ -7,6 +7,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'stripe_web_element_stub.dart'
     if (dart.library.js_interop) 'stripe_web_element_web.dart';
 import '../../../../core/state/app_state.dart';
+import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class StripeCheckoutPage extends StatefulWidget {
@@ -218,7 +219,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
-                        Icons.check_rounded,
+                        AppIcons.check_rounded,
                         color: Colors.white,
                         size: 46,
                       ),
@@ -258,7 +259,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                   child: const Row(
                     children: [
                       Icon(
-                        Icons.storefront_rounded,
+                        AppIcons.storefront_rounded,
                         color: Color(0xFF8CFFE4),
                         size: 25,
                       ),
@@ -296,7 +297,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                   children: [
                     Expanded(
                       child: _PaidInfo(
-                        icon: Icons.credit_card_rounded,
+                        icon: AppIcons.credit_card_rounded,
                         label: 'VALOR PAGO',
                         value:
                             'R\$ ${total.toStringAsFixed(2).replaceAll('.', ',')}',
@@ -305,7 +306,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                     const SizedBox(width: 9),
                     Expanded(
                       child: _PaidInfo(
-                        icon: Icons.receipt_long_rounded,
+                        icon: AppIcons.receipt_long_rounded,
                         label: 'PEDIDO',
                         value: '#$shortId',
                       ),
@@ -324,7 +325,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                       ),
                     ),
                     onPressed: () => Navigator.pop(sheetContext, true),
-                    icon: const Icon(Icons.route_rounded),
+                    icon: const Icon(AppIcons.route_rounded),
                     label: const Text(
                       'Acompanhar meu pedido',
                       style: TextStyle(
@@ -365,7 +366,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
         elevation: 0,
         leading: IconButton(
           onPressed: paying ? null : () => Navigator.pop(context, false),
-          icon: const Icon(Icons.close_rounded),
+          icon: const Icon(AppIcons.close_rounded),
         ),
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,7 +389,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
           Padding(
             padding: EdgeInsets.only(right: 18),
             child: Icon(
-              Icons.lock_rounded,
+              AppIcons.lock_rounded,
               color: AppColors.oceanDeep,
               size: 20,
             ),
@@ -422,7 +423,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                       const Row(
                         children: [
                           Icon(
-                            Icons.verified_user_rounded,
+                            AppIcons.verified_user_rounded,
                             color: AppColors.oceanDeep,
                             size: 22,
                           ),
@@ -467,7 +468,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                           child: const Row(
                             children: [
                               Icon(
-                                Icons.credit_card_rounded,
+                                AppIcons.credit_card_rounded,
                                 color: AppColors.oceanDeep,
                               ),
                               SizedBox(width: 12),
@@ -526,7 +527,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Icon(Icons.lock_rounded, size: 18),
+                          : const Icon(AppIcons.lock_rounded, size: 18),
                       label: Text(
                         paying ? 'Processando...' : 'Abrir Stripe',
                         style: const TextStyle(fontWeight: FontWeight.w900),
@@ -543,7 +544,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      Icons.shield_outlined,
+                      AppIcons.shield_outlined,
                       size: 14,
                       color: AppColors.muted,
                     ),
