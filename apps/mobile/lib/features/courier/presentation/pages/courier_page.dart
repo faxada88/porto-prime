@@ -1702,6 +1702,9 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                         children: [
                           Expanded(
                             child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                              ),
                               onPressed: () async {
                                 await onReject?.call();
                               },
