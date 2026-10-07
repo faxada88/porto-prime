@@ -41,61 +41,61 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
-        animation: AppState.instance,
-        builder: (_, __) {
-          final state = AppState.instance;
-          if (state.isCourier) return const CourierPage();
+    animation: AppState.instance,
+    builder: (_, __) {
+      final state = AppState.instance;
+      if (state.isCourier) return const CourierPage();
 
-          final index = AppNav.instance.index.value;
+      final index = AppNav.instance.index.value;
 
-          return Scaffold(
-            extendBody: true,
-            body: IndexedStack(index: index, children: pages),
-            bottomNavigationBar: SafeArea(
-              minimum: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-              child: Container(
-                height: AppControl.navHeight,
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppRadius.xl),
-                  border: Border.all(color: AppColors.stroke),
-                  boxShadow: AppShadows.floating,
-                ),
-                child: Row(
-                  children: [
-                    _item(
-                      value: 0,
-                      icon: AppIcons.home,
-                      label: 'Início',
-                      current: index,
-                    ),
-                    _item(
-                      value: 1,
-                      icon: AppIcons.search,
-                      label: 'Buscar',
-                      current: index,
-                    ),
-                    _item(
-                      value: 2,
-                      icon: AppIcons.bag,
-                      label: 'Sacola',
-                      current: index,
-                      badgeCount: state.cartCount,
-                    ),
-                    _item(
-                      value: 3,
-                      icon: AppIcons.user,
-                      label: 'Perfil',
-                      current: index,
-                    ),
-                  ],
-                ),
-              ),
+      return Scaffold(
+        extendBody: true,
+        body: IndexedStack(index: index, children: pages),
+        bottomNavigationBar: SafeArea(
+          minimum: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+          child: Container(
+            height: AppControl.navHeight,
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.xl),
+              border: Border.all(color: AppColors.stroke),
+              boxShadow: AppShadows.floating,
             ),
-          );
-        },
+            child: Row(
+              children: [
+                _item(
+                  value: 0,
+                  icon: AppIcons.home,
+                  label: 'Início',
+                  current: index,
+                ),
+                _item(
+                  value: 1,
+                  icon: AppIcons.search,
+                  label: 'Buscar',
+                  current: index,
+                ),
+                _item(
+                  value: 2,
+                  icon: AppIcons.bag,
+                  label: 'Sacola',
+                  current: index,
+                  badgeCount: state.cartCount,
+                ),
+                _item(
+                  value: 3,
+                  icon: AppIcons.user,
+                  label: 'Perfil',
+                  current: index,
+                ),
+              ],
+            ),
+          ),
+        ),
       );
+    },
+  );
 
   Widget _item({
     required int value,
@@ -122,9 +122,7 @@ class _AppShellState extends State<AppShell> {
               color: selected ? AppColors.ocean50 : Colors.transparent,
               borderRadius: BorderRadius.circular(AppRadius.md),
               border: Border.all(
-                color: selected
-                    ? AppColors.ocean100
-                    : Colors.transparent,
+                color: selected ? AppColors.ocean100 : Colors.transparent,
               ),
             ),
             child: Stack(
@@ -148,25 +146,21 @@ class _AppShellState extends State<AppShell> {
                       alignment: Alignment.center,
                       child: Icon(
                         icon,
-                        size: selected ? 17 : 19,
-                        color: selected
-                            ? Colors.white
-                            : AppColors.muted,
+                        size: AppIconSize.md,
+                        color: selected ? Colors.white : AppColors.muted,
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       label,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: selected
-                                ? AppColors.ocean800
-                                : AppColors.muted,
-                            fontSize: 8.2,
-                            letterSpacing: .05,
-                            fontWeight: selected
-                                ? FontWeight.w800
-                                : FontWeight.w600,
-                          ),
+                        color: selected ? AppColors.ocean800 : AppColors.muted,
+                        fontSize: AppFontSize.caption,
+                        letterSpacing: .05,
+                        fontWeight: selected
+                            ? FontWeight.w800
+                            : FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -175,17 +169,16 @@ class _AppShellState extends State<AppShell> {
                     top: 3,
                     right: 8,
                     child: Container(
-                      constraints:
-                          const BoxConstraints(minWidth: 18, minHeight: 18),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
                       padding: const EdgeInsets.symmetric(horizontal: 5),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: AppColors.coral600,
                         borderRadius: BorderRadius.circular(AppRadius.pill),
-                        border: Border.all(
-                          color: AppColors.surface,
-                          width: 2,
-                        ),
+                        border: Border.all(color: AppColors.surface, width: 2),
                       ),
                       child: Text(
                         badgeCount > 9 ? '9+' : badgeCount.toString(),

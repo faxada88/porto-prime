@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/prime_ui.dart';
 
 class CourierPage extends StatefulWidget {
   const CourierPage({super.key});
@@ -113,9 +114,7 @@ class _CourierPageState extends State<CourierPage> {
                   if (sheetContext.mounted) {
                     ScaffoldMessenger.of(sheetContext).showSnackBar(
                       SnackBar(
-                        content: Text(
-                          e.toString().replaceFirst('Exception: ', ''),
-                        ),
+                        content: Text(PrimeMessages.friendly(e)),
                       ),
                     );
                   }
@@ -158,9 +157,7 @@ class _CourierPageState extends State<CourierPage> {
                   if (sheetContext.mounted) {
                     ScaffoldMessenger.of(sheetContext).showSnackBar(
                       SnackBar(
-                        content: Text(
-                          e.toString().replaceFirst('Exception: ', ''),
-                        ),
+                        content: Text(PrimeMessages.friendly(e)),
                       ),
                     );
                   }
@@ -219,7 +216,7 @@ class _CourierPageState extends State<CourierPage> {
                   style: TextStyle(
                     fontSize: 22,
                     height: 1.05,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: AppFontWeight.display,
                     letterSpacing: -.55,
                   ),
                 ),
@@ -229,9 +226,9 @@ class _CourierPageState extends State<CourierPage> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppColors.muted,
-                    fontSize: 10.5,
+                    fontSize: AppFontSize.caption,
                     height: 1.5,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: AppFontWeight.medium,
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -248,7 +245,7 @@ class _CourierPageState extends State<CourierPage> {
                   style: const TextStyle(
                     fontSize: 28,
                     letterSpacing: 12,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: AppFontWeight.display,
                   ),
                   decoration: InputDecoration(
                     counterText: '',
@@ -283,12 +280,11 @@ class _CourierPageState extends State<CourierPage> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(
-                            error!,
+                          child: Text(PrimeMessages.friendly(error!),
                             style: const TextStyle(
                               color: AppColors.coralStrong,
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w700,
+                              fontSize: AppFontSize.caption,
+                              fontWeight: AppFontWeight.strong,
                             ),
                           ),
                         ),
@@ -457,7 +453,7 @@ class _CourierPageState extends State<CourierPage> {
                   'Solicitar saque',
                   style: TextStyle(
                     fontSize: 21,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: AppFontWeight.display,
                     letterSpacing: -.4,
                   ),
                 ),
@@ -470,8 +466,8 @@ class _CourierPageState extends State<CourierPage> {
                       ),
                   style: const TextStyle(
                     color: AppColors.muted,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
+                    fontSize: AppFontSize.caption,
+                    fontWeight: AppFontWeight.strong,
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -494,24 +490,23 @@ class _CourierPageState extends State<CourierPage> {
                       color: AppColors.peach,
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
-                    child: Text(
-                      error!,
+                    child: Text(PrimeMessages.friendly(error!),
                       style: const TextStyle(
                         color: AppColors.coralStrong,
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w700,
+                        fontSize: AppFontSize.caption,
+                        fontWeight: AppFontWeight.strong,
                       ),
                     ),
                   ),
                 ],
                 const SizedBox(height: 12),
                 const Text(
-                  'A solicitação ficará pendente até processamento. O app não simula transferência bancária.',
+                  'Sua solicitação de saque ficará pendente até o processamento.',
                   style: TextStyle(
                     color: AppColors.muted,
-                    fontSize: 9.3,
+                    fontSize: AppFontSize.caption,
                     height: 1.4,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: AppFontWeight.medium,
                   ),
                 ),
                 const SizedBox(height: 17),
@@ -610,7 +605,7 @@ class _CourierPageState extends State<CourierPage> {
             body: SafeArea(
               child: RefreshIndicator(
                 onRefresh: state.refreshCourier,
-                child: ListView(
+                child: PrimePageViewport(child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(
                     parent: BouncingScrollPhysics(),
                   ),
@@ -669,11 +664,7 @@ class _CourierPageState extends State<CourierPage> {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text(
-                                      e
-                                          .toString()
-                                          .replaceFirst('Exception: ', ''),
-                                    ),
+                                    content: Text(PrimeMessages.friendly(e)),
                                   ),
                                 );
                               }
@@ -723,7 +714,7 @@ class _CourierPageState extends State<CourierPage> {
                         ),
                     ],
                   ],
-                ),
+                )),
               ),
             ),
           );
@@ -770,8 +761,8 @@ class _DriverHeader extends StatelessWidget {
                 const Text(
                   'PORTO PRIME DRIVER',
                   style: TextStyle(
-                    fontSize: 8,
-                    fontWeight: FontWeight.w900,
+                    fontSize: AppFontSize.caption,
+                    fontWeight: AppFontWeight.display,
                     letterSpacing: 1.45,
                     color: AppColors.ocean,
                   ),
@@ -781,14 +772,12 @@ class _DriverHeader extends StatelessWidget {
                   'Olá, $firstName',
                   style: const TextStyle(
                     fontSize: 23,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: AppFontWeight.display,
                     letterSpacing: -.6,
                   ),
                 ),
-              ],
-            ),
-          ),
-          Container(
+                const SizedBox(height: AppSpacing.xs),
+                Container(
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
             decoration: BoxDecoration(
               color: online ? AppColors.mint : AppColors.surfaceSoft,
@@ -810,11 +799,14 @@ class _DriverHeader extends StatelessWidget {
                   style: TextStyle(
                     color:
                         online ? AppColors.oceanDeep : AppColors.muted,
-                    fontSize: 7.5,
-                    fontWeight: FontWeight.w900,
+                    fontSize: AppFontSize.caption,
+                    fontWeight: AppFontWeight.display,
                     letterSpacing: .7,
                   ),
                 ),
+              ],
+            ),
+          ),
               ],
             ),
           ),
@@ -895,7 +887,7 @@ class _AvailabilityHero extends StatelessWidget {
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 17,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: AppFontWeight.display,
                       letterSpacing: -.25,
                     ),
                   ),
@@ -908,9 +900,9 @@ class _AvailabilityHero extends StatelessWidget {
                             : 'Ative o modo online quando estiver disponível.',
                     style: const TextStyle(
                       color: Colors.white70,
-                      fontSize: 9.5,
+                      fontSize: AppFontSize.caption,
                       height: 1.4,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: AppFontWeight.medium,
                     ),
                   ),
                 ],
@@ -947,8 +939,8 @@ class _SectionTitle extends StatelessWidget {
             eyebrow,
             style: const TextStyle(
               color: AppColors.ocean,
-              fontSize: 8,
-              fontWeight: FontWeight.w900,
+              fontSize: AppFontSize.caption,
+              fontWeight: AppFontWeight.display,
               letterSpacing: 1.35,
             ),
           ),
@@ -958,7 +950,7 @@ class _SectionTitle extends StatelessWidget {
             style: const TextStyle(
               fontSize: 20,
               height: 1.05,
-              fontWeight: FontWeight.w900,
+              fontWeight: AppFontWeight.display,
               letterSpacing: -.45,
             ),
           ),
@@ -967,9 +959,9 @@ class _SectionTitle extends StatelessWidget {
             subtitle,
             style: const TextStyle(
               color: AppColors.muted,
-              fontSize: 9.5,
+              fontSize: AppFontSize.caption,
               height: 1.4,
-              fontWeight: FontWeight.w600,
+              fontWeight: AppFontWeight.medium,
             ),
           ),
         ],
@@ -1033,8 +1025,8 @@ class _OfferCard extends StatelessWidget {
                           'NOVA OFERTA',
                           style: TextStyle(
                             color: Color(0xFFA26A14),
-                            fontSize: 7.5,
-                            fontWeight: FontWeight.w900,
+                            fontSize: AppFontSize.caption,
+                            fontWeight: AppFontWeight.display,
                             letterSpacing: 1.1,
                           ),
                         ),
@@ -1043,7 +1035,7 @@ class _OfferCard extends StatelessWidget {
                           'Entrega disponível',
                           style: TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: AppFontWeight.display,
                           ),
                         ),
                       ],
@@ -1053,7 +1045,7 @@ class _OfferCard extends StatelessWidget {
                     _money(order['deliveryFee']),
                     style: const TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: AppFontWeight.display,
                     ),
                   ),
                 ],
@@ -1095,8 +1087,8 @@ class _OfferCard extends StatelessWidget {
                       'Toque para decidir',
                       style: TextStyle(
                         color: AppColors.oceanDeep,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
+                        fontSize: AppFontSize.caption,
+                        fontWeight: AppFontWeight.display,
                       ),
                     ),
                   ),
@@ -1137,8 +1129,8 @@ class _CompactMetric extends StatelessWidget {
               child: Text(
                 text,
                 style: const TextStyle(
-                  fontSize: 8.5,
-                  fontWeight: FontWeight.w800,
+                  fontSize: AppFontSize.caption,
+                  fontWeight: AppFontWeight.display,
                 ),
               ),
             ),
@@ -1231,8 +1223,8 @@ class _OfferCountdownState extends State<_OfferCountdown> {
               seconds.toString() + 's',
               style: TextStyle(
                 color: foreground,
-                fontSize: 9.5,
-                fontWeight: FontWeight.w800,
+                fontSize: AppFontSize.caption,
+                fontWeight: AppFontWeight.display,
               ),
             ),
           ],
@@ -1278,8 +1270,8 @@ class _ActiveDeliveryCard extends StatelessWidget {
                 '#${_shortId(order['id'])}',
                 style: const TextStyle(
                   color: AppColors.muted,
-                  fontSize: 8.5,
-                  fontWeight: FontWeight.w900,
+                  fontSize: AppFontSize.caption,
+                  fontWeight: AppFontWeight.display,
                   letterSpacing: .6,
                 ),
               ),
@@ -1290,7 +1282,7 @@ class _ActiveDeliveryCard extends StatelessWidget {
             order['customer']?['name']?.toString() ?? 'Cliente Porto Prime',
             style: const TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.w900,
+              fontWeight: AppFontWeight.display,
               letterSpacing: -.5,
             ),
           ),
@@ -1423,8 +1415,8 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                                 color: incoming
                                     ? AppColors.warning
                                     : AppColors.ocean,
-                                fontSize: 8,
-                                fontWeight: FontWeight.w900,
+                                fontSize: AppFontSize.caption,
+                                fontWeight: AppFontWeight.display,
                                 letterSpacing: 1.2,
                               ),
                             ),
@@ -1435,7 +1427,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                                   : 'Sua rota atual',
                               style: const TextStyle(
                                 fontSize: 20,
-                                fontWeight: FontWeight.w900,
+                                fontWeight: AppFontWeight.display,
                                 letterSpacing: -.5,
                               ),
                             ),
@@ -1453,7 +1445,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: ListView(
+              child: PrimePageViewport(child: ListView(
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(18, 4, 18, 18),
                 children: [
@@ -1470,7 +1462,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                             (pickup['name'] ?? 'Porto Prime').toString(),
                             style: const TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w900,
+                              fontWeight: AppFontWeight.display,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -1478,8 +1470,8 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                             (pickup['region'] ?? 'Base Porto Prime').toString(),
                             style: const TextStyle(
                               color: AppColors.muted,
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w600,
+                              fontSize: AppFontSize.caption,
+                              fontWeight: AppFontWeight.medium,
                             ),
                           ),
                         ],
@@ -1497,7 +1489,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                                 .toString(),
                             style: const TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w900,
+                              fontWeight: AppFontWeight.display,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -1505,8 +1497,8 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                             (dropoff['city'] ?? 'Porto Seguro').toString(),
                             style: const TextStyle(
                               color: AppColors.muted,
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w600,
+                              fontSize: AppFontSize.caption,
+                              fontWeight: AppFontWeight.medium,
                             ),
                           ),
                         ],
@@ -1583,7 +1575,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                                 (address['number'] ?? '').toString(),
                             style: const TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w900,
+                              fontWeight: AppFontWeight.display,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -1595,9 +1587,9 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                                 (address['state'] ?? '').toString(),
                             style: const TextStyle(
                               color: AppColors.muted,
-                              fontSize: 9.5,
+                              fontSize: AppFontSize.caption,
                               height: 1.4,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: AppFontWeight.medium,
                             ),
                           ),
                           if ((address['complement'] ?? '')
@@ -1608,8 +1600,8 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                               address['complement'].toString(),
                               style: const TextStyle(
                                 color: AppColors.muted,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w600,
+                                fontSize: AppFontSize.caption,
+                                fontWeight: AppFontWeight.medium,
                               ),
                             ),
                           ],
@@ -1649,8 +1641,8 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                                             'x',
                                         style: const TextStyle(
                                           color: AppColors.oceanDeep,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w900,
+                                          fontSize: AppFontSize.caption,
+                                          fontWeight: AppFontWeight.display,
                                         ),
                                       ),
                                     ),
@@ -1662,15 +1654,15 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                                         style: const TextStyle(
                                           fontSize: 11,
                                           height: 1.35,
-                                          fontWeight: FontWeight.w800,
+                                          fontWeight: AppFontWeight.display,
                                         ),
                                       ),
                                     ),
                                     Text(
                                       _money(item['total']),
                                       style: const TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w900,
+                                        fontSize: AppFontSize.caption,
+                                        fontWeight: AppFontWeight.display,
                                       ),
                                     ),
                                   ],
@@ -1693,7 +1685,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                     ],
                   ],
                 ],
-              ),
+              )),
             ),
             Container(
               padding: const EdgeInsets.fromLTRB(18, 11, 18, 14),
@@ -1709,12 +1701,11 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                     ? Row(
                         children: [
                           Expanded(
-                            child: OutlinedButton.icon(
+                            child: OutlinedButton(
                               onPressed: () async {
                                 await onReject?.call();
                               },
-                              icon: const Icon(AppIcons.close_rounded, size: 18),
-                              label: const Text('RECUSAR'),
+                              child: const Text('RECUSAR'),
                             ),
                           ),
                           const SizedBox(width: 9),
@@ -1789,9 +1780,9 @@ class _PrivacyOfferNotice extends StatelessWidget {
                 'Nome, telefone, rua, número e itens detalhados são liberados somente depois que você aceitar a entrega.',
                 style: TextStyle(
                   color: AppColors.oceanDeep,
-                  fontSize: 9.3,
+                  fontSize: AppFontSize.caption,
                   height: 1.4,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: AppFontWeight.strong,
                 ),
               ),
             ),
@@ -1825,9 +1816,9 @@ class _PinNotice extends StatelessWidget {
                 'Na porta, peça ao cliente o PIN de 4 dígitos. Sem o código correto o pedido não pode ser finalizado.',
                 style: TextStyle(
                   color: Color(0xFF846A3C),
-                  fontSize: 9.5,
+                  fontSize: AppFontSize.caption,
                   height: 1.4,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: AppFontWeight.strong,
                 ),
               ),
             ),
@@ -1886,8 +1877,8 @@ class _SheetHero extends StatelessWidget {
                   '#' + _shortId(id),
                   style: const TextStyle(
                     color: Colors.white60,
-                    fontSize: 8.5,
-                    fontWeight: FontWeight.w900,
+                    fontSize: AppFontSize.caption,
+                    fontWeight: AppFontWeight.display,
                     letterSpacing: .7,
                   ),
                 ),
@@ -1899,7 +1890,7 @@ class _SheetHero extends StatelessWidget {
             style: const TextStyle(
               color: Colors.white,
               fontSize: 21,
-              fontWeight: FontWeight.w900,
+              fontWeight: AppFontWeight.display,
               letterSpacing: -.5,
             ),
           ),
@@ -1910,8 +1901,8 @@ class _SheetHero extends StatelessWidget {
                 : 'Pedido aceito e vinculado ao seu perfil.',
             style: const TextStyle(
               color: Colors.white70,
-              fontSize: 9.5,
-              fontWeight: FontWeight.w600,
+              fontSize: AppFontSize.caption,
+              fontWeight: AppFontWeight.medium,
             ),
           ),
           const SizedBox(height: 16),
@@ -1927,8 +1918,8 @@ class _SheetHero extends StatelessWidget {
                 incoming ? 'Taxa da entrega' : 'Valor do pedido',
                 style: const TextStyle(
                   color: Colors.white70,
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w700,
+                  fontSize: AppFontSize.caption,
+                  fontWeight: AppFontWeight.strong,
                 ),
               ),
               const Spacer(),
@@ -1937,7 +1928,7 @@ class _SheetHero extends StatelessWidget {
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 15,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: AppFontWeight.display,
                 ),
               ),
             ],
@@ -1990,7 +1981,7 @@ class _DetailSection extends StatelessWidget {
                   title,
                   style: const TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: AppFontWeight.display,
                   ),
                 ),
               ],
@@ -2025,8 +2016,8 @@ class _DetailRow extends StatelessWidget {
                 label,
                 style: const TextStyle(
                   color: AppColors.muted,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
+                  fontSize: AppFontSize.caption,
+                  fontWeight: AppFontWeight.strong,
                 ),
               ),
             ),
@@ -2035,8 +2026,8 @@ class _DetailRow extends StatelessWidget {
                 value,
                 textAlign: TextAlign.right,
                 style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
+                  fontSize: AppFontSize.caption,
+                  fontWeight: AppFontWeight.display,
                 ),
               ),
             ),
@@ -2079,7 +2070,7 @@ class _CompactInfo extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 11.5,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: AppFontWeight.display,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -2089,9 +2080,9 @@ class _CompactInfo extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: AppColors.muted,
-                    fontSize: 8.8,
+                    fontSize: AppFontSize.caption,
                     height: 1.35,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: AppFontWeight.medium,
                   ),
                 ),
               ],
@@ -2159,8 +2150,8 @@ class _DeliveryProgress extends StatelessWidget {
                     color: i <= currentIndex
                         ? AppColors.ink
                         : AppColors.muted,
-                    fontSize: 7.8,
-                    fontWeight: FontWeight.w800,
+                    fontSize: AppFontSize.caption,
+                    fontWeight: AppFontWeight.display,
                   ),
                 ),
               ],
@@ -2203,8 +2194,8 @@ class _StatusMark extends StatelessWidget {
           _statusLabel(status),
           style: TextStyle(
             color: dark ? Colors.white : _statusColor(status),
-            fontSize: 7.5,
-            fontWeight: FontWeight.w900,
+            fontSize: AppFontSize.caption,
+            fontWeight: AppFontWeight.display,
             letterSpacing: .65,
           ),
         ),
@@ -2227,7 +2218,7 @@ class _CourierSnapshot extends StatelessWidget {
         crossAxisCount: 2,
         mainAxisSpacing: 9,
         crossAxisSpacing: 9,
-        childAspectRatio: 1.7,
+        mainAxisExtent: AppResponsive.metricHeight(context),
         children: [
           _SnapshotCard(
             icon: AppIcons.account_balance_wallet_rounded,
@@ -2265,61 +2256,7 @@ class _SnapshotCard extends StatelessWidget {
   final String value;
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(13),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: AppColors.stroke),
-          boxShadow: AppShadows.soft,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: AppColors.ocean50,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: Icon(
-                icon,
-                color: AppColors.oceanDeep,
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: 9),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.muted,
-                      fontSize: 7.5,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
+  Widget build(BuildContext context) => PrimeMetricCard(icon: icon, label: label, value: value);
 }
 
 class _DriverMenuSheet extends StatelessWidget {
@@ -2372,8 +2309,8 @@ class _DriverMenuSheet extends StatelessWidget {
                         'PORTO PRIME DRIVER',
                         style: TextStyle(
                           color: AppColors.ocean,
-                          fontSize: 8,
-                          fontWeight: FontWeight.w900,
+                          fontSize: AppFontSize.caption,
+                          fontWeight: AppFontWeight.display,
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -2382,7 +2319,7 @@ class _DriverMenuSheet extends StatelessWidget {
                         'Central do motoboy',
                         style: TextStyle(
                           fontSize: 22,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: AppFontWeight.display,
                           letterSpacing: -.5,
                         ),
                       ),
@@ -2424,7 +2361,7 @@ class _DriverMenuSheet extends StatelessWidget {
                       item.$2,
                       style: const TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: AppFontWeight.display,
                       ),
                     ),
                     trailing: const Icon(
@@ -2517,7 +2454,7 @@ class _DriverSectionSheet extends StatelessWidget {
                             title,
                             style: const TextStyle(
                               fontSize: 20,
-                              fontWeight: FontWeight.w900,
+                              fontWeight: AppFontWeight.display,
                               letterSpacing: -.4,
                             ),
                           ),
@@ -2530,11 +2467,11 @@ class _DriverSectionSheet extends StatelessWidget {
                     ),
                   ),
                   Expanded(
-                    child: ListView(
+                    child: PrimePageViewport(child: ListView(
                       physics: const BouncingScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(18, 5, 18, 24),
                       children: _content(context, state),
-                    ),
+                    )),
                   ),
                 ],
               ),
@@ -2573,6 +2510,21 @@ class _DriverSectionSheet extends StatelessWidget {
           value: _money(summary['availableBalance']),
           subtitle: 'Saldo total: ' + _money(summary['totalBalance']),
           icon: AppIcons.account_balance_wallet_rounded,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          mainAxisExtent: AppResponsive.metricHeight(context),
+          mainAxisSpacing: AppSpacing.xs,
+          crossAxisSpacing: AppSpacing.xs,
+          children: [
+            _SnapshotCard(icon: AppIcons.money, label: 'Ganhos hoje',
+              value: _money(summary['earningsToday'])),
+            _SnapshotCard(icon: AppIcons.calendar, label: 'Ganhos na semana',
+              value: _money(summary['earningsWeek'])),
+          ],
         ),
         const SizedBox(height: 11),
         SizedBox(
@@ -2681,13 +2633,13 @@ class _DriverSectionSheet extends StatelessWidget {
               'Receber novas ofertas',
               style: TextStyle(
                 fontSize: 11.5,
-                fontWeight: FontWeight.w900,
+                fontWeight: AppFontWeight.display,
               ),
             ),
             subtitle: Text(
               state.courierPresenceStatus.replaceAll('_', ' '),
               style: const TextStyle(
-                fontSize: 9,
+                fontSize: AppFontSize.caption,
                 color: AppColors.muted,
               ),
             ),
@@ -2758,7 +2710,7 @@ class _DriverSectionSheet extends StatelessWidget {
           icon: AppIcons.receipt_long_rounded,
           title: 'Sem movimentações',
           subtitle:
-              'Créditos, débitos, saques e estornos aparecerão neste ledger.',
+              'Créditos, débitos, saques e estornos aparecerão no seu extrato.',
         ),
       ];
     }
@@ -2821,8 +2773,8 @@ class _FinanceHero extends StatelessWidget {
                     eyebrow,
                     style: const TextStyle(
                       color: Color(0xFF91E8D5),
-                      fontSize: 7.5,
-                      fontWeight: FontWeight.w900,
+                      fontSize: AppFontSize.caption,
+                      fontWeight: AppFontWeight.display,
                       letterSpacing: 1,
                     ),
                   ),
@@ -2832,7 +2784,7 @@ class _FinanceHero extends StatelessWidget {
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 23,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: AppFontWeight.display,
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -2840,8 +2792,8 @@ class _FinanceHero extends StatelessWidget {
                     subtitle,
                     style: const TextStyle(
                       color: Colors.white70,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
+                      fontSize: AppFontSize.caption,
+                      fontWeight: AppFontWeight.medium,
                     ),
                   ),
                 ],
@@ -2884,8 +2836,8 @@ class _LedgerRow extends StatelessWidget {
                 Text(
                   (entry['description'] ?? 'Movimentação').toString(),
                   style: const TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w900,
+                    fontSize: AppFontSize.caption,
+                    fontWeight: AppFontWeight.display,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -2893,8 +2845,8 @@ class _LedgerRow extends StatelessWidget {
                   _date(entry['createdAt']),
                   style: const TextStyle(
                     color: AppColors.muted,
-                    fontSize: 8.5,
-                    fontWeight: FontWeight.w600,
+                    fontSize: AppFontSize.caption,
+                    fontWeight: AppFontWeight.medium,
                   ),
                 ),
               ],
@@ -2906,8 +2858,8 @@ class _LedgerRow extends StatelessWidget {
               color: positive
                   ? AppColors.oceanDeep
                   : AppColors.warning,
-              fontSize: 10.5,
-              fontWeight: FontWeight.w900,
+              fontSize: AppFontSize.caption,
+              fontWeight: AppFontWeight.display,
             ),
           ),
         ],
@@ -2944,7 +2896,7 @@ class _WithdrawalRow extends StatelessWidget {
                     _money(row['amount']),
                     style: const TextStyle(
                       fontSize: 11.5,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: AppFontWeight.display,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -2952,7 +2904,7 @@ class _WithdrawalRow extends StatelessWidget {
                     _date(row['requestedAt']),
                     style: const TextStyle(
                       color: AppColors.muted,
-                      fontSize: 8.5,
+                      fontSize: AppFontSize.caption,
                     ),
                   ),
                 ],
@@ -2962,8 +2914,8 @@ class _WithdrawalRow extends StatelessWidget {
             _withdrawalStatus((row['status'] ?? '').toString()),
             style: const TextStyle(
               color: AppColors.oceanDeep,
-              fontSize: 8,
-              fontWeight: FontWeight.w900,
+              fontSize: AppFontSize.caption,
+              fontWeight: AppFontWeight.display,
             ),
           ),
         ],
@@ -3002,8 +2954,8 @@ class _HistoryRow extends StatelessWidget {
                   Text(
                     'Entrega #' + _shortId(order['id']),
                     style: const TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w900,
+                      fontSize: AppFontSize.caption,
+                      fontWeight: AppFontWeight.display,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -3011,7 +2963,7 @@ class _HistoryRow extends StatelessWidget {
                     _date(order['deliveredAt'] ?? order['updatedAt']),
                     style: const TextStyle(
                       color: AppColors.muted,
-                      fontSize: 8.5,
+                      fontSize: AppFontSize.caption,
                     ),
                   ),
                 ],
@@ -3020,8 +2972,8 @@ class _HistoryRow extends StatelessWidget {
             Text(
               _money(order['deliveryFee']),
               style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
+                fontSize: AppFontSize.caption,
+                fontWeight: AppFontWeight.display,
               ),
             ),
           ],
@@ -3061,7 +3013,7 @@ class _DataPanel extends StatelessWidget {
                   title,
                   style: const TextStyle(
                     fontSize: 12.5,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: AppFontWeight.display,
                   ),
                 ),
               ],
@@ -3082,8 +3034,8 @@ class _DataPanel extends StatelessWidget {
                           row.$1,
                           style: const TextStyle(
                             color: AppColors.muted,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
+                            fontSize: AppFontSize.caption,
+                            fontWeight: AppFontWeight.strong,
                           ),
                         ),
                       ),
@@ -3092,8 +3044,8 @@ class _DataPanel extends StatelessWidget {
                           row.$2,
                           textAlign: TextAlign.right,
                           style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
+                            fontSize: AppFontSize.caption,
+                            fontWeight: AppFontWeight.display,
                           ),
                         ),
                       ),
@@ -3165,7 +3117,7 @@ class _DriverEmpty extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w900,
+                fontWeight: AppFontWeight.display,
               ),
             ),
             const SizedBox(height: 6),
@@ -3174,9 +3126,9 @@ class _DriverEmpty extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: AppColors.muted,
-                fontSize: 9.5,
+                fontSize: AppFontSize.caption,
                 height: 1.5,
-                fontWeight: FontWeight.w600,
+                fontWeight: AppFontWeight.medium,
               ),
             ),
           ],

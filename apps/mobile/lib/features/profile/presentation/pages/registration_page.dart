@@ -128,7 +128,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                               'Conta de $title',
                               style: const TextStyle(
                                 fontSize: 15,
-                                fontWeight: FontWeight.w900,
+                                fontWeight: AppFontWeight.display,
                                 letterSpacing: -.25,
                               ),
                             ),
@@ -136,9 +136,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             Text(
                               'Etapa ${step + 1} de $total',
                               style: const TextStyle(
-                                fontSize: 9,
+                                fontSize: AppFontSize.caption,
                                 color: AppColors.muted,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: AppFontWeight.strong,
                               ),
                             ),
                           ],
@@ -161,8 +161,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                   : 'PARCEIRO',
                           style: TextStyle(
                             color: accent,
-                            fontSize: 7.5,
-                            fontWeight: FontWeight.w900,
+                            fontSize: AppFontSize.caption,
+                            fontWeight: AppFontWeight.display,
                             letterSpacing: .8,
                           ),
                         ),
@@ -277,7 +277,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           style: const TextStyle(
                             fontSize: 29,
                             height: 1.02,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: AppFontWeight.display,
                             letterSpacing: -1,
                           ),
                         ),
@@ -288,7 +288,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             fontSize: 11,
                             height: 1.5,
                             color: AppColors.muted,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: AppFontWeight.medium,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -387,17 +387,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                             'Confirmação dos dados',
                                             style: TextStyle(
                                               fontSize: 11.5,
-                                              fontWeight: FontWeight.w900,
+                                              fontWeight: AppFontWeight.display,
                                             ),
                                           ),
                                           SizedBox(height: 3),
                                           Text(
                                             'Confirmo que as informações são verdadeiras e aceito os termos e a política de privacidade.',
                                             style: TextStyle(
-                                              fontSize: 9.5,
+                                              fontSize: AppFontSize.caption,
                                               height: 1.45,
                                               color: AppColors.muted,
-                                              fontWeight: FontWeight.w600,
+                                              fontWeight: AppFontWeight.medium,
                                             ),
                                           ),
                                         ],
@@ -451,7 +451,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                     : 'Criar minha conta')
                                 : 'Continuar',
                             style: const TextStyle(
-                              fontWeight: FontWeight.w900,
+                              fontWeight: AppFontWeight.display,
                             ),
                           ),
                   ),
@@ -505,9 +505,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
         child:const Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
           Icon(AppIcons.verified_user_rounded,color:AppColors.oceanDeep,size:27),SizedBox(width:12),
           Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-            Text('Confira tudo antes de enviar',style:TextStyle(fontSize:16,fontWeight:FontWeight.w900)),
+            Text('Confira tudo antes de enviar',style:TextStyle(fontSize:16,fontWeight:AppFontWeight.display)),
             SizedBox(height:4),
-            Text('Revise seus dados pessoais, CNH, veículo e contato. Se encontrar algo errado, toque em Editar e volte exatamente à etapa correspondente.',style:TextStyle(fontSize:10.5,height:1.45,color:AppColors.muted,fontWeight:FontWeight.w600)),
+            Text('Revise seus dados pessoais, CNH, veículo e contato. Se encontrar algo errado, toque em Editar e volte exatamente à etapa correspondente.',style:TextStyle(fontSize:10.5,height:1.45,color:AppColors.muted,fontWeight:AppFontWeight.medium)),
           ])),
         ]),
       ),
@@ -517,11 +517,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
         child:Column(children:[
           Row(children:[
             Container(width:38,height:38,decoration:BoxDecoration(color:AppColors.canvas,borderRadius:BorderRadius.circular(AppRadius.sm)),child:Icon(section['icon'] as IconData,color:AppColors.oceanDeep,size:20)),
-            const SizedBox(width:10),Expanded(child:Text(section['title'] as String,style:const TextStyle(fontSize:13.5,fontWeight:FontWeight.w900))),
+            const SizedBox(width:10),Expanded(child:Text(section['title'] as String,style:const TextStyle(fontSize:13.5,fontWeight:AppFontWeight.display))),
             TextButton.icon(
               onPressed:()=>setState(()=>step=section['step'] as int),
               icon:const Icon(AppIcons.edit_rounded,size:15),label:const Text('Editar'),
-              style:TextButton.styleFrom(foregroundColor:AppColors.oceanDeep,textStyle:const TextStyle(fontSize:11,fontWeight:FontWeight.w900)),
+              style:TextButton.styleFrom(foregroundColor:AppColors.oceanDeep,textStyle:const TextStyle(fontSize:11,fontWeight:AppFontWeight.display)),
             ),
           ]),
           const SizedBox(height:6),
@@ -529,9 +529,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
             final row=raw as List<String>;return Padding(
               padding:const EdgeInsets.symmetric(vertical:6),
               child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
-                Expanded(flex:4,child:Text(row[0],style:const TextStyle(fontSize:9.5,color:AppColors.muted,fontWeight:FontWeight.w700))),
+                Expanded(flex:4,child:Text(row[0],style:const TextStyle(fontSize:9.5,color:AppColors.muted,fontWeight:AppFontWeight.strong))),
                 const SizedBox(width:10),
-                Expanded(flex:6,child:Text(row[1].isEmpty?'Não informado':row[1],textAlign:TextAlign.right,style:const TextStyle(fontSize:10.5,height:1.3,fontWeight:FontWeight.w800))),
+                Expanded(flex:6,child:Text(row[1].isEmpty?'Não informado':row[1],textAlign:TextAlign.right,style:const TextStyle(fontSize:10.5,height:1.3,fontWeight:AppFontWeight.display))),
               ]),
             );
           }),
@@ -542,7 +542,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         decoration:BoxDecoration(color:AppColors.sand,borderRadius:BorderRadius.circular(AppRadius.md)),
         child:const Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
           Icon(AppIcons.manage_search_rounded,color:AppColors.coral,size:22),SizedBox(width:10),
-          Expanded(child:Text('Depois do envio, o cadastro ficará em análise. A equipe Porto Prime verificará as informações antes de liberar o acesso operacional.',style:TextStyle(fontSize:10.5,height:1.45,color:AppColors.ink,fontWeight:FontWeight.w700))),
+          Expanded(child:Text('Depois do envio, o cadastro ficará em análise. A equipe Porto Prime verificará as informações antes de liberar o acesso operacional.',style:TextStyle(fontSize:10.5,height:1.45,color:AppColors.ink,fontWeight:AppFontWeight.strong))),
         ]),
       ),
     ]);
@@ -683,7 +683,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         suffixIcon:Icon(AppIcons.unfold_more_rounded,color:accent,size:20),
         enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(AppRadius.md),borderSide:const BorderSide(color:AppColors.stroke)),
         border:OutlineInputBorder(borderRadius:BorderRadius.circular(AppRadius.md),borderSide:BorderSide.none)),
-        child:Text(value.isEmpty?'Toque para selecionar':value,style:TextStyle(fontWeight:FontWeight.w800,fontSize:12,color:value.isEmpty?AppColors.muted:AppColors.ink))),
+        child:Text(value.isEmpty?'Toque para selecionar':value,style:TextStyle(fontWeight:AppFontWeight.display,fontSize:12,color:value.isEmpty?AppColors.muted:AppColors.ink))),
     ));
   }
 
@@ -697,12 +697,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
         child:Column(children:[
           Container(width:42,height:4,decoration:BoxDecoration(color:AppColors.stroke,borderRadius:BorderRadius.circular(8))),
           const SizedBox(height:18),
-          Row(children:[Expanded(child:Text(f.label,style:const TextStyle(fontSize:21,fontWeight:FontWeight.w900))),IconButton(onPressed:()=>Navigator.pop(ctx),icon:const Icon(AppIcons.close_rounded))]),
+          Row(children:[Expanded(child:Text(f.label,style:const TextStyle(fontSize:21,fontWeight:AppFontWeight.display))),IconButton(onPressed:()=>Navigator.pop(ctx),icon:const Icon(AppIcons.close_rounded))]),
           TextField(controller:search,onChanged:(q)=>setSheet(()=>filtered=options.where((x)=>x.toLowerCase().contains(q.toLowerCase())).toList()),
             decoration:InputDecoration(hintText:'Pesquisar',prefixIcon:const Icon(AppIcons.search_rounded),filled:true,fillColor:AppColors.canvas,border:OutlineInputBorder(borderRadius:BorderRadius.circular(AppRadius.md),borderSide:BorderSide.none))),
           const SizedBox(height:10),
           Expanded(child:ListView.separated(itemCount:filtered.length,separatorBuilder:(_,_)=>const Divider(height:1,color:AppColors.stroke),
-            itemBuilder:(ctx,i){final x=filtered[i],selected=ctl(f.key).text==x;return ListTile(title:Text(x,style:TextStyle(fontWeight:selected?FontWeight.w900:FontWeight.w700)),trailing:selected?const Icon(AppIcons.check_circle_rounded,color:AppColors.success):null,onTap:()=>Navigator.pop(ctx,x));})),
+            itemBuilder:(ctx,i){final x=filtered[i],selected=ctl(f.key).text==x;return ListTile(title:Text(x,style:TextStyle(fontWeight:selected?AppFontWeight.display:AppFontWeight.strong)),trailing:selected?const Icon(AppIcons.check_circle_rounded,color:AppColors.success):null,onTap:()=>Navigator.pop(ctx,x));})),
         ]),
       )));
     search.dispose();
@@ -990,7 +990,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 22,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: AppFontWeight.display,
                   letterSpacing: -.5,
                 ),
               ),
@@ -1002,7 +1002,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   fontSize: 11.5,
                   height: 1.5,
                   color: AppColors.muted,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: AppFontWeight.medium,
                 ),
               ),
               const SizedBox(height: 20),
@@ -1013,7 +1013,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   onPressed: () => Navigator.pop(d),
                   child: const Text(
                     'Entendi',
-                    style: TextStyle(fontWeight: FontWeight.w900),
+                    style: TextStyle(fontWeight: AppFontWeight.display),
                   ),
                 ),
               ),
@@ -1082,7 +1082,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 style: const TextStyle(
                   fontSize: 22,
                   height: 1.05,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: AppFontWeight.display,
                   letterSpacing: -.5,
                 ),
               ),
@@ -1094,7 +1094,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   fontSize: 11.5,
                   height: 1.5,
                   color: AppColors.muted,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: AppFontWeight.medium,
                 ),
               ),
               const SizedBox(height: 20),
@@ -1110,7 +1110,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   ),
                   child: const Text(
                     'Corrigir meus dados',
-                    style: TextStyle(fontWeight: FontWeight.w900),
+                    style: TextStyle(fontWeight: AppFontWeight.display),
                   ),
                 ),
               ),
@@ -1124,7 +1124,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   'Já tenho uma conta',
                   style: TextStyle(
                     color: AppColors.muted,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: AppFontWeight.display,
                   ),
                 ),
               ),

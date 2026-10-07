@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/prime_ui.dart';
 import '../../../orders/presentation/pages/orders_page.dart';
 import 'registration_page.dart';
 
@@ -23,7 +24,7 @@ class _Guest extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SafeArea(
         bottom: false,
-        child: ListView(
+        child: PrimePageViewport(child: ListView(
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 126),
           children: [
@@ -67,7 +68,7 @@ class _Guest extends StatelessWidget {
               ],
             ),
           ],
-        ),
+        )),
       );
 }
 
@@ -141,8 +142,8 @@ class _GuestAccessHero extends StatelessWidget {
                         'CONTA SEGURA',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 7.5,
-                          fontWeight: FontWeight.w900,
+                          fontSize: AppFontSize.caption,
+                          fontWeight: AppFontWeight.display,
                           letterSpacing: .8,
                         ),
                       ),
@@ -158,7 +159,7 @@ class _GuestAccessHero extends StatelessWidget {
                 color: Colors.white,
                 fontSize: 28,
                 height: 1.02,
-                fontWeight: FontWeight.w900,
+                fontWeight: AppFontWeight.display,
                 letterSpacing: -.9,
               ),
             ),
@@ -167,9 +168,9 @@ class _GuestAccessHero extends StatelessWidget {
               'Entre para continuar ou crie uma conta em poucos passos.',
               style: TextStyle(
                 color: Colors.white70,
-                fontSize: 10.5,
+                fontSize: AppFontSize.caption,
                 height: 1.45,
-                fontWeight: FontWeight.w600,
+                fontWeight: AppFontWeight.medium,
               ),
             ),
             const SizedBox(height: 21),
@@ -223,8 +224,8 @@ class _ProfileHeader extends StatelessWidget {
                   'PORTO PRIME ACCOUNT',
                   style: TextStyle(
                     color: AppColors.ocean,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w900,
+                    fontSize: AppFontSize.caption,
+                    fontWeight: AppFontWeight.display,
                     letterSpacing: 1.7,
                   ),
                 ),
@@ -240,7 +241,7 @@ class _ProfileHeader extends StatelessWidget {
                     color: AppColors.muted,
                     height: 1.4,
                     fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: AppFontWeight.medium,
                   ),
                 ),
               ],
@@ -369,8 +370,8 @@ class _GuestHero extends StatelessWidget {
                                   'ACESSO SEGURO',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.w900,
+                                    fontSize: AppFontSize.caption,
+                                    fontWeight: AppFontWeight.display,
                                     letterSpacing: .8,
                                   ),
                                 ),
@@ -386,7 +387,7 @@ class _GuestHero extends StatelessWidget {
                           color: Colors.white,
                           fontSize: 26,
                           height: 1.02,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: AppFontWeight.display,
                           letterSpacing: -.8,
                         ),
                       ),
@@ -398,9 +399,9 @@ class _GuestHero extends StatelessWidget {
                               'Entre ou crie sua conta para liberar a experiência completa.',
                               style: TextStyle(
                                 color: Colors.white70,
-                                fontSize: 10.5,
+                                fontSize: AppFontSize.caption,
                                 height: 1.4,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: AppFontWeight.medium,
                               ),
                             ),
                           ),
@@ -451,7 +452,7 @@ class _QuickAction extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppRadius.md),
           child: Container(
-            height: 102,
+            constraints: const BoxConstraints(minHeight: 126),
             padding: const EdgeInsets.symmetric(horizontal: 9),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppRadius.md),
@@ -474,8 +475,8 @@ class _QuickAction extends StatelessWidget {
                   label,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w900,
+                    fontSize: AppFontSize.caption,
+                    fontWeight: AppFontWeight.display,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -483,9 +484,9 @@ class _QuickAction extends StatelessWidget {
                   subtitle,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 8,
+                    fontSize: AppFontSize.caption,
                     color: AppColors.muted,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: AppFontWeight.medium,
                   ),
                 ),
               ],
@@ -514,8 +515,8 @@ class _SectionLabel extends StatelessWidget {
             eyebrow,
             style: const TextStyle(
               color: AppColors.ocean,
-              fontSize: 8,
-              fontWeight: FontWeight.w900,
+              fontSize: AppFontSize.caption,
+              fontWeight: AppFontWeight.display,
               letterSpacing: 1.4,
             ),
           ),
@@ -526,7 +527,7 @@ class _SectionLabel extends StatelessWidget {
               color: AppColors.ink,
               fontSize: 20,
               height: 1.08,
-              fontWeight: FontWeight.w900,
+              fontWeight: AppFontWeight.display,
               letterSpacing: -.45,
             ),
           ),
@@ -536,9 +537,9 @@ class _SectionLabel extends StatelessWidget {
               subtitle!,
               style: const TextStyle(
                 color: AppColors.muted,
-                fontSize: 10.5,
+                fontSize: AppFontSize.caption,
                 height: 1.45,
-                fontWeight: FontWeight.w600,
+                fontWeight: AppFontWeight.medium,
               ),
             ),
           ],
@@ -600,7 +601,7 @@ class _AccessCard extends StatelessWidget {
                               title,
                               style: const TextStyle(
                                 fontSize: 14,
-                                fontWeight: FontWeight.w900,
+                                fontWeight: AppFontWeight.display,
                                 letterSpacing: -.2,
                               ),
                             ),
@@ -608,9 +609,9 @@ class _AccessCard extends StatelessWidget {
                           Text(
                             badge,
                             style: const TextStyle(
-                              fontSize: 7.5,
+                              fontSize: AppFontSize.caption,
                               color: AppColors.muted,
-                              fontWeight: FontWeight.w900,
+                              fontWeight: AppFontWeight.display,
                               letterSpacing: .8,
                             ),
                           ),
@@ -621,9 +622,9 @@ class _AccessCard extends StatelessWidget {
                         subtitle,
                         style: const TextStyle(
                           color: AppColors.muted,
-                          fontSize: 9.5,
+                          fontSize: AppFontSize.caption,
                           height: 1.4,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: AppFontWeight.medium,
                         ),
                       ),
                     ],
@@ -677,7 +678,7 @@ class _ApplicationShortcut extends StatelessWidget {
                         'Já enviou sua candidatura?',
                         style: TextStyle(
                           fontSize: 13,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: AppFontWeight.display,
                         ),
                       ),
                       SizedBox(height: 3),
@@ -685,9 +686,9 @@ class _ApplicationShortcut extends StatelessWidget {
                         'Consulte o status e responda pendências pelo CPF.',
                         style: TextStyle(
                           color: Color(0xFF8D6C35),
-                          fontSize: 9.5,
+                          fontSize: AppFontSize.caption,
                           height: 1.35,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: AppFontWeight.medium,
                         ),
                       ),
                     ],
@@ -775,7 +776,7 @@ class _MenuLine extends StatelessWidget {
               title,
               style: const TextStyle(
                 fontSize: 12.5,
-                fontWeight: FontWeight.w900,
+                fontWeight: AppFontWeight.display,
               ),
             ),
             subtitle: Padding(
@@ -783,9 +784,9 @@ class _MenuLine extends StatelessWidget {
               child: Text(
                 subtitle,
                 style: const TextStyle(
-                  fontSize: 9,
+                  fontSize: AppFontSize.caption,
                   color: AppColors.muted,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: AppFontWeight.medium,
                 ),
               ),
             ),
@@ -830,9 +831,9 @@ class _BahiaSignature extends StatelessWidget {
               child: Text(
                 'Feito em Porto Seguro para praia, festa, descanso e aquele brinde que não pode esperar.',
                 style: TextStyle(
-                  fontSize: 10.5,
+                  fontSize: AppFontSize.caption,
                   height: 1.45,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: AppFontWeight.strong,
                 ),
               ),
             ),
@@ -868,7 +869,7 @@ Future<void> _accountMenu(BuildContext context) async {
             icon: const Icon(AppIcons.login_rounded, size: 20),
             label: const Text(
               'Entrar na minha conta',
-              style: TextStyle(fontWeight: FontWeight.w900),
+              style: TextStyle(fontWeight: AppFontWeight.display),
             ),
           ),
         ),
@@ -882,8 +883,8 @@ Future<void> _accountMenu(BuildContext context) async {
                 'CRIAR UMA NOVA CONTA',
                 style: TextStyle(
                   color: AppColors.muted,
-                  fontSize: 7.5,
-                  fontWeight: FontWeight.w900,
+                  fontSize: AppFontSize.caption,
+                  fontWeight: AppFontWeight.display,
                   letterSpacing: 1.1,
                 ),
               ),
@@ -959,7 +960,7 @@ Future<void> _accountMenu(BuildContext context) async {
                           'Acompanhar candidatura',
                           style: TextStyle(
                             fontSize: 12.5,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: AppFontWeight.display,
                           ),
                         ),
                         SizedBox(height: 3),
@@ -967,8 +968,8 @@ Future<void> _accountMenu(BuildContext context) async {
                           'Consulte pelo CPF e responda solicitações do Admin.',
                           style: TextStyle(
                             color: Color(0xFF866A3E),
-                            fontSize: 9,
-                            fontWeight: FontWeight.w600,
+                            fontSize: AppFontSize.caption,
+                            fontWeight: AppFontWeight.medium,
                           ),
                         ),
                       ],
@@ -1038,7 +1039,7 @@ class _RoleCard extends StatelessWidget {
                         title,
                         style: const TextStyle(
                           fontSize: 13.5,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: AppFontWeight.display,
                         ),
                       ),
                       const SizedBox(height: 3),
@@ -1046,9 +1047,9 @@ class _RoleCard extends StatelessWidget {
                         subtitle,
                         style: const TextStyle(
                           color: AppColors.muted,
-                          fontSize: 9.5,
+                          fontSize: AppFontSize.caption,
                           height: 1.35,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: AppFontWeight.medium,
                         ),
                       ),
                     ],
@@ -1133,7 +1134,7 @@ Future<void> _courierStatus(BuildContext context) async {
                       style: const TextStyle(
                         fontSize: 20,
                         height: 1.08,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: AppFontWeight.display,
                         letterSpacing: -.4,
                       ),
                     ),
@@ -1142,9 +1143,9 @@ Future<void> _courierStatus(BuildContext context) async {
                       (requirement['description'] ?? '').toString(),
                       style: const TextStyle(
                         color: AppColors.muted,
-                        fontSize: 10.5,
+                        fontSize: AppFontSize.caption,
                         height: 1.45,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: AppFontWeight.medium,
                       ),
                     ),
                     const SizedBox(height: 17),
@@ -1206,9 +1207,7 @@ Future<void> _courierStatus(BuildContext context) async {
             if (sheetContext.mounted) {
               ScaffoldMessenger.of(sheetContext).showSnackBar(
                 SnackBar(
-                  content: Text(
-                    e.toString().replaceFirst('Exception: ', ''),
-                  ),
+                  content: Text(PrimeMessages.friendly(e)),
                 ),
               );
             }
@@ -1271,9 +1270,9 @@ Future<void> _courierStatus(BuildContext context) async {
                         'A consulta é protegida pelo CPF informado na candidatura. Nenhum login é necessário nesta etapa.',
                         style: TextStyle(
                           color: AppColors.muted,
-                          fontSize: 9.5,
+                          fontSize: AppFontSize.caption,
                           height: 1.45,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: AppFontWeight.medium,
                         ),
                       ),
                     ),
@@ -1340,7 +1339,7 @@ Future<void> _courierStatus(BuildContext context) async {
                         application == null
                             ? 'Consultar candidatura'
                             : 'Atualizar acompanhamento',
-                        style: const TextStyle(fontWeight: FontWeight.w900),
+                        style: const TextStyle(fontWeight: AppFontWeight.display),
                       ),
               ),
             ),
@@ -1399,7 +1398,7 @@ class _ApplicationOverview extends StatelessWidget {
                       (application['name'] ?? 'Candidatura').toString(),
                       style: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: AppFontWeight.display,
                         letterSpacing: -.25,
                       ),
                     ),
@@ -1408,8 +1407,8 @@ class _ApplicationOverview extends StatelessWidget {
                       (application['document'] ?? 'CPF confirmado').toString(),
                       style: const TextStyle(
                         color: AppColors.muted,
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w600,
+                        fontSize: AppFontSize.caption,
+                        fontWeight: AppFontWeight.medium,
                       ),
                     ),
                   ],
@@ -1434,9 +1433,9 @@ class _ApplicationOverview extends StatelessWidget {
                   child: Text(
                     config.message,
                     style: const TextStyle(
-                      fontSize: 9.5,
+                      fontSize: AppFontSize.caption,
                       height: 1.4,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: AppFontWeight.strong,
                     ),
                   ),
                 ),
@@ -1500,7 +1499,7 @@ class _RequirementCard extends StatelessWidget {
                       (requirement['title'] ?? 'Pendência').toString(),
                       style: const TextStyle(
                         fontSize: 12.5,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: AppFontWeight.display,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -1508,9 +1507,9 @@ class _RequirementCard extends StatelessWidget {
                       (requirement['description'] ?? '').toString(),
                       style: const TextStyle(
                         color: AppColors.muted,
-                        fontSize: 9.5,
+                        fontSize: AppFontSize.caption,
                         height: 1.45,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: AppFontWeight.medium,
                       ),
                     ),
                   ],
@@ -1536,8 +1535,8 @@ class _RequirementCard extends StatelessWidget {
                     'SUA RESPOSTA',
                     style: TextStyle(
                       color: AppColors.oceanDeep,
-                      fontSize: 7.5,
-                      fontWeight: FontWeight.w900,
+                      fontSize: AppFontSize.caption,
+                      fontWeight: AppFontWeight.display,
                       letterSpacing: 1,
                     ),
                   ),
@@ -1545,9 +1544,9 @@ class _RequirementCard extends StatelessWidget {
                   Text(
                     requirement['response'].toString(),
                     style: const TextStyle(
-                      fontSize: 9.5,
+                      fontSize: AppFontSize.caption,
                       height: 1.4,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: AppFontWeight.strong,
                     ),
                   ),
                 ],
@@ -1588,8 +1587,8 @@ class _StatusPill extends StatelessWidget {
         config.label,
         style: TextStyle(
           color: config.foreground,
-          fontSize: 7.5,
-          fontWeight: FontWeight.w900,
+          fontSize: AppFontSize.caption,
+          fontWeight: AppFontWeight.display,
           letterSpacing: .5,
         ),
       ),
@@ -1699,7 +1698,7 @@ class _SmallCounter extends StatelessWidget {
           style: const TextStyle(
             color: AppColors.oceanDeep,
             fontSize: 11,
-            fontWeight: FontWeight.w900,
+            fontWeight: AppFontWeight.display,
           ),
         ),
       );
@@ -1780,9 +1779,9 @@ Future<void> _auth(BuildContext context) async {
                   'Sessão protegida e acesso individual. Nunca compartilhe sua senha.',
                   style: TextStyle(
                     color: AppColors.muted,
-                    fontSize: 8.8,
+                    fontSize: AppFontSize.caption,
                     height: 1.4,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: AppFontWeight.medium,
                   ),
                 ),
               ),
@@ -1832,7 +1831,7 @@ class _PremiumFieldState extends State<_PremiumField> {
         keyboardType: widget.keyboardType,
         style: const TextStyle(
           fontSize: 14,
-          fontWeight: FontWeight.w700,
+          fontWeight: AppFontWeight.strong,
         ),
         decoration: InputDecoration(
           labelText: widget.label,
@@ -1942,7 +1941,7 @@ class _LoginSubmit extends StatelessWidget {
                       )
                     : Text(
                         label,
-                        style: const TextStyle(fontWeight: FontWeight.w900),
+                        style: const TextStyle(fontWeight: AppFontWeight.display),
                       ),
               ),
             ),
@@ -2037,8 +2036,8 @@ class _SheetBrandHeader extends StatelessWidget {
                   eyebrow,
                   style: const TextStyle(
                     color: AppColors.ocean,
-                    fontSize: 8,
-                    fontWeight: FontWeight.w900,
+                    fontSize: AppFontSize.caption,
+                    fontWeight: AppFontWeight.display,
                     letterSpacing: 1.35,
                   ),
                 ),
@@ -2048,7 +2047,7 @@ class _SheetBrandHeader extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 23,
                     height: 1.05,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: AppFontWeight.display,
                     letterSpacing: -.55,
                   ),
                 ),
@@ -2057,9 +2056,9 @@ class _SheetBrandHeader extends StatelessWidget {
                   subtitle,
                   style: const TextStyle(
                     color: AppColors.muted,
-                    fontSize: 10,
+                    fontSize: AppFontSize.caption,
                     height: 1.4,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: AppFontWeight.medium,
                   ),
                 ),
               ],
@@ -2106,9 +2105,9 @@ class _InlineNotice extends StatelessWidget {
                 text,
                 style: TextStyle(
                   color: foreground,
-                  fontSize: 9.5,
+                  fontSize: AppFontSize.caption,
                   height: 1.4,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: AppFontWeight.strong,
                 ),
               ),
             ),
@@ -2128,7 +2127,7 @@ class _Account extends StatelessWidget {
 
     return SafeArea(
       bottom: false,
-      child: ListView(
+      child: PrimePageViewport(child: ListView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 22, 20, 126),
         children: [
@@ -2143,8 +2142,8 @@ class _Account extends StatelessWidget {
                       'MINHA PORTO PRIME',
                       style: TextStyle(
                         color: AppColors.ocean,
-                        fontSize: 8,
-                        fontWeight: FontWeight.w900,
+                        fontSize: AppFontSize.caption,
+                        fontWeight: AppFontWeight.display,
                         letterSpacing: 1.5,
                       ),
                     ),
@@ -2159,7 +2158,7 @@ class _Account extends StatelessWidget {
                       style: TextStyle(
                         color: AppColors.muted,
                         fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: AppFontWeight.medium,
                       ),
                     ),
                   ],
@@ -2281,7 +2280,7 @@ class _Account extends StatelessWidget {
                         'Entrega do seu jeito',
                         style: TextStyle(
                           fontSize: 12.5,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: AppFontWeight.display,
                         ),
                       ),
                       SizedBox(height: 3),
@@ -2289,8 +2288,8 @@ class _Account extends StatelessWidget {
                         'Rápida, gelada e acompanhada em tempo real.',
                         style: TextStyle(
                           color: AppColors.muted,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w600,
+                          fontSize: AppFontSize.caption,
+                          fontWeight: AppFontWeight.medium,
                         ),
                       ),
                     ],
@@ -2309,7 +2308,7 @@ class _Account extends StatelessWidget {
             ),
           ),
         ],
-      ),
+      )),
     );
   }
 }
@@ -2364,7 +2363,7 @@ class _AccountHero extends StatelessWidget {
                   style: const TextStyle(
                     color: AppColors.oceanDeep,
                     fontSize: 25,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: AppFontWeight.display,
                   ),
                 ),
               ),
@@ -2375,26 +2374,33 @@ class _AccountHero extends StatelessWidget {
                   children: [
                     Text(
                       name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: AppFontWeight.display,
                         letterSpacing: -.3,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       email,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.white60,
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w600,
+                        fontSize: AppFontSize.caption,
+                        fontWeight: AppFontWeight.medium,
                       ),
                     ),
                   ],
                 ),
               ),
-              Container(
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Align(alignment: Alignment.centerRight, child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
                 decoration: BoxDecoration(
@@ -2405,14 +2411,12 @@ class _AccountHero extends StatelessWidget {
                   roleLabel,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 7.5,
-                    fontWeight: FontWeight.w900,
+                    fontSize: AppFontSize.caption,
+                    fontWeight: AppFontWeight.display,
                     letterSpacing: .8,
                   ),
                 ),
-              ),
-            ],
-          ),
+              )),
           const SizedBox(height: 17),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
@@ -2433,8 +2437,8 @@ class _AccountHero extends StatelessWidget {
                     'Conta Porto Prime • Porto Seguro, Bahia',
                     style: TextStyle(
                       color: Colors.white70,
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w700,
+                      fontSize: AppFontSize.caption,
+                      fontWeight: AppFontWeight.strong,
                     ),
                   ),
                 ),
@@ -2570,7 +2574,7 @@ void _addresses(BuildContext context) {
                           '${address['street'] ?? ''}, ${address['number'] ?? ''}',
                           style: const TextStyle(
                             fontSize: 11.5,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: AppFontWeight.display,
                           ),
                         ),
                         const SizedBox(height: 3),
@@ -2578,8 +2582,8 @@ void _addresses(BuildContext context) {
                           (address['neighborhood'] ?? '').toString(),
                           style: const TextStyle(
                             color: AppColors.muted,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w600,
+                            fontSize: AppFontSize.caption,
+                            fontWeight: AppFontWeight.medium,
                           ),
                         ),
                       ],
@@ -2681,9 +2685,7 @@ void _newAddress(BuildContext context) {
                       if (dialogContext.mounted) {
                         ScaffoldMessenger.of(dialogContext).showSnackBar(
                           SnackBar(
-                            content: Text(
-                              e.toString().replaceFirst('Exception: ', ''),
-                            ),
+                            content: Text(PrimeMessages.friendly(e)),
                           ),
                         );
                       }

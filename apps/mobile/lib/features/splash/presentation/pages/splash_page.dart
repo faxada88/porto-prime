@@ -90,7 +90,7 @@ class _SplashPageState extends State<SplashPage>
                             'P',
                             style: TextStyle(
                               fontSize: 58,
-                              fontWeight: FontWeight.w900,
+                              fontWeight: AppFontWeight.display,
                               color: AppColors.primaryDark,
                             ),
                           ),
@@ -124,7 +124,7 @@ class _SplashPageState extends State<SplashPage>
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 27,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: AppFontWeight.display,
                         letterSpacing: 1.8,
                       ),
                     ),
@@ -134,7 +134,7 @@ class _SplashPageState extends State<SplashPage>
                       style: TextStyle(
                         color: Color(0xFFE9FFF8),
                         fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: AppFontWeight.medium,
                       ),
                     ),
                   ],

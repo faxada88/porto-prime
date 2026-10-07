@@ -157,6 +157,8 @@ abstract final class AppIcons {
   static const account_balance_wallet_outlined = wallet;
   static const work_outline_rounded = briefcase;
   static const credit_card_outlined = creditCard;
+  static const credit_card_rounded = creditCard;
+  static const local_post_office_outlined = mail;
   static const event_available_outlined = calendar;
   static const commute_rounded = bike;
   static const calendar_today_outlined = calendar;
@@ -204,6 +206,7 @@ abstract final class AppIcons {
     if (value.contains('cervej')) {
       return const CategoryIconSpec(
         icon: beer,
+        offset: Offset(.5, .3),
         size: 27,
         background: Color(0xFFFFF1C9),
         foreground: Color(0xFF8D5E10),
@@ -212,6 +215,7 @@ abstract final class AppIcons {
     if (value.contains('vinh')) {
       return const CategoryIconSpec(
         icon: wine,
+        offset: Offset(0, -.7),
         size: 27,
         background: Color(0xFFF8E4EA),
         foreground: Color(0xFF8C4059),
@@ -225,6 +229,7 @@ abstract final class AppIcons {
         value.contains('cachac')) {
       return const CategoryIconSpec(
         icon: spirits,
+        offset: Offset(0, -.3),
         size: 26,
         background: Color(0xFFFFE9DA),
         foreground: Color(0xFF98572A),
@@ -243,6 +248,7 @@ abstract final class AppIcons {
     if (value.contains('energ')) {
       return const CategoryIconSpec(
         icon: energy,
+        offset: Offset(.4, 0),
         size: 25,
         background: Color(0xFFECE7FF),
         foreground: Color(0xFF6655A2),
@@ -251,6 +257,7 @@ abstract final class AppIcons {
     if (value.contains('agua')) {
       return const CategoryIconSpec(
         icon: water,
+        offset: Offset(0, -.2),
         size: 25,
         background: Color(0xFFE3F2F8),
         foreground: Color(0xFF2E708D),
@@ -259,6 +266,7 @@ abstract final class AppIcons {
     if (value.contains('gelo')) {
       return const CategoryIconSpec(
         icon: ice,
+        offset: Offset(0, -.5),
         size: 26,
         background: Color(0xFFE7F4FA),
         foreground: Color(0xFF317898),
@@ -329,10 +337,12 @@ class CategoryIconSpec {
     required this.size,
     required this.background,
     required this.foreground,
+    this.offset = Offset.zero,
   });
 
   final IconData icon;
   final double size;
   final Color background;
   final Color foreground;
+  final Offset offset;
 }

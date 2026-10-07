@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 abstract final class AppColors {
   // Porto Prime — oceano, areia e pôr do sol em doses controladas.
@@ -113,6 +112,9 @@ abstract final class AppMotion {
   static const emphasized = Duration(milliseconds: 240);
   static const Curve curve = Curves.easeOutCubic;
   static const Curve entrance = Curves.easeOutQuart;
+
+  static Duration resolve(BuildContext context, Duration duration) =>
+      MediaQuery.disableAnimationsOf(context) ? Duration.zero : duration;
 }
 
 abstract final class AppBreakpoints {
@@ -136,11 +138,32 @@ abstract final class AppLayer {
 }
 
 abstract final class AppResponsive {
+  static double metricHeight(BuildContext context) =>
+      146 +
+      (MediaQuery.textScalerOf(context).scale(12) - 12)
+              .clamp(0, 32)
+              .toDouble() *
+          5;
   static int categoryColumns(double width) {
-    if (width >= 430) return 5;
-    if (width >= 350) return 4;
+    if (width >= 460) return 5;
+    if (width >= 352) return 4;
     return 3;
   }
+
+  static double categoryHeight(BuildContext context) =>
+      120.0 +
+      (MediaQuery.textScalerOf(context).scale(12) - 12)
+              .clamp(0, 32)
+              .toDouble() *
+          4;
+
+  static double productHeight(BuildContext context, double width) =>
+      width.clamp(140, 240).toDouble() +
+      176 +
+      (MediaQuery.textScalerOf(context).scale(14) - 14)
+              .clamp(0, 32)
+              .toDouble() *
+          12;
 
   static int productColumns(double width) {
     if (width >= 1080) return 5;
@@ -150,8 +173,24 @@ abstract final class AppResponsive {
   }
 
   static EdgeInsets pagePadding(double width) => EdgeInsets.symmetric(
-        horizontal: width >= AppBreakpoints.tablet ? 28 : 20,
-      );
+    horizontal: width >= AppBreakpoints.tablet ? 28 : 20,
+  );
+}
+
+abstract final class AppFontSize {
+  static const caption = 11.0;
+  static const label = 12.0;
+  static const body = 14.0;
+  static const input = 16.0;
+  static const title = 20.0;
+  static const headline = 28.0;
+}
+
+abstract final class AppFontWeight {
+  static const regular = FontWeight.w500;
+  static const medium = FontWeight.w600;
+  static const strong = FontWeight.w700;
+  static const display = FontWeight.w800;
 }
 
 abstract final class AppShadows {
@@ -182,75 +221,75 @@ abstract final class AppShadows {
 
 abstract final class AppTypography {
   static TextTheme build(TextTheme base) {
-    final manrope = GoogleFonts.manropeTextTheme(base);
+    final manrope = base.apply(fontFamily: 'Manrope');
     return manrope.copyWith(
       displaySmall: manrope.displaySmall?.copyWith(
         fontSize: 34,
         height: 1.04,
-        fontWeight: FontWeight.w800,
+        fontWeight: AppFontWeight.display,
         letterSpacing: -1.2,
         color: AppColors.ink,
       ),
       headlineLarge: manrope.headlineLarge?.copyWith(
         fontSize: 30,
         height: 1.06,
-        fontWeight: FontWeight.w800,
+        fontWeight: AppFontWeight.display,
         letterSpacing: -1.0,
         color: AppColors.ink,
       ),
       headlineMedium: manrope.headlineMedium?.copyWith(
         fontSize: 24,
         height: 1.08,
-        fontWeight: FontWeight.w800,
+        fontWeight: AppFontWeight.display,
         letterSpacing: -.65,
         color: AppColors.ink,
       ),
       titleLarge: manrope.titleLarge?.copyWith(
         fontSize: 19,
         height: 1.15,
-        fontWeight: FontWeight.w800,
+        fontWeight: AppFontWeight.display,
         letterSpacing: -.35,
         color: AppColors.ink,
       ),
       titleMedium: manrope.titleMedium?.copyWith(
         fontSize: 15,
         height: 1.2,
-        fontWeight: FontWeight.w700,
+        fontWeight: AppFontWeight.strong,
         color: AppColors.ink,
       ),
       bodyLarge: manrope.bodyLarge?.copyWith(
         fontSize: 15,
         height: 1.45,
-        fontWeight: FontWeight.w500,
+        fontWeight: AppFontWeight.regular,
         color: AppColors.inkSoft,
       ),
       bodyMedium: manrope.bodyMedium?.copyWith(
-        fontSize: 13,
+        fontSize: AppFontSize.body,
         height: 1.45,
-        fontWeight: FontWeight.w500,
+        fontWeight: AppFontWeight.regular,
         color: AppColors.muted,
       ),
       bodySmall: manrope.bodySmall?.copyWith(
-        fontSize: 11,
+        fontSize: AppFontSize.label,
         height: 1.4,
-        fontWeight: FontWeight.w500,
+        fontWeight: AppFontWeight.regular,
         color: AppColors.muted,
       ),
       labelLarge: manrope.labelLarge?.copyWith(
         fontSize: 13,
-        fontWeight: FontWeight.w700,
+        fontWeight: AppFontWeight.strong,
         letterSpacing: -.05,
         color: AppColors.ink,
       ),
       labelMedium: manrope.labelMedium?.copyWith(
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
+        fontSize: AppFontSize.label,
+        fontWeight: AppFontWeight.strong,
         letterSpacing: .05,
         color: AppColors.muted,
       ),
       labelSmall: manrope.labelSmall?.copyWith(
-        fontSize: 9,
-        fontWeight: FontWeight.w700,
+        fontSize: AppFontSize.caption,
+        fontWeight: AppFontWeight.strong,
         letterSpacing: .7,
         color: AppColors.muted,
       ),
@@ -304,24 +343,24 @@ abstract final class AppTheme {
         filled: true,
         fillColor: AppColors.surface,
         constraints: const BoxConstraints(minHeight: AppControl.inputHeight),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         prefixIconColor: AppColors.muted,
         suffixIconColor: AppColors.muted,
         labelStyle: textTheme.bodySmall?.copyWith(
-          fontWeight: FontWeight.w600,
+          fontWeight: AppFontWeight.medium,
         ),
         floatingLabelStyle: textTheme.labelMedium?.copyWith(
           color: AppColors.ocean700,
-          fontWeight: FontWeight.w800,
+          fontWeight: AppFontWeight.display,
         ),
-        hintStyle: textTheme.bodySmall?.copyWith(
-          color: AppColors.subtle,
-        ),
+        hintStyle: textTheme.bodyLarge?.copyWith(color: AppColors.muted),
         helperStyle: textTheme.bodySmall,
         errorStyle: textTheme.bodySmall?.copyWith(
           color: AppColors.danger,
-          fontWeight: FontWeight.w600,
+          fontWeight: AppFontWeight.medium,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -333,8 +372,7 @@ abstract final class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide:
-              const BorderSide(color: AppColors.ocean600, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.ocean600, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -342,8 +380,7 @@ abstract final class AppTheme {
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide:
-              const BorderSide(color: AppColors.coral600, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.coral600, width: 1.5),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -364,7 +401,7 @@ abstract final class AppTheme {
           elevation: 0,
           textStyle: textTheme.labelLarge?.copyWith(
             color: Colors.white,
-            fontWeight: FontWeight.w800,
+            fontWeight: AppFontWeight.display,
           ),
         ),
       ),
@@ -378,7 +415,7 @@ abstract final class AppTheme {
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           textStyle: textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w800,
+            fontWeight: AppFontWeight.display,
           ),
         ),
       ),
@@ -387,7 +424,7 @@ abstract final class AppTheme {
           foregroundColor: AppColors.ocean700,
           minimumSize: const Size(AppControl.minTap, AppControl.minTap),
           textStyle: textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w800,
+            fontWeight: AppFontWeight.display,
           ),
         ),
       ),
@@ -406,7 +443,7 @@ abstract final class AppTheme {
         backgroundColor: AppColors.ocean900,
         contentTextStyle: textTheme.bodySmall?.copyWith(
           color: Colors.white,
-          fontWeight: FontWeight.w600,
+          fontWeight: AppFontWeight.medium,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),

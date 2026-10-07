@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/prime_ui.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -60,6 +61,7 @@ class _AuthPageState extends State<AuthPage> {
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: AppColors.canvas,
     appBar: AppBar(
+          leading: Navigator.of(context).canPop() ? const PrimeBackButton() : null,
       backgroundColor: Colors.transparent,
       title: Text(register ? 'Criar sua conta' : 'Entrar na Porto Prime'),
     ),
@@ -81,7 +83,7 @@ class _AuthPageState extends State<AuthPage> {
                 'PORTO PRIME',
                 style: TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: AppFontWeight.display,
                   letterSpacing: 1,
                 ),
               ),
@@ -91,7 +93,7 @@ class _AuthPageState extends State<AuthPage> {
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: AppFontWeight.display,
                   height: 1.1,
                 ),
               ),
@@ -120,7 +122,7 @@ class _AuthPageState extends State<AuthPage> {
           const SizedBox(height: 16),
           const Text(
             'Como você vai usar a Porto Prime?',
-            style: TextStyle(fontWeight: FontWeight.w800),
+            style: TextStyle(fontWeight: AppFontWeight.display),
           ),
           const SizedBox(height: 9),
           Wrap(
@@ -182,11 +184,10 @@ class _AuthPageState extends State<AuthPage> {
         ),
         if (error != null) ...[
           const SizedBox(height: 12),
-          Text(
-            error!,
+          Text(PrimeMessages.friendly(error!),
             style: const TextStyle(
               color: Colors.red,
-              fontWeight: FontWeight.w600,
+              fontWeight: AppFontWeight.medium,
             ),
           ),
         ],
@@ -205,7 +206,7 @@ class _AuthPageState extends State<AuthPage> {
                 )
               : Text(
                   register ? 'Criar conta' : 'Entrar',
-                  style: const TextStyle(fontWeight: FontWeight.w900),
+                  style: const TextStyle(fontWeight: AppFontWeight.display),
                 ),
         ),
         TextButton(

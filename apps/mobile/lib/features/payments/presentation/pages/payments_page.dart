@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/prime_ui.dart';
 import '../../../orders/presentation/pages/order_tracking_page.dart';
 
 class PaymentsPage extends StatefulWidget {
@@ -59,6 +60,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
       return Scaffold(
         backgroundColor: AppColors.canvas,
         appBar: AppBar(
+
           backgroundColor: AppColors.canvas,
           surfaceTintColor: AppColors.canvas,
           elevation: 0,
@@ -68,7 +70,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
           ),
           title: const Text(
             'Pagamentos',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+            style: TextStyle(fontSize: 17, fontWeight: AppFontWeight.display),
           ),
           actions: [
             IconButton(
@@ -85,7 +87,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
         ),
         body: RefreshIndicator(
           onRefresh: _refresh,
-          child: ListView(
+          child: PrimePageViewport(child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
               Container(
@@ -136,8 +138,8 @@ class _PaymentsPageState extends State<PaymentsPage> {
                             'PORTO PRIME PAY',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 8,
-                              fontWeight: FontWeight.w900,
+                              fontSize: AppFontSize.caption,
+                              fontWeight: AppFontWeight.display,
                               letterSpacing: .8,
                             ),
                           ),
@@ -149,8 +151,8 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       'Total confirmado',
                       style: TextStyle(
                         color: Color(0xFFB9D7D1),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
+                        fontSize: AppFontSize.caption,
+                        fontWeight: AppFontWeight.strong,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -159,7 +161,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 31,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: AppFontWeight.display,
                         letterSpacing: -1,
                       ),
                     ),
@@ -190,7 +192,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       'Movimentações',
                       style: TextStyle(
                         fontSize: 20,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: AppFontWeight.display,
                         letterSpacing: -.4,
                       ),
                     ),
@@ -199,8 +201,8 @@ class _PaymentsPageState extends State<PaymentsPage> {
                     '${orders.length} pedido(s)',
                     style: const TextStyle(
                       color: AppColors.muted,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
+                      fontSize: AppFontSize.caption,
+                      fontWeight: AppFontWeight.strong,
                     ),
                   ),
                 ],
@@ -210,7 +212,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                 'Cada cobrança está ligada ao pedido real e ao status confirmado pelo backend.',
                 style: TextStyle(
                   color: AppColors.muted,
-                  fontSize: 10,
+                  fontSize: AppFontSize.caption,
                   height: 1.4,
                 ),
               ),
@@ -233,9 +235,9 @@ class _PaymentsPageState extends State<PaymentsPage> {
                         child: Text(
                           'Há pagamentos ainda não concluídos. Você pode limpar somente as pendências, sem alterar pedidos pagos.',
                           style: TextStyle(
-                            fontSize: 9.5,
+                            fontSize: AppFontSize.caption,
                             height: 1.4,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: AppFontWeight.strong,
                           ),
                         ),
                       ),
@@ -271,7 +273,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                         'Nenhum pagamento ainda',
                         style: TextStyle(
                           fontSize: 17,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: AppFontWeight.display,
                         ),
                       ),
                       SizedBox(height: 5),
@@ -280,7 +282,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppColors.muted,
-                          fontSize: 10,
+                          fontSize: AppFontSize.caption,
                           height: 1.4,
                         ),
                       ),
@@ -290,7 +292,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
               else
                 ...orders.map(_paymentCard),
             ],
-          ),
+          )),
         ),
       );
     },
@@ -315,15 +317,15 @@ class _PaymentsPageState extends State<PaymentsPage> {
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 15,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: AppFontWeight.display,
                 ),
               ),
               Text(
                 label,
                 style: const TextStyle(
                   color: Color(0xFFB9D7D1),
-                  fontSize: 8,
-                  fontWeight: FontWeight.w700,
+                  fontSize: AppFontSize.caption,
+                  fontWeight: AppFontWeight.strong,
                 ),
               ),
             ],
@@ -392,7 +394,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                               label,
                               style: const TextStyle(
                                 fontSize: 12,
-                                fontWeight: FontWeight.w900,
+                                fontWeight: AppFontWeight.display,
                               ),
                             ),
                           ),
@@ -400,7 +402,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                             _brl(order['total']),
                             style: const TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w900,
+                              fontWeight: AppFontWeight.display,
                               color: AppColors.oceanDeep,
                             ),
                           ),
@@ -410,9 +412,9 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       Text(
                         'Pedido #${_short(id)}${method == null ? '' : ' • $method'}',
                         style: const TextStyle(
-                          fontSize: 9,
+                          fontSize: AppFontSize.caption,
                           color: AppColors.muted,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: AppFontWeight.strong,
                         ),
                       ),
                       if (created != null) ...[
@@ -420,7 +422,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                         Text(
                           created.replaceFirst('T', ' ').split('.').first,
                           style: const TextStyle(
-                            fontSize: 8.5,
+                            fontSize: AppFontSize.caption,
                             color: AppColors.muted,
                           ),
                         ),
@@ -472,7 +474,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
     } catch (e) {
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+          SnackBar(content: Text(PrimeMessages.friendly(e))),
         );
     }
   }

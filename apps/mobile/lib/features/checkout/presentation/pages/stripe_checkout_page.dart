@@ -233,7 +233,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 28,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: AppFontWeight.display,
                     letterSpacing: -.9,
                   ),
                 ),
@@ -245,7 +245,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                     fontSize: 11,
                     height: 1.45,
                     color: AppColors.muted,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: AppFontWeight.strong,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -274,7 +274,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 13,
-                                fontWeight: FontWeight.w900,
+                                fontWeight: AppFontWeight.display,
                               ),
                             ),
                             SizedBox(height: 3),
@@ -282,9 +282,9 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                               'Agora a distribuidora confirma os itens e prepara a liberação para entrega.',
                               style: TextStyle(
                                 color: Color(0xFFD4ECE7),
-                                fontSize: 9.5,
+                                fontSize: AppFontSize.caption,
                                 height: 1.4,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: AppFontWeight.medium,
                               ),
                             ),
                           ],
@@ -330,7 +330,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                     label: const Text(
                       'Acompanhar meu pedido',
                       style: TextStyle(
-                        fontWeight: FontWeight.w900,
+                        fontWeight: AppFontWeight.display,
                         fontSize: 13,
                       ),
                     ),
@@ -343,7 +343,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                     'Voltar para a loja',
                     style: TextStyle(
                       color: AppColors.muted,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: AppFontWeight.display,
                     ),
                   ),
                 ),
@@ -362,6 +362,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
+
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         elevation: 0,
@@ -374,14 +375,14 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
           children: [
             Text(
               'Pagamento',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+              style: TextStyle(fontSize: 16, fontWeight: AppFontWeight.display),
             ),
             Text(
               'Processado com segurança pelo Stripe',
               style: TextStyle(
-                fontSize: 9,
+                fontSize: AppFontSize.caption,
                 color: AppColors.muted,
-                fontWeight: FontWeight.w600,
+                fontWeight: AppFontWeight.medium,
               ),
             ),
           ],
@@ -434,7 +435,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                               'Checkout seguro',
                               style: TextStyle(
                                 fontSize: 17,
-                                fontWeight: FontWeight.w900,
+                                fontWeight: AppFontWeight.display,
                               ),
                             ),
                           ),
@@ -479,7 +480,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     height: 1.4,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: AppFontWeight.strong,
                                   ),
                                 ),
                               ),
@@ -517,7 +518,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                           : const Icon(AppIcons.lock_rounded, size: 18),
                       label: Text(
                         paying ? 'Processando...' : 'Abrir Stripe',
-                        style: const TextStyle(fontWeight: FontWeight.w900),
+                        style: const TextStyle(fontWeight: AppFontWeight.display),
                       ),
                     ),
                   ),
@@ -540,8 +541,8 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                       'Dados sensíveis tratados diretamente pelo Stripe',
                       style: TextStyle(
                         color: AppColors.muted,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w600,
+                        fontSize: AppFontSize.caption,
+                        fontWeight: AppFontWeight.medium,
                       ),
                     ),
                   ],
@@ -583,9 +584,9 @@ class _PaidInfo extends StatelessWidget {
               Text(
                 label,
                 style: const TextStyle(
-                  fontSize: 7.5,
+                  fontSize: AppFontSize.caption,
                   color: AppColors.muted,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: AppFontWeight.display,
                   letterSpacing: .7,
                 ),
               ),
@@ -593,8 +594,8 @@ class _PaidInfo extends StatelessWidget {
                 value,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
+                  fontSize: AppFontSize.caption,
+                  fontWeight: AppFontWeight.display,
                 ),
               ),
             ],

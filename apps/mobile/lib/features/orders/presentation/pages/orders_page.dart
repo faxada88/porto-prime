@@ -41,6 +41,7 @@ class _OrdersPageState extends State<OrdersPage> {
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: AppColors.canvas,
         appBar: AppBar(
+          leading: Navigator.of(context).canPop() ? const PrimeBackButton() : null,
           title: const Text('Pedidos'),
           actions: [
             IconButton(
@@ -185,7 +186,7 @@ class _OrderCard extends StatelessWidget {
                   'Pedido #' + shortId,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: active ? Colors.white : AppColors.ink,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: AppFontWeight.display,
                       ),
                 ),
                 const SizedBox(height: 6),
@@ -234,7 +235,7 @@ class _OrderCard extends StatelessWidget {
                       _money(order['total']),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: active ? Colors.white : AppColors.ink,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: AppFontWeight.display,
                           ),
                     ),
                   ],

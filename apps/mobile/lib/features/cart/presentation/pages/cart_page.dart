@@ -24,7 +24,7 @@ class CartPage extends StatelessWidget {
 
       return SafeArea(
         bottom: false,
-        child: ListView(
+        child: PrimePageViewport(child: ListView(
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 120),
           children: [
@@ -61,7 +61,7 @@ class CartPage extends StatelessWidget {
                         (s.cartCount == 1 ? ' item' : ' itens'),
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
                           color: AppColors.ocean800,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: AppFontWeight.display,
                         ),
                   ),
                 ),
@@ -136,7 +136,7 @@ class CartPage extends StatelessWidget {
                               'Continuar para pagamento',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontWeight: FontWeight.w900,
+                                fontWeight: AppFontWeight.display,
                               ),
                             ),
                             SizedBox(width: 8),
@@ -151,7 +151,7 @@ class CartPage extends StatelessWidget {
               ),
             ],
           ],
-        ),
+        )),
       );
     },
   );
@@ -201,16 +201,16 @@ class _Delivery extends StatelessWidget {
               children: [
                 const Text(
                   'Entrega Prime',
-                  style: TextStyle(fontWeight: FontWeight.w900),
+                  style: TextStyle(fontWeight: AppFontWeight.display),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   detail,
                   style: const TextStyle(
-                    fontSize: 10.5,
+                    fontSize: AppFontSize.caption,
                     color: AppColors.muted,
                     height: 1.35,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: AppFontWeight.medium,
                   ),
                 ),
               ],
@@ -290,7 +290,7 @@ class _LiveItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.ocean600,
-                        fontSize: 7.5,
+                        fontSize: AppFontSize.caption,
                         letterSpacing: .65,
                       ),
                 ),
@@ -301,7 +301,7 @@ class _LiveItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontSize: 13.2,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: AppFontWeight.display,
                       ),
                 ),
                 const SizedBox(height: 8),
@@ -309,7 +309,7 @@ class _LiveItem extends StatelessWidget {
                   _brl(price),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontSize: 14.5,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: AppFontWeight.display,
                       ),
                 ),
               ],
@@ -326,8 +326,8 @@ class _LiveItem extends StatelessWidget {
                   onTap: () => s.removeProduct(id),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                   child: const SizedBox(
-                    width: 34,
-                    height: 34,
+                    width: AppControl.minTap,
+                    height: AppControl.minTap,
                     child: Icon(
                       AppIcons.trash,
                       size: 16,
@@ -338,7 +338,7 @@ class _LiveItem extends StatelessWidget {
               ),
               const SizedBox(height: 9),
               Container(
-                height: 36,
+                height: AppControl.minTap,
                 padding: const EdgeInsets.symmetric(horizontal: 3),
                 decoration: BoxDecoration(
                   color: AppColors.ocean50,
@@ -360,8 +360,8 @@ class _LiveItem extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: AppColors.ocean800,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
+                          fontSize: AppFontSize.caption,
+                          fontWeight: AppFontWeight.display,
                         ),
                       ),
                     ),
@@ -400,8 +400,8 @@ class _CartQtyButton extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppRadius.sm),
           child: SizedBox(
-            width: 28,
-            height: 32,
+            width: AppControl.minTap,
+            height: AppControl.minTap,
             child: Icon(
               icon,
               size: 14,
@@ -426,7 +426,7 @@ class _Price extends StatelessWidget {
           label,
           style: TextStyle(
             color: strong ? AppColors.ink : AppColors.muted,
-            fontWeight: strong ? FontWeight.w900 : FontWeight.w600,
+            fontWeight: strong ? AppFontWeight.display : AppFontWeight.medium,
           ),
         ),
       ),
@@ -434,7 +434,7 @@ class _Price extends StatelessWidget {
         value,
         style: TextStyle(
           fontSize: strong ? 18 : 13,
-          fontWeight: FontWeight.w900,
+          fontWeight: AppFontWeight.display,
         ),
       ),
     ],
@@ -500,8 +500,8 @@ class _CheckoutStage extends StatelessWidget {
               label,
               maxLines: 1,
               style: TextStyle(
-                fontSize: 7.8,
-                fontWeight: FontWeight.w800,
+                fontSize: AppFontSize.caption,
+                fontWeight: AppFontWeight.display,
                 color: active ? AppColors.ocean800 : AppColors.subtle,
               ),
             ),
@@ -603,7 +603,7 @@ Future<void> _checkout(BuildContext context) async {
                 const SizedBox(height: 18),
                 const Text(
                   'Confirmar entrega',
-                  style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900),
+                  style: TextStyle(fontSize: 23, fontWeight: AppFontWeight.display),
                 ),
                 const SizedBox(height: 4),
                 const Text(
@@ -648,7 +648,7 @@ Future<void> _checkout(BuildContext context) async {
                           ', ' +
                           (a['number'] ?? '').toString(),
                       style: const TextStyle(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: AppFontWeight.display,
                         fontSize: 13,
                       ),
                     ),
@@ -671,25 +671,25 @@ Future<void> _checkout(BuildContext context) async {
                       ?const Row(children:[
                           SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)),
                           SizedBox(width:10),
-                          Text('Calculando rota e taxa de entrega...',style:TextStyle(fontSize:9.5,fontWeight:FontWeight.w700)),
+                          Text('Calculando rota e taxa de entrega...',style:TextStyle(fontSize:9.5,fontWeight:AppFontWeight.strong)),
                         ])
                       :quoteError!=null
                           ?Row(children:[
                               const Icon(AppIcons.alert,color:AppColors.coralStrong,size:19),
                               const SizedBox(width:9),
-                              Expanded(child:Text(quoteError!,style:const TextStyle(color:AppColors.coralStrong,fontSize:9.5,height:1.35,fontWeight:FontWeight.w700))),
+                              Expanded(child:Text(PrimeMessages.friendly(quoteError!),style:const TextStyle(color:AppColors.coralStrong,fontSize:9.5,height:1.35,fontWeight:AppFontWeight.strong))),
                             ])
                           :Row(children:[
                               const Icon(AppIcons.route,color:Color(0xFF986414),size:20),
                               const SizedBox(width:9),
                               Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-                                Text('Entrega '+_brl(double.tryParse(quote['deliveryFee']?.toString()??'')??0),style:const TextStyle(fontSize:11.5,fontWeight:FontWeight.w900)),
+                                Text('Entrega '+_brl(double.tryParse(quote['deliveryFee']?.toString()??'')??0),style:const TextStyle(fontSize:11.5,fontWeight:AppFontWeight.display)),
                                 const SizedBox(height:2),
                                 Text(
                                   quote['distanceKm']==null
                                       ?'Taxa base configurada pela operação.'
                                       :(double.tryParse(quote['distanceKm'].toString())??0).toStringAsFixed(1)+' km por rota • ~'+(quote['durationMinutes']??'—').toString()+' min',
-                                  style:const TextStyle(fontSize:9,color:AppColors.muted,fontWeight:FontWeight.w600),
+                                  style:const TextStyle(fontSize:9,color:AppColors.muted,fontWeight:AppFontWeight.medium),
                                 ),
                               ])),
                             ]),
@@ -713,10 +713,10 @@ Future<void> _checkout(BuildContext context) async {
                         child: Text(
                           'Pagamento seguro dentro do app. A confirmação aparece após o Stripe aprovar.',
                           style: TextStyle(
-                            fontSize: 9,
+                            fontSize: AppFontSize.caption,
                             height: 1.35,
                             color: AppColors.oceanDeep,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: AppFontWeight.strong,
                           ),
                         ),
                       ),
@@ -733,7 +733,7 @@ Future<void> _checkout(BuildContext context) async {
                         : () => Navigator.pop(sheetContext, true),
                     child: const Text(
                       'Continuar para pagamento',
-                      style: TextStyle(fontWeight: FontWeight.w900),
+                      style: TextStyle(fontWeight: AppFontWeight.display),
                     ),
                   ),
                 ),
@@ -792,9 +792,7 @@ Future<void> _checkout(BuildContext context) async {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            e.toString().replaceFirst('Exception: ', ''),
-          ),
+          content: Text(PrimeMessages.friendly(e)),
         ),
       );
     }
