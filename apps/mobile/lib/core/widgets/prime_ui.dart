@@ -571,7 +571,7 @@ class PrimeSkeletonCard extends StatelessWidget {
         children: [
           Expanded(
             child: PrimeSkeleton(
-              height: double.infinity,
+              height: 180,
               radius: AppRadius.lg,
             ),
           ),
