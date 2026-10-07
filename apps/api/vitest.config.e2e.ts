@@ -5,6 +5,7 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
+    env: { NODE_ENV: 'test' },
     globals: true,
     root: './',
     include: ['**/*.e2e-spec.ts'],
