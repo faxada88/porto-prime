@@ -18,18 +18,20 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0A312D">
+  <meta name="description" content="Porto Prime Delivery — conveniência, bebidas e entrega em Porto Seguro.">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="porto_prime">
+  <meta name="apple-mobile-web-app-title" content="Porto Prime">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>porto_prime</title>
+  <title>Porto Prime Delivery</title>
   <link rel="manifest" href="manifest.json">
   <style>
     html, body, flt-glass-pane, flutter-view {
@@ -38,6 +40,13 @@
     }
     button, a, input, textarea, [role="button"] {
       -webkit-tap-highlight-color: transparent !important;
+    }
+    input, textarea, select {
+      font-size: 16px !important;
+    }
+    body {
+      overscroll-behavior-y: none;
+      background: #f6f7f3;
     }
   </style>
 </head>
@@ -87,9 +96,9 @@
       host.dataset.stripeMounted = 'true';
 
       host.innerHTML = '<div id="' + containerId + '-payment"></div>' +
-        '<div id="' + containerId + '-error" style="display:none;margin-top:12px;padding:12px 14px;border-radius:12px;background:#fff1d5;color:#17201e;font:600 13px Arial,sans-serif"></div>' +
-        '<button id="' + containerId + '-pay" type="button" style="width:100%;height:56px;margin-top:18px;border:0;border-radius:16px;background:#00675e;color:white;font:800 15px Arial,sans-serif;cursor:pointer">Pagar com Stripe</button>' +
-        '<div style="margin-top:12px;text-align:center;color:#6e7a76;font:600 11px Arial,sans-serif">Pagamento criptografado e processado pelo Stripe</div>';
+        '<div id="' + containerId + '-error" style="display:none;margin-top:12px;padding:13px 14px;border:1px solid #f2d0c8;border-radius:16px;background:#ffeae4;color:#4f2a23;font:650 13px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;line-height:1.45"></div>' +
+        '<button id="' + containerId + '-pay" type="button" style="width:100%;height:56px;margin-top:18px;border:0;border-radius:18px;background:#0c4e47;color:white;font:800 15px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;cursor:pointer;box-shadow:0 14px 34px rgba(10,49,45,.16)">Pagar com Stripe</button>' +
+        '<div style="margin-top:12px;text-align:center;color:#697773;font:650 11px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">Pagamento criptografado e processado pelo Stripe</div>';
 
       try {
         await window.portoPrimeLoadStripe();
@@ -99,18 +108,21 @@
           appearance: {
             theme: 'stripe',
             variables: {
-              colorPrimary: '#00675e',
+              colorPrimary: '#0c4e47',
               colorBackground: '#ffffff',
-              colorText: '#17201e',
-              colorDanger: '#df1b41',
-              fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
-              borderRadius: '14px',
+              colorText: '#15201d',
+              colorDanger: '#e85f48',
+              fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
+              fontSizeBase: '16px',
+              borderRadius: '16px',
               spacingUnit: '4px'
             },
             rules: {
-              '.Input': { border: '1px solid #dfe6e2', boxShadow: 'none', padding: '13px' },
-              '.Input:focus': { border: '1px solid #007f73', boxShadow: '0 0 0 1px #007f73' },
-              '.Label': { fontWeight: '700', color: '#17201e' }
+              '.Input': { border: '1px solid #e4e9e5', boxShadow: 'none', padding: '14px 15px', backgroundColor: '#fbfcfa' },
+              '.Input:focus': { border: '1px solid #14a08e', boxShadow: '0 0 0 3px rgba(20,160,142,.10)', backgroundColor: '#ffffff' },
+              '.Label': { fontWeight: '700', color: '#34413d', marginBottom: '7px' },
+              '.Tab': { border: '1px solid #e4e9e5', boxShadow: 'none' },
+              '.Tab--selected': { borderColor: '#83d7c8', backgroundColor: '#f0faf7' }
             }
           }
         });
