@@ -137,7 +137,7 @@ model User {
   passwordResetTokens PasswordResetToken[]
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@index([role])
   @@index([status])
