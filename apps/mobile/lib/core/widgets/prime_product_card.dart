@@ -27,14 +27,16 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
     final p = widget.product;
     final state = AppState.instance;
     final id = p['id'].toString();
-    final price = double.tryParse(p['price'].toString()) ?? 0;
+    final price = double.tryParse(p['price']?.toString() ?? '') ?? 0;
     final oldPrice = double.tryParse(
       (p['oldPrice'] ?? p['compareAtPrice'] ?? '').toString(),
     );
     final qty = state.cart[id] ?? 0;
-    final image = p['imageUrl']?.toString() ?? '';
+    final image = (p['imageUrl'] ?? '').toString().trim();
     final description = (p['description'] ?? '').toString().trim();
     final category = (p['category']?['name'] ?? 'Porto Prime').toString();
+    final stock = int.tryParse(p['stock']?.toString() ?? '');
+    final available = p['active'] != false && (stock == null || stock > 0);
 
     final discount = oldPrice != null && oldPrice > price && oldPrice > 0
         ? (((oldPrice - price) / oldPrice) * 100).round()
@@ -42,13 +44,18 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
 
     return Semantics(
       button: widget.onOpen != null,
+      enabled: available,
       label: (p['name'] ?? 'Produto').toString(),
       child: MouseRegion(
+        cursor: widget.onOpen != null
+            ? SystemMouseCursors.click
+            : MouseCursor.defer,
         onEnter: (_) => setState(() => _hovered = true),
         onExit: (_) => setState(() => _hovered = false),
         child: AnimatedScale(
           scale: _pressed ? .985 : 1,
           duration: AppMotion.fast,
+          curve: AppMotion.curve,
           child: GestureDetector(
             onTapDown: widget.onOpen == null
                 ? null
@@ -69,172 +76,211 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(
-                  color:
-                      _hovered ? AppColors.strokeStrong : AppColors.stroke,
+                  color: _hovered
+                      ? AppColors.ocean300.withValues(alpha: .72)
+                      : AppColors.stroke,
                 ),
-                boxShadow:
-                    _hovered ? AppShadows.elevated : AppShadows.soft,
+                boxShadow: _hovered ? AppShadows.elevated : AppShadows.soft,
               ),
               clipBehavior: Clip.antiAlias,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 58,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceSoft,
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.md),
-                            border: Border.all(
-                              color: AppColors.stroke.withValues(alpha: .6),
-                            ),
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: image.isNotEmpty
-                              ? Padding(
-                                  padding: const EdgeInsets.all(7),
-                                  child: Image.network(
-                                    image,
-                                    fit: BoxFit.contain,
-                                    filterQuality: FilterQuality.medium,
-                                    errorBuilder: (_, __, ___) =>
-                                        const _FallbackProduct(),
-                                  ),
-                                )
-                              : const _FallbackProduct(),
-                        ),
-                        if (discount != null)
-                          Positioned(
-                            top: 14,
-                            left: 14,
-                            child: _DiscountBadge(value: discount),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    flex: 42,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 6, 12, 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            category.toUpperCase(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style:
-                                Theme.of(context).textTheme.labelSmall?.copyWith(
-                                      color: AppColors.ocean600,
-                                      fontSize: 7.6,
-                                      letterSpacing: .72,
-                                    ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            (p['name'] ?? '').toString(),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style:
-                                Theme.of(context).textTheme.labelLarge?.copyWith(
-                                      fontSize: 12.6,
-                                      height: 1.18,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: -.15,
-                                    ),
-                          ),
-                          if (description.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              description,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(fontSize: 9.5),
-                            ),
-                          ],
-                          const Spacer(),
-                          if (oldPrice != null && oldPrice > price)
-                            Text(
-                              'R\$ ' +
-                                  oldPrice
-                                      .toStringAsFixed(2)
-                                      .replaceAll('.', ','),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    decoration: TextDecoration.lineThrough,
-                                    color: AppColors.subtle,
-                                    fontSize: 9.2,
-                                  ),
-                            ),
-                          const SizedBox(height: 1),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'R\$ ' +
-                                      price
-                                          .toStringAsFixed(2)
-                                          .replaceAll('.', ','),
-                                  maxLines: 1,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        fontSize: 15.5,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: -.35,
-                                      ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final compact = constraints.maxWidth < 166;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 57,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.fromLTRB(8, 8, 8, 3),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    AppColors.surfaceSoft,
+                                    AppColors.surfaceMuted,
+                                  ],
+                                ),
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.md),
+                                border: Border.all(
+                                  color: AppColors.stroke.withValues(alpha: .6),
                                 ),
                               ),
-                              const SizedBox(width: 6),
-                              AnimatedSwitcher(
-                                duration: AppMotion.standard,
-                                switchInCurve: AppMotion.curve,
-                                switchOutCurve: AppMotion.curve,
-                                transitionBuilder: (child, animation) =>
-                                    FadeTransition(
-                                  opacity: animation,
-                                  child: ScaleTransition(
-                                    scale: Tween<double>(
-                                      begin: .92,
-                                      end: 1,
-                                    ).animate(animation),
-                                    child: child,
-                                  ),
-                                ),
-                                child: qty == 0
-                                    ? _AddButton(
-                                        key: const ValueKey('add'),
-                                        onTap: () => state.addProduct(id),
-                                        productName:
-                                            (p['name'] ?? 'produto').toString(),
-                                      )
-                                    : _QuantityControl(
-                                        key: const ValueKey('qty'),
-                                        qty: qty,
-                                        onMinus: () =>
-                                            state.changeQty(id, -1),
-                                        onPlus: () => state.changeQty(id, 1),
+                              clipBehavior: Clip.antiAlias,
+                              child: image.isNotEmpty
+                                  ? Padding(
+                                      padding: EdgeInsets.all(compact ? 6 : 9),
+                                      child: Image.network(
+                                        image,
+                                        fit: BoxFit.contain,
+                                        filterQuality: FilterQuality.medium,
+                                        errorBuilder: (_, __, ___) =>
+                                            const _FallbackProduct(),
                                       ),
+                                    )
+                                  : const _FallbackProduct(),
+                            ),
+                            if (discount != null)
+                              Positioned(
+                                top: 14,
+                                left: 14,
+                                child: _DiscountBadge(value: discount),
+                              ),
+                            if (!available)
+                              Positioned.fill(
+                                child: Container(
+                                  margin:
+                                      const EdgeInsets.fromLTRB(8, 8, 8, 3),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: .76),
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.md),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const _UnavailableBadge(),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        flex: 43,
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            compact ? 10 : 12,
+                            7,
+                            compact ? 10 : 12,
+                            compact ? 10 : 12,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                category.toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      color: AppColors.ocean600,
+                                      fontSize: 7.3,
+                                      letterSpacing: .72,
+                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                (p['name'] ?? '').toString(),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
+                                    ?.copyWith(
+                                      fontSize: compact ? 11.8 : 12.7,
+                                      height: 1.16,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -.18,
+                                    ),
+                              ),
+                              if (description.isNotEmpty && !compact) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  description,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(fontSize: 9.2),
+                                ),
+                              ],
+                              const Spacer(),
+                              if (oldPrice != null && oldPrice > price)
+                                Text(
+                                  _money(oldPrice),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        decoration: TextDecoration.lineThrough,
+                                        color: AppColors.subtle,
+                                        fontSize: 8.8,
+                                      ),
+                                ),
+                              const SizedBox(height: 1),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _money(price),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.fade,
+                                      softWrap: false,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontSize: compact ? 14 : 15.5,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: -.4,
+                                          ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  AnimatedSwitcher(
+                                    duration: AppMotion.standard,
+                                    switchInCurve: AppMotion.curve,
+                                    switchOutCurve: AppMotion.curve,
+                                    transitionBuilder: (child, animation) =>
+                                        FadeTransition(
+                                      opacity: animation,
+                                      child: ScaleTransition(
+                                        scale: Tween<double>(
+                                          begin: .91,
+                                          end: 1,
+                                        ).animate(animation),
+                                        child: child,
+                                      ),
+                                    ),
+                                    child: !available
+                                        ? const SizedBox.shrink(
+                                            key: ValueKey('unavailable'),
+                                          )
+                                        : qty == 0
+                                            ? _AddButton(
+                                                key: const ValueKey('add'),
+                                                compact: compact,
+                                                onTap: () =>
+                                                    state.addProduct(id),
+                                                productName:
+                                                    (p['name'] ?? 'produto')
+                                                        .toString(),
+                                              )
+                                            : _QuantityControl(
+                                                key: const ValueKey('qty'),
+                                                qty: qty,
+                                                onMinus: () =>
+                                                    state.changeQty(id, -1),
+                                                onPlus: () =>
+                                                    state.changeQty(id, 1),
+                                              ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                ],
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -244,14 +290,16 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
   }
 }
 
+String _money(double value) =>
+    'R\$ ' + value.toStringAsFixed(2).replaceAll('.', ',');
+
 class _DiscountBadge extends StatelessWidget {
   const _DiscountBadge({required this.value});
-
   final int value;
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
           color: AppColors.coral600,
           borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -267,8 +315,30 @@ class _DiscountBadge extends StatelessWidget {
           '-' + value.toString() + '%',
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 8.5,
+            fontSize: 8,
             fontWeight: FontWeight.w800,
+          ),
+        ),
+      );
+}
+
+class _UnavailableBadge extends StatelessWidget {
+  const _UnavailableBadge();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: AppColors.ink.withValues(alpha: .86),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+        ),
+        child: const Text(
+          'INDISPONÍVEL',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 7.5,
+            fontWeight: FontWeight.w800,
+            letterSpacing: .6,
           ),
         ),
       );
@@ -279,10 +349,12 @@ class _AddButton extends StatelessWidget {
     super.key,
     required this.onTap,
     required this.productName,
+    required this.compact,
   });
 
   final VoidCallback onTap;
   final String productName;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) => Semantics(
@@ -294,27 +366,29 @@ class _AddButton extends StatelessWidget {
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(AppRadius.md),
-            child: const SizedBox(
+            child: SizedBox(
               height: 36,
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 9),
+                padding: EdgeInsets.symmetric(horizontal: compact ? 9 : 10),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       AppIcons.plus,
                       color: Colors.white,
                       size: 15,
                     ),
-                    SizedBox(width: 5),
-                    Text(
-                      'Adicionar',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 8.8,
-                        fontWeight: FontWeight.w800,
+                    if (!compact) ...[
+                      const SizedBox(width: 5),
+                      const Text(
+                        'Adicionar',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -348,7 +422,11 @@ class _QuantityControl extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _QtyButton(icon: AppIcons.minus, onTap: onMinus),
+            _QtyButton(
+              icon: AppIcons.minus,
+              onTap: onMinus,
+              semanticLabel: 'Diminuir quantidade',
+            ),
             SizedBox(
               width: 21,
               child: Text(
@@ -361,26 +439,36 @@ class _QuantityControl extends StatelessWidget {
                     ),
               ),
             ),
-            _QtyButton(icon: AppIcons.plus, onTap: onPlus),
+            _QtyButton(
+              icon: AppIcons.plus,
+              onTap: onPlus,
+              semanticLabel: 'Aumentar quantidade',
+            ),
           ],
         ),
       );
 }
 
 class _QtyButton extends StatelessWidget {
-  const _QtyButton({required this.icon, required this.onTap});
+  const _QtyButton({
+    required this.icon,
+    required this.onTap,
+    required this.semanticLabel,
+  });
 
   final IconData icon;
   final VoidCallback onTap;
+  final String semanticLabel;
 
   @override
   Widget build(BuildContext context) => Semantics(
         button: true,
+        label: semanticLabel,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppRadius.sm),
           child: SizedBox(
-            width: 26,
+            width: 27,
             height: 31,
             child: Icon(
               icon,
@@ -398,16 +486,16 @@ class _FallbackProduct extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
         child: Container(
-          width: 64,
-          height: 64,
+          width: 62,
+          height: 62,
           decoration: BoxDecoration(
             color: AppColors.ocean50,
             borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           child: const Icon(
             AppIcons.package,
-            size: 30,
-            color: AppColors.ocean600,
+            color: AppColors.ocean700,
+            size: 28,
           ),
         ),
       );
