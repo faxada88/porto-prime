@@ -189,7 +189,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                   height: 4,
                   decoration: BoxDecoration(
                     color: const Color(0xFFDDE3DF),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                 ),
                 const SizedBox(height: 25),
@@ -254,7 +254,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                     gradient: const LinearGradient(
                       colors: [Color(0xFF102D28), Color(0xFF08786D)],
                     ),
-                    borderRadius: BorderRadius.circular(22),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
                   ),
                   child: const Row(
                     children: [
@@ -321,7 +321,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.oceanDeep,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(19),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                     ),
                     onPressed: () => Navigator.pop(sheetContext, true),
@@ -407,7 +407,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(26),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
                     border: Border.all(color: const Color(0xFFE5EAE7)),
                     boxShadow: const [
                       BoxShadow(
@@ -463,7 +463,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.mint,
-                            borderRadius: BorderRadius.circular(18),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
                           child: const Row(
                             children: [
@@ -494,7 +494,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: AppColors.sand,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Text(
                       error!,
@@ -514,7 +514,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.oceanDeep,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                       ),
                       onPressed: !ready || paying ? null : _pay,
@@ -582,7 +582,7 @@ class _PaidInfo extends StatelessWidget {
     padding: const EdgeInsets.all(13),
     decoration: BoxDecoration(
       color: AppColors.canvas,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       border: Border.all(color: const Color(0xFFE7ECE8)),
     ),
     child: Row(
