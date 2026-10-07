@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/state/app_state.dart';
+import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../orders/presentation/pages/order_tracking_page.dart';
 
@@ -63,7 +64,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
           elevation: 0,
           leading: IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: const Icon(AppIcons.arrow_back_rounded),
           ),
           title: const Text(
             'Pagamentos',
@@ -78,7 +79,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.refresh_rounded),
+                  : const Icon(AppIcons.refresh_rounded),
             ),
           ],
         ),
@@ -117,7 +118,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Icon(
-                            Icons.account_balance_wallet_rounded,
+                            AppIcons.account_balance_wallet_rounded,
                             color: Color(0xFF8CFFE4),
                           ),
                         ),
@@ -166,13 +167,13 @@ class _PaymentsPageState extends State<PaymentsPage> {
                     Row(
                       children: [
                         _metric(
-                          Icons.verified_rounded,
+                          AppIcons.verified_rounded,
                           '${paid.length}',
                           'pagos',
                         ),
                         const SizedBox(width: 9),
                         _metric(
-                          Icons.schedule_rounded,
+                          AppIcons.schedule_rounded,
                           '${pending.length}',
                           'pendentes',
                         ),
@@ -224,7 +225,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                   child: Row(
                     children: [
                       const Icon(
-                        Icons.info_outline_rounded,
+                        AppIcons.info_outline_rounded,
                         color: AppColors.oceanDeep,
                       ),
                       const SizedBox(width: 11),
@@ -240,7 +241,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       ),
                       IconButton(
                         onPressed: _clearPending,
-                        icon: const Icon(Icons.delete_sweep_outlined),
+                        icon: const Icon(AppIcons.delete_sweep_outlined),
                       ),
                     ],
                   ),
@@ -261,7 +262,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                   child: const Column(
                     children: [
                       Icon(
-                        Icons.receipt_long_outlined,
+                        AppIcons.receipt_long_outlined,
                         size: 44,
                         color: AppColors.muted,
                       ),
@@ -372,10 +373,10 @@ class _PaymentsPageState extends State<PaymentsPage> {
                   ),
                   child: Icon(
                     isPaid
-                        ? Icons.check_circle_rounded
+                        ? AppIcons.check_circle_rounded
                         : failed
-                        ? Icons.error_outline_rounded
-                        : Icons.schedule_rounded,
+                        ? AppIcons.error_outline_rounded
+                        : AppIcons.schedule_rounded,
                     color: AppColors.oceanDeep,
                   ),
                 ),
@@ -429,7 +430,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                 ),
                 const SizedBox(width: 5),
                 const Icon(
-                  Icons.chevron_right_rounded,
+                  AppIcons.chevron_right_rounded,
                   size: 20,
                   color: AppColors.muted,
                 ),
