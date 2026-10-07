@@ -1,0 +1,18 @@
+{
+  "remote.autoForwardPorts": true,
+  "remote.restoreForwardedPorts": true,
+  "remote.portsAttributes": {
+    "3000": {
+      "label": "Porto Prime API",
+      "onAutoForward": "silent"
+    },
+    "8084": {
+      "label": "Porto Prime App",
+      "onAutoForward": "openBrowser"
+    },
+    "8085": {
+      "label": "Porto Prime Admin",
+      "onAutoForward": "openBrowser"
+    }
+  }
+}
