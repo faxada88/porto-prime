@@ -9,6 +9,8 @@ class ApiClient {
   ApiClient._();
   static final instance = ApiClient._();
 
+  final http.Client _http = http.Client();
+
   String? token;
   String? refreshToken;
   String? sessionId;
@@ -109,19 +111,19 @@ class ApiClient {
 
     switch (method) {
       case 'GET':
-        return http
+        return _http
             .get(uri, headers: h)
             .timeout(const Duration(seconds: 12));
       case 'POST':
-        return http
+        return _http
             .post(uri, headers: h, body: encoded)
             .timeout(const Duration(seconds: 15));
       case 'PATCH':
-        return http
+        return _http
             .patch(uri, headers: h, body: encoded)
             .timeout(const Duration(seconds: 15));
       case 'DELETE':
-        return http
+        return _http
             .delete(uri, headers: h, body: encoded)
             .timeout(const Duration(seconds: 15));
       default:
