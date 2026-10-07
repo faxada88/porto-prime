@@ -66,7 +66,7 @@ export default function Home(){
  useEffect(()=>{if(!me||!token)return;let refreshTimer:ReturnType<typeof setTimeout>|null=null;const current=localStorage.getItem("pp_admin_token")||token;const socket=io(realtimeOrigin(),{transports:["websocket"],auth:{token:current},reconnection:true,reconnectionAttempts:30,reconnectionDelay:1000});const refresh=()=>{if(refreshTimer)clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>{const fresh=localStorage.getItem("pp_admin_token")||token;load(fresh)},180)};["order.created","order.updated","dispatch.offer","dispatch.offer.closed","courier.presence","wallet.updated"].forEach(event=>socket.on(event,refresh));socket.on("session.revoked",()=>{localStorage.removeItem("pp_admin_token");localStorage.removeItem("pp_admin_refresh");localStorage.removeItem("pp_admin_session");location.reload()});socket.io.on("reconnect_attempt",()=>{socket.auth={token:localStorage.getItem("pp_admin_token")||token}});return()=>{if(refreshTimer)clearTimeout(refreshTimer);socket.disconnect()}},[me,token]);
  async function login(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");try{const d=await api("/auth/login","","POST",{email,password});const access=d.accessToken||d.token;localStorage.setItem("pp_admin_token",access);if(d.refreshToken)localStorage.setItem("pp_admin_refresh",d.refreshToken);if(d.sessionId)localStorage.setItem("pp_admin_session",d.sessionId);setToken(access);await load(access)}catch(e:any){setError(e.message);setBusy(false)}}
  async function createAdmin(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");try{await api("/auth/bootstrap-admin","","POST",{name,email,password});setBootstrap(false);await login(e)}catch(e:any){setError(e.message);setBusy(false)}}
- async function act(path:string,method="PATCH",body?:any){try{setBusy(true);setError("");const result=await api(path,token,method,body);await load();if(result?.message){setActivityNotice(result.message);setTimeout(()=>setActivityNotice(""),7000)}if(Array.isArray(result?.failed)&&result.failed.length){setError(result.failed.slice(0,4).map((x:Row)=>x.reason).join(" · "))}return result}catch(e:any){setError(e.message);setBusy(false);throw e}}
+ async function act(path:string,method="PATCH",body?:any){try{setBusy(true);setError("");const result=await api(path,token,method,body);await load();if(result?.message){setActivityNotice(result.message);setTimeout(()=>setActivityNotice(""),7000)}if(Array.isArray(result?.failed)&&result.failed.length){setError(result.failed.slice(0,4).map((x:Row)=>x.reason).join(" · "))}return result}catch(e:any){setError(e.message);setBusy(false);return null}}
  const couriers=users.filter(x=>x.role==="COURIER"), customers=users.filter(x=>x.role==="CUSTOMER"),partners=users.filter(x=>x.role==="PARTNER");
  const courierByUser=useMemo(()=>Object.fromEntries(courierApps.filter(x=>x.user?.id).map(x=>[x.user.id,x])),[courierApps]);
  const requestRequirement=(app:Row,name:string)=>{setRequirementTitle("");setRequirementDescription("");setRequirementError("");setRequirementBox({courierId:app.id,name})};
@@ -115,7 +115,7 @@ function People({rows,kind,act,ask,courierByUser,requestRequirement}:{rows:Row[]
   message:"Os cadastros selecionados serão removidos permanentemente da Porto Prime.",
   detail:kind==="Motoboy"?"Motoboys com entrega ativa serão preservados automaticamente. Os demais terão acesso e dados operacionais removidos.":"Clientes com histórico de pedidos serão preservados automaticamente para proteger o histórico operacional e financeiro.",
   confirm:"Excluir "+selectedRows.length+" selecionado(s)",
-  action:async()=>{await act("/admin/users/bulk-delete","POST",{ids:selectedRows.map(x=>x.id)});setSelected(new Set())}
+  action:async()=>{const result=await act("/admin/users/bulk-delete","POST",{ids:selectedRows.map(x=>x.id)});if(result)setSelected(new Set())}
  });
  return <Panel title={kind+"s cadastrados"}>
   {bulkEnabled&&<div className={"bulkBar "+(selected.size?"active":"")}>
@@ -146,7 +146,7 @@ function Orders({rows,act,ask,token}:{rows:Row[],act:any,ask:any,token:string}){
   message:"Os pedidos selecionados serão removidos definitivamente do histórico operacional.",
   detail:"Pedidos já coletados ou em rota serão preservados automaticamente por segurança. Os demais selecionados serão excluídos.",
   confirm:"Excluir "+selectedRows.length+" pedido(s)",
-  action:async()=>{await act("/admin/orders/bulk-delete","POST",{ids:selectedRows.map(x=>x.id)});setSelected(new Set())}
+  action:async()=>{const result=await act("/admin/orders/bulk-delete","POST",{ids:selectedRows.map(x=>x.id)});if(result)setSelected(new Set())}
  });
  const openAudit=async(o:Row)=>{setAuditBusy(true);try{const events=await api("/admin/orders/"+o.id+"/audit",token);setAudit({order:o,events})}catch(e:any){alert(e.message)}finally{setAuditBusy(false)}};
  const preStatuses=["PENDING","CONFIRMED","PREPARING","READY_FOR_PICKUP","CANCELED"];
