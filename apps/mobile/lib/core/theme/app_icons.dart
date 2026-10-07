@@ -44,6 +44,7 @@ abstract final class AppIcons {
   static const clock = LucideIcons.clock;
   static const bike = LucideIcons.bike;
   static const package = LucideIcons.package;
+  static const store = LucideIcons.store;
   static const packageOpen = LucideIcons.packageOpen;
   static const list = LucideIcons.listOrdered;
   static const history = LucideIcons.history;
