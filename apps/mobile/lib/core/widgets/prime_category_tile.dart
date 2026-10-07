@@ -25,116 +25,129 @@ class PrimeCategoryTile extends StatefulWidget {
 
 class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
   bool _pressed = false;
+  bool _hovered = false;
 
   void _release() {
     if (_pressed && mounted) setState(() => _pressed = false);
   }
 
-  Color get _soft {
-    final n = widget.name.toLowerCase();
-    if (n.contains('cervej')) return const Color(0xFFFFF2D2);
-    if (n.contains('vinh')) return const Color(0xFFFBE8EE);
-    if (n.contains('destil') ||
-        n.contains('whisk') ||
-        n.contains('vodk') ||
-        n.contains('gin')) {
-      return const Color(0xFFFFEBDD);
-    }
-    if (n.contains('energ')) return const Color(0xFFEDE9FF);
-    if (n.contains('refriger') || n.contains('suco')) {
-      return const Color(0xFFFFEBE4);
-    }
-    if (n.contains('agua') || n.contains('água')) {
-      return const Color(0xFFE5F5FA);
-    }
-    if (n.contains('gelo')) return const Color(0xFFE8F4FA);
-    if (n.contains('conveni')) return const Color(0xFFE7F5EC);
-    if (n.contains('combo') || n.contains('kit')) {
-      return const Color(0xFFFFEFDA);
-    }
-    if (n.contains('oferta') || n.contains('promo')) {
-      return const Color(0xFFFFE8E2);
-    }
-    return AppColors.ocean50;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final iconSize = widget.compact ? 25.0 : 29.0;
+    final visual = AppIcons.categoryVisual(widget.name);
+    final selected = widget.selected;
+    final compact = widget.compact;
+    final containerSize = compact ? 50.0 : 58.0;
 
     return Semantics(
       button: true,
-      selected: widget.selected,
+      selected: selected,
       label: 'Categoria ' + widget.name,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapCancel: _release,
-        onTapUp: (_) {
-          _release();
-          widget.onTap();
-        },
-        child: AnimatedScale(
-          scale: _pressed ? .96 : 1,
-          duration: AppMotion.fast,
-          curve: AppMotion.curve,
-          child: AnimatedContainer(
-            duration: AppMotion.standard,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) => setState(() => _pressed = true),
+          onTapCancel: _release,
+          onTapUp: (_) {
+            _release();
+            widget.onTap();
+          },
+          child: AnimatedScale(
+            scale: _pressed ? .965 : (_hovered ? 1.018 : 1),
+            duration: AppMotion.fast,
             curve: AppMotion.curve,
-            padding: EdgeInsets.symmetric(
-              horizontal: widget.compact ? 7 : 9,
-              vertical: widget.compact ? 8 : 10,
-            ),
-            decoration: BoxDecoration(
-              color: widget.selected ? AppColors.ocean50 : Colors.transparent,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(
-                color: widget.selected
-                    ? AppColors.ocean300
-                    : Colors.transparent,
+            child: AnimatedContainer(
+              duration: AppMotion.standard,
+              curve: AppMotion.curve,
+              padding: EdgeInsets.fromLTRB(
+                compact ? 5 : 7,
+                compact ? 7 : 9,
+                compact ? 5 : 7,
+                compact ? 7 : 9,
               ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedContainer(
-                  duration: AppMotion.standard,
-                  width: widget.compact ? 50 : 58,
-                  height: widget.compact ? 50 : 58,
-                  decoration: BoxDecoration(
-                    color: _soft,
-                    borderRadius: BorderRadius.circular(
-                      widget.compact ? AppRadius.md : AppRadius.lg,
-                    ),
-                    boxShadow: widget.selected ? AppShadows.soft : null,
-                  ),
-                  child: Icon(
-                    AppIcons.category(widget.name),
-                    size: iconSize,
-                    color: AppColors.ink,
-                  ),
+              decoration: BoxDecoration(
+                color: selected
+                    ? AppColors.surface
+                    : _hovered
+                        ? AppColors.surface.withValues(alpha: .72)
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(
+                  color: selected
+                      ? AppColors.ocean300
+                      : _hovered
+                          ? AppColors.stroke
+                          : Colors.transparent,
                 ),
-                SizedBox(height: widget.compact ? 7 : 9),
-                Text(
-                  widget.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: widget.selected
-                            ? AppColors.ocean800
-                            : AppColors.ink,
-                        fontWeight: widget.selected
-                            ? FontWeight.w800
-                            : FontWeight.w700,
-                        fontSize: widget.compact ? 9.8 : 10.5,
+                boxShadow: selected || _hovered ? AppShadows.soft : null,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedContainer(
+                    duration: AppMotion.standard,
+                    curve: AppMotion.curve,
+                    width: containerSize,
+                    height: containerSize,
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? Color.lerp(
+                              visual.background,
+                              AppColors.surface,
+                              .12,
+                            )
+                          : visual.background,
+                      borderRadius: BorderRadius.circular(
+                        compact ? AppRadius.md : AppRadius.lg,
                       ),
-                ),
-              ],
+                      border: Border.all(
+                        color: selected
+                            ? visual.foreground.withValues(alpha: .14)
+                            : Colors.transparent,
+                      ),
+                    ),
+                    child: Center(
+                      child: Transform.translate(
+                        offset: _opticalOffset(widget.name),
+                        child: Icon(
+                          visual.icon,
+                          size: visual.size - (compact ? 2 : 0),
+                          color: visual.foreground,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: compact ? 7 : 9),
+                  Text(
+                    widget.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color:
+                              selected ? AppColors.ocean800 : AppColors.ink,
+                          fontWeight:
+                              selected ? FontWeight.w800 : FontWeight.w700,
+                          fontSize: compact ? 9.4 : 10.2,
+                          letterSpacing: -.05,
+                        ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  Offset _opticalOffset(String name) {
+    final value = name.toLowerCase();
+    if (value.contains('vinh')) return const Offset(0, -.5);
+    if (value.contains('cervej')) return const Offset(.4, .2);
+    if (value.contains('gelo')) return const Offset(0, -.3);
+    if (value.contains('energ')) return const Offset(.2, 0);
+    return Offset.zero;
   }
 }
