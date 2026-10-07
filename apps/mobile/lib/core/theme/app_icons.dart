@@ -183,55 +183,149 @@ abstract final class AppIcons {
   static const info_outline_rounded = info;
   static const delete_sweep_outlined = close;
 
-  static IconData category(String name) {
-    final value = name
-        .trim()
-        .toLowerCase()
-        .replaceAll('á', 'a')
-        .replaceAll('ã', 'a')
-        .replaceAll('â', 'a')
-        .replaceAll('é', 'e')
-        .replaceAll('ê', 'e')
-        .replaceAll('í', 'i')
-        .replaceAll('ó', 'o')
-        .replaceAll('ô', 'o')
-        .replaceAll('õ', 'o')
-        .replaceAll('ú', 'u')
-        .replaceAll('ç', 'c');
+  static CategoryIconSpec categoryVisual(String name) {
+    final value = _normalizeCategory(name);
 
-    if (value == 'todos' || value == 'todas') return all;
-    if (value.contains('cervej')) return beer;
-    if (value.contains('vinh')) return wine;
-    if (value.contains('whisk') ||
-        value.contains('destil') ||
+    if (value == 'todos' || value == 'todas') {
+      return const CategoryIconSpec(
+        icon: all,
+        size: 25,
+        background: Color(0xFFEAF5F1),
+        foreground: Color(0xFF0C655B),
+      );
+    }
+    if (value.contains('cervej')) {
+      return const CategoryIconSpec(
+        icon: beer,
+        size: 27,
+        background: Color(0xFFFFF1C9),
+        foreground: Color(0xFF8D5E10),
+      );
+    }
+    if (value.contains('vinh')) {
+      return const CategoryIconSpec(
+        icon: wine,
+        size: 27,
+        background: Color(0xFFF8E4EA),
+        foreground: Color(0xFF8C4059),
+      );
+    }
+    if (value.contains('destil') ||
+        value.contains('whisk') ||
         value.contains('vodk') ||
         value.contains('gin') ||
-        value.contains('licor')) {
-      return spirits;
+        value.contains('licor') ||
+        value.contains('cachac')) {
+      return const CategoryIconSpec(
+        icon: spirits,
+        size: 26,
+        background: Color(0xFFFFE9DA),
+        foreground: Color(0xFF98572A),
+      );
     }
-    if (value.contains('energ')) return energy;
     if (value.contains('refriger') ||
         value.contains('suco') ||
         value.contains('sem alcool')) {
-      return softDrink;
+      return const CategoryIconSpec(
+        icon: softDrink,
+        size: 26,
+        background: Color(0xFFFFE9E2),
+        foreground: Color(0xFFAA4E3E),
+      );
     }
-    if (value.contains('agua')) return water;
-    if (value.contains('gelo')) return ice;
+    if (value.contains('energ')) {
+      return const CategoryIconSpec(
+        icon: energy,
+        size: 25,
+        background: Color(0xFFECE7FF),
+        foreground: Color(0xFF6655A2),
+      );
+    }
+    if (value.contains('agua')) {
+      return const CategoryIconSpec(
+        icon: water,
+        size: 25,
+        background: Color(0xFFE3F2F8),
+        foreground: Color(0xFF2E708D),
+      );
+    }
+    if (value.contains('gelo')) {
+      return const CategoryIconSpec(
+        icon: ice,
+        size: 26,
+        background: Color(0xFFE7F4FA),
+        foreground: Color(0xFF317898),
+      );
+    }
     if (value.contains('conveni') ||
         value.contains('snack') ||
-        value.contains('petisco')) {
-      return convenience;
+        value.contains('petisco') ||
+        value.contains('mercearia')) {
+      return const CategoryIconSpec(
+        icon: convenience,
+        size: 25,
+        background: Color(0xFFE6F4EA),
+        foreground: Color(0xFF36734A),
+      );
     }
     if (value.contains('combo') ||
         value.contains('kit') ||
         value.contains('pack')) {
-      return combo;
+      return const CategoryIconSpec(
+        icon: combo,
+        size: 26,
+        background: Color(0xFFFFEED4),
+        foreground: Color(0xFF95611C),
+      );
     }
     if (value.contains('oferta') ||
         value.contains('promo') ||
         value.contains('desconto')) {
-      return offers;
+      return const CategoryIconSpec(
+        icon: offers,
+        size: 25,
+        background: Color(0xFFFFE7E1),
+        foreground: Color(0xFFB64E3E),
+      );
     }
-    return package;
+
+    return const CategoryIconSpec(
+      icon: package,
+      size: 25,
+      background: Color(0xFFEAF5F1),
+      foreground: Color(0xFF0C655B),
+    );
   }
+
+  static IconData category(String name) => categoryVisual(name).icon;
+
+  static String _normalizeCategory(String name) => name
+      .trim()
+      .toLowerCase()
+      .replaceAll('á', 'a')
+      .replaceAll('à', 'a')
+      .replaceAll('ã', 'a')
+      .replaceAll('â', 'a')
+      .replaceAll('é', 'e')
+      .replaceAll('ê', 'e')
+      .replaceAll('í', 'i')
+      .replaceAll('ó', 'o')
+      .replaceAll('ô', 'o')
+      .replaceAll('õ', 'o')
+      .replaceAll('ú', 'u')
+      .replaceAll('ç', 'c');
+}
+
+class CategoryIconSpec {
+  const CategoryIconSpec({
+    required this.icon,
+    required this.size,
+    required this.background,
+    required this.foreground,
+  });
+
+  final IconData icon;
+  final double size;
+  final Color background;
+  final Color foreground;
 }
