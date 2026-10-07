@@ -38,7 +38,7 @@ class _CourierPageState extends State<CourierPage> {
       },
     );
     _refreshTimer = Timer.periodic(
-      const Duration(seconds: 12),
+      const Duration(seconds: 30),
       (_) async {
         try {
           await AppState.instance.refreshCourier();
