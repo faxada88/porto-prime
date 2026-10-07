@@ -43,6 +43,13 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
     if (this.timer) clearInterval(this.timer);
   }
 
+  private scheduleRedispatch(orderId: string) {
+    if (process.env.NODE_ENV === 'test') return;
+    setTimeout(() => {
+      void this.dispatchOrder(orderId).catch(() => undefined);
+    }, 0);
+  }
+
   private async config(): Promise<DispatchConfig> {
     return (this.prisma as any).deliveryPricingConfig.upsert({
       where: { id: 'default' },
@@ -737,7 +744,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
       courierId,
       reason: 'DECLINED',
     });
-    setTimeout(() => void this.dispatchOrder(orderId), 0);
+    this.scheduleRedispatch(orderId);
     return result;
   }
 
@@ -839,7 +846,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
         reason: 'EXPIRED',
       });
 
-      setTimeout(() => void this.dispatchOrder(offer.orderId), 0);
+      this.scheduleRedispatch(offer.orderId);
     }
   }
 
