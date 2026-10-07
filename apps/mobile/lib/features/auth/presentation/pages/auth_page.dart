@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/state/app_state.dart';
+import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class AuthPage extends StatefulWidget {
@@ -104,7 +105,7 @@ class _AuthPageState extends State<AuthPage> {
             textInputAction: TextInputAction.next,
             decoration: const InputDecoration(
               labelText: 'Nome completo',
-              prefixIcon: Icon(Icons.person_outline_rounded),
+              prefixIcon: Icon(AppIcons.person_outline_rounded),
             ),
           ),
           const SizedBox(height: 12),
@@ -113,7 +114,7 @@ class _AuthPageState extends State<AuthPage> {
             keyboardType: TextInputType.phone,
             decoration: const InputDecoration(
               labelText: 'Telefone',
-              prefixIcon: Icon(Icons.phone_outlined),
+              prefixIcon: Icon(AppIcons.phone_outlined),
             ),
           ),
           const SizedBox(height: 16),
@@ -143,7 +144,7 @@ class _AuthPageState extends State<AuthPage> {
               controller: business,
               decoration: const InputDecoration(
                 labelText: 'Nome do estabelecimento',
-                prefixIcon: Icon(Icons.storefront_outlined),
+                prefixIcon: Icon(AppIcons.storefront_outlined),
               ),
             ),
             const SizedBox(height: 12),
@@ -155,7 +156,7 @@ class _AuthPageState extends State<AuthPage> {
                 labelText: role == 'COURIER'
                     ? 'Documento do motoboy'
                     : 'CPF/CNPJ do parceiro',
-                prefixIcon: const Icon(Icons.badge_outlined),
+                prefixIcon: const Icon(AppIcons.badge_outlined),
               ),
             ),
             const SizedBox(height: 12),
@@ -167,7 +168,7 @@ class _AuthPageState extends State<AuthPage> {
           autocorrect: false,
           decoration: const InputDecoration(
             labelText: 'E-mail',
-            prefixIcon: Icon(Icons.mail_outline_rounded),
+            prefixIcon: Icon(AppIcons.mail_outline_rounded),
           ),
         ),
         const SizedBox(height: 12),
@@ -176,7 +177,7 @@ class _AuthPageState extends State<AuthPage> {
           obscureText: true,
           decoration: const InputDecoration(
             labelText: 'Senha',
-            prefixIcon: Icon(Icons.lock_outline_rounded),
+            prefixIcon: Icon(AppIcons.lock_outline_rounded),
           ),
         ),
         if (error != null) ...[
