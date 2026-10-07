@@ -30,6 +30,8 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit() {
+    if (process.env.NODE_ENV === 'test') return;
+
     this.timer = setInterval(() => {
       void this.tick();
     }, 2_000);
