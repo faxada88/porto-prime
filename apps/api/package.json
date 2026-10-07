@@ -20,7 +20,8 @@
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
-    "db:upgrade:scalable": "prisma db execute --file prisma/migrations/20261006_scalable_dispatch_wallet/migration.sql && prisma generate"
+    "db:upgrade:scalable": "prisma db execute --file prisma/migrations/20261006_scalable_dispatch_wallet/migration.sql && prisma generate",
+    "test:e2e:concurrency": "RUN_REAL_PG_CONCURRENCY=1 vitest run --config ./vitest.config.e2e.ts test/scalable-architecture.e2e-spec.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
