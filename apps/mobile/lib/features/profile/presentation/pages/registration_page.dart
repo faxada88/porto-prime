@@ -55,7 +55,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         ? AppColors.ocean
         : courier
             ? const Color(0xFFB77818)
-            : const Color(0xFF6D5AA8);
+            : AppColors.violet600;
     final soft = customer
         ? AppColors.mint
         : courier
@@ -91,7 +91,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
               padding: const EdgeInsets.fromLTRB(8, 8, 16, 14),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(color: AppColors.stroke),
                 boxShadow: AppShadows.soft,
               ),
@@ -115,7 +115,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         height: 43,
                         decoration: BoxDecoration(
                           color: soft,
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                         child: Icon(roleIcon, color: accent, size: 21),
                       ),
@@ -151,7 +151,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         ),
                         decoration: BoxDecoration(
                           color: soft,
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(AppRadius.xl),
                         ),
                         child: Text(
                           customer
@@ -186,7 +186,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                 height: 5,
                                 decoration: BoxDecoration(
                                   color: index <= step ? accent : AppColors.stroke,
-                                  borderRadius: BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(AppRadius.md),
                                 ),
                               ),
                               const SizedBox(height: 7),
@@ -260,7 +260,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                             border: Border.all(
                               color: accent.withValues(alpha: .12),
                             ),
@@ -296,7 +296,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           padding: const EdgeInsets.fromLTRB(16, 17, 16, 5),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(26),
+                            borderRadius: BorderRadius.circular(AppRadius.lg),
                             border: Border.all(color: AppColors.stroke),
                             boxShadow: AppShadows.soft,
                           ),
@@ -335,15 +335,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             color: accepted
                                 ? AppColors.mint
                                 : Colors.white,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                             child: InkWell(
                               onTap: () =>
                                   setState(() => accepted = !accepted),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               child: Container(
                                 padding: const EdgeInsets.all(15),
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(AppRadius.md),
                                   border: Border.all(
                                     color: accepted
                                         ? AppColors.mintStrong
@@ -500,7 +500,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         width:double.infinity,padding:const EdgeInsets.all(18),margin:const EdgeInsets.only(bottom:14),
         decoration:BoxDecoration(
           gradient:const LinearGradient(colors:[AppColors.mint,Color(0xFFF4FBF8)]),
-          borderRadius:BorderRadius.circular(22),border:Border.all(color:AppColors.mintStrong),
+          borderRadius:BorderRadius.circular(AppRadius.lg),border:Border.all(color:AppColors.mintStrong),
         ),
         child:const Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
           Icon(AppIcons.verified_user_rounded,color:AppColors.oceanDeep,size:27),SizedBox(width:12),
@@ -513,10 +513,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
       ),
       ...sections.map((section)=>Container(
         margin:const EdgeInsets.only(bottom:12),padding:const EdgeInsets.fromLTRB(15,14,15,12),
-        decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(21),border:Border.all(color:AppColors.stroke)),
+        decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(AppRadius.md),border:Border.all(color:AppColors.stroke)),
         child:Column(children:[
           Row(children:[
-            Container(width:38,height:38,decoration:BoxDecoration(color:AppColors.canvas,borderRadius:BorderRadius.circular(12)),child:Icon(section['icon'] as IconData,color:AppColors.oceanDeep,size:20)),
+            Container(width:38,height:38,decoration:BoxDecoration(color:AppColors.canvas,borderRadius:BorderRadius.circular(AppRadius.sm)),child:Icon(section['icon'] as IconData,color:AppColors.oceanDeep,size:20)),
             const SizedBox(width:10),Expanded(child:Text(section['title'] as String,style:const TextStyle(fontSize:13.5,fontWeight:FontWeight.w900))),
             TextButton.icon(
               onPressed:()=>setState(()=>step=section['step'] as int),
@@ -539,7 +539,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       )),
       Container(
         padding:const EdgeInsets.all(15),margin:const EdgeInsets.only(bottom:18),
-        decoration:BoxDecoration(color:AppColors.sand,borderRadius:BorderRadius.circular(19)),
+        decoration:BoxDecoration(color:AppColors.sand,borderRadius:BorderRadius.circular(AppRadius.md)),
         child:const Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
           Icon(AppIcons.manage_search_rounded,color:AppColors.coral,size:22),SizedBox(width:10),
           Expanded(child:Text('Depois do envio, o cadastro ficará em análise. A equipe Porto Prime verificará as informações antes de liberar o acesso operacional.',style:TextStyle(fontSize:10.5,height:1.45,color:AppColors.ink,fontWeight:FontWeight.w700))),
@@ -553,7 +553,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         ? AppColors.ocean
         : courier
             ? const Color(0xFFB77818)
-            : const Color(0xFF6D5AA8);
+            : AppColors.violet600;
     final soft = customer
         ? AppColors.mint
         : courier
@@ -610,7 +610,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             height: 38,
             decoration: BoxDecoration(
               color: soft,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Icon(f.icon, color: accent, size: 20),
           ),
@@ -628,15 +628,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
               )
             : null,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.stroke),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: BorderSide(color: accent, width: 1.5),
         ),
       ),
@@ -649,7 +649,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         ? AppColors.ocean
         : courier
             ? const Color(0xFFB77818)
-            : const Color(0xFF6D5AA8);
+            : AppColors.violet600;
     final soft = customer
         ? AppColors.mint
         : courier
@@ -669,20 +669,20 @@ class _RegistrationPageState extends State<RegistrationPage> {
     }
     final value=ctl(f.key).text;
     return Padding(padding:const EdgeInsets.only(bottom:13),child:InkWell(
-      borderRadius:BorderRadius.circular(18),onTap:()=>openPicker(f,options),
+      borderRadius:BorderRadius.circular(AppRadius.md),onTap:()=>openPicker(f,options),
       child:InputDecorator(decoration:InputDecoration(labelText:f.label,filled:true,fillColor:AppColors.canvas,
         prefixIcon:Padding(
           padding:const EdgeInsets.all(11),
           child:Container(
             width:38,height:38,
-            decoration:BoxDecoration(color:soft,borderRadius:BorderRadius.circular(12)),
+            decoration:BoxDecoration(color:soft,borderRadius:BorderRadius.circular(AppRadius.sm)),
             child:Icon(f.icon,color:accent,size:20),
           ),
         ),
         prefixIconConstraints:const BoxConstraints(minWidth:62,minHeight:58),
         suffixIcon:Icon(AppIcons.unfold_more_rounded,color:accent,size:20),
-        enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:const BorderSide(color:AppColors.stroke)),
-        border:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:BorderSide.none)),
+        enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(AppRadius.md),borderSide:const BorderSide(color:AppColors.stroke)),
+        border:OutlineInputBorder(borderRadius:BorderRadius.circular(AppRadius.md),borderSide:BorderSide.none)),
         child:Text(value.isEmpty?'Toque para selecionar':value,style:TextStyle(fontWeight:FontWeight.w800,fontSize:12,color:value.isEmpty?AppColors.muted:AppColors.ink))),
     ));
   }
@@ -699,7 +699,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           const SizedBox(height:18),
           Row(children:[Expanded(child:Text(f.label,style:const TextStyle(fontSize:21,fontWeight:FontWeight.w900))),IconButton(onPressed:()=>Navigator.pop(ctx),icon:const Icon(AppIcons.close_rounded))]),
           TextField(controller:search,onChanged:(q)=>setSheet(()=>filtered=options.where((x)=>x.toLowerCase().contains(q.toLowerCase())).toList()),
-            decoration:InputDecoration(hintText:'Pesquisar',prefixIcon:const Icon(AppIcons.search_rounded),filled:true,fillColor:AppColors.canvas,border:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:BorderSide.none))),
+            decoration:InputDecoration(hintText:'Pesquisar',prefixIcon:const Icon(AppIcons.search_rounded),filled:true,fillColor:AppColors.canvas,border:OutlineInputBorder(borderRadius:BorderRadius.circular(AppRadius.md),borderSide:BorderSide.none))),
           const SizedBox(height:10),
           Expanded(child:ListView.separated(itemCount:filtered.length,separatorBuilder:(_,_)=>const Divider(height:1,color:AppColors.stroke),
             itemBuilder:(ctx,i){final x=filtered[i],selected=ctl(f.key).text==x;return ListTile(title:Text(x,style:TextStyle(fontWeight:selected?FontWeight.w900:FontWeight.w700)),trailing:selected?const Icon(AppIcons.check_circle_rounded,color:AppColors.success):null,onTap:()=>Navigator.pop(ctx,x));})),
@@ -969,7 +969,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(AppRadius.xl),
             boxShadow: AppShadows.elevated,
           ),
           child: Column(
@@ -980,7 +980,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 height: 66,
                 decoration: BoxDecoration(
                   color: AppColors.mint,
-                  borderRadius: BorderRadius.circular(23),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
                 child: Icon(icon, color: AppColors.oceanDeep, size: 31),
               ),
@@ -1056,7 +1056,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(AppRadius.xl),
             boxShadow: AppShadows.elevated,
           ),
           child: Column(
@@ -1067,7 +1067,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 height: 64,
                 decoration: BoxDecoration(
                   color: AppColors.peach,
-                  borderRadius: BorderRadius.circular(22),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
                 child: const Icon(
                   AppIcons.priority_high_rounded,
@@ -1105,7 +1105,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   onPressed: () => Navigator.pop(d),
                   style: FilledButton.styleFrom(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(17),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                   ),
                   child: const Text(
