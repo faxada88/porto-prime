@@ -60,6 +60,7 @@ abstract final class AppColors {
 }
 
 abstract final class AppSpacing {
+  static const micro = 2.0;
   static const xxs = 4.0;
   static const xs = 8.0;
   static const sm = 12.0;
@@ -68,6 +69,7 @@ abstract final class AppSpacing {
   static const xl = 24.0;
   static const xxl = 32.0;
   static const xxxl = 40.0;
+  static const huge = 48.0;
 }
 
 abstract final class AppRadius {
@@ -83,8 +85,10 @@ abstract final class AppControl {
   static const minTap = 44.0;
   static const inputHeight = 56.0;
   static const buttonHeight = 54.0;
-  static const navHeight = 70.0;
+  static const compactButtonHeight = 40.0;
+  static const navHeight = 72.0;
   static const maxContentWidth = 1180.0;
+  static const productCardMinWidth = 164.0;
 }
 
 abstract final class AppIconSize {
@@ -97,10 +101,12 @@ abstract final class AppIconSize {
 }
 
 abstract final class AppMotion {
+  static const instant = Duration(milliseconds: 80);
   static const fast = Duration(milliseconds: 120);
-  static const standard = Duration(milliseconds: 190);
-  static const emphasized = Duration(milliseconds: 260);
+  static const standard = Duration(milliseconds: 180);
+  static const emphasized = Duration(milliseconds: 240);
   static const Curve curve = Curves.easeOutCubic;
+  static const Curve entrance = Curves.easeOutQuart;
 }
 
 abstract final class AppBreakpoints {
@@ -236,10 +242,10 @@ abstract final class AppTheme {
     return base.copyWith(
       textTheme: textTheme,
       primaryTextTheme: textTheme,
-      splashFactory: InkSparkle.splashFactory,
-      highlightColor: AppColors.ocean100.withValues(alpha: .55),
+      splashFactory: InkRipple.splashFactory,
+      highlightColor: AppColors.ocean100.withValues(alpha: .42),
       hoverColor: AppColors.ocean50,
-      focusColor: AppColors.ocean100,
+      focusColor: AppColors.ocean100.withValues(alpha: .82),
       dividerColor: AppColors.stroke,
       iconTheme: const IconThemeData(
         color: AppColors.ink,
@@ -259,6 +265,8 @@ abstract final class AppTheme {
         constraints: const BoxConstraints(minHeight: AppControl.inputHeight),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        prefixIconColor: AppColors.muted,
+        suffixIconColor: AppColors.muted,
         labelStyle: textTheme.bodySmall?.copyWith(
           fontWeight: FontWeight.w600,
         ),
