@@ -555,16 +555,14 @@ class _CategoryGrid extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(
         builder: (_, constraints) {
           final width = constraints.maxWidth;
-          final columns = width >= 760
+          final columns = width >= 390
               ? 5
-              : width >= 500
-                  ? 5
-                  : width >= 360
-                      ? 4
-                      : 3;
+              : width >= 340
+                  ? 4
+                  : 3;
           final visible = categories.take(10).toList();
           final rows = (visible.length / columns).ceil();
-          final tileHeight = width >= 500 ? 104.0 : 96.0;
+          final tileHeight = width >= 390 ? 106.0 : 96.0;
 
           return SizedBox(
             height: rows * tileHeight,
@@ -582,7 +580,7 @@ class _CategoryGrid extends StatelessWidget {
                 final name = visible[index];
                 return PrimeCategoryTile(
                   name: name,
-                  compact: width < 500,
+                  compact: width < 390,
                   onTap: () {
                     AppState.instance.selectCatalogCategory(name);
                     AppNav.instance.go(1);
