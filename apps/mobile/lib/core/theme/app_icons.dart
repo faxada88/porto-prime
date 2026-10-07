@@ -24,7 +24,7 @@ abstract final class AppIcons {
   static const trash = LucideIcons.trash2;
   static const truck = LucideIcons.truck;
   static const gift = LucideIcons.gift;
-  static const layers = LucideIcons.layers3;
+  static const layers = LucideIcons.layers;
   static const circle = LucideIcons.circle;
   static const menu = LucideIcons.menu;
   static const externalLink = LucideIcons.externalLink;
