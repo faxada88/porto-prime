@@ -96,7 +96,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                     end: Alignment.bottomRight,
                     colors: [Color(0xFF102D28), Color(0xFF08786D)],
                   ),
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(AppRadius.xl),
                   boxShadow: const [
                     BoxShadow(
                       color: Color(0x1A0A3C34),
@@ -115,7 +115,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                           height: 48,
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: .11),
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                           child: const Icon(
                             AppIcons.account_balance_wallet_rounded,
@@ -130,7 +130,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                           ),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: .10),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                           child: const Text(
                             'PORTO PRIME PAY',
@@ -220,7 +220,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                   padding: const EdgeInsets.all(15),
                   decoration: BoxDecoration(
                     color: AppColors.sand,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Row(
                     children: [
@@ -256,7 +256,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(26),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
                     border: Border.all(color: const Color(0xFFE6EBE7)),
                   ),
                   child: const Column(
@@ -301,7 +301,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: .09),
-        borderRadius: BorderRadius.circular(17),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Row(
         children: [
@@ -350,7 +350,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(23),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () => Navigator.of(context).push(
@@ -360,7 +360,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
               border: Border.all(color: const Color(0xFFE6EBE7)),
-              borderRadius: BorderRadius.circular(23),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
             child: Row(
               children: [
@@ -369,7 +369,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                   height: 50,
                   decoration: BoxDecoration(
                     color: isPaid ? AppColors.mint : AppColors.sand,
-                    borderRadius: BorderRadius.circular(17),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: Icon(
                     isPaid
