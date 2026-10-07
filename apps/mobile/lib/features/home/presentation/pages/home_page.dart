@@ -353,11 +353,24 @@ class _Header extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        PrimeIconButton(
-          icon: AppIcons.bag,
-          badgeCount: state.cartCount,
-          semanticLabel: 'Abrir sacola',
-          onPressed: () => AppNav.instance.go(2),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PrimeIconButton(
+              icon: AppIcons.bag,
+              badgeCount: state.cartCount,
+              semanticLabel: 'Abrir sacola',
+              onPressed: () => AppNav.instance.go(2),
+            ),
+            const SizedBox(width: 8),
+            PrimeIconButton(
+              icon: AppIcons.user,
+              semanticLabel: 'Abrir perfil',
+              background: AppColors.ocean900,
+              foreground: Colors.white,
+              onPressed: () => AppNav.instance.go(3),
+            ),
+          ],
         ),
       ],
     );
@@ -555,11 +568,7 @@ class _CategoryGrid extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(
         builder: (_, constraints) {
           final width = constraints.maxWidth;
-          final columns = width >= 390
-              ? 5
-              : width >= 340
-                  ? 4
-                  : 3;
+          final columns = AppResponsive.categoryColumns(width);
           final visible = categories.take(10).toList();
           final rows = (visible.length / columns).ceil();
           final tileHeight = width >= 390 ? 106.0 : 96.0;
