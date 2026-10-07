@@ -54,14 +54,12 @@ class _AppShellState extends State<AppShell> {
             bottomNavigationBar: SafeArea(
               minimum: const EdgeInsets.fromLTRB(14, 0, 14, 10),
               child: Container(
-                height: 70,
+                height: AppControl.navHeight,
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppColors.ocean900.withValues(alpha: .97),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: .07),
-                  ),
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.xl),
+                  border: Border.all(color: AppColors.stroke),
                   boxShadow: AppShadows.floating,
                 ),
                 child: Row(
@@ -121,8 +119,13 @@ class _AppShellState extends State<AppShell> {
             curve: AppMotion.curve,
             margin: const EdgeInsets.symmetric(horizontal: 2),
             decoration: BoxDecoration(
-              color: selected ? Colors.white : Colors.transparent,
+              color: selected ? AppColors.ocean50 : Colors.transparent,
               borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(
+                color: selected
+                    ? AppColors.ocean100
+                    : Colors.transparent,
+              ),
             ),
             child: Stack(
               clipBehavior: Clip.none,
@@ -131,26 +134,35 @@ class _AppShellState extends State<AppShell> {
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    AnimatedScale(
-                      scale: selected ? 1.04 : 1,
+                    AnimatedContainer(
                       duration: AppMotion.standard,
-                      child: Icon(
-                        icon,
-                        size: 20,
+                      curve: AppMotion.curve,
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
                         color: selected
                             ? AppColors.ocean800
-                            : Colors.white.withValues(alpha: .68),
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        icon,
+                        size: selected ? 17 : 19,
+                        color: selected
+                            ? Colors.white
+                            : AppColors.muted,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Text(
                       label,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: selected
-                                ? AppColors.ink
-                                : Colors.white.withValues(alpha: .62),
-                            fontSize: 8.5,
-                            letterSpacing: .1,
+                                ? AppColors.ocean800
+                                : AppColors.muted,
+                            fontSize: 8.2,
+                            letterSpacing: .05,
                             fontWeight: selected
                                 ? FontWeight.w800
                                 : FontWeight.w600,
@@ -160,7 +172,7 @@ class _AppShellState extends State<AppShell> {
                 ),
                 if (badgeCount > 0)
                   Positioned(
-                    top: 4,
+                    top: 3,
                     right: 8,
                     child: Container(
                       constraints:
@@ -171,8 +183,7 @@ class _AppShellState extends State<AppShell> {
                         color: AppColors.coral600,
                         borderRadius: BorderRadius.circular(AppRadius.pill),
                         border: Border.all(
-                          color:
-                              selected ? Colors.white : AppColors.ocean900,
+                          color: AppColors.surface,
                           width: 2,
                         ),
                       ),
