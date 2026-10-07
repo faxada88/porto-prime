@@ -422,3 +422,163 @@ class PrimeStatusPill extends StatelessWidget {
 }
 
 enum PrimeStatusTone { neutral, success, warning, danger, info }
+
+
+class PrimeErrorBanner extends StatelessWidget {
+  const PrimeErrorBanner({
+    super.key,
+    required this.message,
+    this.onRetry,
+  });
+
+  final String message;
+  final VoidCallback? onRetry;
+
+  String get friendly {
+    final raw = message
+        .replaceFirst('Exception: ', '')
+        .replaceAll('SocketException', '')
+        .replaceAll('ClientException', '')
+        .trim();
+    if (raw.isEmpty || raw == 'null' || raw == 'undefined') {
+      return 'Não foi possível concluir esta ação agora. Tente novamente.';
+    }
+    if (raw.contains('500')) {
+      return 'A operação está temporariamente indisponível. Tente novamente em instantes.';
+    }
+    return raw;
+  }
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        liveRegion: true,
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.coral100,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(
+              color: AppColors.coral600.withValues(alpha: .16),
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                AppIcons.alert,
+                color: AppColors.coral600,
+                size: AppIconSize.sm,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  friendly,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.inkSoft,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ),
+              if (onRetry != null) ...[
+                const SizedBox(width: AppSpacing.xs),
+                TextButton(
+                  onPressed: onRetry,
+                  child: const Text('Tentar novamente'),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+}
+
+class PrimeSheetHandle extends StatelessWidget {
+  const PrimeSheetHandle({super.key});
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: Container(
+          width: 42,
+          height: 4,
+          decoration: BoxDecoration(
+            color: AppColors.strokeStrong,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+          ),
+        ),
+      );
+}
+
+class PrimePageHeader extends StatelessWidget {
+  const PrimePageHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.eyebrow,
+    this.trailing,
+  });
+
+  final String title;
+  final String? subtitle;
+  final String? eyebrow;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) => Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (eyebrow != null) ...[
+                  Text(
+                    eyebrow!,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.ocean600,
+                          letterSpacing: 1.15,
+                        ),
+                  ),
+                  const SizedBox(height: 5),
+                ],
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.headlineLarge,
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitle!,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (trailing != null) ...[
+            const SizedBox(width: AppSpacing.md),
+            trailing!,
+          ],
+        ],
+      );
+}
+
+class PrimeSkeletonCard extends StatelessWidget {
+  const PrimeSkeletonCard({super.key});
+
+  @override
+  Widget build(BuildContext context) => const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: PrimeSkeleton(
+              height: double.infinity,
+              radius: AppRadius.lg,
+            ),
+          ),
+          SizedBox(height: AppSpacing.sm),
+          PrimeSkeleton(height: 14),
+          SizedBox(height: AppSpacing.xs),
+          PrimeSkeleton(height: 12, width: 96),
+        ],
+      );
+}
