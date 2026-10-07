@@ -93,7 +93,7 @@ class _GuestAccessHero extends StatelessWidget {
               Color(0xFF0B8172),
             ],
           ),
-          borderRadius: BorderRadius.circular(31),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
           boxShadow: [
             BoxShadow(
               color: AppColors.oceanDeep.withValues(alpha: .22),
@@ -112,7 +112,7 @@ class _GuestAccessHero extends StatelessWidget {
                   height: 52,
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: .11),
-                    borderRadius: BorderRadius.circular(17),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: const Icon(
                     AppIcons.person_rounded,
@@ -126,7 +126,7 @@ class _GuestAccessHero extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: .10),
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(AppRadius.xl),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
@@ -252,7 +252,7 @@ class _ProfileHeader extends StatelessWidget {
             height: 50,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(17),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
               border: Border.all(color: AppColors.stroke),
               boxShadow: AppShadows.soft,
             ),
@@ -275,11 +275,11 @@ class _GuestHero extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(31),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
           child: Ink(
             height: 210,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(31),
+              borderRadius: BorderRadius.circular(AppRadius.xl),
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -335,7 +335,7 @@ class _GuestHero extends StatelessWidget {
                             height: 50,
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: .12),
-                              borderRadius: BorderRadius.circular(17),
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
                               border: Border.all(
                                 color: Colors.white.withValues(alpha: .10),
                               ),
@@ -354,7 +354,7 @@ class _GuestHero extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: .10),
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius: BorderRadius.circular(AppRadius.xl),
                             ),
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
@@ -446,15 +446,15 @@ class _QuickAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(21),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(21),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           child: Container(
             height: 102,
             padding: const EdgeInsets.symmetric(horizontal: 9),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(21),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               border: Border.all(color: AppColors.stroke),
             ),
             child: Column(
@@ -465,7 +465,7 @@ class _QuickAction extends StatelessWidget {
                   height: 39,
                   decoration: BoxDecoration(
                     color: AppColors.mint,
-                    borderRadius: BorderRadius.circular(13),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: Icon(icon, color: AppColors.oceanDeep, size: 20),
                 ),
@@ -566,14 +566,14 @@ class _AccessCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(23),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(23),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(23),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
               border: Border.all(color: AppColors.stroke),
               boxShadow: AppShadows.soft,
             ),
@@ -584,7 +584,7 @@ class _AccessCard extends StatelessWidget {
                   height: 55,
                   decoration: BoxDecoration(
                     color: iconBackground,
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Icon(icon, color: AppColors.ink, size: 25),
                 ),
@@ -651,15 +651,15 @@ class _ApplicationShortcut extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(23),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Ink(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFFFFF0CF), Color(0xFFFFF8EA)],
               ),
-              borderRadius: BorderRadius.circular(23),
-              border: Border.all(color: const Color(0xFFF1D9A8)),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(color: AppColors.sun200),
             ),
             child: const Row(
               children: [
@@ -722,7 +722,7 @@ class _MiniIconBox extends StatelessWidget {
         height: 46,
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Icon(icon, color: foreground, size: 22),
       );
@@ -736,7 +736,7 @@ class _MenuSurface extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(color: AppColors.stroke),
           boxShadow: AppShadows.soft,
         ),
@@ -816,7 +816,7 @@ class _BahiaSignature extends StatelessWidget {
           gradient: const LinearGradient(
             colors: [Color(0xFFFFF0CF), Color(0xFFE9F7F1)],
           ),
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         child: const Row(
           children: [
@@ -920,7 +920,7 @@ Future<void> _accountMenu(BuildContext context) async {
           title: 'Parceiro',
           subtitle: 'Cadastre seu negócio e participe da rede Porto Prime.',
           icon: AppIcons.storefront_rounded,
-          accent: const Color(0xFF6D5AA8),
+          accent: AppColors.violet600,
           background: AppColors.lavender,
           onTap: () {
             Navigator.pop(ctx);
@@ -929,10 +929,10 @@ Future<void> _accountMenu(BuildContext context) async {
         ),
         const SizedBox(height: 14),
         Material(
-          color: const Color(0xFFFFF7E7),
-          borderRadius: BorderRadius.circular(20),
+          color: AppColors.sand50,
+          borderRadius: BorderRadius.circular(AppRadius.md),
           child: InkWell(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             onTap: () {
               Navigator.pop(ctx);
               _courierStatus(context);
@@ -940,8 +940,8 @@ Future<void> _accountMenu(BuildContext context) async {
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFF0DEB9)),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.sun200),
               ),
               child: const Row(
                 children: [
@@ -1008,14 +1008,14 @@ class _RoleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(21),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(21),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           child: Container(
             padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(21),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               border: Border.all(color: AppColors.stroke),
             ),
             child: Row(
@@ -1025,7 +1025,7 @@ class _RoleCard extends StatelessWidget {
                   height: 52,
                   decoration: BoxDecoration(
                     color: background,
-                    borderRadius: BorderRadius.circular(17),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: Icon(icon, color: accent, size: 25),
                 ),
@@ -1115,7 +1115,7 @@ Future<void> _courierStatus(BuildContext context) async {
                 padding: const EdgeInsets.all(21),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(AppRadius.xl),
                   boxShadow: AppShadows.elevated,
                 ),
                 child: Column(
@@ -1159,7 +1159,7 @@ Future<void> _courierStatus(BuildContext context) async {
                         fillColor: AppColors.canvas,
                         filled: true,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                           borderSide: BorderSide.none,
                         ),
                       ),
@@ -1254,7 +1254,7 @@ Future<void> _courierStatus(BuildContext context) async {
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
                   color: AppColors.canvas,
-                  borderRadius: BorderRadius.circular(19),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   border: Border.all(color: AppColors.stroke),
                 ),
                 child: const Row(
@@ -1369,7 +1369,7 @@ class _ApplicationOverview extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: config.foreground.withValues(alpha: .15)),
       ),
       child: Column(
@@ -1382,7 +1382,7 @@ class _ApplicationOverview extends StatelessWidget {
                 height: 53,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Icon(
                   config.icon,
@@ -1424,7 +1424,7 @@ class _ApplicationOverview extends StatelessWidget {
             padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: .78),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Row(
               children: [
@@ -1469,10 +1469,10 @@ class _RequirementCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: open ? const Color(0xFFFFFBF3) : Colors.white,
-        borderRadius: BorderRadius.circular(21),
+        color: open ? AppColors.sand50 : Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
-          color: open ? const Color(0xFFF0DFBC) : AppColors.stroke,
+          color: open ? AppColors.sun200 : AppColors.stroke,
         ),
       ),
       child: Column(
@@ -1489,7 +1489,7 @@ class _RequirementCard extends StatelessWidget {
                         : AppIcons.verified_rounded,
                 background: open ? AppColors.sand : AppColors.mint,
                 foreground:
-                    open ? const Color(0xFF9B6817) : AppColors.oceanDeep,
+                    open ? AppColors.warning : AppColors.oceanDeep,
               ),
               const SizedBox(width: 11),
               Expanded(
@@ -1527,7 +1527,7 @@ class _RequirementCard extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.mint,
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1582,7 +1582,7 @@ class _StatusPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
       decoration: BoxDecoration(
         color: config.background,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
       child: Text(
         config.label,
@@ -1692,7 +1692,7 @@ class _SmallCounter extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: AppColors.mint,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Text(
           value.toString(),
@@ -1765,7 +1765,7 @@ Future<void> _auth(BuildContext context) async {
           padding: const EdgeInsets.all(13),
           decoration: BoxDecoration(
             color: AppColors.canvas,
-            borderRadius: BorderRadius.circular(17),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
           child: const Row(
             children: [
@@ -1851,7 +1851,7 @@ class _PremiumFieldState extends State<_PremiumField> {
               height: 41,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(13),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 border: Border.all(color: AppColors.stroke),
               ),
               child: Icon(
@@ -1876,15 +1876,15 @@ class _PremiumFieldState extends State<_PremiumField> {
                 )
               : null,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(19),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(19),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             borderSide: const BorderSide(color: AppColors.stroke),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(19),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             borderSide:
                 const BorderSide(color: AppColors.ocean, width: 1.5),
           ),
@@ -1985,8 +1985,8 @@ class _PrimeSheet extends StatelessWidget {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 18),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD6DEDA),
-                    borderRadius: BorderRadius.circular(20),
+                    color: AppColors.strokeStrong,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                 ),
               ),
@@ -2023,7 +2023,7 @@ class _SheetBrandHeader extends StatelessWidget {
               gradient: const LinearGradient(
                 colors: [AppColors.mint, Color(0xFFF4FBF8)],
               ),
-              borderRadius: BorderRadius.circular(19),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               border: Border.all(color: AppColors.mintStrong),
             ),
             child: Icon(icon, color: AppColors.oceanDeep, size: 27),
@@ -2094,7 +2094,7 @@ class _InlineNotice extends StatelessWidget {
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2170,7 +2170,7 @@ class _Account extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                   border: Border.all(color: AppColors.stroke),
                 ),
                 child: const Icon(
@@ -2262,7 +2262,7 @@ class _Account extends StatelessWidget {
               gradient: const LinearGradient(
                 colors: [AppColors.mint, Color(0xFFF6FBF8)],
               ),
-              borderRadius: BorderRadius.circular(23),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
               border: Border.all(color: AppColors.mintStrong),
             ),
             child: const Row(
@@ -2338,7 +2338,7 @@ class _AccountHero extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [Color(0xFF102B27), Color(0xFF075E54)],
         ),
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
             color: AppColors.oceanDeep.withValues(alpha: .20),
@@ -2356,7 +2356,7 @@ class _AccountHero extends StatelessWidget {
                 height: 62,
                 decoration: BoxDecoration(
                   color: AppColors.mint,
-                  borderRadius: BorderRadius.circular(21),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 alignment: Alignment.center,
                 child: Text(
@@ -2399,7 +2399,7 @@ class _AccountHero extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: .10),
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(AppRadius.xl),
                 ),
                 child: Text(
                   roleLabel,
@@ -2418,7 +2418,7 @@ class _AccountHero extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: .08),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: const Row(
               children: [
@@ -2551,7 +2551,7 @@ void _addresses(BuildContext context) {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(color: AppColors.stroke),
               ),
               child: Row(
@@ -2620,7 +2620,7 @@ void _newAddress(BuildContext context) {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
           boxShadow: AppShadows.elevated,
         ),
         child: SingleChildScrollView(
