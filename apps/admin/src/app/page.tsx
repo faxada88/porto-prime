@@ -108,7 +108,7 @@ export default function Home(){
 ];
  return <div className="shell"><aside><div className="logo"><b>P</b><div><strong>PORTO PRIME</strong><span>CENTRAL DE OPERAÇÕES</span></div></div><nav>{nav.map(([n,NavIcon])=><button key={n} className={tab===n?"active":""} onClick={()=>{setTab(n);setSearch("")}}><NavIcon className="navIcon" size={17} strokeWidth={2}/><span>{n}</span>{n==="Aprovações"&&pending.length>0&&<em>{pending.length}</em>}</button>)}</nav><div className="admin"><span>{me.name?.[0]}</span><div><b>{me.name}</b><small>Administrador</small></div><button title="Sair" aria-label="Sair" onClick={async()=>{try{await api("/auth/logout",token,"POST")}catch{}localStorage.removeItem("pp_admin_token");localStorage.removeItem("pp_admin_refresh");localStorage.removeItem("pp_admin_session");location.reload()}}><LogOut size={16}/></button></div></aside>
  <main className="content"><header><div><small>CENTRAL PORTO PRIME</small><h1>{tab}</h1></div><div className="headActions">{tab!=="Visão geral"&&tab!=="Configurações"&&<label className="searchBox"><Search size={16}/><input className="search" aria-label="Buscar" placeholder="Buscar na operação..." value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button type="button" aria-label="Limpar busca" onClick={()=>setSearch("")}><X size={14}/></button>}</label>}<button className="live" title="Clique para sincronizar agora" onClick={()=>load()}><RefreshCw size={14}/><span>Sincronização automática</span>{lastSync&&<small>{lastSync.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</small>}</button></div></header>{activityNotice&&<div className="activityToast"><b>Nova atividade</b><span>{activityNotice}</span></div>}{error&&<div className="error top">{error}</div>}{busy&&<div className="loading"><span className="loadingSpinner"/><span>Sincronizando dados...</span></div>}
- {tab==="Visão geral"&&<Dashboard dash={dash} orders={orders} pending={pending}/>}
+ {tab==="Visão geral"&&<Dashboard dash={dash} orders={orders} pending={pending} withdrawals={withdrawals}/>} 
  {tab==="Pedidos"&&<Orders rows={filtered(orders)} act={act} ask={setConfirmBox} token={token}/>} 
  {tab==="Aprovações"&&<Pending rows={filtered(pending)} act={act} courierByUser={courierByUser} requestRequirement={requestRequirement}/>}
  {tab==="Motoboys"&&<People rows={filtered(couriers)} kind="Motoboy" act={act} ask={setConfirmBox} courierByUser={courierByUser} requestRequirement={requestRequirement}/>}
@@ -123,7 +123,30 @@ export default function Home(){
  </main></div>
 }
 function Card({label,value,note,icon:Icon}:{label:string,value:any,note:string,icon:LucideIcon}){return <article><div className="metricIcon"><Icon size={18} strokeWidth={2}/></div><span>{label}</span><strong>{value}</strong><small>{note}</small></article>}
-function Dashboard({dash,orders,pending}:{dash:Row,orders:Row[],pending:Row[]}){const active=orders.filter(o=>!["DELIVERED","CANCELED"].includes(o.status)).length;return <><section className="hero"><div><small>OPERAÇÃO EM TEMPO REAL</small><h2>Porto Prime,<br/>em uma visão.</h2><p>Acompanhe pedidos, equipe, pagamentos e catálogo com clareza operacional.</p><div className="heroSignal"><Activity size={15}/><span>Dados sincronizados com a operação</span></div></div><div className="pulse"><b>{active}</b><span>pedidos ativos</span></div></section><section className="metrics"><Card icon={Banknote} label="Receita paga" value={brl(dash.revenue)} note="Pedidos confirmados"/><Card icon={ClipboardList} label="Pedidos" value={dash.orders||0} note="Histórico total"/><Card icon={UserCheck} label="Aprovações" value={pending.length} note="Aguardando análise"/><Card icon={Bike} label="Motoboys online" value={dash.onlineCouriers||0} note="Disponíveis agora"/></section><section className="grid"><Panel title="Pedidos recentes"><MiniOrders rows={orders.slice(0,6)}/></Panel><Panel title="Radar operacional"><div className="radar"><div className="radarIcon"><CircleDollarSign size={18}/></div><b>{dash.users||0}</b><span>usuários cadastrados</span><div className="radarIcon"><PackageSearch size={18}/></div><b>{dash.products||0}</b><span>produtos ativos</span></div></Panel></section></>}
+function Dashboard({dash,orders,pending,withdrawals}:{dash:Row,orders:Row[],pending:Row[],withdrawals:Row[]}){
+ const awaiting=orders.filter(o=>["PENDING","CONFIRMED"].includes(o.status)).length;
+ const released=orders.filter(o=>["PREPARING","READY_FOR_PICKUP"].includes(o.status)).length;
+ const searching=orders.filter(o=>o.status==="SEARCHING_COURIER").length;
+ const active=orders.filter(o=>["COURIER_ASSIGNED","PICKED_UP","OUT_FOR_DELIVERY"].includes(o.status)).length;
+ const finished=orders.filter(o=>o.status==="DELIVERED").length;
+ const pendingWithdrawals=withdrawals.filter(w=>["PENDING","PROCESSING"].includes(w.status)).length;
+ return <><section className="hero"><div><small>OPERAÇÃO EM TEMPO REAL</small><h2>Porto Prime,<br/>em uma visão.</h2><p>Acompanhe pedidos, equipe, pagamentos e catálogo com clareza operacional.</p><div className="heroSignal"><Activity size={15}/><span>Dados sincronizados com a operação</span></div></div><div className="pulse"><b>{active+searching}</b><span>operações ativas</span></div></section>
+ <section className="metrics opsMetrics">
+  <Card icon={ClipboardList} label="Aguardando" value={awaiting} note="Pedidos em análise"/>
+  <Card icon={PackageSearch} label="Liberados" value={released} note="Preparação / retirada"/>
+  <Card icon={Search} label="Procurando motoboy" value={searching} note="Despacho automático"/>
+  <Card icon={Bike} label="Entregas ativas" value={active} note="Motoboy em operação"/>
+  <Card icon={Check} label="Finalizados" value={finished} note="Pedidos entregues"/>
+  <Card icon={Activity} label="Motoboys online" value={dash.onlineCouriers||0} note="Disponíveis agora"/>
+  <Card icon={UserCheck} label="Cadastros pendentes" value={pending.length} note="Precisam de análise"/>
+  <Card icon={Wallet} label="Saques pendentes" value={pendingWithdrawals} note="Pendente / processamento"/>
+ </section>
+ <section className="metrics financeMetrics">
+  <Card icon={Banknote} label="Receita paga" value={brl(dash.revenue)} note="Pedidos confirmados"/>
+  <Card icon={ClipboardList} label="Pedidos registrados" value={dash.orders||0} note="Histórico total"/>
+ </section>
+ <section className="grid"><Panel title="Pedidos recentes"><MiniOrders rows={orders.slice(0,6)}/></Panel><Panel title="Radar operacional"><div className="radar"><div className="radarIcon"><CircleDollarSign size={18}/></div><b>{dash.users||0}</b><span>usuários cadastrados</span><div className="radarIcon"><PackageSearch size={18}/></div><b>{dash.products||0}</b><span>produtos ativos</span></div></Panel></section></>
+}
 function Panel({title,children}:{title:string,children:React.ReactNode}){return <section className="panel"><div className="panelHead"><h3>{title}</h3><span>Dados em tempo real</span></div>{children}</section>}
 function Badge({v}:{v:string}){return <span className={"badge b-"+v.toLowerCase()}>{statusLabel[v]||v}</span>}
 function MiniOrders({rows}:{rows:Row[]}){return <div className="rows">{rows.map(o=><div className="row" key={o.id}><div className="order">#{o.id.slice(-6).toUpperCase()}</div><div className="grow"><b>{o.customer?.name}</b><span>{brl(o.total)}</span><small>{dt(o.createdAt)}</small></div><Badge v={o.status}/></div>)}</div>}
