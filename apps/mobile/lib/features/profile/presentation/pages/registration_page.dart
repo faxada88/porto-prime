@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/state/app_state.dart';
+import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/motorcycle_catalog.dart';
 
@@ -24,17 +25,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
   String get title=>customer?'Cliente':courier?'Motoboy':'Parceiro';
   List<List<_F>> get groups=>courier ? courierGroups : commonGroups;
   List<List<_F>> get commonGroups=>[
-    [const _F('name','Nome completo',Icons.person_outline_rounded),const _F('birthDate','Data de nascimento',Icons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date),const _F('phone','Celular / WhatsApp',Icons.phone_outlined,keyboard:TextInputType.phone,format:_Format.phone)],
-    if(!customer)[const _F('businessName','Nome do estabelecimento',Icons.storefront_outlined),const _F('legalName','Razão social',Icons.business_outlined),const _F('cnpj','CNPJ / documento',Icons.badge_outlined,keyboard:TextInputType.number,format:_Format.cnpj),const _F('businessType','Tipo de estabelecimento',Icons.category_outlined,hint:'Hotel, pousada, receptivo...')]
-    else [const _F('cep','CEP',Icons.local_post_office_outlined,keyboard:TextInputType.number,format:_Format.cep),const _F('street','Rua / avenida',Icons.route_outlined),const _F('number','Número',Icons.numbers_outlined),const _F('neighborhood','Bairro',Icons.map_outlined),const _F('complement','Complemento',Icons.home_work_outlined,required:false)],
-    [const _F('email','E-mail',Icons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',Icons.lock_outline_rounded,secret:true,hint:'Mínimo de 8 caracteres'),if(courier)const _F('pixKey','Chave PIX para recebimentos',Icons.account_balance_wallet_outlined,required:false),if(!customer&&!courier)const _F('contactRole','Seu cargo / função',Icons.work_outline_rounded,required:false)],
+    [const _F('name','Nome completo',AppIcons.person_outline_rounded),const _F('birthDate','Data de nascimento',AppIcons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date),const _F('phone','Celular / WhatsApp',AppIcons.phone_outlined,keyboard:TextInputType.phone,format:_Format.phone)],
+    if(!customer)[const _F('businessName','Nome do estabelecimento',AppIcons.storefront_outlined),const _F('legalName','Razão social',AppIcons.business_outlined),const _F('cnpj','CNPJ / documento',AppIcons.badge_outlined,keyboard:TextInputType.number,format:_Format.cnpj),const _F('businessType','Tipo de estabelecimento',AppIcons.category_outlined,hint:'Hotel, pousada, receptivo...')]
+    else [const _F('cep','CEP',AppIcons.local_post_office_outlined,keyboard:TextInputType.number,format:_Format.cep),const _F('street','Rua / avenida',AppIcons.route_outlined),const _F('number','Número',AppIcons.numbers_outlined),const _F('neighborhood','Bairro',AppIcons.map_outlined),const _F('complement','Complemento',AppIcons.home_work_outlined,required:false)],
+    [const _F('email','E-mail',AppIcons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',AppIcons.lock_outline_rounded,secret:true,hint:'Mínimo de 8 caracteres'),if(courier)const _F('pixKey','Chave PIX para recebimentos',AppIcons.account_balance_wallet_outlined,required:false),if(!customer&&!courier)const _F('contactRole','Seu cargo / função',AppIcons.work_outline_rounded,required:false)],
   ];
   List<List<_F>> get courierGroups=>[
-    [const _F('name','Nome completo',Icons.person_outline_rounded),const _F('cpf','CPF',Icons.badge_outlined,keyboard:TextInputType.number,format:_Format.cpf),const _F('birthDate','Data de nascimento',Icons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date)],
-    [const _F('phone','Celular / WhatsApp',Icons.phone_outlined,keyboard:TextInputType.phone,format:_Format.phone),const _F('cep','CEP',Icons.local_post_office_outlined,keyboard:TextInputType.number,format:_Format.cep),const _F('street','Rua / avenida',Icons.route_outlined),const _F('number','Número',Icons.numbers_outlined),const _F('neighborhood','Bairro',Icons.map_outlined),const _F('city','Cidade',Icons.location_city_outlined),const _F('state','UF',Icons.map_outlined)],
-    [const _F('cnh','Número de registro da CNH',Icons.credit_card_outlined),const _F('cnhCategory','Categoria da CNH',Icons.fact_check_outlined),const _F('cnhExpiry','Validade da CNH',Icons.event_available_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date)],
-    [const _F('vehicleType','Tipo de veículo',Icons.commute_rounded),const _F('vehicleBrand','Marca',Icons.two_wheeler_outlined),const _F('vehicleModel','Modelo',Icons.two_wheeler_outlined),const _F('vehicleYear','Ano',Icons.calendar_today_outlined,keyboard:TextInputType.number),const _F('vehiclePlate','Placa',Icons.pin_outlined,format:_Format.plate)],
-    [const _F('email','E-mail',Icons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',Icons.lock_outline_rounded,secret:true,hint:'8+ caracteres, maiúscula, minúscula e número'),const _F('confirmPassword','Confirme sua senha',Icons.lock_reset_rounded,secret:true),const _F('pixKey','Chave PIX para recebimentos',Icons.account_balance_wallet_outlined,required:false)],
+    [const _F('name','Nome completo',AppIcons.person_outline_rounded),const _F('cpf','CPF',AppIcons.badge_outlined,keyboard:TextInputType.number,format:_Format.cpf),const _F('birthDate','Data de nascimento',AppIcons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date)],
+    [const _F('phone','Celular / WhatsApp',AppIcons.phone_outlined,keyboard:TextInputType.phone,format:_Format.phone),const _F('cep','CEP',AppIcons.local_post_office_outlined,keyboard:TextInputType.number,format:_Format.cep),const _F('street','Rua / avenida',AppIcons.route_outlined),const _F('number','Número',AppIcons.numbers_outlined),const _F('neighborhood','Bairro',AppIcons.map_outlined),const _F('city','Cidade',AppIcons.location_city_outlined),const _F('state','UF',AppIcons.map_outlined)],
+    [const _F('cnh','Número de registro da CNH',AppIcons.credit_card_outlined),const _F('cnhCategory','Categoria da CNH',AppIcons.fact_check_outlined),const _F('cnhExpiry','Validade da CNH',AppIcons.event_available_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date)],
+    [const _F('vehicleType','Tipo de veículo',AppIcons.commute_rounded),const _F('vehicleBrand','Marca',AppIcons.two_wheeler_outlined),const _F('vehicleModel','Modelo',AppIcons.two_wheeler_outlined),const _F('vehicleYear','Ano',AppIcons.calendar_today_outlined,keyboard:TextInputType.number),const _F('vehiclePlate','Placa',AppIcons.pin_outlined,format:_Format.plate)],
+    [const _F('email','E-mail',AppIcons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',AppIcons.lock_outline_rounded,secret:true,hint:'8+ caracteres, maiúscula, minúscula e número'),const _F('confirmPassword','Confirme sua senha',AppIcons.lock_reset_rounded,secret:true),const _F('pixKey','Chave PIX para recebimentos',AppIcons.account_balance_wallet_outlined,required:false)],
     [],
   ];
   @override
@@ -61,23 +62,23 @@ class _RegistrationPageState extends State<RegistrationPage> {
             ? AppColors.sand
             : AppColors.lavender;
     final roleIcon = customer
-        ? Icons.shopping_bag_rounded
+        ? AppIcons.shopping_bag_rounded
         : courier
-            ? Icons.two_wheeler_rounded
-            : Icons.storefront_rounded;
+            ? AppIcons.two_wheeler_rounded
+            : AppIcons.storefront_rounded;
     final stepIcons = courier
         ? const [
-            Icons.person_rounded,
-            Icons.location_on_rounded,
-            Icons.badge_rounded,
-            Icons.two_wheeler_rounded,
-            Icons.shield_rounded,
-            Icons.fact_check_rounded,
+            AppIcons.person_rounded,
+            AppIcons.location_on_rounded,
+            AppIcons.badge_rounded,
+            AppIcons.two_wheeler_rounded,
+            AppIcons.shield_rounded,
+            AppIcons.fact_check_rounded,
           ]
         : [
-            Icons.person_rounded,
-            customer ? Icons.location_on_rounded : Icons.storefront_rounded,
-            Icons.shield_rounded,
+            AppIcons.person_rounded,
+            customer ? AppIcons.location_on_rounded : AppIcons.storefront_rounded,
+            AppIcons.shield_rounded,
           ];
 
     return Scaffold(
@@ -105,8 +106,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             : setState(() => step--),
                         icon: Icon(
                           step == 0
-                              ? Icons.close_rounded
-                              : Icons.arrow_back_rounded,
+                              ? AppIcons.close_rounded
+                              : AppIcons.arrow_back_rounded,
                         ),
                       ),
                       Container(
@@ -203,7 +204,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                 ),
                                 child: Icon(
                                   index < step
-                                      ? Icons.check_rounded
+                                      ? AppIcons.check_rounded
                                       : stepIcons[index],
                                   size: 15,
                                   color: index <= step
@@ -309,7 +310,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                   const _F(
                                     'customVehicleBrand',
                                     'Informe a marca',
-                                    Icons.edit_rounded,
+                                    AppIcons.edit_rounded,
                                   ),
                                 ),
                               if (courier &&
@@ -319,7 +320,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                   const _F(
                                     'customVehicleModel',
                                     'Informe o modelo',
-                                    Icons.edit_rounded,
+                                    AppIcons.edit_rounded,
                                   ),
                                 ),
                               if (courier &&
@@ -370,7 +371,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                       ),
                                       child: accepted
                                           ? const Icon(
-                                              Icons.check_rounded,
+                                              AppIcons.check_rounded,
                                               color: Colors.white,
                                               size: 17,
                                             )
@@ -430,8 +431,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         ? const SizedBox.shrink()
                         : Icon(
                             step == total - 1
-                                ? Icons.verified_user_rounded
-                                : Icons.arrow_forward_rounded,
+                                ? AppIcons.verified_user_rounded
+                                : AppIcons.arrow_forward_rounded,
                             size: 20,
                           ),
                     label: AppState.instance.loading
@@ -473,24 +474,24 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
   Widget reviewCard() {
     final sections = <Map<String, dynamic>>[
-      {'title':'Dados pessoais','icon':Icons.person_rounded,'step':0,'rows':[
+      {'title':'Dados pessoais','icon':AppIcons.person_rounded,'step':0,'rows':[
         ['Nome completo',ctl('name').text],['CPF',ctl('cpf').text],['Data de nascimento',ctl('birthDate').text],
       ]},
-      {'title':'Contato e endereço','icon':Icons.location_on_rounded,'step':1,'rows':[
+      {'title':'Contato e endereço','icon':AppIcons.location_on_rounded,'step':1,'rows':[
         ['Celular / WhatsApp',ctl('phone').text],['CEP',ctl('cep').text],
         ['Endereço','${ctl('street').text}, ${ctl('number').text}'],
         ['Bairro',ctl('neighborhood').text],['Cidade / UF','${ctl('city').text} / ${ctl('state').text}'],
       ]},
-      {'title':'Habilitação','icon':Icons.badge_rounded,'step':2,'rows':[
+      {'title':'Habilitação','icon':AppIcons.badge_rounded,'step':2,'rows':[
         ['Registro CNH',ctl('cnh').text],['Categoria',ctl('cnhCategory').text],['Validade',ctl('cnhExpiry').text],
       ]},
-      {'title':'Veículo de entrega','icon':Icons.two_wheeler_rounded,'step':3,'rows':[
+      {'title':'Veículo de entrega','icon':AppIcons.two_wheeler_rounded,'step':3,'rows':[
         ['Tipo',ctl('vehicleType').text],
         ['Marca',ctl('vehicleBrand').text=='Outra marca'?ctl('customVehicleBrand').text:ctl('vehicleBrand').text],
         ['Modelo',ctl('vehicleModel').text=='Outro modelo'?ctl('customVehicleModel').text:ctl('vehicleModel').text],
         ['Ano',ctl('vehicleYear').text],['Placa',ctl('vehiclePlate').text],
       ]},
-      {'title':'Conta e recebimentos','icon':Icons.shield_rounded,'step':4,'rows':[
+      {'title':'Conta e recebimentos','icon':AppIcons.shield_rounded,'step':4,'rows':[
         ['E-mail',ctl('email').text],['Senha','••••••••'],['Chave PIX',ctl('pixKey').text.isEmpty?'Não informada':ctl('pixKey').text],
       ]},
     ];
@@ -502,7 +503,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           borderRadius:BorderRadius.circular(22),border:Border.all(color:AppColors.mintStrong),
         ),
         child:const Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
-          Icon(Icons.verified_user_rounded,color:AppColors.oceanDeep,size:27),SizedBox(width:12),
+          Icon(AppIcons.verified_user_rounded,color:AppColors.oceanDeep,size:27),SizedBox(width:12),
           Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
             Text('Confira tudo antes de enviar',style:TextStyle(fontSize:16,fontWeight:FontWeight.w900)),
             SizedBox(height:4),
@@ -519,7 +520,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             const SizedBox(width:10),Expanded(child:Text(section['title'] as String,style:const TextStyle(fontSize:13.5,fontWeight:FontWeight.w900))),
             TextButton.icon(
               onPressed:()=>setState(()=>step=section['step'] as int),
-              icon:const Icon(Icons.edit_rounded,size:15),label:const Text('Editar'),
+              icon:const Icon(AppIcons.edit_rounded,size:15),label:const Text('Editar'),
               style:TextButton.styleFrom(foregroundColor:AppColors.oceanDeep,textStyle:const TextStyle(fontSize:11,fontWeight:FontWeight.w900)),
             ),
           ]),
@@ -540,7 +541,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         padding:const EdgeInsets.all(15),margin:const EdgeInsets.only(bottom:18),
         decoration:BoxDecoration(color:AppColors.sand,borderRadius:BorderRadius.circular(19)),
         child:const Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
-          Icon(Icons.manage_search_rounded,color:AppColors.coral,size:22),SizedBox(width:10),
+          Icon(AppIcons.manage_search_rounded,color:AppColors.coral,size:22),SizedBox(width:10),
           Expanded(child:Text('Depois do envio, o cadastro ficará em análise. A equipe Porto Prime verificará as informações antes de liberar o acesso operacional.',style:TextStyle(fontSize:10.5,height:1.45,color:AppColors.ink,fontWeight:FontWeight.w700))),
         ]),
       ),
@@ -615,13 +616,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
           ),
         ),
         prefixIconConstraints: const BoxConstraints(minWidth: 62, minHeight: 58),
-        suffixIcon: checking[f.key] == true ? const Padding(padding: EdgeInsets.all(16),child:SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2))) : remoteError[f.key] == '' ? const Icon(Icons.check_circle_rounded,color:AppColors.success) : f.secret
+        suffixIcon: checking[f.key] == true ? const Padding(padding: EdgeInsets.all(16),child:SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2))) : remoteError[f.key] == '' ? const Icon(AppIcons.check_circle_rounded,color:AppColors.success) : f.secret
             ? IconButton(
                 onPressed: () => setState(() => obscure = !obscure),
                 icon: Icon(
                   obscure
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
+                      ? AppIcons.visibility_outlined
+                      : AppIcons.visibility_off_outlined,
                   size: 20,
                 ),
               )
@@ -679,7 +680,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           ),
         ),
         prefixIconConstraints:const BoxConstraints(minWidth:62,minHeight:58),
-        suffixIcon:Icon(Icons.unfold_more_rounded,color:accent,size:20),
+        suffixIcon:Icon(AppIcons.unfold_more_rounded,color:accent,size:20),
         enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:const BorderSide(color:AppColors.stroke)),
         border:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:BorderSide.none)),
         child:Text(value.isEmpty?'Toque para selecionar':value,style:TextStyle(fontWeight:FontWeight.w800,fontSize:12,color:value.isEmpty?AppColors.muted:AppColors.ink))),
@@ -696,12 +697,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
         child:Column(children:[
           Container(width:42,height:4,decoration:BoxDecoration(color:AppColors.stroke,borderRadius:BorderRadius.circular(8))),
           const SizedBox(height:18),
-          Row(children:[Expanded(child:Text(f.label,style:const TextStyle(fontSize:21,fontWeight:FontWeight.w900))),IconButton(onPressed:()=>Navigator.pop(ctx),icon:const Icon(Icons.close_rounded))]),
+          Row(children:[Expanded(child:Text(f.label,style:const TextStyle(fontSize:21,fontWeight:FontWeight.w900))),IconButton(onPressed:()=>Navigator.pop(ctx),icon:const Icon(AppIcons.close_rounded))]),
           TextField(controller:search,onChanged:(q)=>setSheet(()=>filtered=options.where((x)=>x.toLowerCase().contains(q.toLowerCase())).toList()),
-            decoration:InputDecoration(hintText:'Pesquisar',prefixIcon:const Icon(Icons.search_rounded),filled:true,fillColor:AppColors.canvas,border:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:BorderSide.none))),
+            decoration:InputDecoration(hintText:'Pesquisar',prefixIcon:const Icon(AppIcons.search_rounded),filled:true,fillColor:AppColors.canvas,border:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:BorderSide.none))),
           const SizedBox(height:10),
           Expanded(child:ListView.separated(itemCount:filtered.length,separatorBuilder:(_,_)=>const Divider(height:1,color:AppColors.stroke),
-            itemBuilder:(ctx,i){final x=filtered[i],selected=ctl(f.key).text==x;return ListTile(title:Text(x,style:TextStyle(fontWeight:selected?FontWeight.w900:FontWeight.w700)),trailing:selected?const Icon(Icons.check_circle_rounded,color:AppColors.success):null,onTap:()=>Navigator.pop(ctx,x));})),
+            itemBuilder:(ctx,i){final x=filtered[i],selected=ctl(f.key).text==x;return ListTile(title:Text(x,style:TextStyle(fontWeight:selected?FontWeight.w900:FontWeight.w700)),trailing:selected?const Icon(AppIcons.check_circle_rounded,color:AppColors.success):null,onTap:()=>Navigator.pop(ctx,x));})),
         ]),
       )));
     search.dispose();
@@ -884,9 +885,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   Future<void> next() async {
     if (!(form.currentState?.validate() ?? false)) return;
-    if(checking.values.any((v)=>v)){await _showInfo('Verificando dados','Aguarde a conclusão das validações antes de continuar.',Icons.hourglass_top_rounded);return;}
+    if(checking.values.any((v)=>v)){await _showInfo('Verificando dados','Aguarde a conclusão das validações antes de continuar.',AppIcons.hourglass_top_rounded);return;}
     if(remoteError.values.any((v)=>v?.isNotEmpty ?? false))return;
-    if(courier&&step==3&&(ctl('vehicleType').text.isEmpty||ctl('vehicleBrand').text.isEmpty||ctl('vehicleModel').text.isEmpty)){await _showInfo('Complete o veículo','Selecione tipo, marca e modelo antes de continuar.',Icons.two_wheeler_rounded);return;}
+    if(courier&&step==3&&(ctl('vehicleType').text.isEmpty||ctl('vehicleBrand').text.isEmpty||ctl('vehicleModel').text.isEmpty)){await _showInfo('Complete o veículo','Selecione tipo, marca e modelo antes de continuar.',AppIcons.two_wheeler_rounded);return;}
     if (step < groups.length - 1) {
       setState(() => step++);
       return;
@@ -895,7 +896,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       await _showInfo(
         'Confirme para continuar',
         'Para proteger sua conta, confirme que os dados são verdadeiros e que você aceita os termos e a política de privacidade.',
-        Icons.shield_outlined,
+        AppIcons.shield_outlined,
       );
       return;
     }
@@ -939,7 +940,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         await _showInfo(
           'Cadastro enviado',
           'Recebemos seu cadastro de $title. Agora nossa equipe fará a análise. Assim que for aprovado, seu acesso operacional será liberado.',
-          Icons.verified_rounded,
+          AppIcons.verified_rounded,
         );
         if (mounted) Navigator.of(context).pop();
       }
@@ -1069,7 +1070,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: const Icon(
-                  Icons.priority_high_rounded,
+                  AppIcons.priority_high_rounded,
                   color: AppColors.coral,
                   size: 31,
                 ),
