@@ -20,7 +20,9 @@ abstract final class AppColors {
   static const coral600 = Color(0xFFE85F48);
   static const coral100 = Color(0xFFFFEAE4);
   static const lavender100 = Color(0xFFEDE9FF);
+  static const violet600 = Color(0xFF6D5AA8);
   static const sky100 = Color(0xFFE5F3FB);
+  static const sky700 = Color(0xFF356D8D);
 
   static const ink = Color(0xFF15201D);
   static const inkSoft = Color(0xFF34413D);
