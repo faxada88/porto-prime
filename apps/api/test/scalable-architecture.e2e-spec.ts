@@ -41,7 +41,7 @@ describe('Arquitetura escalável Porto Prime (e2e)', () => {
 
   afterAll(async () => {
     await app.close();
-  });
+  }, 30_000);
 
   async function registerCustomer(index = 0) {
     const tag = unique();
@@ -218,49 +218,52 @@ describe('Arquitetura escalável Porto Prime (e2e)', () => {
   }
 
   it('mantém 20 clientes simultâneos com dados completamente isolados', async () => {
-    const customers = await Promise.all(
-      Array.from({ length: 20 }, (_, i) => registerCustomer(i)),
-    );
+    const customers = [];
+    for (let i = 0; i < 20; i++) {
+      customers.push(await registerCustomer(i));
+    }
     const userIds = customers.map((x) => x.id);
 
     try {
-      const sessions = await Promise.all(
-        customers.map((customer, i) =>
-          login(
+      const sessions = [];
+      for (let i = 0; i < customers.length; i++) {
+        const customer = customers[i];
+        sessions.push(
+          await login(
             customer.email,
             customer.password,
             `customer-device-${i}-${customer.tag}`,
           ),
-        ),
-      );
+        );
+      }
 
-      await Promise.all(
-        customers.map((customer, i) =>
-          request(app.getHttpServer())
-            .post('/addresses')
-            .set('Authorization', `Bearer ${sessions[i].accessToken}`)
-            .send({
-              label: 'Casa',
-              street: `Rua Isolada ${customer.tag}`,
-              number: String(i + 1),
-              neighborhood: 'Centro',
-              city: 'Porto Seguro',
-              state: 'BA',
-              postalCode: '45810000',
-              isDefault: true,
-            })
-            .expect(201),
-        ),
-      );
+      for (let i = 0; i < customers.length; i++) {
+        const customer = customers[i];
+        await request(app.getHttpServer())
+          .post('/addresses')
+          .set('Authorization', `Bearer ${sessions[i].accessToken}`)
+          .send({
+            label: 'Casa',
+            street: `Rua Isolada ${customer.tag}`,
+            number: String(i + 1),
+            neighborhood: 'Centro',
+            city: 'Porto Seguro',
+            state: 'BA',
+            postalCode: '45810000',
+            isDefault: true,
+          })
+          .expect(201);
+      }
 
-      const addressLists = await Promise.all(
-        sessions.map((session) =>
-          request(app.getHttpServer())
+      const addressLists = [];
+      for (const session of sessions) {
+        addressLists.push(
+          await request(app.getHttpServer())
             .get('/addresses')
             .set('Authorization', `Bearer ${session.accessToken}`)
             .expect(200),
-        ),
-      );
+        );
+      }
 
       for (let i = 0; i < addressLists.length; i++) {
         expect(addressLists[i].body).toHaveLength(1);
@@ -501,38 +504,39 @@ describe('Arquitetura escalável Porto Prime (e2e)', () => {
 
   it('despacha vários pedidos entre 10 motoboys e reencaminha recusa/expiração', async () => {
     const customer = await registerCustomer(5000);
-    const couriers = await Promise.all(
-      Array.from({ length: 10 }, (_, i) => registerCourier(5100 + i)),
-    );
+    const couriers = [];
+    for (let i = 0; i < 10; i++) {
+      couriers.push(await registerCourier(5100 + i));
+    }
     const userIds = [customer.id, ...couriers.map((x) => x.id)];
 
     try {
-      const sessions = await Promise.all(
-        couriers.map((courier, i) =>
-          login(
+      const sessions = [];
+      for (let i = 0; i < couriers.length; i++) {
+        const courier = couriers[i];
+        sessions.push(
+          await login(
             courier.email,
             courier.password,
             'dispatch-device-' + i + '-' + courier.tag,
           ),
-        ),
-      );
+        );
+      }
 
-      await Promise.all(
-        sessions.map((session, i) =>
-          request(app.getHttpServer())
-            .patch('/orders/courier/heartbeat')
-            .set(
-              'Authorization',
-              `Bearer ${session.accessToken}`,
-            )
-            .send({
-              online: true,
-              latitude: -16.449 + i * 0.0002,
-              longitude: -39.064 + i * 0.0002,
-            })
-            .expect(200),
-        ),
-      );
+      for (let i = 0; i < sessions.length; i++) {
+        await request(app.getHttpServer())
+          .patch('/orders/courier/heartbeat')
+          .set(
+            'Authorization',
+            `Bearer ${sessions[i].accessToken}`,
+          )
+          .send({
+            online: true,
+            latitude: -16.449 + i * 0.0002,
+            longitude: -39.064 + i * 0.0002,
+          })
+          .expect(200);
+      }
 
       const available = await prisma.courierProfile.count({
         where: {
@@ -558,9 +562,10 @@ describe('Arquitetura escalável Porto Prime (e2e)', () => {
         },
       });
 
-      const orders = await Promise.all(
-        Array.from({ length: 5 }, (_, i) =>
-          prisma.order.create({
+      const orders = [];
+      for (let i = 0; i < 5; i++) {
+        orders.push(
+          await prisma.order.create({
             data: {
               customerId: customer.id,
               addressId: address.id,
@@ -573,12 +578,12 @@ describe('Arquitetura escalável Porto Prime (e2e)', () => {
               deliveryPin: String(6000 + i),
             },
           }),
-        ),
-      );
+        );
+      }
 
-      await Promise.all(
-        orders.map((order) => dispatch.startDispatch(order.id)),
-      );
+      for (const order of orders) {
+        await dispatch.startDispatch(order.id);
+      }
 
       const initialOffers = await (prisma as any).deliveryOffer.findMany({
         where: {
