@@ -137,13 +137,54 @@ class AppState extends ChangeNotifier {
     _catalogPolling=true;
     Future<void>(()async{
       while(_catalogPolling){
-        await Future<void>.delayed(const Duration(seconds:5));
+        await Future<void>.delayed(const Duration(seconds:30));
         try{await loadProducts(silent:true);}catch(_){}
       }
     });
   }
 
-  Future<void> loadProducts({bool silent=false})async{try{final next=List<dynamic>.from(await api.request('GET','/products'));final changed=next.toString()!=products.toString();products=next;if(changed)notifyListeners();}catch(e){if(!silent){error=e.toString();notifyListeners();}}}
+  bool _sameCatalog(List<dynamic> a, List<dynamic> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      final left = a[i] as Map?;
+      final right = b[i] as Map?;
+      if (left == null || right == null) return false;
+      for (final key in const [
+        'id',
+        'name',
+        'price',
+        'stock',
+        'active',
+        'imageUrl',
+        'updatedAt',
+      ]) {
+        if (left[key]?.toString() != right[key]?.toString()) return false;
+      }
+      final leftCategory = left['category'] as Map?;
+      final rightCategory = right['category'] as Map?;
+      if (leftCategory?['id']?.toString() !=
+          rightCategory?['id']?.toString()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Future<void> loadProducts({bool silent=false}) async {
+    try {
+      final next =
+          List<dynamic>.from(await api.request('GET', '/products'));
+      if (_sameCatalog(next, products)) return;
+      products = next;
+      notifyListeners();
+    } catch (e) {
+      if (!silent) {
+        error = e.toString();
+        notifyListeners();
+      }
+    }
+  }
   Future<Map<String,dynamic>> lookupPostalCode(String cep) async {
     final q=Uri(queryParameters:{'cep':cep}).query;
     return Map<String,dynamic>.from(await api.request('GET','/auth/postal-code?$q'));
@@ -330,7 +371,23 @@ class AppState extends ChangeNotifier {
   Future<void> loadOrders()async{if(!isCustomer)return;orders=List<dynamic>.from(await api.request('GET','/orders/mine'));notifyListeners();}
   Future<void> loadActiveOrder()async{if(!isCustomer)return;final x=await api.request('GET','/orders/active');activeOrder=x==null?null:Map<String,dynamic>.from(x);notifyListeners();}
 
-  Future<void> refreshCourier() async {
+  Future<void>? _courierRefreshFuture;
+
+  Future<void> refreshCourier() {
+    final running = _courierRefreshFuture;
+    if (running != null) return running;
+
+    final future = _refreshCourierOnce();
+    _courierRefreshFuture = future;
+    future.whenComplete(() {
+      if (identical(_courierRefreshFuture, future)) {
+        _courierRefreshFuture = null;
+      }
+    });
+    return future;
+  }
+
+  Future<void> _refreshCourierOnce() async {
     if(!isCourier)return;
 
     final results=await Future.wait([
@@ -375,11 +432,16 @@ class AppState extends ChangeNotifier {
         },
       ),
     );
-    courierPresenceStatus=(result['presenceStatus']??'OFFLINE').toString();
-    courierOnline=result['isOnline']==true ||
-        courierPresenceStatus=='AVAILABLE' ||
-        courierPresenceStatus=='OFFERED';
-    notifyListeners();
+    final nextPresence =
+        (result['presenceStatus'] ?? 'OFFLINE').toString();
+    final nextOnline = result['isOnline'] == true ||
+        nextPresence == 'AVAILABLE' ||
+        nextPresence == 'OFFERED';
+    final changed =
+        nextPresence != courierPresenceStatus || nextOnline != courierOnline;
+    courierPresenceStatus = nextPresence;
+    courierOnline = nextOnline;
+    if (changed) notifyListeners();
   }
 
   Future<void> setCourierOnline(bool online) async {
