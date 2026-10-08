@@ -31,7 +31,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
       builder: (_, __) {
         final state = AppState.instance;
         final products = state.products;
-        final categories = _categories(products);
+        final categories = _categories(state.catalogCategories);
         final query = search.text.trim().toLowerCase();
         final selected = state.catalogCategory;
 
@@ -244,10 +244,10 @@ class _CategoriesPageState extends State<CategoriesPage> {
     ),
   );
 
-  List<String> _categories(List<dynamic> products) {
+  List<String> _categories(List<dynamic> categories) {
     final names = <String>['Todos'];
-    for (final product in products) {
-      final value = (product['category']?['name'] ?? '').toString().trim();
+    for (final category in categories) {
+      final value = (category['name'] ?? '').toString().trim();
       if (value.isNotEmpty && !names.contains(value)) names.add(value);
     }
     return names;

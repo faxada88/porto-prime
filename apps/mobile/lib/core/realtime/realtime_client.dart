@@ -7,6 +7,20 @@ class RealtimeClient {
   static final instance = RealtimeClient._();
 
   io.Socket? _socket;
+  io.Socket? _catalogSocket;
+  void connectCatalog() {
+    if (_catalogSocket != null) return;
+    final socket=io.io('${ApiClient.instance.realtimeUrl}/catalog',
+      io.OptionBuilder().setTransports(['websocket']).disableAutoConnect()
+        .enableReconnection().setReconnectionDelay(1200).build());
+    for(final event in ['catalog.updated','store.updated']) {
+      socket.on(event,(payload)=>onEvent?.call(event,payload));
+    }
+    socket.onConnect((_)=>onEvent?.call('catalog.updated',null));
+    _catalogSocket=socket;
+    socket.connect();
+  }
+
   void Function(String event, dynamic payload)? onEvent;
 
   bool get connected => _socket?.connected == true;
@@ -47,6 +61,8 @@ class RealtimeClient {
       'courier.presence',
       'wallet.updated',
       'courier.profile.updated',
+      'catalog.updated',
+      'store.updated',
     ];
 
     for (final event in events) {

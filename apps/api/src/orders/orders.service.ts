@@ -70,6 +70,9 @@ export class OrdersService {
       throw new ForbiddenException('Apenas clientes podem criar pedidos');
     }
 
+    const store = await this.prisma.deliveryPricingConfig.findUnique({ where: { id: 'default' }, select: { storeOpen: true, storeMessage: true } });
+    if (store?.storeOpen === false) throw new BadRequestException(store.storeMessage || 'A loja está fechada no momento');
+
     const address = await this.prisma.address.findFirst({
       where: { id: data.addressId, userId: user.id },
     });
@@ -79,7 +82,7 @@ export class OrdersService {
 
     const ids = [...new Set(data.items.map((item) => item.productId))];
     const products = await this.prisma.product.findMany({
-      where: { id: { in: ids }, active: true },
+      where: { id: { in: ids }, active: true, archived: false, category: { active: true, archived: false } },
     });
     if (products.length !== ids.length) {
       throw new BadRequestException(

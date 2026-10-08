@@ -1,3 +1,4 @@
+import { CatalogGateway } from './catalog.gateway.js';
 import { OnModuleDestroy } from '@nestjs/common';
 import {
   ConnectedSocket,
@@ -33,6 +34,7 @@ export class RealtimeGateway
   constructor(
     private readonly auth: AuthService,
     private readonly prisma: PrismaService,
+    private readonly catalog?: CatalogGateway,
   ) {}
 
   afterInit() {
@@ -142,6 +144,11 @@ export class RealtimeGateway
       at: new Date().toISOString(),
       echo: body ?? null,
     });
+  }
+
+  emitCatalogUpdated(event = 'catalog.updated') {
+    this.server?.emit(event, { at: new Date().toISOString() });
+    this.catalog?.updated(event);
   }
 
   emitToUser(userId: string, event: string, payload: unknown) {

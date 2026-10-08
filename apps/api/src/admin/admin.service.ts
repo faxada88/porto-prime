@@ -697,96 +697,124 @@ export class AdminService {
     };
   }
 
-  async createProduct(
-    body: {
-      categoryId: string;
-      name: string;
-      description?: string;
-      price: number;
-      stock?: number;
-    },
-    authorization?: string,
-  ) {
-    await this.requireAdmin(authorization);
-    const name = body.name?.trim();
-    const price = Number(body.price);
-    const stock = Number(body.stock ?? 0);
-    if (!body.categoryId || !name || !Number.isFinite(price) || price < 0) {
-      throw new BadRequestException('Categoria, nome e preço válido são obrigatórios');
-    }
-    if (!Number.isInteger(stock) || stock < 0) {
-      throw new BadRequestException('Estoque inválido');
-    }
-
-    const category = await this.prisma.category.findUnique({
-      where: { id: body.categoryId },
-      select: { id: true },
-    });
-    if (!category) throw new NotFoundException('Categoria não encontrada');
-
-    return this.prisma.product.create({
-      data: {
-        categoryId: body.categoryId,
-        name,
-        description: body.description?.trim() || null,
-        price,
-        stock,
-        active: true,
-      },
-      include: { category: true },
-    });
+  private catalogChanged(event = 'catalog.updated') {
+    this.realtime.emitCatalogUpdated(event);
   }
 
-  async updateProduct(
-    productId: string,
-    body: { stock?: number; active?: boolean },
-    authorization?: string,
-  ) {
-    await this.requireAdmin(authorization);
-    const product = await this.prisma.product.findUnique({
-      where: { id: productId },
-      select: { id: true },
-    });
-    if (!product) throw new NotFoundException('Produto não encontrado');
+  private catalogText(value: unknown, label: string, max: number, required = false) {
+    if (typeof value !== 'string') throw new BadRequestException(`${label} inválido`);
+    const text = value.trim();
+    if ((required && !text) || text.length > max) throw new BadRequestException(`${label} inválido`);
+    return text;
+  }
 
-    const data: { stock?: number; active?: boolean } = {};
-    if (body.stock !== undefined) {
-      const stock = Number(body.stock);
-      if (!Number.isInteger(stock) || stock < 0) {
-        throw new BadRequestException('Estoque inválido');
+  private catalogImage(value: unknown) {
+    const text = this.catalogText(value ?? '', 'Imagem', 2048);
+    if (!text) return null;
+    try {
+      const url = new URL(text);
+      if (url.protocol !== 'https:' || url.username || url.password) throw new Error();
+      return url.toString();
+    } catch { throw new BadRequestException('Utilize uma URL HTTPS válida para a imagem'); }
+  }
+
+  private productFields(body: Record<string, unknown>, creating = false) {
+    const data: Record<string, any> = {};
+    for (const key of ['name', 'description'] as const) {
+      if (body[key] !== undefined || (creating && key === 'name')) {
+        data[key] = this.catalogText(body[key], key === 'name' ? 'Nome' : 'Descrição', key === 'name' ? 160 : 2000, key === 'name') || null;
       }
-      data.stock = stock;
     }
-    if (body.active !== undefined) data.active = Boolean(body.active);
-
-    return this.prisma.product.update({
-      where: { id: productId },
-      data,
-    });
+    if (body.imageUrl !== undefined) data.imageUrl = this.catalogImage(body.imageUrl);
+    for (const key of ['price', 'stock'] as const) {
+      if (body[key] !== undefined || creating) {
+        const raw = body[key] ?? (key === 'stock' ? 0 : undefined);
+        const value = Number(raw);
+        if ((typeof raw !== 'number' && typeof raw !== 'string') || raw === '' || !Number.isFinite(value) || value < 0 || value > (key === 'stock' ? 2147483647 : 99999999.99) || (key === 'stock' && !Number.isInteger(value)) || (key === 'price' && Math.abs(value * 100 - Math.round(value * 100)) > 0.00001)) {
+          throw new BadRequestException(key === 'stock' ? 'Estoque inválido' : 'Preço inválido: utilize até duas casas decimais');
+        }
+        data[key] = value;
+      }
+    }
+    for (const key of ['active', 'archived']) if (body[key] !== undefined) {
+      if (typeof body[key] !== 'boolean') throw new BadRequestException('Disponibilidade inválida');
+      data[key] = body[key];
+    }
+    return data;
   }
 
-  async createCategory(body: { name: string }, authorization?: string) {
+  async createProduct(body: Record<string, any>, authorization?: string) {
     await this.requireAdmin(authorization);
-    const name = body.name?.trim();
-    if (!name) throw new BadRequestException('Nome da categoria é obrigatório');
+    const data = this.productFields(body, true);
+    const categoryId = this.catalogText(body.categoryId, 'Categoria', 100, true);
+    const category = await this.prisma.category.findUnique({ where: { id: categoryId } });
+    if (!category || category.archived) throw new BadRequestException('Selecione uma categoria não arquivada');
+    const result = await this.prisma.product.create({ data: { ...data, categoryId } as any, include: { category: true } });
+    this.catalogChanged();
+    return result;
+  }
 
-    const slug = name
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
+  async updateProduct(productId: string, body: Record<string, any>, authorization?: string) {
+    await this.requireAdmin(authorization);
+    if (!await this.prisma.product.findUnique({ where: { id: productId } })) throw new NotFoundException('Produto não encontrado');
+    const data = this.productFields(body);
+    if (body.categoryId !== undefined) {
+      data.categoryId = this.catalogText(body.categoryId, 'Categoria', 100, true);
+      const category = await this.prisma.category.findUnique({ where: { id: data.categoryId } });
+      if (!category || category.archived) throw new BadRequestException('Selecione uma categoria não arquivada');
+    }
+    if (!Object.keys(data).length) throw new BadRequestException('Informe os campos que deseja atualizar');
+    const result = await this.prisma.product.update({ where: { id: productId }, data });
+    this.catalogChanged();
+    return result;
+  }
 
-    if (!slug) throw new BadRequestException('Nome da categoria é inválido');
+  private async categoryFields(body: Record<string, any>, id?: string) {
+    const data: Record<string, any> = {};
+    if (body.name !== undefined || !id) {
+      data.name = this.catalogText(body.name, 'Nome da categoria', 100, true);
+      data.slug = data.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      if (!data.slug) throw new BadRequestException('Nome da categoria inválido');
+      const duplicate = await this.prisma.category.findFirst({ where: { ...(id ? { id: { not: id } } : {}), OR: [{ name: data.name }, { slug: data.slug }] } });
+      if (duplicate) throw new BadRequestException('Categoria já cadastrada');
+    }
+    if (body.imageUrl !== undefined) data.imageUrl = this.catalogImage(body.imageUrl);
+    if (body.position !== undefined) {
+      const position = Number(body.position);
+      if (!Number.isInteger(position) || position < 0 || position > 2147483647) throw new BadRequestException('Ordem inválida');
+      data.position = position;
+    }
+    for (const key of ['active', 'archived']) if (body[key] !== undefined) {
+      if (typeof body[key] !== 'boolean') throw new BadRequestException('Disponibilidade inválida');
+      data[key] = body[key];
+    }
+    return data;
+  }
 
-    const exists = await this.prisma.category.findFirst({
-      where: { OR: [{ name }, { slug }] },
-      select: { id: true },
-    });
-    if (exists) throw new BadRequestException('Categoria já cadastrada');
+  async createCategory(body: Record<string, any>, authorization?: string) {
+    await this.requireAdmin(authorization);
+    const data = await this.categoryFields(body);
+    const result = await this.prisma.category.create({ data: data as any });
+    this.catalogChanged();
+    return result;
+  }
 
-    return this.prisma.category.create({
-      data: { name, slug, active: true },
-    });
+  async updateCategory(id: string, body: Record<string, any>, authorization?: string) {
+    await this.requireAdmin(authorization);
+    if (!await this.prisma.category.findUnique({ where: { id } })) throw new NotFoundException('Categoria não encontrada');
+    const data = await this.categoryFields(body, id);
+    if (!Object.keys(data).length) throw new BadRequestException('Informe os campos que deseja atualizar');
+    const result = await this.prisma.category.update({ where: { id }, data });
+    this.catalogChanged();
+    return result;
+  }
+
+  async updateStore(body: Record<string, any>, authorization?: string) {
+    await this.requireAdmin(authorization);
+    if (typeof body.storeOpen !== 'boolean') throw new BadRequestException('Informe se a loja está aberta');
+    const data = { storeOpen: body.storeOpen, ...(body.storeMessage !== undefined ? { storeMessage: this.catalogText(body.storeMessage, 'Mensagem da loja', 240, true) } : {}) };
+    const result = await this.prisma.deliveryPricingConfig.upsert({ where: { id: 'default' }, create: { id: 'default', ...data }, update: data, select: { storeOpen: true, storeMessage: true, updatedAt: true } });
+    this.catalogChanged('store.updated');
+    return result;
   }
 }

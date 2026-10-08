@@ -20,6 +20,7 @@ class AppState extends ChangeNotifier {
 
   Map<String,dynamic>? user;
   List<dynamic> products=[];
+  List<dynamic> catalogCategories=[];
   List<dynamic> addresses=[];
   List<dynamic> orders=[];
   Map<String,dynamic>? activeOrder;
@@ -35,6 +36,10 @@ class AppState extends ChangeNotifier {
   Map<String,dynamic> deliveryQuote={};
   final Map<String,int> cart={};
   bool loading=false;
+  bool storeOpen=true;
+  String storeMessage="Voltaremos em breve. Sua sacola continua salva.";
+  bool _catalogRefreshRunning=false;
+  bool _catalogRefreshAgain=false;
   String? error;
   String catalogCategory='Todos';
   bool _catalogPolling=false;
@@ -46,6 +51,7 @@ class AppState extends ChangeNotifier {
   double get cartSubtotal=>cart.entries.fold(0,(sum,e){final p=product(e.key);return sum+(p==null?0:(double.tryParse(p['price'].toString())??0)*e.value);});
 
   Future<void> bootstrap() async {
+    realtime.connectCatalog();
     await loadProducts();
     startCatalogSync();
 
@@ -74,6 +80,10 @@ class AppState extends ChangeNotifier {
   }
 
   void _handleRealtimeEvent(String event, dynamic payload) {
+    if (event == 'catalog.updated' || event == 'store.updated') {
+      loadProducts(silent:true);
+      return;
+    }
     if (event == 'session.revoked') {
       Future<void>(() async {
         realtime.disconnect();
@@ -164,33 +174,45 @@ class AppState extends ChangeNotifier {
         'stock',
         'active',
         'imageUrl',
+        'description',
+        'position',
         'updatedAt',
       ]) {
         if (left[key]?.toString() != right[key]?.toString()) return false;
       }
       final leftCategory = left['category'] as Map?;
       final rightCategory = right['category'] as Map?;
-      if (leftCategory?['id']?.toString() !=
-          rightCategory?['id']?.toString()) {
-        return false;
+      for (final key in const ['id','name','imageUrl','position','active','updatedAt']) {
+        if (leftCategory?[key]?.toString() != rightCategory?[key]?.toString()) return false;
       }
     }
     return true;
   }
 
   Future<void> loadProducts({bool silent=false}) async {
+    if (_catalogRefreshRunning) { _catalogRefreshAgain=true; return; }
+    _catalogRefreshRunning=true;
     try {
-      final next =
-          List<dynamic>.from(await api.request('GET', '/products'));
-      if (_sameCatalog(next, products)) return;
-      products = next;
-      notifyListeners();
-    } catch (e) {
-      if (!silent) {
-        error = e.toString();
-        notifyListeners();
-      }
-    }
+      do {
+        _catalogRefreshAgain=false;
+        final values = await Future.wait([
+          api.request('GET', '/products'),
+          api.request('GET', '/products/store'),
+          api.request('GET', '/products/categories'),
+        ]);
+        final next=List<dynamic>.from(values[0]);
+        final store=Map<String,dynamic>.from(values[1] as Map);
+        final nextCategories=List<dynamic>.from(values[2]);
+        final nextOpen=store['storeOpen'] != false;
+        final nextMessage=store['storeMessage']?.toString() ?? storeMessage;
+        final changed=!_sameCatalog(next,products) || !_sameCatalog(nextCategories,catalogCategories) || storeOpen!=nextOpen || storeMessage!=nextMessage;
+        products=next; catalogCategories=nextCategories; storeOpen=nextOpen; storeMessage=nextMessage;
+        if (catalogCategory!='Todos' && !nextCategories.any((c)=>c['name']==catalogCategory)) catalogCategory='Todos';
+        if (changed) notifyListeners();
+      } while (_catalogRefreshAgain);
+    } catch(e) {
+      if(!silent){error=e.toString();notifyListeners();}
+    } finally { _catalogRefreshRunning=false; }
   }
   Future<Map<String,dynamic>> lookupPostalCode(String cep) async {
     final q=Uri(queryParameters:{'cep':cep}).query;
@@ -544,6 +566,7 @@ class AppState extends ChangeNotifier {
   Future<Map<String,dynamic>> createOrder(String addressId)async{
     if(!isCustomer)throw Exception('Entre como cliente para finalizar');
     if(cart.isEmpty)throw Exception('Sua sacola está vazia');
+    if(!storeOpen)throw Exception(storeMessage);
     loading=true;error=null;notifyListeners();
     try{
       final order=Map<String,dynamic>.from(await api.request('POST','/orders',body:{'addressId':addressId,'items':cart.entries.map((e)=>{'productId':e.key,'quantity':e.value}).toList()}));

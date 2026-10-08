@@ -257,6 +257,7 @@ model Category {
 
   imageUrl String?
   active   Boolean @default(true)
+  archived Boolean @default(false)
   position Int     @default(0)
 
   products Product[]
@@ -276,6 +277,7 @@ model Product {
   imageUrl    String?
   price       Decimal @db.Decimal(10, 2)
   active      Boolean @default(true)
+  archived    Boolean @default(false)
   stock       Int     @default(0)
 
   category   Category    @relation(fields: [categoryId], references: [id])
@@ -519,6 +521,8 @@ model DeliveryPricingConfig {
   heartbeatTimeoutSeconds Int  @default(45)
 
   platformCommissionPercent Decimal @default(0.00) @db.Decimal(5, 2)
+  storeOpen Boolean @default(true)
+  storeMessage String @default("Voltaremos em breve. Sua sacola continua salva.")
   regionRules Json?
   active Boolean @default(true)
 

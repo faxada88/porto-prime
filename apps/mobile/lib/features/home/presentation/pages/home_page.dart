@@ -19,7 +19,7 @@ class HomePage extends StatelessWidget {
       builder: (_, __) {
         final state = AppState.instance;
         final products = state.products;
-        final categories = _categories(products);
+        final categories = _categories(state.catalogCategories);
         final featured = products.take(8).toList();
         final recommended = products.length > 4
             ? products.skip(4).take(8).toList()
@@ -32,6 +32,23 @@ class HomePage extends StatelessWidget {
               parent: BouncingScrollPhysics(),
             ),
             slivers: [
+              if (!state.storeOpen)
+                SliverToBoxAdapter(
+                  child: Center(child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: AppControl.maxContentWidth),
+                    child: Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(color: const Color(0xFFFFF5DF), borderRadius: BorderRadius.circular(16)),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        const Text('Loja fechada no momento', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF654D21))),
+                        const SizedBox(height: 6),
+                        Text(state.storeMessage, style: const TextStyle(color: Color(0xFF654D21), height: 1.5)),
+                      ]),
+                    ),
+                  )),
+                ),
               SliverToBoxAdapter(
                 child: Center(
                   child: ConstrainedBox(
@@ -232,27 +249,10 @@ class HomePage extends StatelessWidget {
     ),
   );
 
-  static List<String> _categories(List<dynamic> products) {
-    final names = <String>[];
-    for (final product in products) {
-      final name = (product['category']?['name'] ?? '').toString().trim();
-      if (name.isNotEmpty && !names.contains(name)) names.add(name);
-    }
-    const preferred = [
-      'Cervejas',
-      'Destilados',
-      'Vinhos',
-      'Refrigerantes',
-      'Energéticos',
-      'Águas',
-      'Gelo',
-      'Conveniência',
-      'Combos',
-      'Ofertas',
-    ];
-    if (names.isEmpty) return preferred;
-    return names.take(10).toList();
+  static List<String> _categories(List<dynamic> categories) {
+    return categories.map((category) => (category['name'] ?? '').toString().trim()).where((name) => name.isNotEmpty).take(10).toList();
   }
+
 }
 
 class _Header extends StatelessWidget {

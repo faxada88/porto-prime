@@ -108,9 +108,13 @@ class CartPage extends StatelessWidget {
                   ],
                 ),
               ),
+              if (!s.storeOpen) Padding(
+                padding: const EdgeInsets.only(top:14),
+                child: Text(s.storeMessage, style: const TextStyle(color: Color(0xFF795D28), height:1.5)),
+              ),
               const SizedBox(height: 14),
               InkWell(
-                onTap: s.loading ? null : () => _checkout(context),
+                onTap: s.loading || !s.storeOpen ? null : () => _checkout(context),
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 child: Container(
                   height: 58,
@@ -129,11 +133,11 @@ class CartPage extends StatelessWidget {
                             color: Colors.white,
                           ),
                         )
-                      : const Row(
+                      : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Continuar para pagamento',
+                              s.storeOpen ? 'Continuar para pagamento' : 'Loja fechada no momento',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: AppFontWeight.display,

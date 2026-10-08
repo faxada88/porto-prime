@@ -178,7 +178,7 @@ export class AdminController {
 
   @Post('products')
   createProduct(
-    @Body() body: { categoryId: string; name: string; description?: string; price: number; stock?: number },
+    @Body() body: Record<string, any>,
     @Headers('authorization') authorization?: string,
   ) {
     return this.adminService.createProduct(body, authorization);
@@ -187,7 +187,7 @@ export class AdminController {
   @Patch('products/:id')
   updateProduct(
     @Param('id') id: string,
-    @Body() body: { stock?: number; active?: boolean },
+    @Body() body: Record<string, any>,
     @Headers('authorization') authorization?: string,
   ) {
     return this.adminService.updateProduct(id, body, authorization);
@@ -195,9 +195,18 @@ export class AdminController {
 
   @Post('categories')
   createCategory(
-    @Body() body: { name: string },
+    @Body() body: Record<string, any>,
     @Headers('authorization') authorization?: string,
   ) {
     return this.adminService.createCategory(body, authorization);
+  }
+  @Patch('categories/:id')
+  updateCategory(@Param('id') id: string, @Body() body: Record<string, any>, @Headers('authorization') authorization?: string) {
+    return this.adminService.updateCategory(id, body, authorization);
+  }
+
+  @Patch('store')
+  updateStore(@Body() body: Record<string, any>, @Headers('authorization') authorization?: string) {
+    return this.adminService.updateStore(body, authorization);
   }
 }
