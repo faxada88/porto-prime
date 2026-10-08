@@ -18,6 +18,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final Map<String,bool> checking={};
   final Map<String,int> validationTicket={};
   final Map<String,Timer> remoteDebounce={};
+  String? verifiedCpfIdentity;
+  String? cpfSituation;
   GlobalKey<FormState> get form=>forms[step];
   final Map<String,TextEditingController> c={};
   TextEditingController ctl(String k)=>c.putIfAbsent(k,()=>TextEditingController());
@@ -31,7 +33,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     [const _F('email','E-mail',AppIcons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',AppIcons.lock_outline_rounded,secret:true,hint:'Mínimo de 8 caracteres'),if(courier)const _F('pixKey','Chave PIX para recebimentos',AppIcons.account_balance_wallet_outlined,required:false),if(!customer&&!courier)const _F('contactRole','Seu cargo / função',AppIcons.work_outline_rounded,required:false)],
   ];
   List<List<_F>> get courierGroups=>[
-    [const _F('name','Nome completo',AppIcons.person_outline_rounded),const _F('cpf','CPF',AppIcons.badge_outlined,keyboard:TextInputType.number,format:_Format.cpf),const _F('birthDate','Data de nascimento',AppIcons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date)],
+    [const _F('cpf','CPF',AppIcons.badge_outlined,keyboard:TextInputType.number,format:_Format.cpf),const _F('birthDate','Data de nascimento',AppIcons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date),const _F('name','Nome na Receita Federal',AppIcons.person_outline_rounded)],
     [const _F('phone','Celular / WhatsApp',AppIcons.phone_outlined,keyboard:TextInputType.phone,format:_Format.phone),const _F('cep','CEP',AppIcons.local_post_office_outlined,keyboard:TextInputType.number,format:_Format.cep),const _F('street','Rua / avenida',AppIcons.route_outlined),const _F('number','Número',AppIcons.numbers_outlined),const _F('neighborhood','Bairro',AppIcons.map_outlined),const _F('city','Cidade',AppIcons.location_city_outlined),const _F('state','UF',AppIcons.map_outlined)],
     [const _F('cnh','Número de registro da CNH',AppIcons.credit_card_outlined),const _F('cnhCategory','Categoria da CNH',AppIcons.fact_check_outlined),const _F('cnhExpiry','Validade da CNH',AppIcons.event_available_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date)],
     [const _F('vehicleType','Tipo de veículo',AppIcons.commute_rounded),const _F('vehicleBrand','Marca',AppIcons.two_wheeler_outlined),const _F('vehicleModel','Modelo',AppIcons.two_wheeler_outlined),const _F('vehicleYear','Ano',AppIcons.calendar_today_outlined,keyboard:TextInputType.number),const _F('vehiclePlate','Placa',AppIcons.pin_outlined,format:_Format.plate)],
@@ -303,6 +305,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           child: Column(
                             children: [
                               ...groups[step].map(field),
+                              if (courier && step == 0) _cpfVerificationStatus(),
                               if (courier &&
                                   step == 3 &&
                                   ctl('vehicleBrand').text == 'Outra marca')
@@ -563,6 +566,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     padding: const EdgeInsets.only(bottom: 13),
     child: TextFormField(
       controller: ctl(f.key),
+      readOnly: courier && f.key == 'name',
       keyboardType: f.keyboard,
       inputFormatters: _formatters(f.format),
       obscureText: f.secret && obscure,
@@ -571,7 +575,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
           : TextCapitalization.words,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       onChanged: (value) {
-        _queueRemoteCheck(f.key, value);
+        if (!(courier && f.key == 'cpf')) _queueRemoteCheck(f.key, value);
+        if (courier && (f.key == 'cpf' || f.key == 'birthDate')) _queueCpfLookup();
         if (courier && f.key == 'cep') _lookupCep(value);
       },
       validator: (v) {
@@ -589,6 +594,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           return 'Informe um celular com DDD';
         }
         if (f.key == 'cpf' && digits.length != 11) return 'CPF incompleto';
+        if (courier && f.key == 'cpf' && (remoteError['cpfLookup']?.isNotEmpty ?? false)) return remoteError['cpfLookup'];
         if (f.key == 'cnpj' && digits.length != 14) return 'CNPJ incompleto';
         if (f.key == 'cep' && digits.length != 8) return 'CEP incompleto';
         final remote = remoteError[f.key];
@@ -600,7 +606,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
       },
       decoration: InputDecoration(
         labelText: f.label,
-        hintText: f.hint,
+        hintText: courier && f.key == 'name' ? 'Preenchido após a consulta do CPF' : f.hint,
+        errorMaxLines: 6,
         filled: true,
         fillColor: AppColors.canvas,
         prefixIcon: Padding(
@@ -616,7 +623,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           ),
         ),
         prefixIconConstraints: const BoxConstraints(minWidth: 62, minHeight: 58),
-        suffixIcon: checking[f.key] == true ? const Padding(padding: EdgeInsets.all(16),child:SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2))) : remoteError[f.key] == '' ? const Icon(AppIcons.check_circle_rounded,color:AppColors.success) : f.secret
+        suffixIcon: (checking[f.key] == true || (courier && f.key == 'cpf' && checking['cpfLookup'] == true)) ? const Padding(padding: EdgeInsets.all(16),child:SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2))) : remoteError[f.key] == '' ? const Icon(AppIcons.check_circle_rounded,color:AppColors.success) : f.secret
             ? IconButton(
                 onPressed: () => setState(() => obscure = !obscure),
                 icon: Icon(
@@ -755,6 +762,77 @@ class _RegistrationPageState extends State<RegistrationPage> {
     }
   }
 
+  String get _cpfIdentity => '${ctl('cpf').text.replaceAll(RegExp(r'\D'), '')}:${ctl('birthDate').text.replaceAll(RegExp(r'\D'), '')}';
+
+  Widget _cpfVerificationStatus() {
+    final waiting = checking['cpfLookup'] == true;
+    final error = remoteError['cpfLookup'];
+    final regular = verifiedCpfIdentity == _cpfIdentity && cpfSituation == 'REGULAR';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          waiting ? 'Consultando a Receita Federal…'
+              : cpfSituation != null ? 'Situação cadastral: $cpfSituation'
+              : 'Informe CPF e data de nascimento para consultar a Receita Federal.',
+          style: TextStyle(color: regular ? AppColors.success : AppColors.muted, height: 1.5),
+        ),
+        if (!waiting && (error?.isNotEmpty ?? false))
+          TextButton.icon(
+            onPressed: _queueCpfLookup,
+            icon: const Icon(AppIcons.manage_search_rounded, size: 18),
+            label: const Text('Consultar novamente'),
+          ),
+      ]),
+    );
+  }
+
+  void _queueCpfLookup() {
+    remoteDebounce['cpfLookup']?.cancel();
+    final ticket = (validationTicket['cpfLookup'] ?? 0) + 1;
+    validationTicket['cpfLookup'] = ticket;
+    final cpf = ctl('cpf').text.replaceAll(RegExp(r'\D'), '');
+    final birthDate = ctl('birthDate').text;
+    final identity = _cpfIdentity;
+    final ready = cpf.length == 11 && birthDate.replaceAll(RegExp(r'\D'), '').length == 8;
+    setState(() {
+      verifiedCpfIdentity = null;
+      cpfSituation = null;
+      ctl('name').clear();
+      checking['cpfLookup'] = ready;
+      remoteError.remove('cpfLookup');
+      remoteError.remove('cpf');
+    });
+    if (!ready) return;
+    remoteDebounce['cpfLookup'] = Timer(const Duration(milliseconds: 650), () async {
+      try {
+        final result = await AppState.instance.lookupCourierCpf(cpf, birthDate);
+        if (!mounted || validationTicket['cpfLookup'] != ticket || _cpfIdentity != identity) return;
+        final situation = (result['situation'] ?? '').toString();
+        final regular = result['regular'] == true && situation == 'REGULAR';
+        setState(() {
+          checking['cpfLookup'] = false;
+          cpfSituation = situation;
+          ctl('name').text = (result['name'] ?? '').toString();
+          verifiedCpfIdentity = regular ? identity : null;
+          remoteError['cpfLookup'] = regular ? ''
+              : 'CPF com situação cadastral $situation. Entre em contato com a Receita Federal para regularizar seu CPF antes de continuar.';
+          remoteError['cpf'] = regular ? '' : null;
+        });
+        form.currentState?.validate();
+      } catch (e) {
+        if (!mounted || validationTicket['cpfLookup'] != ticket || _cpfIdentity != identity) return;
+        setState(() {
+          checking['cpfLookup'] = false;
+          final message = e.toString().replaceFirst('Exception: ', '');
+          remoteError['cpfLookup'] = message.startsWith('Confira ') || message.startsWith('Informe ') || message.startsWith('CPF ') || message.startsWith('Este CPF ') || message.startsWith('Muitas consultas.') || message.startsWith('Consulta temporariamente')
+              ? message : 'Não foi possível consultar a Receita Federal agora. Tente novamente mais tarde.';
+        });
+        form.currentState?.validate();
+      }
+    });
+  }
+
   void _queueRemoteCheck(String key, String value) {
     final field = key == 'cpf'
         ? 'cpf'
@@ -884,6 +962,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   Future<void> next() async {
+    if (courier && (verifiedCpfIdentity != _cpfIdentity || cpfSituation != 'REGULAR')) {
+      await _showInfo('Verificação do CPF',
+        checking['cpfLookup'] == true ? 'Aguarde a consulta à Receita Federal.'
+            : remoteError['cpfLookup'] ?? 'Informe CPF e data de nascimento e conclua a consulta antes de continuar.',
+        AppIcons.shield_outlined);
+      return;
+    }
     if (!(form.currentState?.validate() ?? false)) return;
     if(checking.values.any((v)=>v)){await _showInfo('Verificando dados','Aguarde a conclusão das validações antes de continuar.',AppIcons.hourglass_top_rounded);return;}
     if(remoteError.values.any((v)=>v?.isNotEmpty ?? false))return;
@@ -915,7 +1000,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         document: customer ? null : (courier ? data['cpf'] : data['cnpj']),
         businessName:
             !customer && !courier ? data['businessName'] : null,
-        profileData: {...data}..remove('password')..remove('confirmPassword'),
+        profileData: {...data, if (courier) 'cpfSituation': cpfSituation}..remove('password')..remove('confirmPassword'),
       );
       if (!mounted) return;
 

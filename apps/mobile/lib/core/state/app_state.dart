@@ -194,6 +194,15 @@ class AppState extends ChangeNotifier {
     final q=Uri(queryParameters:{'field':field,'value':value}).query;
     return Map<String,dynamic>.from(await api.request('GET','/auth/availability?$q'));
   }
+  Future<Map<String, dynamic>> lookupCourierCpf(String cpf, String birthDate) async {
+    return Map<String, dynamic>.from(await api.request(
+      'POST', '/auth/courier-cpf',
+      body: {'cpf': cpf, 'birthDate': birthDate},
+      timeout: const Duration(seconds: 70),
+      retryOnUnauthorized: false,
+    ));
+  }
+
   Future<Map<String,dynamic>> courierApplicationStatus(String document) async {
     return Map<String,dynamic>.from(
       await api.request(
@@ -263,7 +272,8 @@ class AppState extends ChangeNotifier {
     notifyListeners();
     try {
       final created = Map<String,dynamic>.from(
-        await api.request('POST', '/auth/register', body: d),
+        await api.request('POST', '/auth/register', body: d,
+          timeout: role == 'COURIER' ? const Duration(seconds: 75) : null),
       );
       if (role == 'CUSTOMER') {
         return await login(email, password);

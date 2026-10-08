@@ -7,7 +7,10 @@ import {
   Param,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
+import type { Request } from 'express';
+import { CourierCpfDto } from './dto/courier-cpf.dto.js';
 import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { BootstrapAdminDto } from './dto/bootstrap-admin.dto.js';
@@ -29,6 +32,11 @@ export class AuthController {
     return this.authService.availability(field, value);
   }
 
+  @Post('courier-cpf')
+  courierCpf(@Body() body: CourierCpfDto, @Req() request: Request) {
+    return this.authService.lookupCourierCpf(body.cpf, body.birthDate, request.ip ?? request.socket.remoteAddress ?? 'unknown');
+  }
+
   @Get('postal-code')
   postalCode(@Query('cep') cep: string) {
     return this.authService.postalCode(cep);
@@ -45,8 +53,8 @@ export class AuthController {
   }
 
   @Post('register')
-  register(@Body() body: RegisterDto) {
-    return this.authService.register(body);
+  register(@Body() body: RegisterDto, @Req() request: Request) {
+    return this.authService.register(body, request.ip ?? request.socket.remoteAddress ?? 'unknown');
   }
 
   @Post('forgot-password')

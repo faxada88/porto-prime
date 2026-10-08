@@ -105,6 +105,7 @@ class ApiClient {
     Uri uri, {
     Object? body,
     String? overrideToken,
+    Duration? timeout,
   }) async {
     final encoded = body == null ? null : jsonEncode(body);
     final h = headers(overrideToken: overrideToken);
@@ -113,19 +114,19 @@ class ApiClient {
       case 'GET':
         return _http
             .get(uri, headers: h)
-            .timeout(const Duration(seconds: 12));
+            .timeout(timeout ?? const Duration(seconds: 12));
       case 'POST':
         return _http
             .post(uri, headers: h, body: encoded)
-            .timeout(const Duration(seconds: 15));
+            .timeout(timeout ?? const Duration(seconds: 15));
       case 'PATCH':
         return _http
             .patch(uri, headers: h, body: encoded)
-            .timeout(const Duration(seconds: 15));
+            .timeout(timeout ?? const Duration(seconds: 15));
       case 'DELETE':
         return _http
             .delete(uri, headers: h, body: encoded)
-            .timeout(const Duration(seconds: 15));
+            .timeout(timeout ?? const Duration(seconds: 15));
       default:
         throw Exception('Método inválido');
     }
@@ -191,9 +192,10 @@ class ApiClient {
     String path, {
     Object? body,
     bool retryOnUnauthorized = true,
+    Duration? timeout,
   }) async {
     final uri = Uri.parse(baseUrl + path);
-    var response = await _send(method, uri, body: body);
+    var response = await _send(method, uri, body: body, timeout: timeout);
     var data = _decode(response);
 
     if (response.statusCode == 401 &&
@@ -202,7 +204,7 @@ class ApiClient {
         path != '/auth/refresh') {
       final refreshed = await _refreshAccessToken();
       if (refreshed) {
-        response = await _send(method, uri, body: body);
+        response = await _send(method, uri, body: body, timeout: timeout);
         data = _decode(response);
       }
     }

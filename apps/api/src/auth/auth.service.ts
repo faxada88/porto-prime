@@ -16,6 +16,8 @@ import {
   UserStatus,
 } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { CpfHubService } from './cpfhub.service.js';
+import type { VerifiedCpf } from './cpfhub.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { BootstrapAdminDto } from './dto/bootstrap-admin.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
@@ -26,7 +28,7 @@ import {
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly cpfHub: CpfHubService) {}
 
   private hashPassword(password: string) {
     const salt = randomBytes(16).toString('hex');
@@ -172,6 +174,13 @@ export class AuthService {
     return { valid: true, available: !exists };
   }
 
+  async lookupCourierCpf(cpf: string, birthDate: string, client: string) {
+    const availability = await this.availability('cpf', cpf);
+    if (!availability.valid) throw new BadRequestException('CPF inválido');
+    if (!availability.available) throw new ConflictException('Este CPF já possui cadastro');
+    return this.cpfHub.lookup(cpf, birthDate, client);
+  }
+
   async postalCode(raw: string) {
     const cep = this.digits(raw);
 
@@ -296,7 +305,7 @@ export class AuthService {
     return this.publicUser(user);
   }
 
-  async register(data: RegisterDto) {
+  async register(data: RegisterDto, client = 'internal') {
     if (data.role === UserRole.ADMIN) {
       throw new BadRequestException(
         'Cadastro de administrador não é permitido',
@@ -340,6 +349,7 @@ export class AuthService {
       throw new ConflictException('Telefone já cadastrado');
     }
 
+    let verifiedCpf: VerifiedCpf | undefined;
     let courierDocument: string | null = null;
     let partnerDocument: string | null = null;
 
@@ -366,6 +376,10 @@ export class AuthService {
       if (usedCpf) {
         throw new ConflictException('CPF já possui candidatura');
       }
+      verifiedCpf = await this.cpfHub.lookup(courierDocument, String(data.profileData?.birthDate ?? ''), client);
+      if (!verifiedCpf.regular) {
+        throw new BadRequestException(`CPF com situação cadastral ${verifiedCpf.situation}. Entre em contato com a Receita Federal para regularizar seu CPF antes de continuar.`);
+      }
     }
 
     if (data.role === UserRole.PARTNER) {
@@ -389,13 +403,15 @@ export class AuthService {
       data.role === UserRole.COURIER ||
       data.role === UserRole.PARTNER;
 
-    const onboardingData = data.profileData
-      ? (data.profileData as Prisma.InputJsonObject)
-      : undefined;
+    const onboardingData = verifiedCpf
+      ? ({ ...data.profileData, cpf: verifiedCpf.cpf, name: verifiedCpf.name, birthDate: verifiedCpf.birthDate, cpfSituation: verifiedCpf.situation } as Prisma.InputJsonObject)
+      : data.profileData
+        ? (data.profileData as Prisma.InputJsonObject)
+        : undefined;
 
     const user = await this.prisma.user.create({
       data: {
-        name: data.name.trim(),
+        name: verifiedCpf?.name ?? data.name.trim(),
         email,
         phone,
         passwordHash: this.hashPassword(data.password),
