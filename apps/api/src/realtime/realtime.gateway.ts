@@ -156,6 +156,8 @@ export class RealtimeGateway
     this.server?.to(`courier:${courierId}`).emit(event, payload);
   }
 
+  demandVersion = 0;
+
   emitOrderUpdated(order: {
     id: string;
     customerId?: string | null;
@@ -175,5 +177,7 @@ export class RealtimeGateway
       this.emitToCourier(order.courierId, 'order.updated', payload);
     }
     this.emitToRole('ADMIN', 'order.updated', payload);
+    this.demandVersion++;
+    this.emitToRole('COURIER', 'demand.updated', { at: payload.at });
   }
 }

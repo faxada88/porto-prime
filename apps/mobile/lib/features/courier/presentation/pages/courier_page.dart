@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'courier_operations_dashboard.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,6 +20,10 @@ class CourierPage extends StatefulWidget {
 class _CourierPageState extends State<CourierPage> {
   Timer? _heartbeatTimer;
   Timer? _refreshTimer;
+  Timer? _radarTimer;
+  bool _navBusy = false;
+  final _operationsScroll = ScrollController();
+  final _radarKey = GlobalKey();
   String? _lastPresentedOfferId;
   bool _offerModalOpen = false;
 
@@ -30,8 +35,10 @@ class _CourierPageState extends State<CourierPage> {
         await AppState.instance.refreshCourier();
         await AppState.instance.loadWallet();
         await AppState.instance.heartbeatCourier();
+        await AppState.instance.loadCourierRadar();
       } catch (_) {}
     });
+    _radarTimer = Timer.periodic(const Duration(seconds:15), (_) => AppState.instance.loadCourierRadar());
     _heartbeatTimer = Timer.periodic(
       const Duration(seconds: 15),
       (_) async {
@@ -54,6 +61,8 @@ class _CourierPageState extends State<CourierPage> {
   void dispose() {
     _heartbeatTimer?.cancel();
     _refreshTimer?.cancel();
+    _radarTimer?.cancel();
+    _operationsScroll.dispose();
     super.dispose();
   }
 
@@ -618,33 +627,33 @@ class _CourierPageState extends State<CourierPage> {
 
           return Scaffold(
             backgroundColor: AppColors.canvas,
+            bottomNavigationBar: CourierOperationsNav(online:state.courierOnline,active:current!=null,busy:_navBusy,onHome:(){HapticFeedback.selectionClick();if(_operationsScroll.hasClients)_operationsScroll.animateTo(0,duration:Duration(milliseconds:MediaQuery.disableAnimationsOf(context)?0:220),curve:Curves.easeOut);},onWallet:()=>_openDriverSection(context,'wallet'),onHistory:()=>_openDriverSection(context,'history'),onProfile:()=>_openDriverSection(context,'profile'),onAction:() async {
+              if(_navBusy)return;
+              setState(()=>_navBusy=true);
+              try { if(current!=null){await _showDeliverySheet(context,order:current,incoming:false);}else if(!state.courierOnline){await state.setCourierOnline(true);}else{await state.loadCourierRadar();await state.refreshCourier();if(_radarKey.currentContext!=null)await Scrollable.ensureVisible(_radarKey.currentContext!,duration:Duration(milliseconds:MediaQuery.disableAnimationsOf(context)?0:220));} }
+              catch(e){if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(PrimeMessages.friendly(e))));}
+              finally{if(mounted)setState(()=>_navBusy=false);}
+            }),
             body: SafeArea(
               child: RefreshIndicator(
-                onRefresh: state.refreshCourier,
+                onRefresh: () async { await state.refreshCourier(); await state.loadCourierRadar(); },
                 child: PrimePageViewport(child: ListView(
+                  controller: _operationsScroll,
                   physics: const AlwaysScrollableScrollPhysics(
                     parent: BouncingScrollPhysics(),
                   ),
                   padding: const EdgeInsets.fromLTRB(18, 18, 18, 34),
                   children: [
-                    _DriverHeader(
-                      firstName: first,
-                      online: state.courierOnline,
-                      onMenu: () => _openDriverMenu(context),
-                      onLogout: state.logout,
-                    ),
-                    const SizedBox(height: 18),
-                    _AvailabilityHero(
-                      hasActiveDelivery: current != null,
-                      online: state.courierOnline,
-                      onChanged:
-                          current == null ? state.setCourierOnline : null,
-                    ),
+                    Row(children:[const Expanded(child:Text('Porto Prime / Driver',style:TextStyle(fontSize:13,fontWeight:FontWeight.w800,color:AppColors.ocean800))),IconButton(tooltip:'Menu do motoboy',onPressed:()=>_openDriverMenu(context),icon:const Icon(AppIcons.grid_view_rounded)),IconButton(tooltip:'Sair',onPressed:state.logout,icon:const Icon(AppIcons.logout_rounded))]),
+                    const SizedBox(height:14),
+                    CourierOperationsHero(name:first,online:state.courierOnline,active:current!=null,onChanged:current==null?state.setCourierOnline:null),
                     const SizedBox(height: 12),
                     _CourierSnapshot(
                       summary: state.walletSummary,
                       presence: state.courierPresenceStatus,
                     ),
+                    const SizedBox(height:16),
+                    CourierDemandPanel(key:_radarKey,data:state.courierRadar,error:state.courierRadarError,refresh:state.loadCourierRadar),
                     if (current != null) ...[
                       const SizedBox(height: 22),
                       const _SectionTitle(
@@ -735,204 +744,6 @@ class _CourierPageState extends State<CourierPage> {
             ),
           );
         },
-      );
-}
-
-class _DriverHeader extends StatelessWidget {
-  const _DriverHeader({
-    required this.firstName,
-    required this.online,
-    required this.onMenu,
-    required this.onLogout,
-  });
-
-  final String firstName;
-  final bool online;
-  final VoidCallback onMenu;
-  final VoidCallback onLogout;
-
-  @override
-  Widget build(BuildContext context) => Row(
-        children: [
-          Container(
-            width: 51,
-            height: 51,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-              border: Border.all(color: AppColors.stroke),
-              boxShadow: AppShadows.soft,
-            ),
-            child: const Icon(
-              AppIcons.two_wheeler_rounded,
-              color: AppColors.oceanDeep,
-              size: 25,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'PORTO PRIME DRIVER',
-                  style: TextStyle(
-                    fontSize: AppFontSize.caption,
-                    fontWeight: AppFontWeight.display,
-                    letterSpacing: 1.45,
-                    color: AppColors.ocean,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Olá, $firstName',
-                  style: const TextStyle(
-                    fontSize: 23,
-                    fontWeight: AppFontWeight.display,
-                    letterSpacing: -.6,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-            decoration: BoxDecoration(
-              color: online ? AppColors.mint : AppColors.surfaceSoft,
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 7,
-                  height: 7,
-                  decoration: BoxDecoration(
-                    color: online ? AppColors.success : AppColors.muted,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  online ? 'ONLINE' : 'OFFLINE',
-                  style: TextStyle(
-                    color:
-                        online ? AppColors.oceanDeep : AppColors.muted,
-                    fontSize: AppFontSize.caption,
-                    fontWeight: AppFontWeight.display,
-                    letterSpacing: .7,
-                  ),
-                ),
-              ],
-            ),
-          ),
-              ],
-            ),
-          ),
-          IconButton(
-            tooltip: 'Menu do motoboy',
-            onPressed: onMenu,
-            icon: const Icon(AppIcons.grid_view_rounded, size: 20),
-          ),
-          IconButton(
-            tooltip: 'Sair',
-            onPressed: onLogout,
-            icon: const Icon(AppIcons.logout_rounded, size: 20),
-          ),
-        ],
-      );
-}
-
-class _AvailabilityHero extends StatelessWidget {
-  const _AvailabilityHero({
-    required this.hasActiveDelivery,
-    required this.online,
-    required this.onChanged,
-  });
-
-  final bool hasActiveDelivery;
-  final bool online;
-  final ValueChanged<bool>? onChanged;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(21),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.ocean900,
-              AppColors.ocean800,
-              AppColors.ocean700,
-            ],
-          ),
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          boxShadow: AppShadows.elevated,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 59,
-              height: 59,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: .11),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: .08),
-                ),
-              ),
-              child: Icon(
-                hasActiveDelivery
-                    ? AppIcons.route_rounded
-                    : online
-                        ? AppIcons.radar_rounded
-                        : AppIcons.power_settings_new_rounded,
-                color: Colors.white,
-                size: 28,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    hasActiveDelivery
-                        ? 'Entrega ativa'
-                        : online
-                            ? 'Radar ligado'
-                            : 'Pronto para rodar?',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: AppFontWeight.display,
-                      letterSpacing: -.25,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    hasActiveDelivery
-                        ? 'Finalize esta rota antes de aceitar outra.'
-                        : online
-                            ? 'Você receberá novas chamadas automaticamente.'
-                            : 'Ative o modo online quando estiver disponível.',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: AppFontSize.caption,
-                      height: 1.4,
-                      fontWeight: AppFontWeight.medium,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (!hasActiveDelivery)
-              Switch.adaptive(
-                value: online,
-                onChanged: onChanged,
-                activeThumbColor: Colors.white,
-                activeTrackColor: AppColors.turquoise,
-              ),
-          ],
-        ),
       );
 }
 

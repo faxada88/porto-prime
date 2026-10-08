@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { buildDemandZones } from './courier-radar.js';
 import { randomInt } from 'node:crypto';
 import {
   CourierStatus,
@@ -255,6 +256,27 @@ export class OrdersService {
     }
 
     return { user, profile };
+  }
+
+  private demandCache: { version: number; expires: number; zones: ReturnType<typeof buildDemandZones>; total: number } | null = null;
+
+  async courierRadar(authorization?: string) {
+    const { profile } = await this.courier(authorization);
+    if (!this.demandCache || this.demandCache.expires < Date.now() || this.demandCache.version !== this.realtime.demandVersion) {
+      const version = this.realtime.demandVersion;
+      const orders = await this.prisma.order.findMany({
+        where: { paymentStatus: PaymentStatus.PAID, courierId: null, status: { in: [OrderStatus.CONFIRMED, OrderStatus.PREPARING, OrderStatus.READY_FOR_PICKUP, OrderStatus.SEARCHING_COURIER] } },
+        select: { address: { select: { neighborhood: true, latitude: true, longitude: true } } },
+      });
+      this.demandCache = { version, expires: Date.now()+5000, zones: buildDemandZones(orders), total: orders.length };
+    }
+    const local = new Date(Date.now()-3*60*60*1000);
+    const since = new Date(local.toISOString().slice(0,10)+'T03:00:00Z');
+    const [completed, active] = await Promise.all([
+      this.prisma.order.count({ where: { courierId: profile.id, status: OrderStatus.DELIVERED, deliveredAt: { gte: since } } }),
+      this.prisma.order.count({ where: { courierId: profile.id, status: { notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED] } } }),
+    ]);
+    return { zones: this.demandCache.zones, pendingOrders: this.demandCache.total, updatedAt: new Date().toISOString(), completedToday: completed, activeDeliveries: active, completionRate: completed+active>0?Math.round(completed/(completed+active)*100):null };
   }
 
   async courierPresence(authorization?: string) {
