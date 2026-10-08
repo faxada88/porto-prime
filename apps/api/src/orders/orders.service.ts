@@ -4,7 +4,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { validateProfilePhoto } from '../couriers/profile-photo.js';
 import { randomInt } from 'node:crypto';
 import {
   CourierStatus,
@@ -303,12 +302,6 @@ export class OrdersService {
         'Cadastro de motoboy ainda não está liberado',
       );
     }
-
-    if (body.online === true && !(profile.onboardingData as any)?.profilePhoto) {
-      throw new BadRequestException('Adicione sua foto de perfil antes de ficar online. Ela será mostrada ao cliente na entrega.');
-    }
-
-    if (body.online === true) validateProfilePhoto((profile.onboardingData as any)?.profilePhoto);
 
     const now = new Date();
     const latitude =

@@ -7,7 +7,9 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/courier_portrait.dart';
 import '../../../../core/widgets/prime_ui.dart';
 class CourierPhotoCard extends StatefulWidget{
-  const CourierPhotoCard({super.key});
+  const CourierPhotoCard({super.key,this.initialPhoto,this.onSelected});
+  final String? initialPhoto;
+  final ValueChanged<String>? onSelected;
   @override State<CourierPhotoCard> createState()=>_CourierPhotoCardState();
 }
 class _CourierPhotoCardState extends State<CourierPhotoCard>{
@@ -28,11 +30,13 @@ class _CourierPhotoCardState extends State<CourierPhotoCard>{
       if(!mounted)return;
       final confirmed=await showDialog<bool>(context:context,builder:(c)=>AlertDialog(title:const Text('Usar esta foto?'),content:Column(mainAxisSize:MainAxisSize.min,children:[CourierPortrait(photo:photo,size:150),const SizedBox(height:16),const Text('Use uma foto sua, com o rosto visível. O cliente verá esta imagem na entrega.',textAlign:TextAlign.center)]),actions:[TextButton(onPressed:()=>Navigator.pop(c,false),child:const Text('Escolher outra')),FilledButton(onPressed:()=>Navigator.pop(c,true),child:const Text('Salvar foto'))]));
       if(confirmed!=true)return;
-      await AppState.instance.api.request('PATCH','/couriers/profile/photo',body:{'photo':photo});
-      await AppState.instance.refreshCourier();
-      if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Foto de perfil atualizada.')));
+      if(widget.onSelected!=null){widget.onSelected!(photo);}else{
+        await AppState.instance.api.request('PATCH','/couriers/profile/photo',body:{'photo':photo});
+        await AppState.instance.refreshCourier();
+      }
+      if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Foto selecionada com sucesso.')));
     }catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(PrimeMessages.friendly(e))));}
     finally{if(mounted)setState(()=>saving=false);}
   }
-  @override Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(_,__){final photo=AppState.instance.courierProfile['profilePhoto']?.toString();return Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:Colors.white,border:Border.all(color:photo==null?AppColors.sun200:AppColors.stroke),borderRadius:BorderRadius.circular(22)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Row(children:[CourierPortrait(photo:photo),const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(photo==null?'Adicione sua foto':'Seu rosto, sua entrega',style:const TextStyle(fontSize:16,fontWeight:FontWeight.w800)),const SizedBox(height:5),Text(photo==null?'Obrigatória para ficar online.':'Esta é a foto mostrada ao cliente.',style:const TextStyle(fontSize:12,color:AppColors.muted,height:1.4))]))]),const SizedBox(height:14),const Text('Escolha uma selfie ou foto da galeria com seu rosto visível.',style:TextStyle(fontSize:12,color:AppColors.muted)),const SizedBox(height:14),SizedBox(width:double.infinity,child:FilledButton.icon(onPressed:saving?null:choose,icon:saving?const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2)):const Icon(AppIcons.user,size:18),label:Text(saving?'Preparando foto…':photo==null?'Adicionar minha foto':'Alterar foto')))]));});
+  @override Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(_,__){final photo=widget.onSelected!=null?widget.initialPhoto:AppState.instance.courierProfile['profilePhoto']?.toString();return Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:Colors.white,border:Border.all(color:photo==null?AppColors.sun200:AppColors.stroke),borderRadius:BorderRadius.circular(22)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Row(children:[CourierPortrait(photo:photo),const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(photo==null?'Adicione sua foto':'Seu rosto, sua entrega',style:const TextStyle(fontSize:16,fontWeight:FontWeight.w800)),const SizedBox(height:5),Text(photo==null?(widget.onSelected!=null?'Obrigatória para concluir seu cadastro.':'Adicione sua foto para aparecer ao cliente.'):'Esta é a foto mostrada ao cliente.',style:const TextStyle(fontSize:12,color:AppColors.muted,height:1.4))]))]),const SizedBox(height:14),const Text('Escolha uma selfie ou foto da galeria com seu rosto visível.',style:TextStyle(fontSize:12,color:AppColors.muted)),const SizedBox(height:14),SizedBox(width:double.infinity,child:FilledButton.icon(onPressed:saving?null:choose,icon:saving?const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2)):const Icon(AppIcons.user,size:18),label:Text(saving?'Preparando foto…':photo==null?'Adicionar minha foto':'Alterar foto')))]));});
 }

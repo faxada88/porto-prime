@@ -16,6 +16,7 @@ import {
   UserStatus,
 } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { validateProfilePhoto } from '../couriers/profile-photo.js';
 import { normalizePix } from '../wallet/pix-key.js';
 import { CpfHubService } from './cpfhub.service.js';
 import type { VerifiedCpf } from './cpfhub.service.js';
@@ -351,10 +352,13 @@ export class AuthService {
     }
 
     let verifiedCpf: VerifiedCpf | undefined;
+    let courierPhoto: string | undefined;
     let courierDocument: string | null = null;
     let partnerDocument: string | null = null;
 
     if (data.role === UserRole.COURIER) {
+      if(!data.profileData?.profilePhoto) throw new BadRequestException('Adicione uma selfie ou foto da galeria para concluir o cadastro de motoboy.');
+      courierPhoto = validateProfilePhoto(data.profileData.profilePhoto);
       courierDocument = this.digits(data.document);
 
       if (!this.validCpf(courierDocument)) {
@@ -405,7 +409,7 @@ export class AuthService {
       data.role === UserRole.PARTNER;
 
     const onboardingData = verifiedCpf
-      ? ({ ...data.profileData, cpf: verifiedCpf.cpf, name: verifiedCpf.name, birthDate: verifiedCpf.birthDate, cpfSituation: verifiedCpf.situation } as Prisma.InputJsonObject)
+      ? ({ ...data.profileData, cpf: verifiedCpf.cpf, name: verifiedCpf.name, birthDate: verifiedCpf.birthDate, profilePhoto:courierPhoto, cpfSituation: verifiedCpf.situation } as Prisma.InputJsonObject)
       : data.profileData
         ? (data.profileData as Prisma.InputJsonObject)
         : undefined;

@@ -6,8 +6,8 @@ O motoboy escolhe câmera/selfie ou galeria, confirma a prévia e salva em PATCH
 
 Foto armazenada no onboardingData existente, sem migration. Endpoint autenticado só altera o próprio motoboy; transação com bloqueio de linha preserva outros dados. Atualização notifica motoboy, Admin e clientes das entregas ativas.
 
-Foto válida obrigatória ao ativar online manualmente. Heartbeat comum não muda disponibilidade nem exige novo envio. Não coloca motoboys automaticamente offline e não bloqueia a conclusão de uma entrega já em andamento.
+Foto válida obrigatória na primeira etapa do cadastro de motoboy, escolhida por câmera/selfie ou galeria e confirmada antes do envio. O servidor recusa cadastros sem foto ou com imagem inválida antes da consulta de CPF. Clientes e parceiros permanecem nos fluxos existentes. Login e ativação online não exigem foto; contas antigas podem atualizar a foto na área Perfil. A Home de entregas não mostra mais o pedido de foto. Não coloca motoboys automaticamente offline nem bloqueia entrega em andamento.
 
 Cliente recebe apenas profilePhoto junto aos dados operacionais já existentes; onboardingData, CPF, documentos e PIX não são serializados no pedido. A foto pode ser ampliada no acompanhamento. É uma referência visual enviada pelo usuário, sem reconhecimento facial, prova de identidade ou garantia biométrica.
 
-18 testes simulados de validação/autorização/persistência/notificações e despacho passaram. TypeScript do Admin passou. SDK Flutter indisponível neste ambiente: compilação e câmera/galeria em dispositivos ainda não validadas. A atualização deve incluir flutter pub get e reinício de Nest/Flutter.
+12 testes simulados de foto, obrigatoriedade no cadastro, persistência e separação dos papéis passaram. SDK Flutter indisponível neste ambiente: compilação e câmera/galeria em dispositivos ainda não validadas. A atualização deve incluir flutter pub get e reinício de Nest/Flutter.

@@ -648,8 +648,6 @@ class _CourierPageState extends State<CourierPage> {
                       summary: state.walletSummary,
                       presence: state.courierPresenceStatus,
                     ),
-                    const SizedBox(height:16),
-                    const CourierPhotoCard(),
                     if (current != null) ...[
                       const SizedBox(height: 22),
                       const _SectionTitle(

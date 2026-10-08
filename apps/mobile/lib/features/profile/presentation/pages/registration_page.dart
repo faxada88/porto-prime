@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../courier/presentation/pages/courier_photo_card.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,6 +21,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final Map<String,Timer> remoteDebounce={};
   String? verifiedCpfIdentity;
   String? cpfSituation;
+  String? profilePhoto;
   GlobalKey<FormState> get form=>forms[step];
   final Map<String,TextEditingController> c={};
   TextEditingController ctl(String k)=>c.putIfAbsent(k,()=>TextEditingController());
@@ -306,6 +308,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             children: [
                               ...groups[step].map(field),
                               if (courier && step == 0) _cpfVerificationStatus(),
+                              if(courier && step==0) ...[CourierPhotoCard(initialPhoto:profilePhoto,onSelected:(photo)=>setState(()=>profilePhoto=photo)),const SizedBox(height:16)],
                               if (courier &&
                                   step == 3 &&
                                   ctl('vehicleBrand').text == 'Outra marca')
@@ -478,6 +481,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   Widget reviewCard() {
     final sections = <Map<String, dynamic>>[
       {'title':'Dados pessoais','icon':AppIcons.person_rounded,'step':0,'rows':[
+        ['Foto de perfil',profilePhoto==null?'Não adicionada':'Foto adicionada'],
         ['Nome completo',ctl('name').text],['CPF',ctl('cpf').text],['Data de nascimento',ctl('birthDate').text],
       ]},
       {'title':'Contato e endereço','icon':AppIcons.location_on_rounded,'step':1,'rows':[
@@ -964,6 +968,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   Future<void> next() async {
+    if(courier && profilePhoto==null){
+      await _showInfo('Foto obrigatória','Tire uma selfie ou escolha uma foto sua na galeria para continuar o cadastro.',AppIcons.person_rounded);
+      return;
+    }
     if (courier && (verifiedCpfIdentity != _cpfIdentity || cpfSituation != 'REGULAR')) {
       await _showInfo('Verificação do CPF',
         checking['cpfLookup'] == true ? 'Aguarde a consulta à Receita Federal.'
@@ -1002,7 +1010,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         document: customer ? null : (courier ? data['cpf'] : data['cnpj']),
         businessName:
             !customer && !courier ? data['businessName'] : null,
-        profileData: {...data, if (courier) 'cpfSituation': cpfSituation}..remove('password')..remove('confirmPassword'),
+        profileData: {...data, if (courier) 'cpfSituation': cpfSituation, if(courier) 'profilePhoto':profilePhoto}..remove('password')..remove('confirmPassword'),
       );
       if (!mounted) return;
 
