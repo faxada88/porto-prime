@@ -512,12 +512,12 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<Map<String,dynamic>> requestWithdrawal(double amount) async {
+  Future<Map<String,dynamic>> requestWithdrawal(double amount, {String? pixKey, String? pixKeyType}) async {
     final created=Map<String,dynamic>.from(
       await api.request(
         'POST',
         '/wallet/withdrawals',
-        body:{'amount':amount},
+        body:{'amount':amount, if(pixKey != null) 'pixKey':pixKey, if(pixKeyType != null) 'pixKeyType':pixKeyType},
       ),
     );
     await loadWallet();

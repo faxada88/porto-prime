@@ -35,10 +35,10 @@ export class WalletController {
 
   @Post('withdrawals')
   requestWithdrawal(
-    @Body('amount') amount: number,
+    @Body() body: { amount: number; pixKey?: string; pixKeyType?: string },
     @Headers('authorization') authorization?: string,
   ) {
-    return this.wallet.requestWithdrawal(amount, authorization);
+    return this.wallet.requestWithdrawal(body.amount, authorization, { key: body.pixKey, type: body.pixKeyType });
   }
 
   @Get('admin/withdrawals')

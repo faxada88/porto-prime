@@ -206,6 +206,8 @@ export class WalletService {
 
     const pending = Number(pendingWithdrawals._sum.amount ?? 0);
     return {
+      pixKey: courier.pixKey || (courier.onboardingData as any)?.pixKey || null,
+      pixKeyType: courier.pixKeyType || (courier.onboardingData as any)?.pixKeyType || null,
       availableBalance: Number(available.toFixed(2)),
       totalBalance: Number((available + pending).toFixed(2)),
       pendingWithdrawals: Number(pending.toFixed(2)),
@@ -241,6 +243,7 @@ export class WalletService {
   async requestWithdrawal(
     amountRaw: number,
     authorization?: string,
+    pixInput?: { key?: unknown; type?: unknown },
   ) {
     const courier = await this.authenticatedCourier(authorization);
     const amount = Number(amountRaw);
@@ -249,9 +252,10 @@ export class WalletService {
     }
     const onboarding = courier.onboardingData as Record<string, unknown> | null;
     const savedKey = courier.pixKey?.trim();
-    const pix = normalizePix(savedKey || onboarding?.pixKey, savedKey ? courier.pixKeyType : onboarding?.pixKeyType);
+    const supplied = String(pixInput?.key ?? '').trim();
+    const pix = normalizePix(supplied || savedKey || onboarding?.pixKey, supplied ? pixInput?.type : savedKey ? courier.pixKeyType : onboarding?.pixKeyType);
     if (!pix) throw new BadRequestException('Cadastre uma chave PIX antes de solicitar saque');
-    if (!courier.pixKey || !courier.pixKeyType) {
+    if (pix.key !== courier.pixKey || pix.type !== courier.pixKeyType) {
       await this.prisma.courierProfile.update({
         where: { id: courier.id }, data: { pixKey: pix.key, pixKeyType: pix.type },
       });

@@ -49,6 +49,19 @@ describe('PIX and manual withdrawal flow', () => {
     expect(f.entries).toHaveLength(1);
     expect(f.entries[0].amount).toBe(-20);
   });
+  it('lets a courier explicitly register a missing PIX while requesting a withdrawal', async () => {
+    const f = fixture(); f.courier.onboardingData = {};
+    await f.service.requestWithdrawal(20, 'test', { key: 'new@example.test', type: 'EMAIL' });
+    expect(f.courier.pixKey).toBe('new@example.test');
+    expect(f.withdrawal.pixKey).toBe('new@example.test');
+    expect(f.entries[0].amount).toBe(-20);
+  });
+  it('rejects invalid replacement PIX without reserving funds or changing the saved key', async () => {
+    const f = fixture();
+    await expect(f.service.requestWithdrawal(20, 'test', { key: '11111111111', type: 'CPF' })).rejects.toThrow('Confira');
+    expect(f.courier.pixKey).toBeNull();
+    expect(f.entries).toHaveLength(0);
+  });
   it('requires sufficient balance and rejects absent PIX', async () => {
     const f = fixture();
     await expect(f.service.requestWithdrawal(51, 'test')).rejects.toThrow('Saldo');

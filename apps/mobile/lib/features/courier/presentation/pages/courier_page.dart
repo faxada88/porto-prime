@@ -431,6 +431,9 @@ class _CourierPageState extends State<CourierPage> {
 
   Future<void> _requestWithdrawal(BuildContext context) async {
     final controller = TextEditingController();
+    final pixController = TextEditingController(text: AppState.instance.walletSummary['pixKey']?.toString() ?? '');
+    final savedType = AppState.instance.walletSummary['pixKeyType']?.toString();
+    String? pixType = const ['CPF','CNPJ','EMAIL','PHONE','RANDOM'].contains(savedType) ? savedType : null;
     String? error;
     bool loading = false;
 
@@ -448,7 +451,7 @@ class _CourierPageState extends State<CourierPage> {
               borderRadius: BorderRadius.circular(AppRadius.xl),
               boxShadow: AppShadows.elevated,
             ),
-            child: Column(
+            child: SingleChildScrollView(child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -485,6 +488,15 @@ class _CourierPageState extends State<CourierPage> {
                     prefixIcon: Icon(AppIcons.payments_rounded),
                   ),
                 ),
+                const SizedBox(height: 14),
+                DropdownButtonFormField<String>(
+                  initialValue: pixType,
+                  decoration: const InputDecoration(labelText: 'Tipo de chave PIX'),
+                  items: const [DropdownMenuItem(value:'CPF',child:Text('CPF')),DropdownMenuItem(value:'CNPJ',child:Text('CNPJ')),DropdownMenuItem(value:'EMAIL',child:Text('E-mail')),DropdownMenuItem(value:'PHONE',child:Text('Celular')),DropdownMenuItem(value:'RANDOM',child:Text('Aleatória'))],
+                  onChanged: loading ? null : (value) => setDialogState(() => pixType = value),
+                ),
+                const SizedBox(height: 12),
+                TextField(controller: pixController, enabled: !loading, decoration: const InputDecoration(labelText: 'Chave PIX de recebimento', helperText: 'Confira a chave antes de solicitar o saque.')),
                 if (error != null) ...[
                   const SizedBox(height: 10),
                   Container(
@@ -546,7 +558,7 @@ class _CourierPageState extends State<CourierPage> {
                                 });
                                 try {
                                   await AppState.instance
-                                      .requestWithdrawal(amount);
+                                      .requestWithdrawal(amount, pixKey: pixController.text.trim(), pixKeyType: pixType);
                                   if (dialogContext.mounted) {
                                     Navigator.pop(dialogContext);
                                   }
@@ -576,13 +588,14 @@ class _CourierPageState extends State<CourierPage> {
                   ],
                 ),
               ],
-            ),
+            )),
           ),
         ),
       ),
     );
 
     controller.dispose();
+    pixController.dispose();
   }
 
   @override
