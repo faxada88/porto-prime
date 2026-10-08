@@ -40,10 +40,9 @@ class _Guest extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             const _SectionLabel(
-              eyebrow: 'PORTO PRIME',
-              title: 'Simples por design',
-              subtitle:
-                  'Sua conta concentra pedidos, endereços e acompanhamento. Você só vê o que realmente precisa.',
+              eyebrow: 'ESTAMOS POR AQUI',
+              title: 'Como podemos ajudar?',
+              subtitle: 'Suporte e informações para você pedir com tranquilidade.',
             ),
             const SizedBox(height: 12),
             _MenuSurface(
@@ -73,136 +72,81 @@ class _Guest extends StatelessWidget {
 }
 
 class _GuestAccessHero extends StatelessWidget {
-  const _GuestAccessHero({
-    required this.onLogin,
-    required this.onCreate,
-  });
+  const _GuestAccessHero({required this.onLogin, required this.onCreate});
 
   final VoidCallback onLogin;
   final VoidCallback onCreate;
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.fromLTRB(21, 22, 21, 20),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF102B27),
-              Color(0xFF075E54),
-              Color(0xFF0B8172),
-            ],
-          ),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.xl),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.oceanDeep.withValues(alpha: .22),
-              blurRadius: 34,
-              offset: const Offset(0, 17),
-            ),
-          ],
+          border: Border.all(color: AppColors.stroke),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: .11),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: const Icon(
-                    AppIcons.person_rounded,
-                    color: Colors.white,
-                    size: 26,
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: .10),
-                    borderRadius: BorderRadius.circular(AppRadius.xl),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        AppIcons.shield_rounded,
-                        size: 12,
-                        color: Color(0xFFFFD889),
-                      ),
-                      SizedBox(width: 5),
-                      Text(
-                        'CONTA SEGURA',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: AppFontSize.caption,
-                          fontWeight: AppFontWeight.display,
-                          letterSpacing: .8,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceOcean,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(AppIcons.person_rounded,
+                  color: AppColors.primaryDark, size: 28),
+            ),
+            const SizedBox(height: 20),
+            Text('Tudo seu, em um só lugar.',
+                style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 10),
+            const Text(
+              'Entre para acompanhar seus pedidos e cuidar da sua conta. Ainda não tem cadastro? Comece por aqui.',
+              style: TextStyle(
+                color: AppColors.muted,
+                fontSize: AppFontSize.body,
+                height: 1.6,
+              ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Sua experiência,\ndo seu jeito.',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                height: 1.02,
-                fontWeight: AppFontWeight.display,
-                letterSpacing: -.9,
-              ),
-            ),
-            const SizedBox(height: 9),
-            const Text(
-              'Entre para continuar ou crie uma conta em poucos passos.',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: AppFontSize.caption,
-                height: 1.45,
-                fontWeight: AppFontWeight.medium,
-              ),
-            ),
-            const SizedBox(height: 21),
             SizedBox(
               width: double.infinity,
-              height: 54,
-              child: FilledButton.icon(
+              child: FilledButton(
                 onPressed: onLogin,
                 style: FilledButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppColors.oceanDeep,
+                  minimumSize: const Size(0, 54),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 ),
-                icon: const Icon(AppIcons.login_rounded, size: 19),
-                label: const Text('Entrar na minha conta'),
+                child: const Text('Entrar na minha conta'),
               ),
             ),
-            const SizedBox(height: 9),
+            const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
-              height: 52,
-              child: OutlinedButton.icon(
+              child: OutlinedButton(
                 onPressed: onCreate,
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: BorderSide(
-                    color: Colors.white.withValues(alpha: .24),
-                  ),
-                  backgroundColor: Colors.white.withValues(alpha: .06),
+                  minimumSize: const Size(0, 54),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 ),
-                icon: const Icon(AppIcons.person_add_alt_1_rounded, size: 19),
-                label: const Text('Criar uma conta'),
+                child: const Text('Criar uma conta'),
               ),
+            ),
+            const SizedBox(height: 24),
+            const Divider(height: 1, color: AppColors.stroke),
+            const SizedBox(height: 18),
+            const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(AppIcons.shield_rounded, size: 18, color: AppColors.primary),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text('Seus dados protegidos. Seu próximo pedido mais perto.',
+                      style: TextStyle(color: AppColors.muted,
+                          fontSize: AppFontSize.caption, height: 1.5)),
+                ),
+              ],
             ),
           ],
         ),
@@ -213,56 +157,19 @@ class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader();
 
   @override
-  Widget build(BuildContext context) => Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'PORTO PRIME ACCOUNT',
-                  style: TextStyle(
-                    color: AppColors.ocean,
-                    fontSize: AppFontSize.caption,
-                    fontWeight: AppFontWeight.display,
-                    letterSpacing: 1.7,
-                  ),
-                ),
-                const SizedBox(height: 7),
-                Text(
-                  'Seu espaço',
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Conta, entregas e benefícios com a energia de Porto Seguro.',
-                  style: TextStyle(
-                    color: AppColors.muted,
-                    height: 1.4,
-                    fontSize: 11.5,
-                    fontWeight: AppFontWeight.medium,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 14),
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-              border: Border.all(color: AppColors.stroke),
-              boxShadow: AppShadows.soft,
-            ),
-            child: const Icon(
-              AppIcons.wb_sunny_rounded,
-              color: AppColors.sun,
-              size: 25,
-            ),
-          ),
+          const Text('PORTO PRIME',
+              style: TextStyle(color: AppColors.primary,
+                  fontSize: AppFontSize.caption,
+                  fontWeight: AppFontWeight.display, letterSpacing: 2)),
+          const SizedBox(height: 10),
+          Text('Seu espaço', style: Theme.of(context).textTheme.headlineLarge),
+          const SizedBox(height: 8),
+          const Text('Sua conta. Suas escolhas. Tudo por perto.',
+              style: TextStyle(color: AppColors.muted,
+                  fontSize: AppFontSize.body, height: 1.5)),
         ],
       );
 }
@@ -656,18 +563,16 @@ class _ApplicationShortcut extends StatelessWidget {
           child: Ink(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFFF0CF), Color(0xFFFFF8EA)],
-              ),
+              color: AppColors.surfaceSoft,
               borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(color: AppColors.sun200),
+              border: Border.all(color: AppColors.stroke),
             ),
             child: const Row(
               children: [
                 _MiniIconBox(
                   icon: AppIcons.manage_search_rounded,
                   background: Colors.white,
-                  foreground: Color(0xFF9B6817),
+                  foreground: AppColors.primaryDark,
                 ),
                 SizedBox(width: 13),
                 Expanded(
@@ -685,7 +590,7 @@ class _ApplicationShortcut extends StatelessWidget {
                       Text(
                         'Consulte o status e responda pendências pelo CPF.',
                         style: TextStyle(
-                          color: Color(0xFF8D6C35),
+                          color: AppColors.muted,
                           fontSize: AppFontSize.caption,
                           height: 1.35,
                           fontWeight: AppFontWeight.medium,
@@ -696,7 +601,7 @@ class _ApplicationShortcut extends StatelessWidget {
                 ),
                 Icon(
                   AppIcons.arrow_forward_rounded,
-                  color: Color(0xFF9B6817),
+                  color: AppColors.primaryDark,
                   size: 20,
                 ),
               ],
