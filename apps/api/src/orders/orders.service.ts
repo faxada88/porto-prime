@@ -356,7 +356,7 @@ export class OrdersService {
         Math.max(20, Number(cfg.heartbeatTimeoutSeconds || 45)) * 1000,
     );
 
-    const [activeDelivery, pendingOffer, locationDevice] =
+    const [activeDelivery, pendingOffer, locationDevice, activeDeviceCount] =
       await Promise.all([
         this.prisma.order.findFirst({
           where: {
@@ -387,6 +387,13 @@ export class OrdersService {
             latitude: true,
             longitude: true,
             lastHeartbeatAt: true,
+          },
+        }),
+        (this.prisma as any).courierDevicePresence.count({
+          where: {
+            courierId: profile.id,
+            onlineRequested: true,
+            lastHeartbeatAt: { gte: cutoff },
           },
         }),
       ]);
@@ -432,7 +439,7 @@ export class OrdersService {
       lastHeartbeatAt: updated.lastHeartbeatAt,
       availableSince: updated.availableSince,
       locationUpdatedAt: updated.locationUpdatedAt,
-      activeDevices: activeDevices.length,
+      activeDevices: activeDeviceCount,
     };
   }
 
