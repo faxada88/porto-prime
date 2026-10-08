@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../network/api_client.dart';
 import '../realtime/realtime_client.dart';
@@ -48,6 +49,7 @@ class AppState extends ChangeNotifier {
 
   bool get loggedIn=>user!=null;
   bool get isCustomer=>user?['role']=='CUSTOMER';
+  bool get isPartner=>user?['role']=='PARTNER';
   bool get isCourier=>user?['role']=='COURIER';
   int get cartCount=>cart.values.fold(0,(a,b)=>a+b);
   double get cartSubtotal=>cart.entries.fold(0,(sum,e){final p=product(e.key);return sum+(p==null?0:(double.tryParse(p['price'].toString())??0)*e.value);});
@@ -75,6 +77,7 @@ class AppState extends ChangeNotifier {
         loadActiveOrder(),
       ]);
     }
+    if (loggedIn && isPartner) await loadWallet();
     if (loggedIn && isCourier) {
       await refreshCourier();
     }
@@ -148,7 +151,7 @@ class AppState extends ChangeNotifier {
       return;
     }
 
-    if (isCourier && event == 'wallet.updated') {
+    if ((isCourier || isPartner) && event == 'wallet.updated') {
       Future<void>(() async {
         try {
           await loadWallet();
@@ -362,6 +365,7 @@ class AppState extends ChangeNotifier {
       if(isCustomer){
         await Future.wait([loadAddresses(),loadOrders(),loadActiveOrder()]);
       }
+      if(isPartner) await loadWallet();
       if(isCourier){
         await refreshCourier();
       }
@@ -549,6 +553,10 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> loadWallet() async {
+    if(isPartner){
+      final data=Map<String,dynamic>.from(await api.request('GET','/finance/me'));
+      walletSummary=data;walletLedger=List<dynamic>.from(data['entries']??[]);withdrawals=List<dynamic>.from(data['withdrawals']??[]);notifyListeners();return;
+    }
     if(!isCourier)return;
     final result=await Future.wait([
       api.request('GET','/wallet/summary'),
@@ -561,12 +569,20 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<Map<String,dynamic>> requestWithdrawal(double amount, {String? pixKey, String? pixKeyType}) async {
+  String newFinanceRequestId() {
+    final random=Random.secure();
+    final bytes=List<int>.generate(16,(_)=>random.nextInt(256));
+    bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
+    final h=bytes.map((b)=>b.toRadixString(16).padLeft(2,'0')).join();
+    return '${h.substring(0,8)}-${h.substring(8,12)}-${h.substring(12,16)}-${h.substring(16,20)}-${h.substring(20)}';
+  }
+
+  Future<Map<String,dynamic>> requestWithdrawal(double amount, {String? pixKey, String? pixKeyType, String? requestId}) async {
     final created=Map<String,dynamic>.from(
       await api.request(
         'POST',
-        '/wallet/withdrawals',
-        body:{'amount':amount, if(pixKey != null) 'pixKey':pixKey, if(pixKeyType != null) 'pixKeyType':pixKeyType},
+        isPartner ? '/finance/me/withdrawals' : '/wallet/withdrawals',
+        body:{'amount':amount, if(isPartner) 'requestId':requestId??newFinanceRequestId(), if(pixKey != null) 'pixKey':pixKey, if(pixKeyType != null) 'pixKeyType':pixKeyType},
       ),
     );
     await loadWallet();

@@ -1,3 +1,4 @@
+import '../../../wallet/presentation/pages/partner_wallet_page.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/state/app_state.dart';
@@ -2096,6 +2097,13 @@ class _Account extends StatelessWidget {
               background: AppColors.sand,
               foreground: Color(0xFF946316),
             ),
+          ],
+          if (state.isPartner && !pending) ...[
+            const SizedBox(height: 20),
+            _MenuSurface(children: [
+              _MenuLine(icon: AppIcons.wallet, title: 'Carteira e saques', subtitle: 'Saldo, movimentações e repasses', last:true,
+                onTap:()=>Navigator.of(context).push(_primeRoute(const PartnerWalletPage()))),
+            ]),
           ],
           if (state.isCustomer) ...[
             const SizedBox(height: 27),
