@@ -260,9 +260,6 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
             },
           },
         },
-        deliveryOffers: {
-          none: { orderId },
-        },
       },
       include: {
         user: { select: { id: true, name: true } },
@@ -275,6 +272,18 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
     });
 
     if (!candidates.length) return null;
+
+    // Previous offers determine rotation, not permanent exclusion. Retain history
+    // for audit and keep the existing transactional claims below unchanged.
+    const previousOffers = await (this.prisma as any).deliveryOffer.groupBy({
+      by: ['courierId'],
+      where: { orderId, courierId: { in: candidates.map((courier: any) => courier.id) } },
+      _max: { offeredAt: true },
+    });
+    const lastOffered = new Map<string, number>(previousOffers.map((entry: any) => [
+      entry.courierId,
+      entry._max.offeredAt ? new Date(entry._max.offeredAt).getTime() : 0,
+    ]));
 
     const pickupLat = this.toNumber(cfg.distributorLatitude);
     const pickupLng = this.toNumber(cfg.distributorLongitude);
@@ -311,7 +320,8 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
             )
           : 0;
 
-        // Menor score vence. A arquitetura mantém os pesos isolados aqui
+        // Entre candidatos na mesma posição de rodada, menor score vence.
+        // A arquitetura mantém os pesos isolados aqui
         // para troca futura do algoritmo sem mudar pedidos/ofertas.
         const score =
           (distance ?? 20) * 100 +
@@ -323,9 +333,12 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
           courier,
           distance,
           score,
+          lastOfferedAt: lastOffered.get(courier.id) ?? 0,
         };
       })
-      .sort((a: any, b: any) => a.score - b.score);
+      .sort((a: any, b: any) =>
+        a.lastOfferedAt - b.lastOfferedAt || a.score - b.score || a.courier.id.localeCompare(b.courier.id),
+      );
 
     for (const candidate of ranked) {
       const offerId = randomUUID();
