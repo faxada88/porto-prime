@@ -814,7 +814,7 @@ export class AdminService {
     if (typeof body.storeOpen !== 'boolean') throw new BadRequestException('Informe se a loja está aberta');
     const data = { storeOpen: body.storeOpen, ...(body.storeMessage !== undefined ? { storeMessage: this.catalogText(body.storeMessage, 'Mensagem da loja', 240, true) } : {}) };
     const result = await this.prisma.deliveryPricingConfig.upsert({ where: { id: 'default' }, create: { id: 'default', ...data }, update: data, select: { storeOpen: true, storeMessage: true, updatedAt: true } });
-    this.catalogChanged('store.updated');
+    this.realtime.emitCatalogUpdated('store.updated', result);
     return result;
   }
 }

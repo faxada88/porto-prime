@@ -11,3 +11,12 @@ Mutação bem-sucedida dispara `catalog.updated` ou `store.updated`. Namespace p
 Atualização: parar Nest/Flutter antes de executar `bash scripts/update-catalog.sh`, com PostgreSQL ativo. O script aplica SQL aditivo/idempotente e gera Prisma, limpa cache Flutter e atualiza dependências. Reiniciar os serviços depois. Não executa reset de banco.
 
 Validação nesta etapa: Admin `tsc --noEmit`; 24 testes de catálogo, disponibilidade de loja, perfis de clientes/motoboys. Flutter não está disponível no ambiente de edição; compilação e revisão visual em dispositivo não foram executadas aqui. Testes usam mocks, não um PostgreSQL real.
+
+
+## Revisão do catálogo e fechamento
+
+Layout revisado: abas Produtos/Categorias, listagem compacta de largura inteira, sem painel lateral de navegação. Uma ação Editar por linha; disponibilidade, estoque e arquivamento dentro do editor. Fechar/Abrir loja persiste diretamente, sem segunda confirmação escondida. Status exibido após resposta do servidor, com proteção contra respostas anteriores.
+
+App começa sem autorização de venda até consultar o estado da loja. Evento público de loja carrega somente estado, mensagem e versão; atualiza a interface imediatamente. Leitura da loja funciona independentemente de falhas no catálogo. Antes de novo pedido e checkout, consulta novamente a loja; backend também valida novos pedidos e início de checkout, inclusive reabertura de intents pendentes. Pagamentos já abertos no Stripe e webhooks de aprovação continuam intactos. Nenhum cancelamento automático de pedidos ou cobranças.
+
+Validação adicional: testes de bloqueio de novos checkouts com loja fechada e falha no banco, retomada com loja aberta e valor do pagamento preservado. Flutter continua sem SDK no ambiente de edição; revisão visual do app deve ser feita no dispositivo após reiniciar.

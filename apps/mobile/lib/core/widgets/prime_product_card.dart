@@ -32,7 +32,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
     final description = (p['description'] ?? '').toString().trim();
     final category = (p['category']?['name'] ?? 'Porto Prime').toString();
     final stock = int.tryParse(p['stock']?.toString() ?? '');
-    final available = p['active'] != false && (stock == null || stock > 0);
+    final available = state.storeStatusKnown && state.storeOpen && p['active'] != false && (stock == null || stock > 0);
 
     final discount = oldPrice != null && oldPrice > price && oldPrice > 0
         ? (((oldPrice - price) / oldPrice) * 100).round()

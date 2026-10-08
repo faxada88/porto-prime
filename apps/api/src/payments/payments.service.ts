@@ -51,6 +51,9 @@ export class PaymentsService {
       throw new BadRequestException('Este pedido já está pago');
     }
 
+    const store = await this.prisma.deliveryPricingConfig.findUnique({ where: { id: 'default' }, select: { storeOpen: true, storeMessage: true } });
+    if (store?.storeOpen === false) throw new BadRequestException(store.storeMessage || 'A loja está fechada no momento');
+
     if (order.stripePaymentIntentId) {
       const existing = await retrieveStripeIntent(order.stripePaymentIntentId);
       isVerifiedPayment(existing, order);

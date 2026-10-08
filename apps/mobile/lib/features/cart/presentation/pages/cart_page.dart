@@ -108,7 +108,7 @@ class CartPage extends StatelessWidget {
                   ],
                 ),
               ),
-              if (!s.storeOpen) Padding(
+              if (s.storeStatusKnown && !s.storeOpen) Padding(
                 padding: const EdgeInsets.only(top:14),
                 child: Text(s.storeMessage, style: const TextStyle(color: Color(0xFF795D28), height:1.5)),
               ),
@@ -137,7 +137,7 @@ class CartPage extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              s.storeOpen ? 'Continuar para pagamento' : 'Loja fechada no momento',
+                              !s.storeStatusKnown ? 'Verificando disponibilidade…' : s.storeOpen ? 'Continuar para pagamento' : 'Loja fechada no momento',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: AppFontWeight.display,

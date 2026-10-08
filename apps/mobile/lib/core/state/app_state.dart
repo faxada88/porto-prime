@@ -36,7 +36,9 @@ class AppState extends ChangeNotifier {
   Map<String,dynamic> deliveryQuote={};
   final Map<String,int> cart={};
   bool loading=false;
-  bool storeOpen=true;
+  bool storeOpen=false;
+  bool storeStatusKnown=false;
+  DateTime? _storeUpdatedAt;
   String storeMessage="Voltaremos em breve. Sua sacola continua salva.";
   bool _catalogRefreshRunning=false;
   bool _catalogRefreshAgain=false;
@@ -80,7 +82,12 @@ class AppState extends ChangeNotifier {
   }
 
   void _handleRealtimeEvent(String event, dynamic payload) {
-    if (event == 'catalog.updated' || event == 'store.updated') {
+    if (event == 'store.updated') {
+      if (payload is Map && payload['storeOpen'] is bool) _applyStore(Map<String,dynamic>.from(payload));
+      loadStore().catchError((_) {});
+      return;
+    }
+    if (event == 'catalog.updated') {
       loadProducts(silent:true);
       return;
     }
@@ -189,6 +196,22 @@ class AppState extends ChangeNotifier {
     return true;
   }
 
+  void _applyStore(Map<String,dynamic> store) {
+    final updated=DateTime.tryParse(store['updatedAt']?.toString() ?? '');
+    if(updated!=null && _storeUpdatedAt!=null && updated.isBefore(_storeUpdatedAt!)) return;
+    final nextOpen=store['storeOpen']==true;
+    final message=store['storeMessage']?.toString() ?? storeMessage;
+    final changed=!storeStatusKnown || storeOpen!=nextOpen || storeMessage!=message;
+    storeOpen=nextOpen; storeMessage=message; storeStatusKnown=true;
+    if(updated!=null) _storeUpdatedAt=updated;
+    if(changed) notifyListeners();
+  }
+
+  Future<void> loadStore() async {
+    final result=await api.request('GET','/products/store');
+    _applyStore(Map<String,dynamic>.from(result as Map));
+  }
+
   Future<void> loadProducts({bool silent=false}) async {
     if (_catalogRefreshRunning) { _catalogRefreshAgain=true; return; }
     _catalogRefreshRunning=true;
@@ -197,16 +220,13 @@ class AppState extends ChangeNotifier {
         _catalogRefreshAgain=false;
         final values = await Future.wait([
           api.request('GET', '/products'),
-          api.request('GET', '/products/store'),
+          loadStore(),
           api.request('GET', '/products/categories'),
         ]);
         final next=List<dynamic>.from(values[0]);
-        final store=Map<String,dynamic>.from(values[1] as Map);
         final nextCategories=List<dynamic>.from(values[2]);
-        final nextOpen=store['storeOpen'] != false;
-        final nextMessage=store['storeMessage']?.toString() ?? storeMessage;
-        final changed=!_sameCatalog(next,products) || !_sameCatalog(nextCategories,catalogCategories) || storeOpen!=nextOpen || storeMessage!=nextMessage;
-        products=next; catalogCategories=nextCategories; storeOpen=nextOpen; storeMessage=nextMessage;
+        final changed=!_sameCatalog(next,products) || !_sameCatalog(nextCategories,catalogCategories);
+        products=next; catalogCategories=nextCategories;
         if (catalogCategory!='Todos' && !nextCategories.any((c)=>c['name']==catalogCategory)) catalogCategory='Todos';
         if (changed) notifyListeners();
       } while (_catalogRefreshAgain);
@@ -378,7 +398,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addProduct(String id){cart[id]=(cart[id]??0)+1;notifyListeners();}
+  void addProduct(String id){if(!storeStatusKnown || !storeOpen)return;cart[id]=(cart[id]??0)+1;notifyListeners();}
   void changeQty(String id,int d){final n=(cart[id]??0)+d;if(n<=0)cart.remove(id);else cart[id]=n;notifyListeners();}
   void removeProduct(String id){cart.remove(id);notifyListeners();}
   void clearCart(){cart.clear();notifyListeners();}
@@ -566,6 +586,7 @@ class AppState extends ChangeNotifier {
   Future<Map<String,dynamic>> createOrder(String addressId)async{
     if(!isCustomer)throw Exception('Entre como cliente para finalizar');
     if(cart.isEmpty)throw Exception('Sua sacola está vazia');
+    await loadStore();
     if(!storeOpen)throw Exception(storeMessage);
     loading=true;error=null;notifyListeners();
     try{
@@ -575,6 +596,8 @@ class AppState extends ChangeNotifier {
   }
 
   Future<Map<String,dynamic>> createCheckout(String orderId)async{
+    await loadStore();
+    if(!storeOpen)throw Exception(storeMessage);
     loading=true;error=null;notifyListeners();
     try{
       final origin=Uri.base.origin;

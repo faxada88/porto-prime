@@ -32,7 +32,7 @@ class HomePage extends StatelessWidget {
               parent: BouncingScrollPhysics(),
             ),
             slivers: [
-              if (!state.storeOpen)
+              if (state.storeStatusKnown && !state.storeOpen)
                 SliverToBoxAdapter(
                   child: Center(child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: AppControl.maxContentWidth),

@@ -146,9 +146,10 @@ export class RealtimeGateway
     });
   }
 
-  emitCatalogUpdated(event = 'catalog.updated') {
-    this.server?.emit(event, { at: new Date().toISOString() });
-    this.catalog?.updated(event);
+  emitCatalogUpdated(event = 'catalog.updated', store?: { storeOpen: boolean; storeMessage?: string; updatedAt?: unknown }) {
+    const payload = { at: new Date().toISOString(), ...(store ? { storeOpen: store.storeOpen, storeMessage: store.storeMessage, updatedAt: store.updatedAt } : {}) };
+    this.server?.emit(event, payload);
+    this.catalog?.updated(event, payload);
   }
 
   emitToUser(userId: string, event: string, payload: unknown) {
