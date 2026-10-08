@@ -47,7 +47,6 @@ class RealtimeClient {
       'courier.presence',
       'wallet.updated',
       'courier.profile.updated',
-      'demand.updated',
     ];
 
     for (final event in events) {

@@ -43,10 +43,22 @@
 					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
 					<key>UISceneStoryboardFile</key>
 					<string>Main</string>
-				</dict>
+					<key>NSCameraUsageDescription</key>
+	<string>Usamos a câmera para adicionar sua foto de perfil de motoboy.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Selecione sua foto para que o cliente reconheça você na entrega.</string>
+</dict>
 			</array>
-		</dict>
-	</dict>
+			<key>NSCameraUsageDescription</key>
+	<string>Usamos a câmera para adicionar sua foto de perfil de motoboy.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Selecione sua foto para que o cliente reconheça você na entrega.</string>
+</dict>
+		<key>NSCameraUsageDescription</key>
+	<string>Usamos a câmera para adicionar sua foto de perfil de motoboy.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Selecione sua foto para que o cliente reconheça você na entrega.</string>
+</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -66,5 +78,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Usamos a câmera para adicionar sua foto de perfil de motoboy.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Selecione sua foto para que o cliente reconheça você na entrega.</string>
 </dict>
 </plist>

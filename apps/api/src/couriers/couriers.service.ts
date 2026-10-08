@@ -3,6 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { validateProfilePhoto } from './profile-photo.js';
+import { RealtimeGateway } from '../realtime/realtime.gateway.js';
 import { UserRole } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { AuthService } from '../auth/auth.service.js';
@@ -12,6 +14,7 @@ export class CouriersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auth: AuthService,
+    private readonly realtime: RealtimeGateway,
   ) {}
 
   private digits(value: unknown) {
@@ -44,6 +47,7 @@ export class CouriersService {
     return {
       id: profile.id,
       name: profile.user.name,
+      profilePhoto: profile.onboardingData?.profilePhoto ?? null,
       onboardingData: profile.onboardingData,
       pixKey: profile.pixKey,
       pixKeyType: profile.pixKeyType,
@@ -215,6 +219,22 @@ export class CouriersService {
     return this.safe(
       await this.profile(authorization),
     );
+  }
+
+  async savePhoto(raw: unknown, authorization?: string) {
+    const profile = await this.profile(authorization);
+    const photo = validateProfilePhoto(raw);
+    await this.prisma.$transaction(async tx => {
+      await tx.$queryRawUnsafe('SELECT "id" FROM "CourierProfile" WHERE "id" = $1 FOR UPDATE', profile.id);
+      const current = await tx.courierProfile.findUnique({ where: { id: profile.id } });
+      if (!current) throw new NotFoundException('Perfil de motoboy não encontrado');
+      await tx.courierProfile.update({ where: { id: profile.id }, data: { onboardingData: { ...(current.onboardingData as any || {}), profilePhoto: photo } } });
+    });
+    this.realtime.emitToUser(profile.userId,'courier.profile.updated',{ courierId:profile.id });
+    this.realtime.emitToRole('ADMIN','courier.profile.updated',{ courierId:profile.id });
+    const active = await this.prisma.order.findMany({ where:{ courierId:profile.id,status:{ notIn:['DELIVERED','CANCELED'] } },select:{ id:true,customerId:true,status:true } });
+    for(const order of active)this.realtime.emitOrderUpdated(order);
+    return { profilePhoto:photo };
   }
 
   async update(

@@ -35,6 +35,11 @@ export class CouriersController {
     return this.service.me(authorization);
   }
 
+  @Patch('profile/photo')
+  photo(@Body('photo') photo: string, @Headers('authorization') authorization?: string) {
+    return this.service.savePhoto(photo, authorization);
+  }
+
   @Patch('application')
   update(
     @Body() body: Record<string, unknown>,

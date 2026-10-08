@@ -91,8 +91,6 @@ class AppState extends ChangeNotifier {
         withdrawals=[];
         courierHistory=[];
         courierProfile={};
-        courierRadar={};
-        courierRadarError=null;
         deliveryQuote={};
         cart.clear();
         notifyListeners();
@@ -121,14 +119,8 @@ class AppState extends ChangeNotifier {
       Future<void>(() async {
         try {
           await refreshCourier();
-          await loadCourierRadar();
         } catch (_) {}
       });
-      return;
-    }
-
-    if (isCourier && event == 'demand.updated') {
-      loadCourierRadar();
       return;
     }
 
@@ -346,8 +338,6 @@ class AppState extends ChangeNotifier {
     realtime.disconnect();
     await api.clearSession();
     user=null;
-    courierRadar={};
-    courierRadarError=null;
     addresses=[];
     orders=[];
     activeOrder=null;
@@ -399,21 +389,6 @@ class AppState extends ChangeNotifier {
   Future<void> loadActiveOrder()async{if(!isCustomer)return;final x=await api.request('GET','/orders/active');activeOrder=x==null?null:Map<String,dynamic>.from(x);notifyListeners();}
 
   Future<void>? _courierRefreshFuture;
-
-  Map<String,dynamic> courierRadar = {};
-  String? courierRadarError;
-  bool _radarLoading = false;
-  Future<void> loadCourierRadar() async {
-    if (!isCourier || _radarLoading) return;
-    _radarLoading = true;
-    final owner = user?['id'];
-    try {
-      final data = await api.request('GET','/orders/courier/radar');
-      if (isCourier && user?['id'] == owner) { courierRadar=Map<String,dynamic>.from(data); courierRadarError=null; }
-    } catch (_) {
-      if (isCourier && user?['id'] == owner) courierRadarError='Radar indisponível. As ofertas continuam no fluxo normal.';
-    } finally { _radarLoading=false; notifyListeners(); }
-  }
 
   Future<void> refreshCourier() {
     final running = _courierRefreshFuture;

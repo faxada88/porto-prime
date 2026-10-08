@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'courier_operations_dashboard.dart';
+import 'courier_photo_card.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,10 +21,8 @@ class CourierPage extends StatefulWidget {
 class _CourierPageState extends State<CourierPage> {
   Timer? _heartbeatTimer;
   Timer? _refreshTimer;
-  Timer? _radarTimer;
   bool _navBusy = false;
   final _operationsScroll = ScrollController();
-  final _radarKey = GlobalKey();
   String? _lastPresentedOfferId;
   bool _offerModalOpen = false;
 
@@ -35,10 +34,8 @@ class _CourierPageState extends State<CourierPage> {
         await AppState.instance.refreshCourier();
         await AppState.instance.loadWallet();
         await AppState.instance.heartbeatCourier();
-        await AppState.instance.loadCourierRadar();
       } catch (_) {}
     });
-    _radarTimer = Timer.periodic(const Duration(seconds:15), (_) => AppState.instance.loadCourierRadar());
     _heartbeatTimer = Timer.periodic(
       const Duration(seconds: 15),
       (_) async {
@@ -61,7 +58,6 @@ class _CourierPageState extends State<CourierPage> {
   void dispose() {
     _heartbeatTimer?.cancel();
     _refreshTimer?.cancel();
-    _radarTimer?.cancel();
     _operationsScroll.dispose();
     super.dispose();
   }
@@ -630,13 +626,13 @@ class _CourierPageState extends State<CourierPage> {
             bottomNavigationBar: CourierOperationsNav(online:state.courierOnline,active:current!=null,busy:_navBusy,onHome:(){HapticFeedback.selectionClick();if(_operationsScroll.hasClients)_operationsScroll.animateTo(0,duration:Duration(milliseconds:MediaQuery.disableAnimationsOf(context)?0:220),curve:Curves.easeOut);},onWallet:()=>_openDriverSection(context,'wallet'),onHistory:()=>_openDriverSection(context,'history'),onProfile:()=>_openDriverSection(context,'profile'),onAction:() async {
               if(_navBusy)return;
               setState(()=>_navBusy=true);
-              try { if(current!=null){await _showDeliverySheet(context,order:current,incoming:false);}else if(!state.courierOnline){await state.setCourierOnline(true);}else{await state.loadCourierRadar();await state.refreshCourier();if(_radarKey.currentContext!=null)await Scrollable.ensureVisible(_radarKey.currentContext!,duration:Duration(milliseconds:MediaQuery.disableAnimationsOf(context)?0:220));} }
+              try { if(current!=null){await _showDeliverySheet(context,order:current,incoming:false);}else if(!state.courierOnline){await state.setCourierOnline(true);}else{await state.refreshCourier();} }
               catch(e){if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(PrimeMessages.friendly(e))));}
               finally{if(mounted)setState(()=>_navBusy=false);}
             }),
             body: SafeArea(
               child: RefreshIndicator(
-                onRefresh: () async { await state.refreshCourier(); await state.loadCourierRadar(); },
+                onRefresh: state.refreshCourier,
                 child: PrimePageViewport(child: ListView(
                   controller: _operationsScroll,
                   physics: const AlwaysScrollableScrollPhysics(
@@ -653,7 +649,7 @@ class _CourierPageState extends State<CourierPage> {
                       presence: state.courierPresenceStatus,
                     ),
                     const SizedBox(height:16),
-                    CourierDemandPanel(key:_radarKey,data:state.courierRadar,error:state.courierRadarError,refresh:state.loadCourierRadar),
+                    const CourierPhotoCard(),
                     if (current != null) ...[
                       const SizedBox(height: 22),
                       const _SectionTitle(
@@ -2409,6 +2405,8 @@ class _DriverSectionSheet extends StatelessWidget {
     if (section == 'profile') {
       final user = state.user ?? {};
       return [
+        const CourierPhotoCard(),
+        const SizedBox(height:14),
         _DataPanel(
           title: 'Conta',
           icon: AppIcons.person_rounded,

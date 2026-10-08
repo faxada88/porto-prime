@@ -25,11 +25,6 @@ export class OrdersController {
   active(@Headers('authorization') authorization?: string) {
     return this.ordersService.active(authorization);
   }
-  @Get('courier/radar')
-  courierRadar(@Headers('authorization') authorization?: string) {
-    return this.ordersService.courierRadar(authorization);
-  }
-
   @Get('courier/presence')
   courierPresence(@Headers('authorization') authorization?: string) {
     return this.ordersService.courierPresence(authorization);

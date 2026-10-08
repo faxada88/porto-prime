@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../../core/widgets/courier_portrait.dart';
 
 import 'package:flutter/material.dart';
 
@@ -702,14 +703,9 @@ class _Courier extends StatelessWidget {
     borderColor: AppColors.ocean100,
     child: Row(
       children: [
-        Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          child: const Icon(AppIcons.bike, color: AppColors.ocean800, size: 25),
+        GestureDetector(
+          onTap: courier['profilePhoto']==null?null:()=>showDialog<void>(context:context,builder:(c)=>AlertDialog(title:Text((courier['user']?['name']??'Seu motoboy').toString()),content:Column(mainAxisSize:MainAxisSize.min,children:[CourierPortrait(photo:courier['profilePhoto']?.toString(),size:190),const SizedBox(height:16),const Text('Confira a foto ao receber sua entrega.',textAlign:TextAlign.center)]),actions:[TextButton(onPressed:()=>Navigator.pop(c),child:const Text('Fechar'))])),
+          child:CourierPortrait(photo:courier['profilePhoto']?.toString(),size:62),
         ),
         const SizedBox(width: 13),
         Expanded(

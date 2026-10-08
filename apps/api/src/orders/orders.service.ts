@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { buildDemandZones } from './courier-radar.js';
+import { validateProfilePhoto } from '../couriers/profile-photo.js';
 import { randomInt } from 'node:crypto';
 import {
   CourierStatus,
@@ -165,6 +165,12 @@ export class OrdersService {
     return { deleted: result.count };
   }
 
+  private withCourierPhoto<T extends { courier?: any }>(order: T) {
+    if (!order.courier) return order;
+    const { onboardingData, ...courier } = order.courier;
+    return { ...order, courier: { ...courier, profilePhoto: onboardingData?.profilePhoto ?? null } };
+  }
+
   async mine(authorization?: string) {
     const user = await this.auth.authenticate(authorization);
     if (user.role !== UserRole.CUSTOMER) {
@@ -185,6 +191,7 @@ export class OrdersService {
             currentLatitude: true,
             currentLongitude: true,
             locationUpdatedAt: true,
+            onboardingData: true,
             user: {
               select: { name: true, phone: true },
             },
@@ -194,7 +201,7 @@ export class OrdersService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return Promise.all(orders.map((order) => this.ensureCustomerPin(order)));
+    return Promise.all(orders.map((order) => this.ensureCustomerPin(this.withCourierPhoto(order))));
   }
 
   async active(authorization?: string) {
@@ -222,6 +229,7 @@ export class OrdersService {
             currentLatitude: true,
             currentLongitude: true,
             locationUpdatedAt: true,
+            onboardingData: true,
             user: {
               select: { name: true, phone: true },
             },
@@ -231,7 +239,7 @@ export class OrdersService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return order ? this.ensureCustomerPin(order) : null;
+    return order ? this.ensureCustomerPin(this.withCourierPhoto(order)) : null;
   }
 
   private async courier(authorization?: string) {
@@ -256,27 +264,6 @@ export class OrdersService {
     }
 
     return { user, profile };
-  }
-
-  private demandCache: { version: number; expires: number; zones: ReturnType<typeof buildDemandZones>; total: number } | null = null;
-
-  async courierRadar(authorization?: string) {
-    const { profile } = await this.courier(authorization);
-    if (!this.demandCache || this.demandCache.expires < Date.now() || this.demandCache.version !== this.realtime.demandVersion) {
-      const version = this.realtime.demandVersion;
-      const orders = await this.prisma.order.findMany({
-        where: { paymentStatus: PaymentStatus.PAID, courierId: null, status: { in: [OrderStatus.CONFIRMED, OrderStatus.PREPARING, OrderStatus.READY_FOR_PICKUP, OrderStatus.SEARCHING_COURIER] } },
-        select: { address: { select: { neighborhood: true, latitude: true, longitude: true } } },
-      });
-      this.demandCache = { version, expires: Date.now()+5000, zones: buildDemandZones(orders), total: orders.length };
-    }
-    const local = new Date(Date.now()-3*60*60*1000);
-    const since = new Date(local.toISOString().slice(0,10)+'T03:00:00Z');
-    const [completed, active] = await Promise.all([
-      this.prisma.order.count({ where: { courierId: profile.id, status: OrderStatus.DELIVERED, deliveredAt: { gte: since } } }),
-      this.prisma.order.count({ where: { courierId: profile.id, status: { notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED] } } }),
-    ]);
-    return { zones: this.demandCache.zones, pendingOrders: this.demandCache.total, updatedAt: new Date().toISOString(), completedToday: completed, activeDeliveries: active, completionRate: completed+active>0?Math.round(completed/(completed+active)*100):null };
   }
 
   async courierPresence(authorization?: string) {
@@ -316,6 +303,12 @@ export class OrdersService {
         'Cadastro de motoboy ainda não está liberado',
       );
     }
+
+    if (body.online === true && !(profile.onboardingData as any)?.profilePhoto) {
+      throw new BadRequestException('Adicione sua foto de perfil antes de ficar online. Ela será mostrada ao cliente na entrega.');
+    }
+
+    if (body.online === true) validateProfilePhoto((profile.onboardingData as any)?.profilePhoto);
 
     const now = new Date();
     const latitude =
