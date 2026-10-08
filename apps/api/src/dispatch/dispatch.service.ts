@@ -95,7 +95,6 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
     this.running = true;
     try {
       await this.expireOffers();
-      await this.markStaleCouriersOffline();
 
       const orders = await (this.prisma as any).order.findMany({
         where: {
@@ -118,52 +117,8 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
   }
 
   async markStaleCouriersOffline() {
-    const cfg = await this.config();
-    const cutoff = new Date(
-      Date.now() - Math.max(20, cfg.heartbeatTimeoutSeconds) * 1000,
-    );
-
-    await (this.prisma as any).courierDevicePresence.updateMany({
-      where: {
-        lastHeartbeatAt: { lt: cutoff },
-        onlineRequested: true,
-      },
-      data: { onlineRequested: false },
-    });
-
-    const profiles = await (this.prisma as any).courierProfile.findMany({
-      where: {
-        presenceStatus: { in: ['AVAILABLE', 'OFFERED'] },
-      },
-      select: { id: true },
-      take: 500,
-    });
-
-    for (const profile of profiles) {
-      const onlineDevice = await (this.prisma as any)
-        .courierDevicePresence.findFirst({
-          where: {
-            courierId: profile.id,
-            onlineRequested: true,
-            lastHeartbeatAt: { gte: cutoff },
-          },
-          select: { id: true },
-        });
-
-      if (onlineDevice) continue;
-
-      await (this.prisma as any).courierProfile.updateMany({
-        where: {
-          id: profile.id,
-          presenceStatus: { in: ['AVAILABLE', 'OFFERED'] },
-        },
-        data: {
-          presenceStatus: 'OFFLINE',
-          isOnline: false,
-          availableSince: null,
-        },
-      });
-    }
+    // Online is a courier preference. A missing heartbeat must never change it.
+    // Dispatch eligibility still requires a fresh heartbeat below.
   }
 
   async startDispatch(orderId: string) {
@@ -251,6 +206,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
       where: {
         approvalStatus: 'APPROVED',
         presenceStatus: 'AVAILABLE',
+        isOnline: true,
         lastHeartbeatAt: { gte: heartbeatCutoff },
         user: { status: 'ACTIVE' },
         deliveries: {
@@ -353,6 +309,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
               where: {
                 id: candidate.courier.id,
                 presenceStatus: 'AVAILABLE',
+                isOnline: true,
                 lastHeartbeatAt: { gte: heartbeatCutoff },
               },
               data: {
@@ -620,7 +577,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
           where: { id: courierId },
           data: {
             presenceStatus: 'DELIVERING',
-            isOnline: false,
+
             availableSince: null,
           },
         });
@@ -641,7 +598,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
             },
             data: {
               presenceStatus: 'AVAILABLE',
-              isOnline: true,
+
               availableSince: now,
             },
           });
@@ -720,17 +677,15 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
 
         const courier = await tx.courierProfile.findUnique({
           where: { id: courierId },
-          select: { lastHeartbeatAt: true },
+          select: { lastHeartbeatAt: true, isOnline: true },
         });
-        const stillOnline =
-          courier?.lastHeartbeatAt &&
-          new Date(courier.lastHeartbeatAt) >= cutoff;
+        const stillOnline = courier?.isOnline === true;
 
         await tx.courierProfile.update({
           where: { id: courierId },
           data: {
             presenceStatus: stillOnline ? 'AVAILABLE' : 'OFFLINE',
-            isOnline: !!stillOnline,
+
             availableSince: stillOnline ? now : null,
           },
         });
@@ -810,22 +765,16 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
             data: { activeOfferId: null },
           });
 
-          const onlineDevice = await tx.courierDevicePresence.findFirst({
-            where: {
-              courierId: offer.courierId,
-              onlineRequested: true,
-              lastHeartbeatAt: { gte: heartbeatCutoff },
-            },
-            select: { id: true },
+          const profile = await tx.courierProfile.findUnique({
+            where: { id: offer.courierId }, select: { isOnline: true },
           });
-
-          const stillOnline = !!onlineDevice;
+          const stillOnline = profile?.isOnline === true;
 
           await tx.courierProfile.update({
             where: { id: offer.courierId },
             data: {
               presenceStatus: stillOnline ? 'AVAILABLE' : 'OFFLINE',
-              isOnline: stillOnline,
+
               availableSince: stillOnline ? now : null,
             },
           });

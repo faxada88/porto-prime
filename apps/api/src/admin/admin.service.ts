@@ -157,12 +157,6 @@ export class AdminService {
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
     return this.prisma.$transaction(async (tx) => {
-      if (user.courierProfile && status !== 'ACTIVE') {
-        await tx.courierProfile.update({
-          where: { id: user.courierProfile.id },
-          data: { isOnline: false },
-        });
-      }
       return tx.user.update({
         where: { id: userId },
         data: { status: status as UserStatus },
@@ -370,7 +364,6 @@ export class AdminService {
         where: { id: user.courierProfile.id },
         data: {
           approvalStatus: CourierStatus.REJECTED,
-          isOnline: false,
         },
       });
     }
@@ -423,7 +416,6 @@ export class AdminService {
         where: { id: profile.id },
         data: {
           approvalStatus: CourierStatus.PENDING,
-          isOnline: false,
         },
       });
 

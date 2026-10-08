@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/state/app_state.dart';
+import '../../../../core/notifications/delivery_offer_sound.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/prime_ui.dart';
@@ -76,6 +77,8 @@ class _CourierPageState extends State<CourierPage> {
     _offerModalOpen = true;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await playDeliveryOfferSound();
       if (!mounted) return;
       await _showDeliverySheet(
         context,
@@ -3078,7 +3081,7 @@ String _date(dynamic value) {
 
 String _withdrawalStatus(String value) => switch (value) {
       'PENDING' => 'PENDENTE',
-      'PROCESSING' => 'PROCESSANDO',
+      'PROCESSING' => 'EM PROCESSAMENTO',
       'PAID' => 'PAGO',
       'REJECTED' => 'REJEITADO',
       _ => value,

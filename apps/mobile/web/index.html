@@ -60,6 +60,38 @@
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
   <script>
+    // Original, short delivery chime. No downloaded audio or additional package.
+    let portoPrimeAudio;
+    function unlockPortoPrimeAudio() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        portoPrimeAudio = !portoPrimeAudio || portoPrimeAudio.state === 'closed' ? new AudioContext() : portoPrimeAudio;
+        if (portoPrimeAudio.state !== 'running') portoPrimeAudio.resume().catch(function() {});
+      } catch (_) {}
+    }
+    window.addEventListener('pointerdown', unlockPortoPrimeAudio, { passive: true });
+    window.addEventListener('keydown', unlockPortoPrimeAudio);
+    window.portoPrimePlayDeliveryChime = function() {
+      if (!portoPrimeAudio || portoPrimeAudio.state !== 'running') return;
+      const start = portoPrimeAudio.currentTime;
+      [659.25, 830.61, 987.77].forEach(function(frequency, index) {
+        const oscillator = portoPrimeAudio.createOscillator();
+        const gain = portoPrimeAudio.createGain();
+        const at = start + index * 0.17;
+        oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0, at);
+        gain.gain.linearRampToValueAtTime(0.09, at + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, at + 0.45);
+        oscillator.connect(gain);
+        gain.connect(portoPrimeAudio.destination);
+        oscillator.start(at);
+        oscillator.stop(at + 0.48);
+        oscillator.onended = function() { oscillator.disconnect(); gain.disconnect(); };
+      });
+    };
+
     window.portoPrimeLoadStripe = function() {
       if (window.Stripe) return Promise.resolve(window.Stripe);
       if (window.__portoPrimeStripePromise) return window.__portoPrimeStripePromise;

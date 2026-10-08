@@ -27,7 +27,7 @@ async function fixture(result) {
     elements() { return { create() { return paymentElement; } }; },
     async confirmPayment() { calls++; if (result instanceof Error) throw result; return result; },
   };
-  const window = { Stripe: () => stripe, dispatchEvent() {}, location: { href: 'https://example.test/' }, setTimeout };
+  const window = { addEventListener() {}, Stripe: () => stripe, dispatchEvent() {}, location: { href: 'https://example.test/' }, setTimeout };
   const context = vm.createContext({ window, document: { getElementById(id) { return nodes.get(id); } }, CustomEvent: class {} });
   vm.runInContext(script, context);
   const states = [];

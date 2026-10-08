@@ -37,7 +37,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     [const _F('phone','Celular / WhatsApp',AppIcons.phone_outlined,keyboard:TextInputType.phone,format:_Format.phone),const _F('cep','CEP',AppIcons.local_post_office_outlined,keyboard:TextInputType.number,format:_Format.cep),const _F('street','Rua / avenida',AppIcons.route_outlined),const _F('number','Número',AppIcons.numbers_outlined),const _F('neighborhood','Bairro',AppIcons.map_outlined),const _F('city','Cidade',AppIcons.location_city_outlined),const _F('state','UF',AppIcons.map_outlined)],
     [const _F('cnh','Número de registro da CNH',AppIcons.credit_card_outlined),const _F('cnhCategory','Categoria da CNH',AppIcons.fact_check_outlined),const _F('cnhExpiry','Validade da CNH',AppIcons.event_available_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date)],
     [const _F('vehicleType','Tipo de veículo',AppIcons.commute_rounded),const _F('vehicleBrand','Marca',AppIcons.two_wheeler_outlined),const _F('vehicleModel','Modelo',AppIcons.two_wheeler_outlined),const _F('vehicleYear','Ano',AppIcons.calendar_today_outlined,keyboard:TextInputType.number),const _F('vehiclePlate','Placa',AppIcons.pin_outlined,format:_Format.plate)],
-    [const _F('email','E-mail',AppIcons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',AppIcons.lock_outline_rounded,secret:true,hint:'8+ caracteres, maiúscula, minúscula e número'),const _F('confirmPassword','Confirme sua senha',AppIcons.lock_reset_rounded,secret:true),const _F('pixKey','Chave PIX para recebimentos',AppIcons.account_balance_wallet_outlined,required:false)],
+    [const _F('email','E-mail',AppIcons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',AppIcons.lock_outline_rounded,secret:true,hint:'8+ caracteres, maiúscula, minúscula e número'),const _F('confirmPassword','Confirme sua senha',AppIcons.lock_reset_rounded,secret:true),const _F('pixKeyType','Tipo de chave PIX',AppIcons.account_balance_wallet_outlined,required:false),const _F('pixKey','Chave PIX para recebimentos',AppIcons.account_balance_wallet_outlined,required:false)],
     [],
   ];
   @override
@@ -551,7 +551,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     ]);
   }
   Widget field(_F f) {
-    if (courier && const ['cnhCategory','vehicleType','vehicleBrand','vehicleModel','state'].contains(f.key)) return choiceField(f);
+    if (courier && const ['cnhCategory','vehicleType','vehicleBrand','vehicleModel','state','pixKeyType'].contains(f.key)) return choiceField(f);
     final accent = customer
         ? AppColors.ocean
         : courier
@@ -663,7 +663,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
             ? AppColors.sand
             : AppColors.lavender;
     List<String> options;
-    if (f.key == 'state') {
+    if (f.key == 'pixKeyType') {
+      options = const ['CPF','CNPJ','E-mail','Celular','Aleatória'];
+    } else if (f.key == 'state') {
       options = const ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
     } else if (f.key == 'cnhCategory') {
       options = const ['A','B','AB','C','AC','D','AD','E','AE'];

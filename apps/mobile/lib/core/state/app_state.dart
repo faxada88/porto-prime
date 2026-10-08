@@ -411,9 +411,7 @@ class AppState extends ChangeNotifier {
 
     final presence=Map<String,dynamic>.from(results[0] as Map);
     courierPresenceStatus=(presence['presenceStatus']??'OFFLINE').toString();
-    courierOnline=presence['isOnline']==true ||
-        courierPresenceStatus=='AVAILABLE' ||
-        courierPresenceStatus=='OFFERED';
+    courierOnline=presence['isOnline']==true;
 
     final current=results[1];
     courierDelivery=current==null
@@ -436,7 +434,6 @@ class AppState extends ChangeNotifier {
         'PATCH',
         '/orders/courier/heartbeat',
         body:{
-          'online':courierOnline,
           if(latitude!=null)'latitude':latitude,
           if(longitude!=null)'longitude':longitude,
         },
@@ -444,9 +441,7 @@ class AppState extends ChangeNotifier {
     );
     final nextPresence =
         (result['presenceStatus'] ?? 'OFFLINE').toString();
-    final nextOnline = result['isOnline'] == true ||
-        nextPresence == 'AVAILABLE' ||
-        nextPresence == 'OFFERED';
+    final nextOnline = result['isOnline'] == true;
     final changed =
         nextPresence != courierPresenceStatus || nextOnline != courierOnline;
     courierPresenceStatus = nextPresence;
@@ -463,9 +458,7 @@ class AppState extends ChangeNotifier {
       ),
     );
     courierPresenceStatus=(result['presenceStatus']??'OFFLINE').toString();
-    courierOnline=result['isOnline']==true ||
-        courierPresenceStatus=='AVAILABLE' ||
-        courierPresenceStatus=='OFFERED';
+    courierOnline=result['isOnline']==true;
     await refreshCourier();
   }
 
@@ -473,7 +466,6 @@ class AppState extends ChangeNotifier {
     courierDelivery=Map<String,dynamic>.from(
       await api.request('PATCH','/orders/$id/courier/accept'),
     );
-    courierOnline=false;
     courierPresenceStatus='DELIVERING';
     await refreshCourier();
   }
@@ -499,7 +491,6 @@ class AppState extends ChangeNotifier {
       ),
     );
     if(status=='DELIVERED'){
-      courierOnline=true;
       courierPresenceStatus='AVAILABLE';
       await loadWallet();
     }else{

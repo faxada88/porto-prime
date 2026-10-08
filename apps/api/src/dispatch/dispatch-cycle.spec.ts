@@ -5,7 +5,7 @@ import { DispatchService } from './dispatch.service.js';
 
 function fixture(count: number) {
   const order: any = { id: 'order-test', status: 'SEARCHING_COURIER', courierId: null, activeOfferId: null, paymentStatus: 'PAID', address: {}, items: [] };
-  const couriers: any[] = Array.from({ length: count }, (_, i) => ({ id: `courier-${i}`, user: { id: `user-${i}`, name: 'Test' }, approvalStatus: 'APPROVED', presenceStatus: 'AVAILABLE', lastHeartbeatAt: new Date(), availableSince: new Date(), currentLatitude: i, currentLongitude: i, locationUpdatedAt: new Date(), busy: false, deliveryOffers: [] }));
+  const couriers: any[] = Array.from({ length: count }, (_, i) => ({ id: `courier-${i}`, user: { id: `user-${i}`, name: 'Test' }, approvalStatus: 'APPROVED', isOnline: true, presenceStatus: 'AVAILABLE', lastHeartbeatAt: new Date(), availableSince: new Date(), currentLatitude: i, currentLongitude: i, locationUpdatedAt: new Date(), busy: false, deliveryOffers: [] }));
   const offers: any[] = [];
   const prisma: any = {
     deliveryPricingConfig: { upsert: async () => ({ offerTimeoutSeconds: 15, heartbeatTimeoutSeconds: 60, distributorName: 'Test', distributorLatitude: 0, distributorLongitude: 0 }) },
@@ -17,7 +17,7 @@ function fixture(count: number) {
       },
     },
     courierProfile: {
-      findMany: vi.fn(async ({ where }: any) => couriers.filter(c => c.presenceStatus === where.presenceStatus && c.approvalStatus === where.approvalStatus && c.lastHeartbeatAt >= where.lastHeartbeatAt.gte && !c.busy && !(where.deliveryOffers?.none && offers.some(o => o.courierId === c.id))).map(c => ({ ...c, deliveryOffers: offers.filter(o => o.courierId === c.id) }))),
+      findMany: vi.fn(async ({ where }: any) => couriers.filter(c => c.isOnline === where.isOnline && c.presenceStatus === where.presenceStatus && c.approvalStatus === where.approvalStatus && c.lastHeartbeatAt >= where.lastHeartbeatAt.gte && !c.busy && !(where.deliveryOffers?.none && offers.some(o => o.courierId === c.id))).map(c => ({ ...c, deliveryOffers: offers.filter(o => o.courierId === c.id) }))),
       updateMany: async ({ where, data }: any) => {
         const courier = couriers.find(c => c.id === where.id && c.presenceStatus === where.presenceStatus && c.lastHeartbeatAt >= where.lastHeartbeatAt.gte);
         if (!courier) return { count: 0 };
@@ -58,6 +58,19 @@ describe('delivery offer rotation without permanent exclusions', () => {
     }
     expect(f.offers).toHaveLength(count * 3);
     expect(f.offers.every(o => ['EXPIRED', 'DECLINED'].includes(o.status))).toBe(true);
+  });
+  it('does not turn a requested-online courier offline on a stale heartbeat', async () => {
+    const f = fixture(1);
+    f.couriers[0].lastHeartbeatAt = new Date(0);
+    await f.service.markStaleCouriersOffline();
+    expect(f.couriers[0].isOnline).toBe(true);
+    expect(f.couriers[0].presenceStatus).toBe('AVAILABLE');
+    expect(await f.service.dispatchOrder(f.order.id)).toBeNull();
+  });
+  it('respects a manual offline choice even if availability is stale', async () => {
+    const f = fixture(1);
+    f.couriers[0].isOnline = false;
+    expect(await f.service.dispatchOrder(f.order.id)).toBeNull();
   });
   it('retains one active offer and stops after assignment', async () => {
     const f = fixture(2);

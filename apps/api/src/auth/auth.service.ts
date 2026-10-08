@@ -16,6 +16,7 @@ import {
   UserStatus,
 } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { normalizePix } from '../wallet/pix-key.js';
 import { CpfHubService } from './cpfhub.service.js';
 import type { VerifiedCpf } from './cpfhub.service.js';
 import { LoginDto } from './dto/login.dto.js';
@@ -409,6 +410,8 @@ export class AuthService {
         ? (data.profileData as Prisma.InputJsonObject)
         : undefined;
 
+    const pix = data.role === UserRole.COURIER ? normalizePix(data.profileData?.pixKey, data.profileData?.pixKeyType) : null;
+
     const user = await this.prisma.user.create({
       data: {
         name: verifiedCpf?.name ?? data.name.trim(),
@@ -428,6 +431,8 @@ export class AuthService {
             ? {
                 create: {
                   document: courierDocument,
+                  pixKey: pix?.key ?? null,
+                  pixKeyType: pix?.type ?? null,
                   cnh: data.cnh!.trim(),
                   cnhCategory:
                     data.cnhCategory?.trim() || 'A',

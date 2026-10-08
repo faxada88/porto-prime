@@ -5,6 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { normalizePix } from './pix-key.js';
 import { randomUUID } from 'node:crypto';
 import { AuthService } from '../auth/auth.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -246,14 +247,17 @@ export class WalletService {
     if (!Number.isFinite(amount) || amount <= 0) {
       throw new BadRequestException('Valor de saque inválido');
     }
+    const onboarding = courier.onboardingData as Record<string, unknown> | null;
+    const savedKey = courier.pixKey?.trim();
+    const pix = normalizePix(savedKey || onboarding?.pixKey, savedKey ? courier.pixKeyType : onboarding?.pixKeyType);
+    if (!pix) throw new BadRequestException('Cadastre uma chave PIX antes de solicitar saque');
     if (!courier.pixKey || !courier.pixKeyType) {
-      throw new BadRequestException(
-        'Cadastre uma chave PIX antes de solicitar saque',
-      );
+      await this.prisma.courierProfile.update({
+        where: { id: courier.id }, data: { pixKey: pix.key, pixKeyType: pix.type },
+      });
     }
-
-    const pixKey = courier.pixKey;
-    const pixKeyType = courier.pixKeyType;
+    const pixKey = pix.key;
+    const pixKeyType = pix.type;
     const withdrawalId = randomUUID();
 
     const withdrawal = await this.prisma.$transaction(async (tx) => {
@@ -342,6 +346,7 @@ export class WalletService {
     }
 
     const updated = await this.prisma.$transaction(async (tx) => {
+      await (tx as any).$queryRawUnsafe('SELECT "id" FROM "Withdrawal" WHERE "id" = $1 FOR UPDATE', id);
       const current = await tx.withdrawal.findUnique({
         where: { id },
       });
@@ -351,6 +356,9 @@ export class WalletService {
         if (current.status === status) return current;
         throw new ConflictException('Este saque já foi encerrado');
       }
+
+      if (current.status === status) return current;
+      if (status === 'PAID' && current.status !== 'PROCESSING') throw new BadRequestException('Coloque o saque em processamento antes de confirmar o pagamento.');
 
       const row = await tx.withdrawal.update({
         where: { id },

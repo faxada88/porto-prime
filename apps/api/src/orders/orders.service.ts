@@ -316,13 +316,14 @@ export class OrdersService {
       throw new BadRequestException('Longitude inválida');
     }
 
-    const previousDevice = await (this.prisma as any)
-      .courierDevicePresence.findUnique({
-        where: { sessionId: session.id },
-      });
-
     const onlineRequested =
-      body.online ?? previousDevice?.onlineRequested ?? false;
+      body.online ?? profile.isOnline;
+
+    if (body.online !== undefined) {
+      await (this.prisma as any).courierDevicePresence.updateMany({
+        where: { courierId: profile.id }, data: { onlineRequested: body.online },
+      });
+    }
 
     await (this.prisma as any).courierDevicePresence.upsert({
       where: { sessionId: session.id },
@@ -355,7 +356,7 @@ export class OrdersService {
         Math.max(20, Number(cfg.heartbeatTimeoutSeconds || 45)) * 1000,
     );
 
-    const [activeDelivery, pendingOffer, activeDevices, locationDevice] =
+    const [activeDelivery, pendingOffer, locationDevice] =
       await Promise.all([
         this.prisma.order.findFirst({
           where: {
@@ -374,14 +375,6 @@ export class OrdersService {
           },
           select: { id: true },
         }),
-        (this.prisma as any).courierDevicePresence.findMany({
-          where: {
-            courierId: profile.id,
-            onlineRequested: true,
-            lastHeartbeatAt: { gte: cutoff },
-          },
-          select: { id: true, lastHeartbeatAt: true },
-        }),
         (this.prisma as any).courierDevicePresence.findFirst({
           where: {
             courierId: profile.id,
@@ -398,7 +391,7 @@ export class OrdersService {
         }),
       ]);
 
-    const hasOnlineDevice = activeDevices.length > 0;
+    const hasOnlineDevice = body.online ?? profile.isOnline;
     const presenceStatus = activeDelivery
       ? 'DELIVERING'
       : pendingOffer
@@ -411,9 +404,7 @@ export class OrdersService {
       where: { id: profile.id },
       data: {
         presenceStatus,
-        isOnline:
-          presenceStatus === 'AVAILABLE' ||
-          presenceStatus === 'OFFERED',
+        ...(body.online !== undefined ? { isOnline: body.online } : {}),
         lastHeartbeatAt: hasOnlineDevice ? now : profile.lastHeartbeatAt,
         availableSince:
           presenceStatus === 'AVAILABLE'
@@ -633,9 +624,8 @@ export class OrdersService {
         await (tx as any).courierProfile.update({
           where: { id: profile.id },
           data: {
-            presenceStatus: 'AVAILABLE',
-            isOnline: true,
-            availableSince: new Date(),
+            presenceStatus: profile.isOnline ? 'AVAILABLE' : 'OFFLINE',
+            availableSince: profile.isOnline ? new Date() : null,
             lastHeartbeatAt: new Date(),
           },
         });
@@ -644,7 +634,6 @@ export class OrdersService {
           where: { id: profile.id },
           data: {
             presenceStatus: 'DELIVERING',
-            isOnline: false,
             lastHeartbeatAt: new Date(),
           },
         });
