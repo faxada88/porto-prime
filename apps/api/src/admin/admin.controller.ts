@@ -20,6 +20,16 @@ export class AdminController {
     return this.adminService.couriers(authorization);
   }
 
+  @Get('couriers/:id/finance')
+  courierFinance(@Param('id') id: string, @Headers('authorization') authorization?: string) {
+    return this.adminService.courierFinance(id, authorization);
+  }
+
+  @Patch('couriers/:id/profile')
+  editCourier(@Param('id') id: string, @Body() body: Record<string, unknown>, @Headers('authorization') authorization?: string) {
+    return this.adminService.editCourier(id, body, authorization);
+  }
+
   @Get('orders')
   orders(@Headers('authorization') authorization?: string) {
     return this.adminService.orders(authorization);

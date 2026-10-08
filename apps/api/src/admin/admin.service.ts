@@ -14,6 +14,8 @@ import {
 import { AuthService } from '../auth/auth.service.js';
 import { DispatchService } from '../dispatch/dispatch.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { normalizePix } from '../wallet/pix-key.js';
+import { RealtimeGateway } from '../realtime/realtime.gateway.js';
 import { WalletService } from '../wallet/wallet.service.js';
 
 @Injectable()
@@ -23,6 +25,7 @@ export class AdminService {
     private readonly auth: AuthService,
     private readonly dispatch: DispatchService,
     private readonly wallet: WalletService,
+    private readonly realtime: RealtimeGateway,
   ) {}
 
   private async requireAdmin(authorization?: string) {
@@ -100,6 +103,71 @@ export class AdminService {
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async courierFinance(id: string, authorization?: string) {
+    await this.requireAdmin(authorization);
+    const profile = await this.prisma.courierProfile.findUnique({ where: { id } });
+    if (!profile) throw new NotFoundException('Motoboy não encontrado');
+    const [credits, available, deliveries, withdrawals] = await Promise.all([
+      this.prisma.courierLedgerEntry.aggregate({ where: { courierId: id, type: 'DELIVERY_CREDIT' }, _sum: { amount: true } }),
+      this.prisma.courierLedgerEntry.aggregate({ where: { courierId: id, availableAt: { lte: new Date() } }, _sum: { amount: true } }),
+      this.prisma.order.count({ where: { courierId: id, status: 'DELIVERED' } }),
+      this.prisma.withdrawal.findMany({ where: { courierId: id }, orderBy: { requestedAt: 'desc' } }),
+    ]);
+    const paid = withdrawals.filter(w => w.status === 'PAID');
+    return { earningsTotal: Number(credits._sum.amount || 0), availableBalance: Number(available._sum.amount || 0), deliveries, paidWithdrawalCount: paid.length, paidWithdrawalTotal: paid.reduce((sum, w) => sum + Number(w.amount), 0), pendingWithdrawalTotal: withdrawals.filter(w => ['PENDING','PROCESSING'].includes(w.status)).reduce((sum,w) => sum + Number(w.amount),0), withdrawals };
+  }
+
+  async editCourier(id: string, body: Record<string, unknown>, authorization?: string) {
+    await this.requireAdmin(authorization);
+    const allowed = ['name','email','phone','birthDate','cnh','cnhCategory','cnhExpiry','vehicleType','vehicleBrand','vehicleModel','vehicleYear','vehiclePlate','postalCode','cep','street','number','complement','neighborhood','city','state','pixKey','pixKeyType'];
+    if (Object.keys(body).some(k => !allowed.includes(k))) throw new BadRequestException('Campo não permitido para edição');
+    const input: Record<string, any> = {};
+    for (const [key,value] of Object.entries(body)) {
+      if (typeof value !== 'string' && typeof value !== 'number') throw new BadRequestException('Dados de cadastro inválidos');
+      input[key] = String(value).trim();
+      if (input[key].length > 250) throw new BadRequestException('Campo muito longo');
+    }
+    if ('name' in input && input.name.length < 2) throw new BadRequestException('Informe o nome completo');
+    if ('email' in input) { input.email = input.email.toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(input.email)) throw new BadRequestException('E-mail inválido'); }
+    if ('phone' in input && !/^\+?[\d ()-]{10,20}$/.test(input.phone)) throw new BadRequestException('Telefone inválido');
+    if ('vehicleYear' in input && input.vehicleYear && (!/^\d{4}$/.test(input.vehicleYear) || Number(input.vehicleYear) < 1950 || Number(input.vehicleYear) > new Date().getFullYear()+1)) throw new BadRequestException('Ano do veículo inválido');
+    if ('cnhCategory' in input && input.cnhCategory && !['A','B','AB','C','D','E','AC','AD','AE'].includes(input.cnhCategory.toUpperCase())) throw new BadRequestException('Categoria de CNH inválida');
+    for (const key of ['birthDate','cnhExpiry']) if (input[key]) {
+      const raw = input[key];
+      const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw) || /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(raw);
+      if (!parts) throw new BadRequestException('Informe uma data válida');
+      const iso = raw.includes('/') ? `${parts[3]}-${parts[2]}-${parts[1]}` : raw;
+      const date = new Date(iso + 'T00:00:00Z');
+      if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0,10) !== iso) throw new BadRequestException('Informe uma data válida');
+      if (key === 'birthDate' && date > new Date()) throw new BadRequestException('Data de nascimento inválida');
+    }
+    let userId: string;
+    try {
+      userId = await this.prisma.$transaction(async tx => {
+        await tx.$queryRawUnsafe('SELECT "id" FROM "CourierProfile" WHERE "id" = $1 FOR UPDATE', id);
+        const current = await tx.courierProfile.findUnique({ where: { id } });
+        if (!current) throw new NotFoundException('Motoboy não encontrado');
+        const profileData: any = { onboardingData: { ...(current.onboardingData as any || {}), ...input } };
+        for (const k of ['cnh','cnhCategory','vehicleBrand','vehicleModel','vehiclePlate']) if (k in input) profileData[k] = input[k] || null;
+        if ('vehicleYear' in input) profileData.vehicleYear = input.vehicleYear ? Number(input.vehicleYear) : null;
+        if ('pixKey' in input || 'pixKeyType' in input) {
+          const pix = normalizePix(input.pixKey ?? current.pixKey, input.pixKeyType ?? current.pixKeyType);
+          if (!pix) throw new BadRequestException('Informe uma chave PIX válida');
+          profileData.pixKey = pix.key; profileData.pixKeyType = pix.type;
+          profileData.onboardingData.pixKey = pix.key; profileData.onboardingData.pixKeyType = pix.type;
+        }
+        const userData: any = {};
+        for (const k of ['name','email','phone']) if (k in input) userData[k] = input[k];
+        if (Object.keys(userData).length) await tx.user.update({ where: { id: current.userId }, data: userData });
+        await tx.courierProfile.update({ where: { id }, data: profileData });
+        return current.userId;
+      });
+    } catch (e: any) { if (e.code === 'P2002') throw new BadRequestException('Este e-mail já está cadastrado'); throw e; }
+    this.realtime.emitToUser(userId, 'courier.profile.updated', { courierId: id });
+    this.realtime.emitToRole('ADMIN', 'courier.profile.updated', { courierId: id });
+    return { updated: true };
   }
 
   async orders(authorization?: string) {

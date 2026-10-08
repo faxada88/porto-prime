@@ -44,6 +44,9 @@ export class CouriersService {
     return {
       id: profile.id,
       name: profile.user.name,
+      onboardingData: profile.onboardingData,
+      pixKey: profile.pixKey,
+      pixKeyType: profile.pixKeyType,
       document: profile.document,
       approvalStatus: profile.approvalStatus,
       cnh: profile.cnh,

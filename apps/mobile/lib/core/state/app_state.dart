@@ -124,6 +124,13 @@ class AppState extends ChangeNotifier {
       return;
     }
 
+    if (isCourier && event == 'courier.profile.updated') {
+      Future<void>(() async {
+        try { user=Map<String,dynamic>.from(await api.request('GET','/auth/me')); await refreshCourier(); await loadWallet(); notifyListeners(); } catch (_) {}
+      });
+      return;
+    }
+
     if (isCourier && event == 'wallet.updated') {
       Future<void>(() async {
         try {
