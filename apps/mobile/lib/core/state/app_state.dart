@@ -84,7 +84,26 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  int deliveryPricingEpoch = 0;
+  int _quoteGeneration = 0;
+
   void _handleRealtimeEvent(String event, dynamic payload) {
+    if (event == 'delivery.pricing.updated') {
+      _quoteGeneration++;
+      deliveryQuote={};
+      deliveryPricingEpoch++;
+      notifyListeners();
+      if(isCustomer)loadAddresses().catchError((_) {});
+      return;
+    }
+    if (event == 'addresses.updated' && isCustomer) {
+      deliveryPricingEpoch++;
+      deliveryQuote={};
+      _quoteGeneration++;
+      notifyListeners();
+      loadAddresses().catchError((_) {});
+      return;
+    }
     if (event == 'store.updated') {
       if (payload is Map && payload['storeOpen'] is bool) _applyStore(Map<String,dynamic>.from(payload));
       loadStore().catchError((_) {});
@@ -418,7 +437,7 @@ class AppState extends ChangeNotifier {
         orElse:()=>addresses.first,
       );
       try{
-        deliveryQuote=await quoteDelivery(selected['id'].toString());
+        await quoteDelivery(selected['id'].toString());
       }catch(_){
         deliveryQuote={};
       }
@@ -590,23 +609,23 @@ class AppState extends ChangeNotifier {
   }
 
   Future<Map<String,dynamic>> quoteDelivery(String addressId) async {
+    final generation=++_quoteGeneration;
     final query=Uri(queryParameters:{'addressId':addressId}).query;
     final quote=Map<String,dynamic>.from(
       await api.request('GET','/delivery/quote?$query'),
     );
-    deliveryQuote=quote;
-    notifyListeners();
+    if(generation==_quoteGeneration){deliveryQuote=quote;notifyListeners();}
     return quote;
   }
 
-  Future<Map<String,dynamic>> createOrder(String addressId)async{
+  Future<Map<String,dynamic>> createOrder(String addressId,{int? pricingRevision,double? expectedDeliveryFee})async{
     if(!isCustomer)throw Exception('Entre como cliente para finalizar');
     if(cart.isEmpty)throw Exception('Sua sacola está vazia');
     await loadStore();
     if(!storeOpen)throw Exception(storeMessage);
     loading=true;error=null;notifyListeners();
     try{
-      final order=Map<String,dynamic>.from(await api.request('POST','/orders',body:{'addressId':addressId,'items':cart.entries.map((e)=>{'productId':e.key,'quantity':e.value}).toList()}));
+      final order=Map<String,dynamic>.from(await api.request('POST','/orders',body:{'addressId':addressId,if(pricingRevision!=null)'pricingRevision':pricingRevision,if(expectedDeliveryFee!=null)'expectedDeliveryFee':expectedDeliveryFee,'items':cart.entries.map((e)=>{'productId':e.key,'quantity':e.value}).toList()}));
       await Future.wait([loadOrders(),loadActiveOrder()]);return order;
     }catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}
   }

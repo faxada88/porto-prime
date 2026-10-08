@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsInt, IsNotEmpty, IsString, Min, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsArray, IsInt, IsNotEmpty, IsOptional, IsNumber, IsString, Min, ValidateNested } from 'class-validator';
 
 export class CreateOrderItemDto {
   @IsString()
@@ -13,6 +13,8 @@ export class CreateOrderItemDto {
 }
 
 export class CreateOrderDto {
+  @IsOptional() @IsInt() @Min(1) pricingRevision?: number;
+  @IsOptional() @IsNumber() @Min(0) expectedDeliveryFee?: number;
   @IsString()
   @IsNotEmpty()
   addressId!: string;

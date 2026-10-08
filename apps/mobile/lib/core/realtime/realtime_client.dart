@@ -13,7 +13,7 @@ class RealtimeClient {
     final socket=io.io('${ApiClient.instance.realtimeUrl}/catalog',
       io.OptionBuilder().setTransports(['websocket']).disableAutoConnect()
         .enableReconnection().setReconnectionDelay(1200).build());
-    for(final event in ['catalog.updated','store.updated']) {
+    for(final event in ['catalog.updated','store.updated','delivery.pricing.updated']) {
       socket.on(event,(payload)=>onEvent?.call(event,payload));
     }
     socket.onConnect((_)=>onEvent?.call('catalog.updated',null));
@@ -63,6 +63,8 @@ class RealtimeClient {
       'courier.profile.updated',
       'catalog.updated',
       'store.updated',
+      'delivery.pricing.updated',
+      'addresses.updated',
     ];
 
     for (final event in events) {

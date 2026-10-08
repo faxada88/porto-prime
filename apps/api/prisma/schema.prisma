@@ -228,6 +228,7 @@ model PartnerProfile {
 }
 
 model Address {
+  locationConfirmed Boolean @default(false)
   id     String @id @default(cuid())
   userId String
 
@@ -506,6 +507,7 @@ model PasswordResetToken {
 }
 
 model DeliveryPricingConfig {
+  pricingRevision Int @default(1)
   id String @id @default("default")
 
   distributorName      String  @default("Porto Prime Delivery")
@@ -513,11 +515,11 @@ model DeliveryPricingConfig {
   distributorLatitude  Decimal? @db.Decimal(10, 7)
   distributorLongitude Decimal? @db.Decimal(10, 7)
 
-  baseFee              Decimal @default(5.90) @db.Decimal(10, 2)
+  baseFee              Decimal @default(5.50) @db.Decimal(10, 2)
   includedKm           Decimal @default(3.00) @db.Decimal(10, 2)
-  pricePerAdditionalKm Decimal @default(2.00) @db.Decimal(10, 2)
+  pricePerAdditionalKm Decimal @default(2.50) @db.Decimal(10, 2)
   maxDistanceKm        Decimal @default(25.00) @db.Decimal(10, 2)
-  minDeliveryFee       Decimal @default(5.90) @db.Decimal(10, 2)
+  minDeliveryFee       Decimal @default(5.50) @db.Decimal(10, 2)
   maxDeliveryFee       Decimal @default(80.00) @db.Decimal(10, 2)
   offerTimeoutSeconds  Int     @default(30)
   heartbeatTimeoutSeconds Int  @default(45)

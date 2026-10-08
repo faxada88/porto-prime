@@ -79,6 +79,9 @@ export class OrdersService {
     if (!address) throw new NotFoundException('Endereço não encontrado');
 
     const quote = await this.pricing.quoteForAddress(address);
+    if ((data.pricingRevision !== undefined && data.pricingRevision !== quote.pricingRevision) || (data.expectedDeliveryFee !== undefined && Math.abs(data.expectedDeliveryFee - quote.deliveryFee) > 0.001)) {
+      throw new BadRequestException('Os valores de entrega foram atualizados. Confirme a entrega novamente antes de pagar');
+    }
 
     const ids = [...new Set(data.items.map((item) => item.productId))];
     const products = await this.prisma.product.findMany({

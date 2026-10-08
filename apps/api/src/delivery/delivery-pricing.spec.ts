@@ -1,0 +1,33 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+vi.mock('../prisma/prisma.service.js',()=>({PrismaService:class{}}));
+vi.mock('../auth/auth.service.js',()=>({AuthService:class{}}));
+vi.mock('../realtime/realtime.gateway.js',()=>({RealtimeGateway:class{}}));
+import { DeliveryPricingService } from './delivery-pricing.service.js';
+const address:any={id:'a',street:'Rua Teste',number:'10',neighborhood:'Centro',city:'Porto Seguro',state:'BA',postalCode:'45810000',locationConfirmed:true,latitude:-16.45,longitude:-39.065};
+function fixture(role='ADMIN',overrides:any={}) {
+ const config:any={baseFee:5.5,includedKm:3,pricePerAdditionalKm:2.5,minDeliveryFee:20,maxDeliveryFee:6,maxDistanceKm:25,distributorLatitude:-16.449,distributorLongitude:-39.064,pricingRevision:1,...overrides};
+ const db:any={deliveryPricingConfig:{upsert:vi.fn(async()=>config),update:vi.fn(async({data}:any)=>{const{pricingRevision,...rest}=data;Object.assign(config,rest);config.pricingRevision++;return config})},address:{findFirst:vi.fn(async()=>address)}};
+ const events:any={emitCatalogUpdated:vi.fn()};const service=new DeliveryPricingService(db,{authenticate:async()=>({id:'customer',role})}as any,events);
+ return{service,db,config,events};
+}
+function route(meters:number) {return vi.spyOn(globalThis,'fetch').mockResolvedValue({ok:true,json:async()=>({code:'Ok',routes:[{distance:meters,duration:600}]})}as Response)}
+afterEach(()=>vi.restoreAllMocks());
+describe('Tarifa proporcional pela rota viária',()=>{
+ it.each([[0,5.5],[2999,5.5],[3000,5.5],[3001,5.5],[3250,6.13],[4000,8],[5000,10.5],[8000,18]])('cobra corretamente para %s metros',async(meters,expected)=>{route(meters);const f=fixture();const q=await f.service.quoteForAddress(address);expect(q.deliveryFee).toBe(expected);expect(q.courierSharePercent).toBe(100);expect(q.pricingMode).toBe('ROAD_ROUTE')});
+ it('aplica os novos preços a uma rota em cache sem consultar novamente',async()=>{const fetch=route(5000);const f=fixture();await f.service.quoteForAddress(address);await f.service.updateAdminConfig({baseFee:6,includedKm:4,pricePerAdditionalKm:3});expect((await f.service.quoteForAddress(address)).deliveryFee).toBe(9);expect(fetch).toHaveBeenCalledTimes(1);expect(f.events.emitCatalogUpdated).toHaveBeenCalledWith('delivery.pricing.updated');expect(f.config.platformCommissionPercent).toBe(0)});
+ it('deduplica consultas simultâneas de uma mesma rota',async()=>{const fetch=route(5000);const f=fixture();await Promise.all([f.service.quoteForAddress(address),f.service.quoteForAddress(address)]);expect(fetch).toHaveBeenCalledTimes(1)});
+ it('não cobra taxa fictícia sem configurar a base',async()=>{const fetch=route(5000);const f=fixture('ADMIN',{distributorLatitude:null});await expect(f.service.quoteForAddress(address)).rejects.toThrow('ponto de retirada');expect(fetch).not.toHaveBeenCalled()});
+ it('exige confirmação do ponto de entrega',async()=>{route(5000);const f=fixture();await expect(f.service.quoteForAddress({...address,locationConfirmed:false})).rejects.toThrow('confirme');await expect(f.service.quoteForAddress({...address,latitude:99})).rejects.toThrow('confirme')});
+ it('recusa resposta inválida ou negativa do roteador',async()=>{route(-1);await expect(fixture().service.quoteForAddress(address)).rejects.toThrow('rota viária')});
+ it('mantém o limite da área atendida e falha sem rota',async()=>{route(26000);await expect(fixture().service.quoteForAddress(address)).rejects.toThrow('fora da área')});
+ it.each([null,'',-1,0,Infinity,NaN,2.555,true,[]])('recusa taxa inicial inválida %s',async value=>{const f=fixture();await expect(f.service.updateAdminConfig({baseFee:value})).rejects.toThrow();expect(f.db.deliveryPricingConfig.update).not.toHaveBeenCalled();expect(f.events.emitCatalogUpdated).not.toHaveBeenCalled()});
+ it('não expõe endereço de outro cliente',async()=>{const f=fixture('CUSTOMER');f.db.address.findFirst.mockResolvedValue(null);await expect(f.service.customerQuote('another')).rejects.toThrow('não encontrado');expect(f.db.address.findFirst).toHaveBeenCalledWith({where:{id:'another',userId:'customer'}})});
+ it('impede alteração de preço por cliente',async()=>{const f=fixture('CUSTOMER');await expect(f.service.updateAdminConfig({baseFee:1})).rejects.toThrow('administrador');expect(f.db.deliveryPricingConfig.update).not.toHaveBeenCalled()});
+ it('preserva o despacho e ignora comissões enviadas',async()=>{const f=fixture();await f.service.updateAdminConfig({offerTimeoutSeconds:10,heartbeatTimeoutSeconds:600,platformCommissionPercent:20,maxDeliveryFee:1});expect(f.db.deliveryPricingConfig.update.mock.calls[0][0].data).toEqual({platformCommissionPercent:0,pricingRevision:{increment:1}})});
+ it('não publica eventos quando a persistência falha',async()=>{const f=fixture();f.db.deliveryPricingConfig.update.mockRejectedValue(new Error('db'));await expect(f.service.updateAdminConfig({baseFee:6})).rejects.toThrow();expect(f.events.emitCatalogUpdated).not.toHaveBeenCalled()});
+ it('usa somente o roteador local e não faz geocodificação pública',async()=>{const fetch=route(5000);await fixture().service.quoteForAddress(address);expect(String(fetch.mock.calls[0][0])).toContain('127.0.0.1:5000/route/v1/driving');expect(String(fetch.mock.calls[0][0])).toContain('radiuses=100%3B100')});
+ it('valida o par de coordenadas da distribuidora',async()=>{const f=fixture();for(const body of [{distributorLatitude:-16},{distributorLatitude:91,distributorLongitude:0},{distributorLatitude:true,distributorLongitude:0}])await expect(f.service.updateAdminConfig(body)).rejects.toThrow('mapa');expect(f.db.deliveryPricingConfig.update).not.toHaveBeenCalled()});
+ it('busca ruas nos dados locais e exige confirmação da entrada',async()=>{const f=fixture('CUSTOMER');(f.service as any).streets=[{street:'Avenida dos Navegantes',number:'',city:'Porto Seguro',latitude:-16.45,longitude:-39.06},{street:'Avenida dos Navegantes',number:'10',city:'Porto Seguro',latitude:-16.46,longitude:-39.07},{street:'Avenida dos Navegantes',number:'11',city:'Outra Cidade',latitude:0,longitude:0}];const r=await f.service.locate({street:'Av dos Navegantes',number:'10',city:'Porto Seguro'});expect(r.requiresConfirmation).toBe(true);expect(r.results).toHaveLength(2);expect(r.results![0].number).toBe('10')});
+ it('restringe busca de ruas a cliente ou administrador',async()=>{await expect(fixture('COURIER').service.locate({street:'Rua Teste'})).rejects.toThrow('permitido')});
+
+});

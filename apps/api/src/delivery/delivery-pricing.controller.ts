@@ -4,6 +4,7 @@ import {
   Get,
   Headers,
   Patch,
+  Post,
   Query,
 } from '@nestjs/common';
 import { DeliveryPricingService } from './delivery-pricing.service.js';
@@ -11,6 +12,11 @@ import { DeliveryPricingService } from './delivery-pricing.service.js';
 @Controller('delivery')
 export class DeliveryPricingController {
   constructor(private readonly pricing: DeliveryPricingService) {}
+
+  @Post('locate')
+  locate(@Body() body: Record<string, unknown>, @Headers('authorization') authorization?: string) {
+    return this.pricing.locate(body, authorization);
+  }
 
   @Get('quote')
   quote(
