@@ -193,12 +193,32 @@ export class AdminService {
     await this.requireAdmin(authorization);
     return this.prisma.user.findMany({
       include: {
+        customerProfile: true,
         courierProfile: true,
         partnerProfile: true,
         _count: { select: { orders: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async customerActivity(id: string, pageRaw: number = 1, authorization?: string) {
+    await this.requireAdmin(authorization);
+    const page = Number.isFinite(pageRaw) ? Math.max(1,Math.floor(pageRaw)) : 1;
+    const user = await this.prisma.user.findUnique({ where:{id},select:{id:true,name:true,email:true,phone:true,status:true,role:true,createdAt:true,updatedAt:true,customerProfile:true} });
+    if(!user || user.role !== UserRole.CUSTOMER) throw new NotFoundException('Cliente não encontrado');
+    const now = new Date();
+    const [orders,totalOrders,paid,delivered,active,addresses,sessions] = await Promise.all([
+      this.prisma.order.findMany({where:{customerId:id},include:{items:true,address:true,courier:{select:{vehicleBrand:true,vehicleModel:true,vehiclePlate:true,user:{select:{name:true,phone:true}}}}},orderBy:[{createdAt:'desc'},{id:'desc'}],take:20,skip:(page-1)*20}),
+      this.prisma.order.count({where:{customerId:id}}),
+      this.prisma.order.aggregate({where:{customerId:id,paymentStatus:PaymentStatus.PAID},_sum:{total:true},_count:true}),
+      this.prisma.order.count({where:{customerId:id,status:OrderStatus.DELIVERED}}),
+      this.prisma.order.count({where:{customerId:id,status:{notIn:[OrderStatus.DELIVERED,OrderStatus.CANCELED]}}}),
+      this.prisma.address.findMany({where:{userId:id},orderBy:[{isDefault:'desc'},{createdAt:'desc'}]}),
+      this.prisma.authSession.findMany({where:{userId:id,revokedAt:null,OR:[{expiresAt:{gt:now}},{refreshExpiresAt:{gt:now}}]},select:{deviceName:true,lastSeenAt:true,createdAt:true},orderBy:{lastSeenAt:'desc'},take:20}),
+    ]);
+    const clean=(value:any):any=>Array.isArray(value)?value.map(clean):value && typeof value==='object'?Object.fromEntries(Object.entries(value).filter(([k])=>!/(password|senha|token|secret)/i.test(k)).map(([k,v])=>[k,clean(v)])):value;
+    return {user:{...user,customerProfile:user.customerProfile?{...user.customerProfile,onboardingData:clean(user.customerProfile.onboardingData)}:null},summary:{totalOrders,paidOrders:paid._count,paidTotal:Number(paid._sum.total||0),delivered,active},addresses,sessions,orders:orders.map(({deliveryPin,deliveryPinAttempts,deliveryPinVerifiedAt,stripePaymentIntentId,...order}:any)=>order),page,totalPages:Math.max(1,Math.ceil(totalOrders/20))};
   }
 
   async catalog(authorization?: string) {
