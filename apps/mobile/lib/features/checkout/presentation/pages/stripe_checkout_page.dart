@@ -33,21 +33,32 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
   String? error;
   Timer? _webPaymentPoll;
   bool _finishingPayment = false;
+  bool _checkingPayment = false;
+  bool _paymentSubmitted = false;
+  DateTime? _checkStarted;
 
   @override
   void initState() {
     super.initState();
     _configure();
-    if (kIsWeb) {
-      _webPaymentPoll = Timer.periodic(
-        const Duration(seconds: 2),
-        (_) => _checkWebPayment(),
-      );
-    }
   }
 
   Future<void> _configure() async {
     try {
+      // Recover a successful previous attempt without asking the customer to pay again.
+      Map<String, dynamic>? verification;
+      try { verification = await AppState.instance.checkPaymentStatus(widget.orderId); } catch (_) {}
+      final alreadyPaid = verification?['paid'] == true;
+      if (!mounted) return;
+      if (alreadyPaid) {
+        await _finishPaidPayment();
+        return;
+      }
+
+      if (verification?['status'] == 'processing') {
+        _startPaymentCheck();
+        return;
+      }
       Stripe.publishableKey = widget.publishableKey;
       await Stripe.instance.applySettings();
 
@@ -68,16 +79,53 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
     }
   }
 
+  void _onWebPaymentState(String status) {
+    if (!mounted) return;
+    if (status == 'submitting') {
+      setState(() { paying = true; error = null; });
+    } else if (status == 'error') {
+      setState(() => paying = false);
+    } else if (status == 'succeeded' || status == 'processing') {
+      _startPaymentCheck();
+    }
+  }
+
+  void _startPaymentCheck() {
+    if (!mounted || _finishingPayment) return;
+    _webPaymentPoll?.cancel();
+    _checkStarted = DateTime.now();
+    setState(() { _paymentSubmitted = true; paying = true; error = null; });
+    _webPaymentPoll = Timer.periodic(const Duration(seconds: 3), (_) => _checkWebPayment());
+    _checkWebPayment();
+  }
+
   Future<void> _checkWebPayment() async {
-    if (!mounted || paying) return;
+    if (!mounted || _checkingPayment || _finishingPayment) return;
+    _checkingPayment = true;
     try {
       final paid = await AppState.instance.refreshPayment(widget.orderId);
-      if (paid && mounted) {
+      if (!mounted) return;
+      if (paid) {
         _webPaymentPoll?.cancel();
         await _finishPaidPayment();
+      } else if (DateTime.now().difference(_checkStarted ?? DateTime.now()).inSeconds >= 90) {
+        _webPaymentPoll?.cancel();
+        setState(() {
+          paying = false;
+          error = 'O Stripe ainda está processando o pagamento. Você pode verificar novamente sem pagar outra vez.';
+        });
       }
     } catch (_) {
-      // Keep the Stripe form usable while the webhook is still settling.
+      if (mounted) {
+        _webPaymentPoll?.cancel();
+        _finishingPayment = false;
+        setState(() {
+          paying = false;
+          error = 'Não foi possível atualizar seu pedido agora. Verifique novamente; não é necessário pagar outra vez.';
+        });
+      }
+    } finally {
+      _checkingPayment = false;
     }
   }
 
@@ -105,22 +153,12 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
     try {
       if (kIsWeb) {
         // On web the official Stripe.js Payment Element owns confirmation.
-        // Flutter polls the webhook-backed order state below.
+        // The server verifies Stripe before the order is treated as paid.
       } else {
         await Stripe.instance.presentPaymentSheet();
       }
 
-      final paid = await AppState.instance.refreshPayment(widget.orderId);
-      if (!mounted) return;
-
-      if (paid) {
-        await _finishPaidPayment();
-      } else {
-        setState(() {
-          paying = false;
-          error = 'Pagamento enviado ao Stripe. A confirmação está sendo processada.';
-        });
-      }
+      if (mounted) _startPaymentCheck();
     } on StripeException catch (e) {
       if (!mounted) return;
       final canceled = e.error.code == FailureCode.Canceled;
@@ -451,10 +489,16 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                         ),
                       ),
                       const SizedBox(height: 22),
-                      if (kIsWeb)
+                      if (_paymentSubmitted)
+                        const Text('Verificando o pagamento do seu pedido…',
+                          style: TextStyle(color: AppColors.oceanDeep, height: 1.5))
+                      else if (!ready)
+                        const PrimeSkeleton(height: 220, radius: AppRadius.md)
+                      else if (kIsWeb)
                         StripeWebElement(
                           publishableKey: widget.publishableKey,
                           clientSecret: widget.clientSecret,
+                          onPaymentState: _onWebPaymentState,
                         )
                       else
                         Container(
@@ -494,7 +538,11 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                   const SizedBox(height: 14),
                   PrimeErrorBanner(message: error!),
                 ],
-                if (!kIsWeb) ...[
+                if (_paymentSubmitted && !paying && error != null) ...[
+                  const SizedBox(height: 12),
+                  FilledButton(onPressed: _startPaymentCheck, child: const Text('Verificar pedido')),
+                ],
+                if (!kIsWeb && !_paymentSubmitted) ...[
                   const SizedBox(height: 18),
                   SizedBox(
                     height: 58,
@@ -517,7 +565,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                             )
                           : const Icon(AppIcons.lock_rounded, size: 18),
                       label: Text(
-                        paying ? 'Processando...' : 'Abrir Stripe',
+                        paying ? 'Processando…' : 'Pagar',
                         style: const TextStyle(fontWeight: AppFontWeight.display),
                       ),
                     ),

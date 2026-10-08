@@ -81,13 +81,13 @@
       return window.__portoPrimeStripePromise;
     };
 
-    window.portoPrimeStripeMount = async function(containerId, publishableKey, clientSecret, attempt) {
+    window.portoPrimeStripeMount = async function(containerId, publishableKey, clientSecret, attempt, onPaymentState) {
       attempt = attempt || 0;
       const host = document.getElementById(containerId);
       if (!host) {
         if (attempt < 100) {
           window.setTimeout(function() {
-            window.portoPrimeStripeMount(containerId, publishableKey, clientSecret, attempt + 1);
+            window.portoPrimeStripeMount(containerId, publishableKey, clientSecret, attempt + 1, onPaymentState);
           }, 50);
         }
         return;
@@ -97,7 +97,8 @@
 
       host.innerHTML = '<div id="' + containerId + '-payment"></div>' +
         '<div id="' + containerId + '-error" style="display:none;margin-top:12px;padding:13px 14px;border:1px solid #f2d0c8;border-radius:16px;background:#ffeae4;color:#4f2a23;font:650 13px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;line-height:1.45"></div>' +
-        '<button id="' + containerId + '-pay" type="button" style="width:100%;height:56px;margin-top:18px;border:0;border-radius:18px;background:#0c4e47;color:white;font:800 15px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;cursor:pointer;box-shadow:0 14px 34px rgba(10,49,45,.16)">Pagar com Stripe</button>' +
+        '<button id="' + containerId + '-pay" type="button" disabled style="width:100%;height:56px;margin-top:18px;border:0;border-radius:18px;background:#0c4e47;color:white;font:800 15px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;cursor:pointer;box-shadow:0 14px 34px rgba(10,49,45,.16)">Pagar</button>' +
+        '<div id="' + containerId + '-status" role="status" aria-live="polite" style="display:none;margin-top:16px;color:#0c4e47;font:600 14px system-ui;line-height:1.5"></div>' +
         '<div style="margin-top:12px;text-align:center;color:#697773;font:650 11px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">Pagamento criptografado e processado pelo Stripe</div>';
 
       try {
@@ -144,27 +145,40 @@
           errorBox.textContent = (event && event.error && event.error.message) || 'Não foi possível carregar o formulário do Stripe.';
         });
 
+        button.disabled = true;
+        paymentElement.on('ready', function() { button.disabled = false; });
         button.addEventListener('click', async function() {
+          if (button.disabled) return;
           button.disabled = true;
-          button.textContent = 'Processando pagamento...';
+          button.textContent = 'Processando…';
           errorBox.style.display = 'none';
-
-          const result = await stripe.confirmPayment({
-            elements: elements,
-            redirect: 'if_required',
-            confirmParams: { return_url: window.location.href }
-          });
-
-          if (result.error) {
+          if (onPaymentState) onPaymentState('submitting');
+          try {
+            const result = await stripe.confirmPayment({
+              elements: elements,
+              redirect: 'if_required',
+              confirmParams: { return_url: window.location.href }
+            });
+            if (result.error) throw new Error(result.error.message || 'Não foi possível concluir o pagamento.');
+            const status = result.paymentIntent && result.paymentIntent.status;
+            if (status !== 'succeeded' && status !== 'processing') {
+              throw new Error('O pagamento ainda não foi concluído. Confira os dados e tente novamente.');
+            }
+            // A Stripe response triggers server verification; it never marks an order paid locally.
+            button.hidden = true;
+            const statusBox = document.getElementById(containerId + '-status');
+            statusBox.style.display = 'block';
+            statusBox.textContent = status === 'processing'
+                ? 'Pagamento em processamento. Estamos verificando seu pedido.'
+                : 'Verificando pagamento e atualizando seu pedido…';
+            if (onPaymentState) onPaymentState(status);
+          } catch (error) {
             errorBox.style.display = 'block';
-            errorBox.textContent = result.error.message || 'Não foi possível concluir o pagamento.';
+            errorBox.textContent = error && error.message ? error.message : 'Não foi possível concluir o pagamento.';
             button.disabled = false;
-            button.textContent = 'Pagar com Stripe';
-            return;
+            button.textContent = 'Pagar';
+            if (onPaymentState) onPaymentState('error');
           }
-
-          button.textContent = 'Pagamento confirmado';
-          window.dispatchEvent(new CustomEvent('porto-prime-stripe-paid'));
         });
       } catch (error) {
         const errorBox = document.getElementById(containerId + '-error');

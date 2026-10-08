@@ -565,12 +565,17 @@ class AppState extends ChangeNotifier {
     }catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}
   }
 
-  Future<bool> refreshPayment(String orderId)async{
-    for(var i=0;i<10;i++){
-      await Future.wait([loadOrders(),loadActiveOrder()]);
-      for(final o in orders){if(o['id'].toString()==orderId&&o['paymentStatus']=='PAID')return true;}
-      await Future<void>.delayed(const Duration(milliseconds:900));
-    }
-    return false;
+  Future<Map<String, dynamic>> checkPaymentStatus(String orderId) async {
+    return Map<String, dynamic>.from(await api.request(
+      'POST', '/payments/reconcile', body: {'orderId': orderId},
+      timeout: const Duration(seconds: 20),
+    ));
+  }
+
+  Future<bool> refreshPayment(String orderId) async {
+    final result = await checkPaymentStatus(orderId);
+    if (result['paid'] != true) return false;
+    await Future.wait([loadOrders(), loadActiveOrder()]);
+    return orders.any((o) => o['id'].toString() == orderId && o['paymentStatus'] == 'PAID');
   }
 }

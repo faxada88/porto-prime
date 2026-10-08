@@ -11,19 +11,22 @@ import 'package:web/web.dart' as web;
 external void _mountStripe(
   String containerId,
   String publishableKey,
-  String clientSecret, [
-  int attempt = 0,
-]);
+  String clientSecret,
+  int attempt,
+  JSFunction onPaymentState,
+);
 
 class StripeWebElement extends StatefulWidget {
   const StripeWebElement({
     super.key,
     required this.publishableKey,
     required this.clientSecret,
+    required this.onPaymentState,
   });
 
   final String publishableKey;
   final String clientSecret;
+  final ValueChanged<String> onPaymentState;
 
   @override
   State<StripeWebElement> createState() => _StripeWebElementState();
@@ -50,11 +53,15 @@ class _StripeWebElementState extends State<StripeWebElement> {
         ..style.boxSizing = 'border-box';
 
       Future<void>.delayed(Duration.zero, () {
+        if (!mounted) return;
         _mountStripe(
           _containerId,
           widget.publishableKey,
           widget.clientSecret,
           0,
+          ((JSString status) {
+            if (mounted) widget.onPaymentState(status.toDart);
+          }).toJS,
         );
       });
 

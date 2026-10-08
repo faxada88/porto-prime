@@ -2,6 +2,7 @@ import { Body, Controller, Headers, Post, Req } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
 import { CreateCheckoutDto } from './dto/create-checkout.dto.js';
+import { ReconcilePaymentDto } from './dto/reconcile-payment.dto.js';
 import { PaymentsService } from './payments.service.js';
 
 @Controller('payments')
@@ -14,6 +15,11 @@ export class PaymentsController {
     @Headers('authorization') authorization?: string,
   ) {
     return this.payments.createCheckout(body, authorization);
+  }
+
+  @Post('reconcile')
+  reconcile(@Body() body: ReconcilePaymentDto, @Headers('authorization') authorization?: string) {
+    return this.payments.reconcile(body.orderId, authorization);
   }
 
   @Post('webhook')
