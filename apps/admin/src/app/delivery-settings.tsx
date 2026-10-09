@@ -1,20 +1,10 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { Bike, Check, MapPin, Minus, Plus, Save, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bike, Check, MapPin, Save } from "lucide-react";
+import OriginMap from "./origin-map";
 import { displayMessage } from "./ui-messages";
 type Row = Record<string, any>;
 const money = (n:number) => n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-const project = (lat:number,lng:number,z:number) => { const n=256*2**z, s=Math.sin(lat*Math.PI/180); return {x:(lng+180)/360*n,y:(.5-Math.log((1+s)/(1-s))/(4*Math.PI))*n}; };
-const unproject=(x:number,y:number,z:number)=>({lng:x/(256*2**z)*360-180,lat:Math.atan(Math.sinh(Math.PI*(1-2*y/(256*2**z))))*180/Math.PI});
-export function OriginMap({lat,lng,onChange}:{lat:number|null,lng:number|null,onChange:(lat:number,lng:number)=>void}) {
- const [view,setView]=useState({lat:lat??-16.449,lng:lng??-39.064,z:16}); const ref=useRef<HTMLDivElement>(null); const [width,setWidth]=useState(600);
- useEffect(()=>{if(!ref.current)return;const r=new ResizeObserver(e=>setWidth(e[0].contentRect.width));r.observe(ref.current);return()=>r.disconnect()},[]);
- useEffect(()=>{if(lat!==null&&lng!==null)setView(v=>({...v,lat,lng}))},[lat,lng]);
- const p=project(view.lat,view.lng,view.z), marker=lat!==null&&lng!==null?project(lat,lng,view.z):null;
- const move=(dx:number,dy:number)=>setView(v=>({...v,...unproject(p.x+dx,p.y+dy,v.z)}));
- const tiles=[];for(let x=Math.floor((p.x-width/2)/256);x<=Math.floor((p.x+width/2)/256);x++)for(let y=Math.floor((p.y-160)/256);y<=Math.floor((p.y+160)/256);y++)tiles.push(<img key={`${view.z}/${x}/${y}`} alt="" draggable={false} src={(process.env.NEXT_PUBLIC_MAP_TILE_URL||"https://tile.openstreetmap.org/{z}/{x}/{y}.png").replace("{z}",String(view.z)).replace("{x}",String(x)).replace("{y}",String(y))} style={{left:x*256-p.x+width/2,top:y*256-p.y+160}}/>);
- return <><div className="deliveryMap" ref={ref} role="group" aria-label="Mapa da distribuidora. Clique para selecionar o local." onClick={e=>{const r=e.currentTarget.getBoundingClientRect();const q=unproject(p.x+e.clientX-r.left-width/2,p.y+e.clientY-r.top-160,view.z);onChange(q.lat,q.lng)}}>{tiles}{marker&&<span className="deliveryMapPin" style={{left:marker.x-p.x+width/2,top:marker.y-p.y+160}}><MapPin size={32}/></span>}<a className="deliveryAttribution" onClick={e=>e.stopPropagation()} href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a></div><div className="deliveryMapTools"><span>Selecione o ponto exato de retirada.</span><button type="button" onClick={()=>onChange(view.lat,view.lng)}>Confirmar centro</button><button type="button" aria-label="Mover oeste" onClick={()=>move(-150,0)}><ArrowLeft size={16}/></button><button type="button" aria-label="Mover norte" onClick={()=>move(0,-150)}><ArrowUp size={16}/></button><button type="button" aria-label="Mover sul" onClick={()=>move(0,150)}><ArrowDown size={16}/></button><button type="button" aria-label="Mover leste" onClick={()=>move(150,0)}><ArrowRight size={16}/></button><button type="button" aria-label="Diminuir zoom" onClick={()=>setView(v=>({...v,z:Math.max(10,v.z-1)}))}><Minus size={16}/></button><button type="button" aria-label="Aumentar zoom" onClick={()=>setView(v=>({...v,z:Math.min(19,v.z+1)}))}><Plus size={16}/></button></div></>;
-}
 export default function DeliverySettings({pricing,act}:{pricing:Row,act:any}) {
  const [form,setForm]=useState<Row>(pricing||{}), [dirty,setDirty]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[success,setSuccess]=useState(false),[street,setStreet]=useState(""),[matches,setMatches]=useState<Row[]>([]),[searching,setSearching]=useState(false);
  useEffect(()=>{if(!dirty&&!busy)setForm(pricing||{})},[pricing,dirty,busy]);
