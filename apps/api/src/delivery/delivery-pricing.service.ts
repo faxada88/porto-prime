@@ -86,22 +86,62 @@ export class DeliveryPricingService {
     return saved;
   }
 
-  private streets?: Array<{ street: string; number: string; city: string; latitude: number; longitude: number }>;
+  private streets?: Array<{ street: string; number: string; city: string; neighborhood?: string; postalCode?: string; latitude: number; longitude: number }>;
+  private normalize(value: unknown) {
+    return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\b(rua|avenida|av|r|estrada|rodovia)\b/g, '').replace(/\s+/g, ' ').trim();
+  }
+  private async streetRows() {
+    if (!this.streets) {
+      try { this.streets = JSON.parse(await readFile(process.env.STREET_INDEX_PATH || resolve(process.cwd(), '../../.routing/streets.json'), 'utf8')); }
+      catch { throw new BadRequestException('A consulta de endereços está temporariamente indisponível. Tente novamente em instantes'); }
+    }
+    return this.streets!;
+  }
   async locate(body: Record<string, unknown>, authorization?: string) {
     const user = await this.auth.authenticate(authorization);
     if (!['CUSTOMER', 'ADMIN'].includes(user.role)) throw new ForbiddenException('Acesso não permitido');
-    const normalize = (v: unknown) => String(v ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\b(rua|avenida|av|r|estrada|rodovia)\b/g, '').replace(/\s+/g, ' ').trim();
-    const street = normalize(body.street);
-    if (street.length < 3 || street.length > 150) throw new BadRequestException('Informe o nome da rua para buscar no mapa');
-    if (!this.streets) {
-      try { this.streets = JSON.parse(await readFile(process.env.STREET_INDEX_PATH || resolve(process.cwd(), '../../.routing/streets.json'), 'utf8')); }
-      catch { throw new BadRequestException('A busca de ruas está indisponível. Selecione a entrada diretamente no mapa'); }
-    }
-    const wanted = normalize(body.city), number = String(body.number ?? '').trim();
-    const scored = this.streets!.map(row => ({ row, name: normalize(row.street) })).filter(({ row, name }) => (name === street || name.includes(street)) && (!row.city || !wanted || normalize(row.city) === wanted)).map(({row,name})=>({row,score:(name===street?10:0)+(number&&row.number===number?20:0)})).sort((a,b)=>b.score-a.score);
-    const results: typeof this.streets = [];
+    const street = this.normalize(body.street);
+    if (street.length < 3 || street.length > 150) throw new BadRequestException('Informe o nome completo da rua');
+    const wanted = this.normalize(body.city), number = String(body.number ?? '').trim();
+    const scored = (await this.streetRows()).filter(row => {
+      const name = this.normalize(row.street);
+      return (name === street || name.includes(street)) && (!row.city || !wanted || this.normalize(row.city) === wanted);
+    }).map(row=>({row,score:(this.normalize(row.street)===street?10:0)+(number&&row.number===number?20:0)})).sort((a,b)=>b.score-a.score);
+    const results: NonNullable<typeof this.streets> = [];
     for(const {row} of scored){if(!results.some(r=>r.street===row.street && r.number===row.number)) results.push(row);if(results.length===5)break;}
-    return { results, attribution: '© OpenStreetMap contributors', requiresConfirmation: true };
+    return { results, attribution: '© OpenStreetMap contributors', requiresConfirmation: false };
+  }
+
+  // CEP preenche o endereço; a localização vem do índice local, sem enviar
+  // endereços residenciais para serviços públicos de geocodificação.
+  private async resolveAddress(address: AddressLike) {
+    if (address.locationConfirmed && this.validPoint(address.latitude, address.longitude)) {
+      return { latitude: Number(address.latitude), longitude: Number(address.longitude), accuracy: 'CONFIRMED_POINT' };
+    }
+    const city = this.normalize(address.city), street = this.normalize(address.street);
+    if (city !== 'porto seguro' || String(address.state).toUpperCase() !== 'BA') throw new BadRequestException('No momento, atendemos endereços em Porto Seguro/BA');
+    if (street.length < 3 || !String(address.number ?? '').trim()) throw new BadRequestException('Informe a rua e o número para calcular a entrega');
+    const rows = (await this.streetRows()).filter(row => this.normalize(row.street) === street && this.validPoint(row.latitude, row.longitude) && (row.city ? this.normalize(row.city) === city : row.latitude > -16.6 && row.latitude < -16.3 && row.longitude > -39.2 && row.longitude < -38.95));
+    const neighborhood = this.normalize(address.neighborhood);
+    const local = rows.filter(row => row.neighborhood && this.normalize(row.neighborhood) === neighborhood);
+    const candidates = local.length ? local : rows;
+    if (!candidates.length) throw new BadRequestException('Não encontramos esta rua. Confira o nome completo, bairro e número do endereço');
+    const numbered = candidates.filter(row => row.number && this.normalize(row.number) === this.normalize(address.number));
+    const points = numbered.length ? numbered : candidates.filter(row => !row.number);
+    if (!points.length) throw new BadRequestException('Não foi possível localizar este número. Confira os dados do endereço');
+    const lat = points.reduce((sum,row)=>sum+row.latitude,0)/points.length;
+    const lng = points.reduce((sum,row)=>sum+row.longitude,0)/points.length;
+    // Ruas homônimas em regiões distantes precisam de bairro identificável.
+    if (points.some(row => Math.hypot((row.latitude-lat)*111,(row.longitude-lng)*106)>2)) throw new BadRequestException('Encontramos trechos distantes com este nome. Informe o bairro correto e o nome completo da rua');
+    const point = points.slice().sort((a,b)=>Math.hypot(a.latitude-lat,a.longitude-lng)-Math.hypot(b.latitude-lat,b.longitude-lng))[0];
+    return { latitude: point.latitude, longitude: point.longitude, accuracy: numbered.length ? 'ADDRESS_NUMBER' : 'STREET_ESTIMATE' };
+  }
+
+  async preview(address: Omit<AddressLike, 'id'>, authorization?: string) {
+    const user = await this.auth.authenticate(authorization);
+    if (user.role !== 'CUSTOMER') throw new ForbiddenException('Acesso exclusivo de cliente');
+    // Coordenadas recebidas no preview nunca substituem a busca pelo endereço.
+    return this.quoteForAddress({ ...address, id: 'preview', latitude: undefined, longitude: undefined, locationConfirmed: false });
   }
 
   private validPoint(lat: unknown, lng: unknown) {
@@ -197,12 +237,10 @@ export class DeliveryPricingService {
     if (!this.validPoint(cfg.distributorLatitude, cfg.distributorLongitude)) {
       throw new BadRequestException('A loja precisa configurar o ponto de retirada antes de oferecer entregas');
     }
-    if (!address.locationConfirmed || !this.validPoint(address.latitude, address.longitude)) {
-      throw new BadRequestException('Edite seu endereço e confirme o ponto de entrega no mapa');
-    }
+    const destination = await this.resolveAddress(address);
     const route = await this.cachedRoute(
       { latitude: Number(cfg.distributorLatitude), longitude: Number(cfg.distributorLongitude) },
-      { latitude: Number(address.latitude), longitude: Number(address.longitude) },
+      destination,
     );
     const current = await this.config();
     if (current.pricingRevision !== cfg.pricingRevision) throw new BadRequestException('Os valores de entrega foram atualizados. Confirme a entrega novamente');
@@ -216,7 +254,7 @@ export class DeliveryPricingService {
       addressId: address.id, deliveryFee, distanceKm: Number(route.distanceKm.toFixed(3)),
       durationMinutes: route.durationMinutes, withinServiceArea: true, pricingMode: 'ROAD_ROUTE',
       baseFee, includedKm, pricePerAdditionalKm: pricePerKm, excessKm: Number(extraKm.toFixed(3)),
-      pricingRevision: cfg.pricingRevision, courierSharePercent: 100,
+      pricingRevision: cfg.pricingRevision, courierSharePercent: 100, locationAccuracy: destination.accuracy,
     };
   }
 

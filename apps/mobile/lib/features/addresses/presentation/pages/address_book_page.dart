@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -68,12 +66,13 @@ class _AddressBookState extends State<AddressBookPage> {
   Widget build(BuildContext context) => Scaffold(
     appBar:AppBar(title:Text(widget.selectForCheckout?'Onde vamos entregar?':'Seus endereços')),
     body:SafeArea(child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:680),child:ListView(padding:const EdgeInsets.all(20),children:[
-      Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:AppColors.oceanDeep,borderRadius:BorderRadius.circular(24)),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Icon(AppIcons.mapPin,color:AppColors.mint,size:28),SizedBox(height:14),Text('Seu pedido, no lugar certo.',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w800,fontSize:24)),SizedBox(height:8),Text('Organize seus locais e confirme a entrada no mapa para uma entrega tranquila.',style:TextStyle(color:Color(0xFFD2E6E3),height:1.5))])),
+      Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:AppColors.oceanDeep,borderRadius:BorderRadius.circular(24)),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Icon(AppIcons.mapPin,color:AppColors.mint,size:28),SizedBox(height:14),Text('Seu pedido, no lugar certo.',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w800,fontSize:24)),SizedBox(height:8),Text('Informe seu endereço. Nós calculamos a entrega para você, sem abrir mapas.',style:TextStyle(color:Color(0xFFD2E6E3),height:1.5))])),
       const SizedBox(height:24),
       Row(children:[Expanded(child:Text('${app.addresses.length} locais salvos',style:const TextStyle(fontWeight:FontWeight.w700))),TextButton.icon(onPressed:managing?null:()=>_edit(),icon:const Icon(AppIcons.plus),label:const Text('Novo endereço'))]),
       if(app.addresses.isEmpty) Padding(padding:const EdgeInsets.symmetric(vertical:40),child:Column(children:[const Icon(AppIcons.home,size:44,color:AppColors.oceanDeep),const SizedBox(height:14),const Text('Sua primeira entrega começa aqui.',style:TextStyle(fontWeight:FontWeight.w700,fontSize:18)),const SizedBox(height:8),const Text('Cadastre sua casa, trabalho ou outro local.'),const SizedBox(height:20),FilledButton(onPressed:()=>_edit(),child:const Text('Cadastrar endereço'))])),
-      ...app.addresses.map((raw){final a=Map<String,dynamic>.from(raw);final chosen=widget.selectForCheckout&&a['id']==selected;return Container(margin:const EdgeInsets.only(bottom:12),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(20),border:Border.all(color:chosen?AppColors.oceanDeep:AppColors.stroke,width:chosen?2:1)),child:InkWell(borderRadius:BorderRadius.circular(20),onTap:widget.selectForCheckout?(){setState(()=>selected=a['id'].toString());_calculate();}:()=>_edit(a),child:Padding(padding:const EdgeInsets.all(18),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Container(padding:const EdgeInsets.all(12),decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(14)),child:Icon(chosen?AppIcons.check:AppIcons.home,color:AppColors.oceanDeep,size:22)),const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text((a['label']??'Endereço de entrega').toString(),style:const TextStyle(fontWeight:FontWeight.w800,fontSize:16)),const SizedBox(height:6),Text('${a['street']}, ${a['number']}',style:const TextStyle(fontWeight:FontWeight.w600)),if((a['complement']??'').toString().isNotEmpty)Text(a['complement'].toString()),const SizedBox(height:4),Text('${a['neighborhood']} · ${a['city']}/${a['state']}',style:const TextStyle(color:AppColors.muted,height:1.5)),Text('CEP ${a['postalCode']}',style:const TextStyle(color:AppColors.muted,fontSize:12)),if(a['isDefault']==true)const Padding(padding:EdgeInsets.only(top:10),child:Text('ENDEREÇO PRINCIPAL',style:TextStyle(color:AppColors.oceanDeep,fontWeight:FontWeight.w800,fontSize:10,letterSpacing:1))),if(a['locationConfirmed']!=true)TextButton(onPressed:()=>_edit(a),child:const Text('Confirmar localização no mapa'))])),PopupMenuButton<String>(tooltip:'Gerenciar endereço',enabled:!managing,onSelected:(v)=>_manage(a,v),itemBuilder:(_)=>[const PopupMenuItem(value:'edit',child:Text('Editar endereço')),if(a['isDefault']!=true)const PopupMenuItem(value:'default',child:Text('Usar como principal')),const PopupMenuItem(value:'remove',child:Text('Excluir'))])]))));}),
-      if(widget.selectForCheckout && selected!=null)Container(margin:const EdgeInsets.only(top:12),padding:const EdgeInsets.all(20),decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(20)),child:loading?const Row(children:[SizedBox(width:22,height:22,child:CircularProgressIndicator(strokeWidth:2)),SizedBox(width:12),Expanded(child:Text('Calculando sua entrega pela rota…'))]):error!=null?Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(error!,style:const TextStyle(color:AppColors.coralStrong)),TextButton.icon(onPressed:_calculate,icon:const Icon(AppIcons.refresh),label:const Text('Tentar novamente'))]):Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Row(children:[const Expanded(child:Text('Sua entrega',style:TextStyle(fontWeight:FontWeight.w800,fontSize:18))),Text(_money(quote['deliveryFee']),style:const TextStyle(fontWeight:FontWeight.w800,fontSize:23,color:AppColors.oceanDeep))]),const SizedBox(height:8),Text('${quote['distanceKm']??'—'} km por rota · aproximadamente ${quote['durationMinutes']??'—'} min'),const SizedBox(height:8),Text('Até ${quote['includedKm']} km: ${_money(quote['baseFee'])}. Depois, ${_money(quote['pricePerAdditionalKm'])}/km proporcional.',style:const TextStyle(fontSize:12,color:AppColors.muted,height:1.5))])),
+      ...app.addresses.map((raw){final a=Map<String,dynamic>.from(raw);final chosen=widget.selectForCheckout&&a['id']==selected;return Container(margin:const EdgeInsets.only(bottom:12),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(20),border:Border.all(color:chosen?AppColors.oceanDeep:AppColors.stroke,width:chosen?2:1)),child:InkWell(borderRadius:BorderRadius.circular(20),onTap:widget.selectForCheckout?(){setState(()=>selected=a['id'].toString());_calculate();}:()=>_edit(a),child:Padding(padding:const EdgeInsets.all(18),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Container(padding:const EdgeInsets.all(12),decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(14)),child:Icon(chosen?AppIcons.check:AppIcons.home,color:AppColors.oceanDeep,size:22)),const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text((a['label']??'Endereço de entrega').toString(),style:const TextStyle(fontWeight:FontWeight.w800,fontSize:16)),const SizedBox(height:6),Text('${a['street']}, ${a['number']}',style:const TextStyle(fontWeight:FontWeight.w600)),if((a['complement']??'').toString().isNotEmpty)Text(a['complement'].toString()),const SizedBox(height:4),Text('${a['neighborhood']} · ${a['city']}/${a['state']}',style:const TextStyle(color:AppColors.muted,height:1.5)),Text('CEP ${a['postalCode']}',style:const TextStyle(color:AppColors.muted,fontSize:12)),if(a['isDefault']==true)const Padding(padding:EdgeInsets.only(top:10),child:Text('ENDEREÇO PRINCIPAL',style:TextStyle(color:AppColors.oceanDeep,fontWeight:FontWeight.w800,fontSize:10,letterSpacing:1)))])),PopupMenuButton<String>(tooltip:'Gerenciar endereço',enabled:!managing,onSelected:(v)=>_manage(a,v),itemBuilder:(_)=>[const PopupMenuItem(value:'edit',child:Text('Editar endereço')),if(a['isDefault']!=true)const PopupMenuItem(value:'default',child:Text('Usar como principal')),const PopupMenuItem(value:'remove',child:Text('Excluir'))])]))));}),
+      if(widget.selectForCheckout && selected!=null)Container(margin:const EdgeInsets.only(top:12),padding:const EdgeInsets.all(20),decoration:BoxDecoration(color:AppColors.mint,borderRadius:BorderRadius.circular(20)),child:loading?const Row(children:[SizedBox(width:22,height:22,child:CircularProgressIndicator(strokeWidth:2)),SizedBox(width:12),Expanded(child:Text('Calculando sua entrega pela rota…'))]):error!=null?Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(error!,style:const TextStyle(color:AppColors.coralStrong)),TextButton.icon(onPressed:_calculate,icon:const Icon(AppIcons.refresh),label:const Text('Tentar novamente'))]):Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Row(children:[const Expanded(child:Text('Sua entrega',style:TextStyle(fontWeight:FontWeight.w800,fontSize:18))),Text(_money(quote['deliveryFee']),style:const TextStyle(fontWeight:FontWeight.w800,fontSize:23,color:AppColors.oceanDeep))]),const SizedBox(height:8),Text('${quote['distanceKm']??'—'} km por rota · aproximadamente ${quote['durationMinutes']??'—'} min'),if(quote['locationAccuracy']=='STREET_ESTIMATE')const Padding(padding:EdgeInsets.only(top:8),child:Text('Distância estimada pelo trecho da rua. Número ainda não mapeado.',style:TextStyle(fontSize:12,color:AppColors.muted))),const SizedBox(height:8),Text('Até ${quote['includedKm']} km: ${_money(quote['baseFee'])}. Depois, ${_money(quote['pricePerAdditionalKm'])}/km proporcional.',style:const TextStyle(fontSize:12,color:AppColors.muted,height:1.5))])),
+      if(widget.selectForCheckout && quote.isNotEmpty && error==null && !loading)Padding(padding:const EdgeInsets.only(top:16),child:Row(children:[const Expanded(child:Text('Total com entrega',style:TextStyle(fontWeight:FontWeight.w800,fontSize:18))),Text(_money(app.cartSubtotal+(double.tryParse(quote['deliveryFee'].toString())??0)),style:const TextStyle(fontWeight:FontWeight.w800,fontSize:22))])),
       const SizedBox(height:20),
       if(widget.selectForCheckout)SizedBox(height:56,child:FilledButton(onPressed:loading||managing||error!=null||quote.isEmpty?null:()=>Navigator.pop(context,<String,dynamic>{'addressId':selected,'quote':quote}),child:const Text('Continuar para pagamento'))),
     ])))),
@@ -88,47 +87,94 @@ class AddressEditorPage extends StatefulWidget {
 }
 class _AddressEditorState extends State<AddressEditorPage> {
   final formKey=GlobalKey<FormState>();
+  final app=AppState.instance;
   late final Map<String,TextEditingController> fields;
-  final mapController=MapController();
-  LatLng? point;
-  bool searching=false;
-  bool saving=false, principal=false;
-  String? error;
+  Timer? debounce;
+  Map<String,dynamic> quote={};
+  bool calculating=false, postalLoading=false, saving=false, principal=false;
+  String? error, postalHint;
+  int generation=0, postalGeneration=0, epoch=0;
   @override
-  void initState(){super.initState();fields={for(final k in ['label','street','number','complement','neighborhood','city','state','postalCode'])k:TextEditingController(text:(widget.address?[k]??(k=='city'?'Porto Seguro':k=='state'?'BA':'')).toString())};principal=widget.address?['isDefault']==true;if(widget.address?['locationConfirmed']==true){final lat=double.tryParse(widget.address?['latitude'].toString()??''),lng=double.tryParse(widget.address?['longitude'].toString()??'');if(lat!=null&&lng!=null)point=LatLng(lat,lng);}}
-  @override
-  void dispose(){mapController.dispose();for(final f in fields.values){f.dispose();}super.dispose();}
-  Widget field(String key,String label,{bool optional=false,bool numeric=false})=>Padding(padding:const EdgeInsets.only(bottom:14),child:TextFormField(controller:fields[key],enabled:!saving,keyboardType:numeric?TextInputType.number:TextInputType.streetAddress,textCapitalization:TextCapitalization.words,decoration:InputDecoration(labelText:label),validator:(v){if(!optional&&(v??'').trim().isEmpty)return 'Preencha este campo';if(key=='postalCode'&&(v??'').replaceAll(RegExp(r'\D'),'').length!=8)return 'Informe os 8 dígitos do CEP';if(key=='state'&&(v??'').trim().length!=2)return 'Use a sigla do estado';return null;},onChanged:(_){if(!['label','complement'].contains(key))setState(()=>point=null);}));
-  Future<void> locate() async {
-    if(searching || saving)return;
-    setState((){searching=true;error=null;});
-    try {
-      final response=await AppState.instance.api.request('POST','/delivery/locate',body:{'street':fields['street']!.text,'number':fields['number']!.text,'city':fields['city']!.text});
-      final rows=List<dynamic>.from(response['results']??[]);
-      if(!mounted)return;
-      if(rows.isEmpty){setState(()=>error='Rua não encontrada nos dados locais. Localize a entrada diretamente no mapa.');return;}
-      final chosen=await showModalBottomSheet<Map<String,dynamic>>(context:context,isScrollControlled:true,builder:(ctx)=>SafeArea(child:ListView(shrinkWrap:true,padding:const EdgeInsets.all(22),children:[const Text('Encontramos estes locais',style:TextStyle(fontWeight:FontWeight.w800,fontSize:20)),const SizedBox(height:10),const Text('Escolha a rua e depois confirme a entrada no mapa.'),...rows.map((r)=>ListTile(leading:const Icon(AppIcons.mapPin),title:Text(r['street'].toString()),subtitle:Text((r['number']??'Trecho de rua').toString()),onTap:()=>Navigator.pop(ctx,Map<String,dynamic>.from(r))))])));
-      if(!mounted||chosen==null)return;
-      setState(()=>point=null);
-      mapController.move(LatLng((chosen['latitude'] as num).toDouble(),(chosen['longitude'] as num).toDouble()),17);
-    }catch(e){if(mounted)setState(()=>error=PrimeMessages.friendly(e));}finally{if(mounted)setState(()=>searching=false);}
+  void initState(){
+    super.initState();
+    fields={for(final k in ['label','street','number','complement','neighborhood','city','state','postalCode'])k:TextEditingController(text:(widget.address?[k]??(k=='city'?'Porto Seguro':k=='state'?'BA':'')).toString())};
+    principal=widget.address?['isDefault']==true;
+    epoch=app.deliveryPricingEpoch;
+    app.addListener(_pricingChanged);
+    _schedule();
   }
+  void _pricingChanged(){if(mounted && epoch!=app.deliveryPricingEpoch){epoch=app.deliveryPricingEpoch;_schedule();}}
+  @override
+  void dispose(){debounce?.cancel();generation++;postalGeneration++;app.removeListener(_pricingChanged);for(final f in fields.values){f.dispose();}super.dispose();}
+  Map<String,dynamic> get data=>{for(final e in fields.entries)e.key:e.value.text.trim(),'isDefault':principal};
+  bool get complete=>['street','number','neighborhood','city','state'].every((k)=>fields[k]!.text.trim().isNotEmpty)&&fields['state']!.text.trim().length==2&&fields['postalCode']!.text.replaceAll(RegExp(r'\D'),'').length==8;
+  void _schedule(){
+    debounce?.cancel();generation++;
+    if(mounted)setState((){quote={};error=null;calculating=complete;});
+    if(complete)debounce=Timer(const Duration(milliseconds:650),_calculate);
+  }
+  Future<void> _postal() async {
+    final n=++postalGeneration;
+    final cep=fields['postalCode']!.text.replaceAll(RegExp(r'\D'),'');
+    if(cep.length!=8){setState((){postalHint=null;postalLoading=false;});return;}
+    final before={for(final k in ['street','neighborhood','city','state'])k:fields[k]!.text};
+    setState((){postalLoading=true;postalHint=null;});
+    try {
+      final result=await app.lookupPostalCode(cep);
+      if(!mounted||n!=postalGeneration)return;
+      if(result['valid']==true){
+        for(final k in before.keys){final value=(result[k]??'').toString();if(value.isNotEmpty&&(fields[k]!.text.isEmpty||fields[k]!.text==before[k]))fields[k]!.text=value;}
+        postalHint='Confira a rua e informe o número para calcular a entrega.';
+      }else{postalHint=result['reason']=='OUTSIDE_SERVICE_AREA'?'Atendemos Porto Seguro/BA. Confira o CEP.':'Não encontramos este CEP. Preencha o endereço completo.';}
+      _schedule();
+    }catch(_){if(mounted&&n==postalGeneration)setState(()=>postalHint='Consulta de CEP indisponível. Você pode preencher o endereço.');}
+    finally{if(mounted&&n==postalGeneration)setState(()=>postalLoading=false);}
+  }
+  Future<void> _calculate() async {
+    if(!complete)return;
+    final n=++generation;
+    setState((){calculating=true;error=null;quote={};});
+    try{final result=await app.api.request('POST','/delivery/preview',body:data);if(mounted&&n==generation)setState(()=>quote=Map<String,dynamic>.from(result));}
+    catch(e){if(mounted&&n==generation)setState(()=>error=PrimeMessages.friendly(e));}
+    finally{if(mounted&&n==generation)setState(()=>calculating=false);}
+  }
+  Widget field(String key,String label,{bool optional=false,bool numeric=false})=>Padding(padding:const EdgeInsets.only(bottom:14),child:TextFormField(controller:fields[key],enabled:!saving,keyboardType:numeric?TextInputType.number:TextInputType.streetAddress,textCapitalization:TextCapitalization.words,decoration:InputDecoration(labelText:label),validator:(v){if(!optional&&(v??'').trim().isEmpty)return 'Preencha este campo';if(key=='postalCode'&&(v??'').replaceAll(RegExp(r'\D'),'').length!=8)return 'Informe os 8 dígitos do CEP';if(key=='state'&&(v??'').trim().length!=2)return 'Use a sigla do estado';return null;},onChanged:(_){if(!['label','complement'].contains(key))_schedule();if(key=='postalCode')_postal();}));
   Future<void> save()async {
     if(saving||!formKey.currentState!.validate())return;
-    if(point==null){setState(()=>error='Confirme a entrada do endereço no mapa.');return;}
-    setState((){saving=true;error=null;});
-    try {final data=<String,dynamic>{for(final e in fields.entries)e.key:e.value.text.trim(),'isDefault':principal,'latitude':point!.latitude,'longitude':point!.longitude};final app=AppState.instance;final result=await app.api.request(widget.address==null?'POST':'PATCH',widget.address==null?'/addresses':'/addresses/${widget.address!['id']}',body:data);await app.loadAddresses();if(mounted)Navigator.pop(context,result['id'].toString());}
-    catch(e){if(mounted)setState(()=>error=PrimeMessages.friendly(e));}finally{if(mounted)setState(()=>saving=false);}
+    debounce?.cancel();
+    // Aguarda a cotação vigente antes de salvar; o pedido recalcula no backend.
+    setState(()=>saving=true);
+    try {
+      await _calculate();
+      if(!mounted||quote.isEmpty)return;
+      final result=await app.api.request(widget.address==null?'POST':'PATCH',widget.address==null?'/addresses':'/addresses/${widget.address!['id']}',body:data);
+      await app.loadAddresses();
+      if(mounted)Navigator.pop(context,result['id'].toString());
+    }catch(e){if(mounted)setState(()=>error=PrimeMessages.friendly(e));}
+    finally{if(mounted)setState(()=>saving=false);}
   }
+  Widget get deliveryCard=>Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:AppColors.oceanDeep,borderRadius:BorderRadius.circular(22)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+    const Text('ENTREGA CALCULADA PARA VOCÊ',style:TextStyle(color:AppColors.mint,fontSize:11,fontWeight:FontWeight.w800,letterSpacing:1)),const SizedBox(height:14),
+    if(calculating)const Row(children:[SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2,color:AppColors.mint)),SizedBox(width:12),Expanded(child:Text('Calculando rota e valor…',style:TextStyle(color:Colors.white)))])
+    else if(quote.isNotEmpty)...[
+      Row(children:[const Expanded(child:Text('Taxa de entrega',style:TextStyle(color:Colors.white,fontSize:16))),Text(_money(quote['deliveryFee']),style:const TextStyle(color:Colors.white,fontWeight:FontWeight.w800,fontSize:28))]),const SizedBox(height:10),
+      Text('${quote['distanceKm']} km de rota · aproximadamente ${quote['durationMinutes']} min',style:const TextStyle(color:Color(0xFFD2E6E3))),
+      if(quote['locationAccuracy']=='STREET_ESTIMATE')const Padding(padding:EdgeInsets.only(top:10),child:Text('Estimativa pelo trecho da rua; número ainda não mapeado.',style:TextStyle(color:Color(0xFFD2E6E3),fontSize:12))),
+      if(app.cart.isNotEmpty)...[const Divider(color:Colors.white24,height:30),Row(children:[const Expanded(child:Text('Total com entrega',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w700))),Text(_money(app.cartSubtotal+(double.tryParse(quote['deliveryFee'].toString())??0)),style:const TextStyle(color:AppColors.mint,fontSize:22,fontWeight:FontWeight.w800))])],
+      const SizedBox(height:12),Text('Até ${quote['includedKm']} km: ${_money(quote['baseFee'])}. Excedente: ${_money(quote['pricePerAdditionalKm'])}/km proporcional.',style:const TextStyle(color:Color(0xFFD2E6E3),fontSize:12,height:1.5)),
+    ]else Text(error??'Preencha rua, número, bairro e CEP. O valor aparece automaticamente aqui.',style:const TextStyle(color:Colors.white,height:1.5)),
+    if(error!=null)TextButton(onPressed:saving?null:_calculate,child:const Text('Calcular novamente',style:TextStyle(color:AppColors.mint))),
+  ]));
   @override
   Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:Text(widget.address==null?'Novo endereço':'Editar endereço')),body:SafeArea(child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:680),child:Form(key:formKey,child:ListView(padding:const EdgeInsets.all(22),children:[
-    const Text('Onde você quer receber?',style:TextStyle(fontSize:26,fontWeight:FontWeight.w800)),const SizedBox(height:8),const Text('Preencha o endereço e confirme a entrada no mapa.',style:TextStyle(color:AppColors.muted,height:1.5)),const SizedBox(height:26),
-    field('label','Nome do local · Casa, trabalho…',optional:true),field('postalCode','CEP',numeric:true),field('street','Rua / avenida'),field('number','Número'),field('complement','Complemento / referência',optional:true),field('neighborhood','Bairro'),Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Expanded(flex:3,child:field('city','Cidade')),const SizedBox(width:12),Expanded(child:field('state','UF'))]),
-    const SizedBox(height:12),const Text('Confirme o ponto de entrega',style:TextStyle(fontSize:18,fontWeight:FontWeight.w800)),const SizedBox(height:8),const Text('Toque na entrada da casa ou prédio. O ponto confirmado será usado para calcular a rota e a taxa.',style:TextStyle(color:AppColors.muted,height:1.5)),const SizedBox(height:14),
-    OutlinedButton.icon(onPressed:saving||searching?null:locate,icon:const Icon(AppIcons.search),label:Text(searching?'Buscando rua…':'Localizar rua no mapa')),const SizedBox(height:12),
-    ClipRRect(borderRadius:BorderRadius.circular(20),child:SizedBox(height:330,child:FlutterMap(mapController:mapController,options:MapOptions(initialCenter:point??const LatLng(-16.449,-39.064),initialZoom:16,minZoom:10,maxZoom:19,onTap:(_,p){if(!saving)setState((){point=p;error=null;});}),children:[TileLayer(urlTemplate:const String.fromEnvironment('MAP_TILE_URL',defaultValue:'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),userAgentPackageName:'PortoPrimeDelivery'),if(point!=null)MarkerLayer(markers:[Marker(point:point!,width:48,height:48,alignment:Alignment.topCenter,child:const Icon(AppIcons.mapPin,color:AppColors.oceanDeep,size:44))]),RichAttributionWidget(attributions:[TextSourceAttribution('OpenStreetMap contributors',onTap:()=>launchUrl(Uri.parse('https://www.openstreetmap.org/copyright')))])]))),
-    Padding(padding:const EdgeInsets.symmetric(vertical:12),child:Row(children:[Icon(point==null?AppIcons.mapPin:AppIcons.checkCircle,color:AppColors.oceanDeep,size:20),const SizedBox(width:8),Expanded(child:Text(point==null?'Selecione o ponto no mapa':'Ponto de entrega confirmado',style:const TextStyle(fontWeight:FontWeight.w700,color:AppColors.oceanDeep)))])),
+    const Text('Seu endereço. Nossa rota.',style:TextStyle(fontSize:26,fontWeight:FontWeight.w800)),const SizedBox(height:8),const Text('Comece pelo CEP ou preencha a rua. Calculamos a entrega em segundo plano, sem mapas.',style:TextStyle(color:AppColors.muted,height:1.5)),const SizedBox(height:26),
+    field('postalCode','CEP',numeric:true),
+    if(postalLoading)const Padding(padding:EdgeInsets.only(bottom:14),child:Text('Buscando endereço do CEP…',style:TextStyle(color:AppColors.muted))),
+    if(postalHint!=null)Padding(padding:const EdgeInsets.only(bottom:14),child:Text(postalHint!,style:const TextStyle(color:AppColors.muted,fontSize:12))),
+    field('street','Rua / avenida'),Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Expanded(child:field('number','Número')),const SizedBox(width:12),Expanded(flex:2,child:field('neighborhood','Bairro'))]),
+    field('complement','Complemento / referência',optional:true),Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Expanded(flex:3,child:field('city','Cidade')),const SizedBox(width:12),Expanded(child:field('state','UF'))]),
+    deliveryCard,const SizedBox(height:22),field('label','Nome do local · Casa, trabalho…',optional:true),
     SwitchListTile.adaptive(contentPadding:EdgeInsets.zero,title:const Text('Usar como endereço principal'),subtitle:const Text('Selecionado primeiro nas próximas entregas'),value:principal,onChanged:saving?null:(v)=>setState(()=>principal=v)),
-    if(error!=null)Padding(padding:const EdgeInsets.symmetric(vertical:12),child:Text(error!,style:const TextStyle(color:AppColors.coralStrong))),const SizedBox(height:18),SizedBox(height:56,child:FilledButton(onPressed:saving?null:save,child:saving?const SizedBox(width:22,height:22,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):const Text('Salvar endereço'))),const SizedBox(height:30),
+    const SizedBox(height:18),SizedBox(height:56,child:FilledButton(onPressed:saving?null:save,child:saving?const SizedBox(width:22,height:22,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):const Text('Salvar endereço'))),const SizedBox(height:30),
   ]))))));
 }
