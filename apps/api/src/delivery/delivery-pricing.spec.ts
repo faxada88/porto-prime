@@ -37,3 +37,15 @@ describe('Tarifa proporcional pela rota viária',()=>{
  it('restringe busca de ruas a cliente ou administrador',async()=>{await expect(fixture('COURIER').service.locate({street:'Rua Teste'})).rejects.toThrow('permitido')});
 
 });
+
+describe('Busca de ruas e estabelecimentos selecionáveis',()=>{
+ const hotel={id:'hotel',name:'Hotel Porto Azul',kind:'HOTEL',street:'Avenida Beira Mar',number:'20',neighborhood:'Taperapuan',city:'Porto Seguro',latitude:-16.4,longitude:-39.04};
+ const street={id:'street',name:'Avenida Beira Mar',kind:'STREET',street:'Avenida Beira Mar',number:'',neighborhood:'Taperapuan',city:'Porto Seguro',latitude:-16.4,longitude:-39.04};
+ function indexed(role='CUSTOMER'){const f=fixture(role);(f.service as any).places=[hotel,street,{...hotel,id:'other',city:'Outra Cidade'}];(f.service as any).placesLoadedAt=Date.now();(f.service as any).streets=[];return f;}
+ it('sugere hotel por nome parcial sem misturar outra cidade',async()=>{const r=await indexed().service.searchPlaces('porto azul');expect(r.results).toHaveLength(1);expect(r.results[0].id).toBe('hotel')});
+ it('sugere ruas durante a digitação e encontra palavras fora de ordem',async()=>{const r=await indexed().service.searchPlaces('mar beira');expect(r.results.map(p=>p.id)).toContain('street')});
+ it('usa o hotel escolhido no cálculo mesmo quando não há rua no índice',async()=>{const fetch=route(5000);const q=await indexed().service.preview({...address,street:'Avenida Beira Mar',number:'',neighborhood:'',locationRef:'hotel'});expect(q.locationAccuracy).toBe('SELECTED_PLACE');expect(q.deliveryFee).toBe(10.5);expect(String(fetch.mock.calls[0][0])).toContain('-39.04,-16.4')});
+ it('identifica a estimativa de rua selecionada sem inventar número',async()=>{route(3000);const q=await indexed().service.preview({...address,street:'Avenida Beira Mar',locationRef:'street'});expect(q.locationAccuracy).toBe('STREET_ESTIMATE');expect(q.deliveryFee).toBe(5.5)});
+ it('recusa referência inexistente, local de outra cidade e rua alterada',async()=>{const f=indexed();for(const data of [{...address,locationRef:'invalid'},{...address,locationRef:'other'},{...address,locationRef:'street',street:'Rua Diferente'}])await expect(f.service.preview(data)).rejects.toThrow(/Selecione|selecione/);});
+ it('exige sessão e limita consultas vazias ou enormes',async()=>{await expect(indexed('COURIER').service.searchPlaces('hotel')).rejects.toThrow('permitido');expect((await indexed().service.searchPlaces('ab')).results).toHaveLength(0);await expect(indexed().service.searchPlaces('x'.repeat(151))).rejects.toThrow('150')});
+});

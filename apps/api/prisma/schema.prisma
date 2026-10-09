@@ -228,6 +228,7 @@ model PartnerProfile {
 }
 
 model Address {
+  locationRef String?
   locationConfirmed Boolean @default(false)
   id     String @id @default(cuid())
   userId String

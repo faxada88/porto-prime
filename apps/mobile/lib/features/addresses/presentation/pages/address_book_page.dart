@@ -89,7 +89,12 @@ class _AddressEditorState extends State<AddressEditorPage> {
   final formKey=GlobalKey<FormState>();
   final app=AppState.instance;
   late final Map<String,TextEditingController> fields;
-  Timer? debounce;
+  Timer? debounce, searchDebounce;
+  final searchController=TextEditingController();
+  List<Map<String,dynamic>> suggestions=[];
+  String? locationRef, searchError, selectedName, autofilledPlaceName;
+  bool searching=false;
+  int searchGeneration=0;
   Map<String,dynamic> quote={};
   bool calculating=false, postalLoading=false, saving=false, principal=false;
   String? error, postalHint;
@@ -99,15 +104,53 @@ class _AddressEditorState extends State<AddressEditorPage> {
     super.initState();
     fields={for(final k in ['label','street','number','complement','neighborhood','city','state','postalCode'])k:TextEditingController(text:(widget.address?[k]??(k=='city'?'Porto Seguro':k=='state'?'BA':'')).toString())};
     principal=widget.address?['isDefault']==true;
+    locationRef=widget.address?['locationRef']?.toString();
+    if(locationRef!=null){selectedName=(widget.address?['label']??widget.address?['street']??'Local salvo').toString();searchController.text=selectedName!;}
     epoch=app.deliveryPricingEpoch;
     app.addListener(_pricingChanged);
     _schedule();
   }
   void _pricingChanged(){if(mounted && epoch!=app.deliveryPricingEpoch){epoch=app.deliveryPricingEpoch;_schedule();}}
   @override
-  void dispose(){debounce?.cancel();generation++;postalGeneration++;app.removeListener(_pricingChanged);for(final f in fields.values){f.dispose();}super.dispose();}
-  Map<String,dynamic> get data=>{for(final e in fields.entries)e.key:e.value.text.trim(),'isDefault':principal};
-  bool get complete=>['street','number','neighborhood','city','state'].every((k)=>fields[k]!.text.trim().isNotEmpty)&&fields['state']!.text.trim().length==2&&fields['postalCode']!.text.replaceAll(RegExp(r'\D'),'').length==8;
+  void dispose(){searchDebounce?.cancel();searchGeneration++;searchController.dispose();debounce?.cancel();generation++;postalGeneration++;app.removeListener(_pricingChanged);for(final f in fields.values){f.dispose();}super.dispose();}
+  Map<String,dynamic> get data=>{for(final e in fields.entries)e.key:e.value.text.trim(),'isDefault':principal,if(locationRef!=null)'locationRef':locationRef};
+  bool get complete=>(locationRef!=null&&fields['street']!.text.trim().isNotEmpty&&fields['city']!.text.trim().isNotEmpty&&fields['state']!.text.trim().length==2&&fields['postalCode']!.text.replaceAll(RegExp(r'\D'),'').length==8)||['street','number','neighborhood','city','state'].every((k)=>fields[k]!.text.trim().isNotEmpty)&&fields['state']!.text.trim().length==2&&fields['postalCode']!.text.replaceAll(RegExp(r'\D'),'').length==8;
+  void _searchChanged(String value){
+    searchDebounce?.cancel();final n=++searchGeneration;
+    debounce?.cancel();generation++;
+    setState((){suggestions=[];searchError=null;locationRef=null;selectedName=null;quote={};calculating=false;searching=value.trim().length>=3;});
+    if(value.trim().length<3)return;
+    searchDebounce=Timer(const Duration(milliseconds:400),()async{
+      try{
+        final query=Uri(queryParameters:{'q':value.trim()}).query;
+        final result=await app.api.request('GET','/delivery/places?$query');
+        if(!mounted||n!=searchGeneration)return;
+        setState((){suggestions=List<dynamic>.from(result['results']??[]).map((r)=>Map<String,dynamic>.from(r as Map)).toList();searching=false;if(suggestions.isEmpty)searchError='Nenhum local encontrado. Tente o nome da rua, hotel ou estabelecimento por extenso.';});
+      }catch(e){if(mounted&&n==searchGeneration)setState((){searching=false;searchError=PrimeMessages.friendly(e);});}
+    });
+  }
+  void _selectPlace(Map<String,dynamic> place){
+    searchDebounce?.cancel();searchGeneration++;postalGeneration++;
+    final name=place['name'].toString(), street=(place['street']??'').toString();
+    setState((){
+      locationRef=place['id'].toString();selectedName=name;searchController.text=name;suggestions=[];searching=false;searchError=null;postalLoading=false;
+      fields['street']!.text=street.isNotEmpty?street:name;
+      fields['number']!.text=(place['number']??'').toString();
+      fields['neighborhood']!.text=(place['neighborhood']??'').toString();
+      fields['city']!.text='Porto Seguro';fields['state']!.text='BA';
+      fields['postalCode']!.text=(place['postalCode']??'').toString().replaceAll(RegExp(r'\D'),'').length==8?place['postalCode'].toString():'45810000';
+      if(place['kind']!='STREET'){fields['label']!.text=name;fields['complement']!.text=name;autofilledPlaceName=name;}else{if(autofilledPlaceName!=null){if(fields['label']!.text==autofilledPlaceName)fields['label']!.clear();if(fields['complement']!.text==autofilledPlaceName)fields['complement']!.clear();}autofilledPlaceName=null;}
+      postalHint='Local selecionado. Confira o número, bairro e referência de entrega.';
+    });
+    _schedule();
+  }
+  Widget get placeSearch=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+    TextField(controller:searchController,enabled:!saving,autocorrect:false,onChanged:_searchChanged,decoration:InputDecoration(labelText:'Buscar rua, hotel ou estabelecimento',hintText:'Ex.: Navegantes ou nome do hotel',prefixIcon:const Icon(AppIcons.search),suffixIcon:searching?const Padding(padding:EdgeInsets.all(16),child:SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2))):searchController.text.isNotEmpty?IconButton(tooltip:'Limpar busca',onPressed:(){searchController.clear();_searchChanged('');},icon:const Icon(Icons.close)):null)),
+    if(suggestions.isNotEmpty)Container(margin:const EdgeInsets.only(top:8,bottom:12),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(18),border:Border.all(color:AppColors.stroke)),child:Column(children:suggestions.map((p)=>ListTile(contentPadding:const EdgeInsets.symmetric(horizontal:16,vertical:6),leading:Icon(p['kind']=='STREET'?AppIcons.mapPin:AppIcons.home,color:AppColors.oceanDeep),title:Text(p['name'].toString(),style:const TextStyle(fontWeight:FontWeight.w700)),subtitle:Text('${p['kind']=='HOTEL'?'Hotel':p['kind']=='STREET'?'Rua':'Estabelecimento'} · ${[p['street'],p['number'],p['neighborhood']].where((v)=>v!=null&&v.toString().isNotEmpty).join(' · ')}',maxLines:2,overflow:TextOverflow.ellipsis),trailing:const Icon(Icons.chevron_right),onTap:()=>_selectPlace(p))).toList())),
+    if(searchError!=null)Padding(padding:const EdgeInsets.only(top:8,bottom:12),child:Text(searchError!,style:const TextStyle(color:AppColors.muted,fontSize:13))),
+    if(locationRef!=null)Padding(padding:const EdgeInsets.symmetric(vertical:12),child:Row(children:[const Icon(AppIcons.checkCircle,color:AppColors.oceanDeep,size:20),const SizedBox(width:8),Expanded(child:Text('Local selecionado: $selectedName',style:const TextStyle(fontWeight:FontWeight.w700,color:AppColors.oceanDeep)))])),
+    const Text('Selecione uma sugestão para usar o local encontrado. © OpenStreetMap contributors',style:TextStyle(fontSize:11,color:AppColors.muted)),const SizedBox(height:22),
+  ]);
   void _schedule(){
     debounce?.cancel();generation++;
     if(mounted)setState((){quote={};error=null;calculating=complete;});
@@ -123,7 +166,7 @@ class _AddressEditorState extends State<AddressEditorPage> {
       final result=await app.lookupPostalCode(cep);
       if(!mounted||n!=postalGeneration)return;
       if(result['valid']==true){
-        for(final k in before.keys){final value=(result[k]??'').toString();if(value.isNotEmpty&&(fields[k]!.text.isEmpty||fields[k]!.text==before[k]))fields[k]!.text=value;}
+        for(final k in before.keys){if(locationRef!=null)continue;final value=(result[k]??'').toString();if(value.isNotEmpty&&(fields[k]!.text.isEmpty||fields[k]!.text==before[k]))fields[k]!.text=value;}
         postalHint='Confira a rua e informe o número para calcular a entrega.';
       }else{postalHint=result['reason']=='OUTSIDE_SERVICE_AREA'?'Atendemos Porto Seguro/BA. Confira o CEP.':'Não encontramos este CEP. Preencha o endereço completo.';}
       _schedule();
@@ -138,7 +181,7 @@ class _AddressEditorState extends State<AddressEditorPage> {
     catch(e){if(mounted&&n==generation)setState(()=>error=PrimeMessages.friendly(e));}
     finally{if(mounted&&n==generation)setState(()=>calculating=false);}
   }
-  Widget field(String key,String label,{bool optional=false,bool numeric=false})=>Padding(padding:const EdgeInsets.only(bottom:14),child:TextFormField(controller:fields[key],enabled:!saving,keyboardType:numeric?TextInputType.number:TextInputType.streetAddress,textCapitalization:TextCapitalization.words,decoration:InputDecoration(labelText:label),validator:(v){if(!optional&&(v??'').trim().isEmpty)return 'Preencha este campo';if(key=='postalCode'&&(v??'').replaceAll(RegExp(r'\D'),'').length!=8)return 'Informe os 8 dígitos do CEP';if(key=='state'&&(v??'').trim().length!=2)return 'Use a sigla do estado';return null;},onChanged:(_){if(!['label','complement'].contains(key))_schedule();if(key=='postalCode')_postal();}));
+  Widget field(String key,String label,{bool optional=false,bool numeric=false})=>Padding(padding:const EdgeInsets.only(bottom:14),child:TextFormField(controller:fields[key],enabled:!saving,keyboardType:numeric?TextInputType.number:TextInputType.streetAddress,textCapitalization:TextCapitalization.words,decoration:InputDecoration(labelText:label),validator:(v){if(!optional&&(v??'').trim().isEmpty)return 'Preencha este campo';if(key=='postalCode'&&(v??'').replaceAll(RegExp(r'\D'),'').length!=8)return 'Informe os 8 dígitos do CEP';if(key=='state'&&(v??'').trim().length!=2)return 'Use a sigla do estado';return null;},onChanged:(_){if(['street','city','state'].contains(key)){locationRef=null;selectedName=null;}if(!['label','complement'].contains(key))_schedule();if(key=='postalCode')_postal();}));
   Future<void> save()async {
     if(saving||!formKey.currentState!.validate())return;
     debounce?.cancel();
@@ -167,11 +210,11 @@ class _AddressEditorState extends State<AddressEditorPage> {
   ]));
   @override
   Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:Text(widget.address==null?'Novo endereço':'Editar endereço')),body:SafeArea(child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:680),child:Form(key:formKey,child:ListView(padding:const EdgeInsets.all(22),children:[
-    const Text('Seu endereço. Nossa rota.',style:TextStyle(fontSize:26,fontWeight:FontWeight.w800)),const SizedBox(height:8),const Text('Comece pelo CEP ou preencha a rua. Calculamos a entrega em segundo plano, sem mapas.',style:TextStyle(color:AppColors.muted,height:1.5)),const SizedBox(height:26),
-    field('postalCode','CEP',numeric:true),
+    const Text('Seu endereço. Nossa rota.',style:TextStyle(fontSize:26,fontWeight:FontWeight.w800)),const SizedBox(height:8),const Text('Busque a rua, hotel ou estabelecimento e selecione uma opção. Calculamos sua entrega sem abrir mapas.',style:TextStyle(color:AppColors.muted,height:1.5)),const SizedBox(height:26),
+    placeSearch,field('postalCode','CEP',numeric:true),
     if(postalLoading)const Padding(padding:EdgeInsets.only(bottom:14),child:Text('Buscando endereço do CEP…',style:TextStyle(color:AppColors.muted))),
     if(postalHint!=null)Padding(padding:const EdgeInsets.only(bottom:14),child:Text(postalHint!,style:const TextStyle(color:AppColors.muted,fontSize:12))),
-    field('street','Rua / avenida'),Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Expanded(child:field('number','Número')),const SizedBox(width:12),Expanded(flex:2,child:field('neighborhood','Bairro'))]),
+    field('street','Rua / avenida'),Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Expanded(child:field('number','Número ou S/N')),const SizedBox(width:12),Expanded(flex:2,child:field('neighborhood','Bairro'))]),
     field('complement','Complemento / referência',optional:true),Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Expanded(flex:3,child:field('city','Cidade')),const SizedBox(width:12),Expanded(child:field('state','UF'))]),
     deliveryCard,const SizedBox(height:22),field('label','Nome do local · Casa, trabalho…',optional:true),
     SwitchListTile.adaptive(contentPadding:EdgeInsets.zero,title:const Text('Usar como endereço principal'),subtitle:const Text('Selecionado primeiro nas próximas entregas'),value:principal,onChanged:saving?null:(v)=>setState(()=>principal=v)),

@@ -13,6 +13,7 @@ npm install
 npx --no-install prisma db execute --file prisma/migrations/20261008190000_catalog_control/migration.sql
 npx --no-install prisma db execute --file prisma/migrations/20261008193000_admin_finance/migration.sql
 npx --no-install prisma db execute --file prisma/migrations/20261008200000_delivery_pricing/migration.sql
+npx --no-install prisma db execute --file prisma/migrations/20261009190000_address_place_search/migration.sql
 npx --no-install prisma generate
 node "$project_root/scripts/configure-airport-base.cjs"
 cd "$project_root/apps/admin"

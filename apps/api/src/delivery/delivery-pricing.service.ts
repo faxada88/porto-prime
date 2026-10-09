@@ -10,7 +10,10 @@ import { RealtimeGateway } from '../realtime/realtime.gateway.js';
 import { AuthService } from '../auth/auth.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
+type Place = { id: string; name: string; kind: string; street: string; number: string; city: string; neighborhood?: string; postalCode?: string; latitude: number; longitude: number };
+
 type AddressLike = {
+  locationRef?: string | null;
   id: string;
   street: string;
   number: string;
@@ -86,6 +89,47 @@ export class DeliveryPricingService {
     return saved;
   }
 
+  private places?: Place[];
+  private placesLoadedAt = 0;
+  private async placeRows() {
+    // O índice é atualizado pelo comando de instalação sem exigir cache eterno.
+    if (!this.places || Date.now() - this.placesLoadedAt > 60000) {
+      try {
+        this.places = JSON.parse(await readFile(process.env.PLACE_INDEX_PATH || resolve(process.cwd(), '../../.routing/places.json'), 'utf8'));
+        this.placesLoadedAt = Date.now();
+      } catch { throw new BadRequestException('A busca de locais está temporariamente indisponível. Tente novamente'); }
+    }
+    return this.places!;
+  }
+  private inServiceRegion(row: Place) {
+    return this.validPoint(row.latitude,row.longitude) && (row.city ? this.normalize(row.city)==='porto seguro' : row.latitude>-16.9 && row.latitude<-16.1 && row.longitude>-39.3 && row.longitude<-38.9);
+  }
+  async searchPlaces(query: string, authorization?: string) {
+    const user = await this.auth.authenticate(authorization);
+    if (!['CUSTOMER', 'ADMIN'].includes(user.role)) throw new ForbiddenException('Acesso não permitido');
+    if (typeof query !== 'string' || query.length > 150) throw new BadRequestException('Informe até 150 caracteres para buscar');
+    const q = this.normalize(query);
+    if (q.length < 3) return { results: [], attribution: '© OpenStreetMap contributors' };
+    const matches = (await this.placeRows()).filter(row => this.inServiceRegion(row) && q.split(' ').every(word => this.normalize(`${row.name} ${row.street} ${row.neighborhood??''}`).includes(word)))
+      .map(row=>({row,score:(this.normalize(row.name)===q?100:0)+(this.normalize(row.name).startsWith(q)?20:0)+(row.kind!=='STREET'?5:0)})).sort((a,b)=>b.score-a.score);
+    const results: Place[] = [];
+    for (const {row} of matches) {
+      // Mantém trechos distantes da mesma rua como escolhas distintas.
+      if (!results.some(p=>p.kind===row.kind && this.normalize(p.name)===this.normalize(row.name) && p.number===row.number && Math.hypot((p.latitude-row.latitude)*111,(p.longitude-row.longitude)*106)<0.3)) results.push(row);
+      if(results.length===8)break;
+    }
+    return {results,attribution:'© OpenStreetMap contributors'};
+  }
+  async selectedLocation(address: {locationRef?: string|null; street: string; number: string; city: string; state: string}) {
+    const row = (await this.placeRows()).find(p=>p.id===address.locationRef);
+    if(!row || !this.inServiceRegion(row)) throw new BadRequestException('Selecione novamente a rua ou estabelecimento na busca');
+    if(this.normalize(address.city)!=='porto seguro'||address.state.toUpperCase()!=='BA') throw new BadRequestException('O local selecionado fica em Porto Seguro/BA');
+    if(row.kind==='STREET' && this.normalize(address.street)!==this.normalize(row.street)) throw new BadRequestException('A rua mudou. Selecione novamente uma opção da busca');
+    if(row.kind!=='STREET') return {...row,locationConfirmed:true,accuracy:'SELECTED_PLACE'};
+    const numbered = (await this.streetRows()).find(p=>this.normalize(p.street)===this.normalize(row.street) && this.normalize(p.number)===this.normalize(address.number) && !!p.number && this.validPoint(p.latitude,p.longitude) && Math.hypot((p.latitude-row.latitude)*111,(p.longitude-row.longitude)*106)<1);
+    return {...row,...(numbered?{latitude:numbered.latitude,longitude:numbered.longitude}:{}),locationConfirmed:!!numbered,accuracy:numbered?'ADDRESS_NUMBER':'STREET_ESTIMATE'};
+  }
+
   private streets?: Array<{ street: string; number: string; city: string; neighborhood?: string; postalCode?: string; latitude: number; longitude: number }>;
   private normalize(value: unknown) {
     return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\b(rua|avenida|av|r|estrada|rodovia)\b/g, '').replace(/\s+/g, ' ').trim();
@@ -115,6 +159,7 @@ export class DeliveryPricingService {
   // CEP preenche o endereço; a localização vem do índice local, sem enviar
   // endereços residenciais para serviços públicos de geocodificação.
   private async resolveAddress(address: AddressLike) {
+    if (address.locationRef) return this.selectedLocation(address);
     if (address.locationConfirmed && this.validPoint(address.latitude, address.longitude)) {
       return { latitude: Number(address.latitude), longitude: Number(address.longitude), accuracy: 'CONFIRMED_POINT' };
     }
@@ -152,8 +197,8 @@ export class DeliveryPricingService {
   private routeCache = new Map<string, { at: number; value: { distanceKm: number; durationMinutes: number } }>();
   private routeRequests = new Map<string, Promise<{ distanceKm: number; durationMinutes: number }>>();
 
-  private async cachedRoute(from: { latitude: number; longitude: number }, to: { latitude: number; longitude: number }) {
-    const key = `${from.latitude},${from.longitude};${to.latitude},${to.longitude}`;
+  private async cachedRoute(from: { latitude: number; longitude: number }, to: { latitude: number; longitude: number; accuracy?: string }) {
+    const key = `${from.latitude},${from.longitude};${to.latitude},${to.longitude};${to.accuracy==='SELECTED_PLACE'?300:100}`;
     const cached = this.routeCache.get(key);
     if (cached && Date.now() - cached.at < 300000) return cached.value;
     const pending = this.routeRequests.get(key);
@@ -169,7 +214,7 @@ export class DeliveryPricingService {
 
   private async roadRoute(
     from: { latitude: number; longitude: number },
-    to: { latitude: number; longitude: number },
+    to: { latitude: number; longitude: number; accuracy?: string },
   ) {
     const base =
       process.env.ROUTING_BASE_URL?.replace(/\/$/, '') ||
@@ -183,7 +228,7 @@ export class DeliveryPricingService {
     url.searchParams.set('overview', 'false');
     url.searchParams.set('alternatives', 'false');
     url.searchParams.set('steps', 'false');
-    url.searchParams.set('radiuses', '100;100');
+    url.searchParams.set('radiuses', to.accuracy === 'SELECTED_PLACE' ? '100;300' : '100;100');
 
     let response: Response;
     try {

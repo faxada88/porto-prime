@@ -1,3 +1,4 @@
+import { DeliveryPricingService } from '../delivery/delivery-pricing.service.js';
 import { RealtimeGateway } from '../realtime/realtime.gateway.js';
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { UserRole } from '../generated/prisma/client.js';
@@ -7,7 +8,7 @@ import { CreateAddressDto } from './dto/create-address.dto.js';
 
 @Injectable()
 export class AddressesService {
-  constructor(private readonly prisma: PrismaService, private readonly auth: AuthService, private readonly realtime: RealtimeGateway) {}
+  constructor(private readonly prisma: PrismaService, private readonly auth: AuthService, private readonly realtime: RealtimeGateway, private readonly pricing: DeliveryPricingService) {}
 
   private coordinates(data: CreateAddressDto) {
     if (data.latitude === undefined && data.longitude === undefined) return null;
@@ -25,13 +26,15 @@ export class AddressesService {
     const user = await this.auth.authenticate(authorization);
     if (user.role !== UserRole.CUSTOMER) throw new ForbiddenException('Apenas clientes podem cadastrar endereço');
 
-    const coords = this.coordinates(data);
+    const selected = data.locationRef ? await this.pricing.selectedLocation(data) : null;
+    const coords = selected ? {latitude:selected.latitude,longitude:selected.longitude,locationConfirmed:selected.locationConfirmed} : this.coordinates(data);
     const saved = await this.prisma.$transaction(async (tx) => {
       if (data.isDefault) await tx.address.updateMany({ where: { userId: user.id }, data: { isDefault: false } });
       const count = await tx.address.count({ where: { userId: user.id } });
       return tx.address.create({
         data: {
           ...(coords ?? {}),
+          locationRef: data.locationRef || null,
           userId: user.id,
           label: data.label?.trim() || null,
           street: data.street.trim(),
@@ -52,9 +55,10 @@ export class AddressesService {
     const user=await this.auth.authenticate(authorization);
     const found=await this.prisma.address.findFirst({where:{id,userId:user.id}});
     if(!found) throw new NotFoundException('Endereço não encontrado');
-    const coords = this.coordinates(data);
+    const selected = data.locationRef ? await this.pricing.selectedLocation(data) : null;
+    const coords = selected ? {latitude:selected.latitude,longitude:selected.longitude,locationConfirmed:selected.locationConfirmed} : this.coordinates(data);
     const moved = ['street','number','neighborhood','city','state','postalCode'].some(k => String((data as any)[k]).replace(k==='postalCode'?/\D/g:/\s/g,'').toLowerCase() !== String((found as any)[k]).replace(k==='postalCode'?/\D/g:/\s/g,'').toLowerCase());
-    const location = coords ?? (moved ? { latitude: null, longitude: null, locationConfirmed: false } : {});
+    const location = {...(coords ?? (moved ? { latitude: null, longitude: null, locationConfirmed: false } : {})),...(data.locationRef ? {locationRef:data.locationRef} : moved ? {locationRef:null} : {})};
     const saved = await this.prisma.$transaction(async tx=>{
       if(data.isDefault) await tx.address.updateMany({where:{userId:user.id,id:{not:id}},data:{isDefault:false}});
       return tx.address.update({where:{id},data:{...location,label:data.label?.trim()||null,street:data.street.trim(),number:data.number.trim(),complement:data.complement?.trim()||null,neighborhood:data.neighborhood.trim(),city:data.city.trim(),state:data.state.trim().toUpperCase(),postalCode:data.postalCode.replace(/\D/g,''),isDefault:data.isDefault??found.isDefault}});

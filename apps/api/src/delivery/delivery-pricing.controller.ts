@@ -7,15 +7,20 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { CreateAddressDto } from '../addresses/dto/create-address.dto.js';
+import { PreviewDeliveryDto } from './dto/preview-delivery.dto.js';
 import { DeliveryPricingService } from './delivery-pricing.service.js';
 
 @Controller('delivery')
 export class DeliveryPricingController {
   constructor(private readonly pricing: DeliveryPricingService) {}
 
+  @Get('places')
+  places(@Query('q') query: string, @Headers('authorization') authorization?: string) {
+    return this.pricing.searchPlaces(query, authorization);
+  }
+
   @Post('preview')
-  preview(@Body() body: CreateAddressDto, @Headers('authorization') authorization?: string) {
+  preview(@Body() body: PreviewDeliveryDto, @Headers('authorization') authorization?: string) {
     return this.pricing.preview(body, authorization);
   }
 
