@@ -181,7 +181,7 @@ class _Delivery extends StatelessWidget {
         ?'O valor é calculado pelo endereço e pela rota viária.'
         :distance==null
             ?_brl(fee)+' • taxa configurada'
-            :_brl(fee)+' • '+distance.toStringAsFixed(1)+' km • ~'+duration.toString()+' min';
+            :_brl(fee)+' • '+distance.toStringAsFixed(1)+' km por rota • aproximadamente '+duration.toString()+' min';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -221,8 +221,7 @@ class _Delivery extends StatelessWidget {
                     fontWeight: AppFontWeight.medium,
                   ),
                 ),
-                if((double.tryParse((quote['demandSurcharge']??0).toString())??0)>0)
-                  Text('Inclui ${_brl(double.tryParse(quote['demandSurcharge'].toString())??0)} de adicional de alta demanda.',style:const TextStyle(fontSize:12,color:AppColors.oceanDeep,fontWeight:FontWeight.w700,height:1.5)),
+
               ],
             ),
           ),
