@@ -1,0 +1,141 @@
+/* Porto Prime Coastal Operations — presentation only; no hidden controls. */
+body{background:radial-gradient(ellipse at 95% 0,#dceefb70,transparent 45%),var(--pp-canvas);color:var(--pp-ink)}
+button,input,select,textarea{font-family:inherit}
+button{min-height:40px;transition:background var(--pp-fast),border-color var(--pp-fast),box-shadow var(--pp-fast),transform var(--pp-fast);font-size:12px;letter-spacing:-.1px}
+button:not(:disabled):active{transform:translateY(1px)}
+button:disabled{cursor:not-allowed}
+:where(button,a,input,select,textarea,summary):focus-visible{outline:3px solid var(--pp-focus);outline-offset:3px}
+input:focus,textarea:focus,select:focus{border-color:var(--pp-focus);box-shadow:0 0 0 4px #007f8812}
+input,select,textarea{background:var(--pp-surface);border-color:var(--pp-line);color:var(--pp-ink);border-radius:14px}
+input::placeholder,textarea::placeholder{color:var(--pp-muted)}
+.shell{grid-template-columns:256px minmax(0,1fr)}
+.shell>aside{background:linear-gradient(175deg,var(--pp-ocean-950),#0e2341);color:#fff;padding:28px 18px;border:0;box-shadow:12px 0 44px #102b5007;isolation:isolate;overflow-y:auto;overflow-x:hidden}
+.logo{padding:2px 6px 28px;gap:12px}
+.logo>b,.mark{background:var(--pp-sun-500);color:var(--pp-ocean-950);box-shadow:0 6px 20px #0002;border-radius:16px}
+.logo strong{font-size:15px;letter-spacing:.7px;color:white}
+.logo span{color:#abc8e2;font-size:9px;letter-spacing:1.1px}
+.shell>aside nav{gap:6px}
+.shell>aside nav button{min-height:46px;position:relative;border-radius:14px;color:#bdd0e4;padding:12px 14px;background:transparent;border:1px solid transparent;font-size:12px}
+.shell>aside nav button:hover{background:#ffffff09;color:#fff}
+.shell>aside nav button.active{background:linear-gradient(110deg,#ffffff16,#ffffff08);color:#fff;border-color:#ffffff16;box-shadow:inset 3px 0 var(--pp-electric)}
+.shell>aside nav button .navIcon{color:#8eb6d3;flex-shrink:0}
+.shell>aside nav button.active .navIcon{color:var(--pp-electric)}
+.shell>aside nav em{background:var(--pp-action);font-size:10px;min-width:21px;text-align:center}
+.shell>aside .admin{border-color:#ffffff18;margin-top:auto;padding-top:20px;gap:10px}
+.shell>aside .admin>span{background:#ffffff12;color:var(--pp-electric);border:1px solid #ffffff14}
+.shell>aside .admin b{color:#fff;font-size:12px;overflow-wrap:anywhere}
+.shell>aside .admin small{color:#9ab8d3;font-size:10px}
+.shell>aside .admin button{color:#abc8e2;min-height:40px;min-width:40px}
+.content{padding:32px clamp(20px,3vw,48px);max-width:1800px;width:100%;margin:auto}
+.content>header{padding-bottom:23px;border-bottom:1px solid var(--pp-line);gap:20px;margin-bottom:26px}
+.content>header h1{font-size:clamp(25px,2.6vw,36px);font-weight:850;letter-spacing:-1.2px;color:var(--pp-ink)}
+.content>header small{font-size:10px;letter-spacing:1.6px;color:var(--pp-ocean-700)}
+.headActions{gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.live{background:#fff;border:1px solid var(--pp-line);color:var(--pp-ocean-700);border-radius:14px;box-shadow:var(--pp-shadow-soft);min-height:44px}
+.searchBox,.orderNumberSearch,.courierDirectorySearch,.catalogSearch,.financeSearch{background:white;border-color:var(--pp-line);border-radius:14px;box-shadow:0 4px 16px #102b5003}
+.searchBox:focus-within,.orderNumberSearch:focus-within,.courierDirectorySearch:focus-within,.catalogSearch:focus-within,.financeSearch:focus-within{border-color:var(--pp-focus);box-shadow:0 0 0 4px #007f8812}
+.hero,.approvalHero,.customerDirectoryHero,.courierDirectoryHero,.deliveryHero{position:relative;background:radial-gradient(circle at 100% 0,#ffc13d30,transparent 34%),linear-gradient(120deg,var(--pp-ocean-950),var(--pp-ocean-800) 65%,var(--pp-ocean-700));border:1px solid #ffffff10;color:#fff;border-radius:28px;box-shadow:var(--pp-shadow-elevated);padding:30px}
+.hero small,.approvalHero small,.customerDirectoryHero small,.courierDirectoryHero small,.deliveryEyebrow{color:#83e5e0}
+.hero h2,.approvalHero h2,.customerDirectoryHero h2,.courierDirectoryHero h2,.deliveryHero h2{color:#fff;letter-spacing:-1px;line-height:1.1}
+.hero p,.approvalHero p,.customerDirectoryHero p,.courierDirectoryHero p,.deliveryHero p{color:#d2e3f3;font-size:13px;line-height:1.65}
+.heroSignal,.pulse,.approvalCount{background:#ffffff0e;color:#fff;border:1px solid #ffffff1c;box-shadow:inset 0 1px #ffffff16;border-radius:24px;backdrop-filter:none}
+.pulse span,.heroSignal span,.approvalCount span{color:#b8d5ec}
+.metrics{gap:16px;margin:22px 0}
+.metrics article,.courierDirectoryMetrics>div,.financeMetrics>div{background:#fff;border:1px solid var(--pp-line);border-radius:20px;box-shadow:var(--pp-shadow-soft);position:relative;overflow:hidden}
+.metrics article{padding:23px}
+.metrics article:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--pp-ocean-500)}
+.metrics article:nth-child(2):before{background:var(--pp-action)}
+.metrics article:nth-child(3):before{background:var(--pp-sun-500)}
+.metrics strong{font-size:30px;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.metrics span,.metrics small{font-size:11px;line-height:1.5}
+.metricIcon{background:var(--pp-stage);color:var(--pp-ocean-700);border:1px solid var(--pp-line)}
+.panel,.empty,.person,.orderCard,.orderCompact,.approvalCard,.customerCard,.catalogFlatPanel,.financeSurface,.courierDirectoryRows{border-color:var(--pp-line);box-shadow:var(--pp-shadow-soft);background:#fff}
+.panel{border-radius:24px;padding:24px}
+.panelHead h3{font-size:17px;letter-spacing:-.3px}
+.panelHead span{font-size:11px}
+.row{border-top-color:var(--pp-line);padding:16px 0}
+.grow b{font-size:13px}.grow span{font-size:12px;color:var(--pp-ink-soft)}.grow small{font-size:11px}
+.avatar,.approvalAvatar,.customerAvatar,.courierDirectoryAvatar,.financeAvatar{background:linear-gradient(135deg,var(--pp-stage),var(--pp-ocean-100));color:var(--pp-ocean-800);border:1px solid var(--pp-line)}
+.actions{gap:8px;flex-wrap:wrap}
+.actions button,.row button,.approvalFooter button,.orderMore button,.profileHistory button,.courierDirectoryActions button{font-size:12px;min-height:40px;border-radius:12px}
+.content .primary,.catalogEditorActions button[type=submit],.deliverySave button,.courierRecordSave button[type=submit],.approvalActions button:last-child,.orderDetails>button{background:var(--pp-action);color:white}
+button.secondary,.profileButton{background:var(--pp-stage)!important;border:1px solid var(--pp-line)!important;color:var(--pp-ocean-800)!important}
+button.secondary:not(:disabled):hover,.profileButton:hover{background:#e1ebf6!important;border-color:#b9cfdf!important}
+button.danger,button.deleteBtn,button.bulkDeleteBtn{background:var(--pp-coral-100);color:#9d3025;border:1px solid #edc7c2}
+button.warn{background:var(--pp-sun-100);color:#79500b;border:1px solid #eed9aa}
+.tableWrap{border:1px solid var(--pp-line);border-radius:20px;box-shadow:var(--pp-shadow-soft);overflow-x:auto}
+table{background:#fff;border-collapse:collapse;width:100%}
+th{background:var(--pp-stage);font-size:10px;font-weight:800;letter-spacing:.7px;color:var(--pp-ocean-800);text-transform:uppercase;padding:16px}
+td{padding:16px;font-size:12px;border-bottom:1px solid var(--pp-line);vertical-align:middle}
+tr:last-child td{border-bottom:0}tbody tr:hover{background:#f6fafc}
+.badge{font-size:10px!important;line-height:1.2;padding:7px 10px;font-weight:800;letter-spacing:.2px}
+.b-active,.b-paid,.b-delivered,.b-approved{background:#e4f5ec;color:#226645}
+.b-pending,.b-preparing,.b-confirmed,.b-ready_for_pickup{background:#fff1d1;color:#79540e}
+.b-blocked,.b-failed,.b-canceled,.b-rejected{background:#fff0ea;color:#9d3025}
+.b-courier_assigned,.b-picked_up,.b-out_for_delivery{background:#e6f1ff;color:#245783}
+input[type=checkbox]{accent-color:var(--pp-ocean-700)}
+.orderCard,.orderCompact{border-radius:20px}
+.orderExpansion>summary,.courierDirectoryRow>details>summary{transition:background var(--pp-fast);background:#fff}
+.orderExpansion>summary:hover,.courierDirectoryRow>details>summary:hover{background:#f3f8fd}
+.orderExpandedBody,.courierDirectoryExpanded{background:#f5f9fd;border-color:var(--pp-line)}
+.orderSearchToolbar,.courierDirectoryTools,.financeToolbar,.catalogControlBar{gap:12px}
+.orderHead,.orderIdentity{min-width:0}
+.courierDirectoryRow.isSelected{background:#eef9f7}
+.courierDirectoryRow{border-bottom-color:var(--pp-line)}
+.courierDirectoryName b{font-size:14px}.courierDirectoryName small,.courierDirectoryVehicle small{font-size:11px}
+.courierDirectoryStatus,.courierDirectoryOnline{font-size:11px}
+.courierDirectoryAccess>summary{background:var(--pp-stage);color:var(--pp-ocean-800);border:1px solid var(--pp-line);min-height:44px}
+.courierDirectoryPagination{font-size:12px}
+.catalogCleanList{border-color:var(--pp-line);border-radius:20px;overflow:hidden}
+.catalogCleanRow{background:#fff;border-color:var(--pp-line);padding-top:16px;padding-bottom:16px}
+.catalogCleanRow:hover{background:#f7fafd}
+.catalogCleanImage{background:var(--pp-stage);border-radius:14px;border-color:var(--pp-line)}
+.catalogCleanPrice{color:var(--pp-ocean-800);font-variant-numeric:tabular-nums}
+.catalogViewTabs,.financeTabs,.financeHistoryTabs{background:var(--pp-stage);border-color:var(--pp-line);border-radius:14px}
+.catalogViewTabs button.selected,.catalogViewTabs button.active,.financeTabs button.active,.financeHistoryTabs button.active{background:white!important;color:var(--pp-ocean-800)!important;box-shadow:0 3px 12px #102b500a}
+.catalogNotice,.financeNotice{border-color:#b6e2da;background:var(--pp-ocean-50);color:var(--pp-ocean-800)}
+.catalogClosedNotice{background:var(--pp-sun-100);color:#79540e;border-color:#edd9b1}
+.financeAccountList,.financeWithdrawalList,.financeLedger,.customerSessionList{border-color:var(--pp-line)}
+.financeBalance,.financeAccountTotals{background:linear-gradient(135deg,var(--pp-ocean-950),var(--pp-ocean-700));color:#fff;border-radius:22px}
+.financeBalance small,.financeAccountTotals small{color:#c5e4f0}
+.financePixBox,.financeOperationAmount,.financeAudit,.deliveryExamples{background:var(--pp-stage);border-color:var(--pp-line);border-radius:16px}
+.modalBackdrop,.catalogModalBackdrop,.financeBackdrop{background:#061a32a8;backdrop-filter:blur(4px)}
+.profileModal,.requirementModal,.dangerModal,.catalogEditor,.financeDrawer,.financeOperation{border-radius:26px;border-color:var(--pp-line);box-shadow:var(--pp-shadow-floating)}
+.profileModalHero{background:radial-gradient(circle at 90% 0,#19c9c41a,transparent 50%),linear-gradient(120deg,var(--pp-ocean-950),var(--pp-ocean-800));padding:30px}
+.profileModalHero h2{letter-spacing:-.8px;font-size:27px}
+.profileModalHero small,.profileModalHero p{color:#c3dff0}
+.profileModalAvatar{background:var(--pp-stage);color:var(--pp-ocean-800);border-radius:20px}
+.profileSummary{background:var(--pp-stage);border-color:var(--pp-line)}
+.profileSummary>div,.profileDataGrid>div,.approvalFacts>div{border-color:var(--pp-line);background:#fff;border-radius:14px}
+.profileDataGrid b{font-size:13px;line-height:1.55}.profileDataGrid span{font-size:10px;color:var(--pp-muted)}
+.profileSectionTitle b{font-size:16px}.profileSectionTitle small{font-size:12px}
+.profileSectionTitle>span,.courierRecordNumber{background:var(--pp-stage);color:var(--pp-ocean-700)}
+.profileModalFooter{background:var(--pp-stage);border-color:var(--pp-line)}
+.profileClose{min-width:40px;min-height:40px;background:#ffffff16!important}
+.courierRecordGroup{border-color:var(--pp-line);border-radius:16px;background:#fbfdff}
+.courierRecordGroup>summary{background:var(--pp-stage);color:var(--pp-ocean-800)}
+.courierRecordFields input,.courierRecordFields select,.catalogEditorFields input,.catalogEditorFields select{font-size:14px;min-height:46px}
+.courierRecordPhoto{background:var(--pp-stage);border-color:var(--pp-line)}
+.approvalRequirements{background:var(--pp-ocean-50);border-color:#c8e7e1}
+.approvalRequirements.hasPending{background:#fffbf1;border-color:#eeddbb}
+.approvalRequirement p,.approvalResponse span{font-size:12px;line-height:1.6}
+.approvalRole,.approvalIdentity span{font-size:10px}.approvalFacts b{font-size:12px}.approvalFacts small{font-size:11px}
+.approvalCount{min-width:150px}
+.brand{background:radial-gradient(circle at 100% 0,#ffc13d30,transparent 40%),linear-gradient(145deg,var(--pp-ocean-950),var(--pp-ocean-700));position:relative;overflow:hidden}
+.brand:after{content:"";position:absolute;pointer-events:none;width:600px;height:200px;border:1px solid #ffffff1c;border-radius:50%;left:-180px;bottom:-130px;box-shadow:0 -20px 0 #ffffff07,0 -40px 0 #19c9c414;transform:rotate(-14deg)}
+.brand h1{font-size:clamp(42px,5vw,70px);line-height:1.03;letter-spacing:-3px}
+.brand p{color:#d2e3f3}
+.loginCard{box-shadow:var(--pp-shadow-elevated);border-radius:28px;border-color:var(--pp-line)}
+.loginCard button[type=submit]{background:var(--pp-action);min-height:48px}
+.error{background:var(--pp-coral-100);color:#9d3025;border:1px solid #f0d5cb;line-height:1.5}
+.loading{background:var(--pp-ocean-950);box-shadow:var(--pp-shadow-elevated)}
+@media(min-width:1500px){.content{padding-top:38px}.metrics article{padding:26px}.grid{gap:24px}}
+@media(max-width:1100px){.content{padding:26px 22px}.content>header{align-items:start}.headActions{max-width:55%}.searchBox{width:100%}.hero,.approvalHero,.customerDirectoryHero,.courierDirectoryHero{padding:26px}}
+@media(max-width:900px){.shell{grid-template-columns:78px minmax(0,1fr)}.shell>aside{padding:22px 10px}.shell>aside nav button{padding:12px;justify-content:center}.shell>aside nav button>span{display:none}.shell>aside nav em{position:absolute;right:0;top:0;font-size:9px;min-width:16px;padding:2px}.shell>aside .admin button{display:inline-flex}.shell>aside .admin{flex-wrap:wrap;justify-content:center}.shell>aside .admin>span{display:none}.content>header{flex-wrap:wrap;gap:14px}.headActions{max-width:none;width:100%;justify-content:space-between}.searchBox{width:min(300px,100%)}.hero h2{font-size:30px}}
+@media(max-width:600px){.shell{grid-template-columns:1fr}.shell>aside{position:relative;width:100%;height:auto;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:12px;overflow:visible}.shell>aside .logo{padding:0;min-width:0}.shell>aside .logo div{display:flex}.shell>aside .logo strong{font-size:13px}.shell>aside .logo span{font-size:8px}.shell>aside .admin{grid-column:2;grid-row:1;margin:0;border:0;padding:0}.shell>aside nav{grid-column:1/-1;display:flex;gap:8px;margin:0;overflow-x:auto;padding-bottom:5px;scrollbar-width:thin}.shell>aside nav button{flex:0 0 auto;gap:8px;padding:10px 12px;min-height:44px}.shell>aside nav button>span{display:inline;font-size:11px}.shell>aside nav em{position:static}.content{padding:22px 16px}.content>header{margin-bottom:20px;padding-bottom:18px}.headActions{gap:10px}.searchBox{width:100%}.live{font-size:10px;padding:10px}.hero,.approvalHero,.customerDirectoryHero,.courierDirectoryHero,.deliveryHero{padding:24px;border-radius:22px}.hero h2,.approvalHero h2,.customerDirectoryHero h2,.courierDirectoryHero h2{font-size:26px}.metrics{gap:10px}.metrics article{padding:18px}.metrics strong{font-size:25px}.panel{padding:18px}.profileBackdrop,.catalogModalBackdrop,.financeBackdrop{padding:12px}.profileModalHero{padding:26px 20px;flex-wrap:wrap}.profileModalHero h2{font-size:23px;overflow-wrap:anywhere}.profileModalHero .badge{margin-top:8px}.actions button{flex:1 1 auto}.catalogCleanRow{gap:10px}.financeAccountTotals{padding:16px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+.catalogViewTabs button:not(.selected),.financeTabs button:not(.active),.financeHistoryTabs button:not(.active){background:transparent!important;color:var(--pp-muted)!important}
+.courierDirectoryHero>div>span{color:#83e5e0}.financeAccountTotals strong{color:#fff}.financeAccountTotals>div{background:transparent;border-color:#ffffff20}.content button.reject{background:var(--pp-coral-100);color:#9d3025}
+
+.financeCenter .financeBalance button:not(.secondary){background:var(--pp-action);color:#fff}.financeCenter .financeBalance button.secondary{background:#ffffff14!important;border-color:#ffffff30!important;color:#fff!important}
