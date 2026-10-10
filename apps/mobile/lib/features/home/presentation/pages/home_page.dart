@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/prime_brand.dart';
 
 import '../../../../core/navigation/app_nav.dart';
 import '../../../../core/state/app_state.dart';
@@ -44,7 +45,7 @@ class HomePage extends StatelessWidget {
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         const Text('Loja fechada no momento', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF654D21))),
                         const SizedBox(height: 6),
-                        Text(state.storeMessage, style: const TextStyle(color: Color(0xFF654D21), height: 1.5)),
+                        Text(state.storeMessage.replaceAll('Sua sacola', 'Seu carrinho').replaceAll('sua sacola', 'seu carrinho'), style: const TextStyle(color: Color(0xFF654D21), height: 1.5)),
                       ]),
                     ),
                   )),
@@ -355,7 +356,7 @@ class _Header extends StatelessWidget {
             PrimeIconButton(
               icon: AppIcons.bag,
               badgeCount: state.cartCount,
-              semanticLabel: 'Abrir sacola',
+              semanticLabel: 'Abrir carrinho',
               onPressed: () => AppNav.instance.go(2),
             ),
             const SizedBox(width: 8),
@@ -375,196 +376,31 @@ class _Header extends StatelessWidget {
 
 class _Hero extends StatelessWidget {
   const _Hero({required this.onTap});
-
   final VoidCallback onTap;
-
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      final narrow = constraints.maxWidth < 430;
-      return Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          child: Ink(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.ocean900,
-                  AppColors.ocean700,
-                  Color(0xFF0A9584),
-                ],
-              ),
-              boxShadow: AppShadows.elevated,
-            ),
-            child: Stack(
-              clipBehavior: Clip.antiAlias,
-              children: [
-                Positioned(
-                  right: -70,
-                  top: -94,
-                  child: Container(
-                    width: 250,
-                    height: 250,
-                    decoration: BoxDecoration(
-                      color: AppColors.sun500.withValues(
-                        alpha: narrow ? .16 : .96,
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-                if (!narrow)
-                  Positioned(
-                    right: 24,
-                    bottom: 22,
-                    child: Transform.rotate(
-                      angle: -.08,
-                      child: Container(
-                        width: 110,
-                        height: 128,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: .11),
-                          borderRadius: BorderRadius.circular(34),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: .14),
-                          ),
-                        ),
-                        child: const Icon(
-                          AppIcons.beer,
-                          color: Colors.white,
-                          size: 58,
-                        ),
-                      ),
-                    ),
-                  ),
-                Positioned(
-                  left: -18,
-                  bottom: -34,
-                  child: Container(
-                    width: 118,
-                    height: 118,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withValues(alpha: .045),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(22),
-                  child: SizedBox(
-                    width: narrow ? constraints.maxWidth - 44 : 360,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 7,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: .1),
-                            borderRadius: BorderRadius.circular(AppRadius.pill),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                width: 7,
-                                height: 7,
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFF8EFFE1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 6),
-                              Flexible(
-                                child: Text(
-                                  'PORTO SEGURO • ONLINE',
-                                  style: TextStyle(
-                                    color: Color(0xFFE1FFF7),
-                                    fontSize: AppFontSize.caption,
-                                    fontWeight: AppFontWeight.display,
-                                    letterSpacing: .75,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                        Text(
-                          'Verão na porta.\nSem sair do momento.',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: narrow ? 26 : 29,
-                            height: 1.02,
-                            fontWeight: AppFontWeight.display,
-                            letterSpacing: -1.0,
-                          ),
-                        ),
-                        const SizedBox(height: 9),
-                        const Text(
-                          'Bebidas geladas, conveniência e entrega com ritmo de Porto Seguro.',
-                          style: TextStyle(
-                            color: Color(0xFFD3EEE8),
-                            fontSize: 11,
-                            height: 1.45,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 11,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(AppRadius.md),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  'Explorar agora',
-                                  style: TextStyle(
-                                    color: AppColors.ocean800,
-                                    fontSize: 11,
-                                    fontWeight: AppFontWeight.display,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 7),
-                              Icon(
-                                AppIcons.arrowRight,
-                                size: 15,
-                                color: AppColors.ocean800,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    },
-  );
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
+    final spacious = box.maxWidth >= 560;
+    return Container(
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(30), boxShadow: AppShadows.elevated),
+      child: Material(color: AppColors.midnight, borderRadius: BorderRadius.circular(30), clipBehavior: Clip.antiAlias,
+        child: InkWell(onTap: onTap, child: Stack(children: [
+          const Positioned.fill(child: PrimeCoastArtwork()),
+          if (spacious) Positioned(right: 44, top: 72, child: Transform.rotate(angle: -.12, child: Container(
+            width: 118, height: 118, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .10), borderRadius: BorderRadius.circular(32), border: Border.all(color: Colors.white.withValues(alpha: .2))),
+            child: const Icon(AppIcons.cart, size: 64, color: Colors.white)))),
+          Padding(padding: const EdgeInsets.all(26), child: SizedBox(width: spacious ? box.maxWidth * .60 : double.infinity, child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .10), borderRadius: BorderRadius.circular(AppRadius.pill)), child: const Text('PORTO SEGURO · DO SEU JEITO', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: .8))),
+            const SizedBox(height: 22),
+            Text('Seu momento.\nA gente entrega.', style: TextStyle(color: Colors.white, fontSize: spacious ? 38 : 31, height: 1.06, fontWeight: FontWeight.w800, letterSpacing: -1.1)),
+            const SizedBox(height: 12),
+            const Text('Bebidas, conveniência e tudo para aproveitar Porto Seguro.', style: TextStyle(color: Color(0xFFD8EBFA), fontSize: 13, height: 1.5)),
+            const SizedBox(height: 24),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 13), decoration: BoxDecoration(color: AppColors.sun500, borderRadius: BorderRadius.circular(16)), child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(AppIcons.cart, color: AppColors.midnight, size: 18), SizedBox(width: 10), Flexible(child: Text('Explorar produtos', style: TextStyle(color: AppColors.midnight, fontWeight: FontWeight.w800, fontSize: 13))), SizedBox(width: 12), Icon(AppIcons.arrowRight, color: AppColors.midnight, size: 17)])),
+          ]))),
+        ])),
+      ),
+    );
+  });
 }
 
 class _CategoryGrid extends StatelessWidget {

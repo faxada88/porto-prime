@@ -291,7 +291,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF102D28), Color(0xFF08786D)],
+                      colors: [AppColors.midnight, AppColors.ocean700],
                     ),
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                   ),

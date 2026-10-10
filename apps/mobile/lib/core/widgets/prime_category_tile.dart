@@ -82,7 +82,7 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                 ),
                 decoration: BoxDecoration(
                   color: selected
-                      ? AppColors.surface
+                      ? AppColors.ocean50
                       : _hovered
                       ? AppColors.surfaceSoft
                       : Colors.transparent,
@@ -117,7 +117,8 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                       width: iconBox,
                       height: iconBox,
                       decoration: BoxDecoration(
-                        color: visual.background,
+                        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [visual.background, Color.lerp(visual.background, visual.foreground, .17)!]),
+                        boxShadow: [BoxShadow(color: visual.foreground.withValues(alpha: .12), blurRadius: 12, offset: const Offset(0, 5))],
                         borderRadius: BorderRadius.circular(
                           compact ? AppRadius.md : AppRadius.lg,
                         ),

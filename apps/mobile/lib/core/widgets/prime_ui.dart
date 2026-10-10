@@ -33,7 +33,7 @@ class PrimeSectionHeader extends StatelessWidget {
             ),
             const SizedBox(height: 5),
           ],
-          Text(title, style: Theme.of(context).textTheme.titleLarge),
+          Text(title, style: Theme.of(context).textTheme.headlineMedium),
           if (subtitle != null) ...[
             const SizedBox(height: 5),
             Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
@@ -100,7 +100,7 @@ class PrimeSurface extends StatelessWidget {
       color: background,
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(color: borderColor),
-      boxShadow: shadow ? AppShadows.soft : null,
+      boxShadow: shadow ? AppShadows.elevated : AppShadows.soft,
     ),
     child: child,
   );
@@ -293,10 +293,10 @@ class PrimeEmptyState extends StatelessWidget {
     child: Column(
       children: [
         Container(
-          width: 62,
-          height: 62,
+          width: 76,
+          height: 76,
           decoration: BoxDecoration(
-            color: AppColors.ocean50,
+            gradient: const LinearGradient(colors: [AppColors.ocean100, AppColors.sky]),
             borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           child: Icon(icon, color: AppColors.ocean700, size: AppIconSize.lg),
@@ -511,7 +511,7 @@ abstract final class PrimeMessages {
         lower.contains('<html')) {
       return 'Não foi possível concluir esta ação agora. Tente novamente.';
     }
-    return raw.replaceFirst(RegExp(r'^\w*Exception:\s*'), '');
+    return raw.replaceFirst(RegExp(r'^\w*Exception:\s*'), '').replaceAll('Sua sacola', 'Seu carrinho').replaceAll('sua sacola', 'seu carrinho');
   }
 }
 
@@ -635,8 +635,8 @@ class PrimeMetricCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 32,
-          height: 32,
+          width: 38,
+          height: 38,
           decoration: BoxDecoration(
             color: AppColors.ocean50,
             borderRadius: BorderRadius.circular(AppRadius.xs),

@@ -5,7 +5,7 @@ abstract final class AppIcons {
   // Navegação e ações
   static const home = LucideIcons.home;
   static const search = LucideIcons.search;
-  static const bag = LucideIcons.shoppingBag;
+  static const bag = LucideIcons.shoppingCart;
   static const cart = LucideIcons.shoppingCart;
   static const user = LucideIcons.user;
   static const bell = LucideIcons.bell;
@@ -76,7 +76,7 @@ abstract final class AppIcons {
   static const energy = LucideIcons.zap;
   static const water = LucideIcons.droplet;
   static const ice = LucideIcons.snowflake;
-  static const convenience = LucideIcons.shoppingBag;
+  static const convenience = LucideIcons.shoppingCart;
   static const combo = LucideIcons.packageOpen;
   static const offers = LucideIcons.badgePercent;
   static const all = LucideIcons.layoutGrid;
@@ -221,7 +221,7 @@ abstract final class AppIcons {
         foreground: Color(0xFF8C4059),
       );
     }
-    if (value.contains('destil') ||
+    if (value.contains('destil') || value.contains('deslit') ||
         value.contains('whisk') ||
         value.contains('vodk') ||
         value.contains('gin') ||

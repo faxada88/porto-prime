@@ -57,9 +57,9 @@ class _AppShellState extends State<AppShell> {
             height: AppControl.navHeight,
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: AppColors.midnight,
               borderRadius: BorderRadius.circular(AppRadius.xl),
-              border: Border.all(color: AppColors.stroke),
+              border: Border.all(color: AppColors.ocean800),
               boxShadow: AppShadows.floating,
             ),
             child: Row(
@@ -79,7 +79,7 @@ class _AppShellState extends State<AppShell> {
                 _item(
                   value: 2,
                   icon: AppIcons.bag,
-                  label: 'Sacola',
+                  label: 'Carrinho',
                   current: index,
                   badgeCount: state.cartCount,
                 ),
@@ -115,14 +115,14 @@ class _AppShellState extends State<AppShell> {
           borderRadius: BorderRadius.circular(AppRadius.md),
           onTap: () => AppNav.instance.go(value),
           child: AnimatedContainer(
-            duration: AppMotion.standard,
+            duration: AppMotion.resolve(context, AppMotion.standard),
             curve: AppMotion.curve,
             margin: const EdgeInsets.symmetric(horizontal: 2),
             decoration: BoxDecoration(
-              color: selected ? AppColors.ocean50 : Colors.transparent,
+              color: selected ? Colors.white.withValues(alpha: .09) : Colors.transparent,
               borderRadius: BorderRadius.circular(AppRadius.md),
               border: Border.all(
-                color: selected ? AppColors.ocean100 : Colors.transparent,
+                color: selected ? AppColors.ocean500.withValues(alpha: .4) : Colors.transparent,
               ),
             ),
             child: Stack(
@@ -133,13 +133,13 @@ class _AppShellState extends State<AppShell> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     AnimatedContainer(
-                      duration: AppMotion.standard,
+                      duration: AppMotion.resolve(context, AppMotion.standard),
                       curve: AppMotion.curve,
                       width: 30,
                       height: 30,
                       decoration: BoxDecoration(
                         color: selected
-                            ? AppColors.ocean800
+                            ? AppColors.action
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
@@ -147,14 +147,14 @@ class _AppShellState extends State<AppShell> {
                       child: Icon(
                         icon,
                         size: AppIconSize.md,
-                        color: selected ? Colors.white : AppColors.muted,
+                        color: selected ? Colors.white : AppColors.ocean300,
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       label,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: selected ? AppColors.ocean800 : AppColors.muted,
+                        color: selected ? Colors.white : AppColors.ocean300,
                         fontSize: AppFontSize.caption,
                         letterSpacing: .05,
                         fontWeight: selected
@@ -184,7 +184,7 @@ class _AppShellState extends State<AppShell> {
                         badgeCount > 9 ? '9+' : badgeCount.toString(),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 7.5,
+                          fontSize: 10,
                           height: 1,
                           fontWeight: FontWeight.w800,
                         ),

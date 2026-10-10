@@ -2,40 +2,40 @@ import 'package:flutter/material.dart';
 
 abstract final class AppColors {
   // Porto Prime — oceano, areia e pôr do sol em doses controladas.
-  static const ocean900 = Color(0xFF0A312D);
-  static const ocean800 = Color(0xFF0C4E47);
-  static const ocean700 = Color(0xFF08685D);
-  static const ocean600 = Color(0xFF0A8173);
-  static const ocean500 = Color(0xFF14A08E);
-  static const ocean300 = Color(0xFF83D7C8);
-  static const ocean100 = Color(0xFFDFF5EF);
-  static const ocean50 = Color(0xFFF0FAF7);
+  static const ocean900 = Color(0xFF102B50);
+  static const ocean800 = Color(0xFF123D69);
+  static const ocean700 = Color(0xFF075E75);
+  static const ocean600 = Color(0xFF007F88);
+  static const ocean500 = Color(0xFF00A5AB);
+  static const ocean300 = Color(0xFF71DED5);
+  static const ocean100 = Color(0xFFDDF7F4);
+  static const ocean50 = Color(0xFFEDFBF9);
 
-  static const sun500 = Color(0xFFFFB84D);
+  static const sun500 = Color(0xFFFFC13D);
   static const sun200 = Color(0xFFFFE1A9);
   static const sand100 = Color(0xFFFFF3DD);
   static const sand50 = Color(0xFFFFFAF2);
 
-  static const coral600 = Color(0xFFE85F48);
-  static const coral100 = Color(0xFFFFEAE4);
+  static const coral600 = Color(0xFFCD3E2B);
+  static const coral100 = Color(0xFFFFF0EA);
   static const lavender100 = Color(0xFFEDE9FF);
   static const violet600 = Color(0xFF6D5AA8);
   static const sky100 = Color(0xFFE5F3FB);
   static const sky700 = Color(0xFF356D8D);
 
-  static const ink = Color(0xFF15201D);
-  static const inkSoft = Color(0xFF34413D);
-  static const muted = Color(0xFF697773);
-  static const subtle = Color(0xFF94A09C);
-  static const canvas = Color(0xFFF6F7F3);
+  static const ink = Color(0xFF132C46);
+  static const inkSoft = Color(0xFF344E63);
+  static const muted = Color(0xFF637689);
+  static const subtle = Color(0xFF8C9AAB);
+  static const canvas = Color(0xFFF5F8FC);
   static const surface = Color(0xFFFFFFFF);
-  static const surfaceSoft = Color(0xFFFBFCFA);
-  static const surfaceMuted = Color(0xFFF1F4F1);
+  static const surfaceSoft = Color(0xFFFBFDFF);
+  static const surfaceMuted = Color(0xFFEDF3FA);
   static const surfaceSun = Color(0xFFFFFBF3);
   static const surfaceOcean = Color(0xFFF3FBF8);
   static const overlay = Color(0x99061210);
-  static const stroke = Color(0xFFE4E9E5);
-  static const strokeStrong = Color(0xFFD3DDD8);
+  static const stroke = Color(0xFFE0E9F2);
+  static const strokeStrong = Color(0xFFC9D9E9);
   static const success = Color(0xFF2D9B70);
   static const warning = Color(0xFFB97918);
   static const danger = coral600;
@@ -59,6 +59,10 @@ abstract final class AppColors {
 
   static const primary = ocean600;
   static const primaryDark = ocean800;
+  static const action = coral600;
+  static const actionSoft = coral100;
+  static const electric = Color(0xFF19C9C4);
+  static const midnight = ocean900;
   static const accent = coral600;
 }
 
@@ -178,8 +182,8 @@ abstract final class AppResponsive {
 }
 
 abstract final class AppFontSize {
-  static const caption = 11.0;
-  static const label = 12.0;
+  static const caption = 12.0;
+  static const label = 13.0;
   static const body = 14.0;
   static const input = 16.0;
   static const title = 20.0;
@@ -337,7 +341,8 @@ abstract final class AppTheme {
         backgroundColor: AppColors.canvas,
         surfaceTintColor: Colors.transparent,
         foregroundColor: AppColors.ink,
-        titleTextStyle: textTheme.titleMedium,
+        titleTextStyle: textTheme.titleLarge,
+        toolbarHeight: 68,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -389,7 +394,7 @@ abstract final class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.ocean800,
+          backgroundColor: AppColors.action,
           foregroundColor: Colors.white,
           disabledBackgroundColor: AppColors.stroke,
           disabledForegroundColor: AppColors.subtle,

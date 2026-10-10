@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/prime_brand.dart';
 
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
@@ -90,13 +91,15 @@ class _PaymentsPageState extends State<PaymentsPage> {
           child: PrimePageViewport(child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
+              const PrimeEditorialHeader(title: 'Tudo em ordem.', subtitle: 'Consulte os pagamentos e os valores dos seus pedidos.', icon: AppIcons.creditCard, eyebrow: 'PAGAMENTOS'),
+              const SizedBox(height: 18),
               Container(
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF102D28), Color(0xFF08786D)],
+                    colors: [AppColors.midnight, AppColors.ocean700],
                   ),
                   borderRadius: BorderRadius.circular(AppRadius.xl),
                   boxShadow: const [

@@ -98,8 +98,8 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    AppColors.surfaceSoft,
-                                    AppColors.surfaceMuted,
+                                    AppColors.surface,
+                                    AppColors.sky,
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(
@@ -349,7 +349,7 @@ class _AddButton extends StatelessWidget {
     button: true,
     label: 'Adicionar ' + productName,
     child: Material(
-      color: AppColors.ocean800,
+      color: AppColors.action,
       borderRadius: BorderRadius.circular(AppRadius.md),
       child: InkWell(
         onTap: onTap,
@@ -361,7 +361,7 @@ class _AddButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(AppIcons.plus, color: Colors.white, size: 15),
+                const Icon(AppIcons.cart, color: Colors.white, size: 17),
                 const SizedBox(width: 5),
                 const Flexible(
                   child: FittedBox(
@@ -476,7 +476,7 @@ class _FallbackProduct extends StatelessWidget {
         color: AppColors.ocean50,
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
-      child: const Icon(AppIcons.package, color: AppColors.ocean700, size: 28),
+      child: const Icon(AppIcons.cart, color: AppColors.ocean700, size: 28),
     ),
   );
 }

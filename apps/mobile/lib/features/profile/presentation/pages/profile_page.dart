@@ -1,6 +1,7 @@
 import '../../../addresses/presentation/pages/address_book_page.dart';
 import '../../../wallet/presentation/pages/partner_wallet_page.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/prime_brand.dart';
 
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
@@ -157,23 +158,10 @@ class _GuestAccessHero extends StatelessWidget {
 
 class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader();
-
   @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('PORTO PRIME',
-              style: TextStyle(color: AppColors.primary,
-                  fontSize: AppFontSize.caption,
-                  fontWeight: AppFontWeight.display, letterSpacing: 2)),
-          const SizedBox(height: 10),
-          Text('Seu espaço', style: Theme.of(context).textTheme.headlineLarge),
-          const SizedBox(height: 8),
-          const Text('Sua conta. Suas escolhas. Tudo por perto.',
-              style: TextStyle(color: AppColors.muted,
-                  fontSize: AppFontSize.body, height: 1.5)),
-        ],
-      );
+  Widget build(BuildContext context) => const PrimeEditorialHeader(
+    title: 'Seu espaço', subtitle: 'Sua conta. Suas escolhas. Tudo por perto.', icon: AppIcons.user,
+  );
 }
 
 class _GuestHero extends StatelessWidget {
@@ -194,9 +182,9 @@ class _GuestHero extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFF102B27),
-                  Color(0xFF075F55),
-                  Color(0xFF0C8979),
+                  AppColors.midnight,
+                  AppColors.ocean700,
+                  AppColors.ocean500,
                 ],
               ),
               boxShadow: [
@@ -2250,7 +2238,7 @@ class _AccountHero extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF102B27), Color(0xFF075E54)],
+          colors: [AppColors.midnight, Color(0xFF075E54)],
         ),
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [

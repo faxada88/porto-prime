@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/prime_brand.dart';
 
 import '../../../../core/navigation/app_nav.dart';
 import '../../../../core/state/app_state.dart';
@@ -90,6 +91,8 @@ class _OrdersPageState extends State<OrdersPage> {
                 ),
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 34),
                 children: [
+                  const PrimeEditorialHeader(title: 'Cada pedido, bem acompanhado.', subtitle: 'Sua compra atual e seus bons momentos anteriores, no mesmo lugar.', icon: AppIcons.receipt, eyebrow: 'SEUS PEDIDOS'),
+                  const SizedBox(height: 24),
                   if (active.isNotEmpty) ...[
                     const PrimeSectionHeader(
                       eyebrow: 'AGORA',

@@ -1,5 +1,6 @@
 import '../../../addresses/presentation/pages/address_book_page.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/prime_brand.dart';
 
 import '../../../../core/navigation/app_nav.dart';
 import '../../../../core/state/app_state.dart';
@@ -29,6 +30,8 @@ class CartPage extends StatelessWidget {
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 120),
           children: [
+            const PrimeEditorialHeader(title: 'Seu carrinho', subtitle: 'Escolha feita. Agora é só revisar e aproveitar.', icon: AppIcons.cart, eyebrow: 'QUASE CHEGANDO'),
+            const SizedBox(height: 20),
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -37,8 +40,8 @@ class CartPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Sua sacola',
-                        style: Theme.of(context).textTheme.headlineLarge,
+                        'Resumo da compra',
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 5),
                       Text(
@@ -326,7 +329,7 @@ class _LiveItem extends StatelessWidget {
             children: [
               Semantics(
                 button: true,
-                label: 'Remover produto da sacola',
+                label: 'Remover produto do carrinho',
                 child: InkWell(
                   onTap: () => s.removeProduct(id),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -538,7 +541,7 @@ class _EmptyCart extends StatelessWidget {
   @override
   Widget build(BuildContext context) => PrimeEmptyState(
         icon: AppIcons.bag,
-        title: 'Sua sacola está vazia',
+        title: 'Seu carrinho está vazio',
         message:
             'Escolha seus produtos favoritos e volte aqui para finalizar.',
         actionLabel: 'Descobrir produtos',
