@@ -12,7 +12,6 @@ import { useEffect,useMemo,useState } from "react";
 import { io } from "socket.io-client";
 import {
   Activity,
-  Archive,
   ChevronDown,
   Trash2,
   History,
@@ -125,27 +124,25 @@ export default function Home(){
  const nav: Array<[string, LucideIcon]> = [
   ["Visão geral", LayoutDashboard],
   ["Pedidos", ClipboardList],
-  ["Arquivo", Archive],
   ["Aprovações", UserCheck],
   ["Motoboys", Bike],
   ["Clientes", Users],
   ["Parceiros", Handshake],
   ["Catálogo", PackageSearch],
-  ["Pagamentos", CreditCard],
+  ["Pagamentos e Arquivo", CreditCard],
   ["Saques", Wallet],
   ["Configurações", SettingsIcon],
 ];
  return <div className="shell"><aside><div className="logo"><b>P</b><div><strong>PORTO PRIME</strong><span>CENTRAL DE OPERAÇÕES</span></div></div><nav aria-label="Navegação administrativa">{nav.map(([n,NavIcon])=><button key={n} aria-current={tab===n?"page":undefined} title={n} className={tab===n?"active":""} onClick={()=>{setTab(n);setSearch("")}}><NavIcon className="navIcon" size={17} strokeWidth={2}/><span>{n}</span>{n==="Aprovações"&&pending.length>0&&<em>{pending.length}</em>}</button>)}</nav><div className="admin"><span>{me.name?.[0]}</span><div><b>{me.name}</b><small>Administrador</small></div><button title="Sair" aria-label="Sair" onClick={async()=>{try{await api("/auth/logout",token,"POST")}catch{}localStorage.removeItem("pp_admin_token");localStorage.removeItem("pp_admin_refresh");localStorage.removeItem("pp_admin_session");location.reload()}}><LogOut size={16}/></button></div></aside>
- <main className="content" aria-busy={busy}><header><div><small>CENTRAL PORTO PRIME</small><h1>{tab}</h1></div><div className="headActions">{tab!=="Visão geral"&&tab!=="Configurações"&&tab!=="Catálogo"&&tab!=="Saques"&&tab!=="Arquivo"&&<label className="searchBox"><Search size={16}/><input className="search" aria-label="Buscar" placeholder="Buscar na operação..." value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button type="button" aria-label="Limpar busca" onClick={()=>setSearch("")}><X size={14}/></button>}</label>}<button className="live" title="Clique para sincronizar agora" onClick={()=>load()}><RefreshCw size={14}/><span>Sincronização automática</span>{lastSync&&<small>{lastSync.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</small>}</button></div></header>{activityNotice&&<div className="activityToast" role="status"><b>Nova atividade</b><span>{activityNotice}</span></div>}{error&&<div className="error top" role="alert">{displayMessage(error)}</div>}{busy&&<div className="loading" role="status"><span className="loadingSpinner"/><span>Sincronizando dados...</span></div>}
+ <main className="content" aria-busy={busy}><header><div><small>CENTRAL PORTO PRIME</small><h1>{tab}</h1></div><div className="headActions">{tab!=="Visão geral"&&tab!=="Configurações"&&tab!=="Catálogo"&&tab!=="Saques"&&tab!=="Pagamentos e Arquivo"&&<label className="searchBox"><Search size={16}/><input className="search" aria-label="Buscar" placeholder="Buscar na operação..." value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button type="button" aria-label="Limpar busca" onClick={()=>setSearch("")}><X size={14}/></button>}</label>}<button className="live" title="Clique para sincronizar agora" onClick={()=>load()}><RefreshCw size={14}/><span>Sincronização automática</span>{lastSync&&<small>{lastSync.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</small>}</button></div></header>{activityNotice&&<div className="activityToast" role="status"><b>Nova atividade</b><span>{activityNotice}</span></div>}{error&&<div className="error top" role="alert">{displayMessage(error)}</div>}{busy&&<div className="loading" role="status"><span className="loadingSpinner"/><span>Sincronizando dados...</span></div>}
  {tab==="Visão geral"&&<Dashboard dash={dash} orders={orders} pending={pending} withdrawals={withdrawals}/>} 
  {tab==="Pedidos"&&<Orders rows={filtered(orders.filter(o=>!isArchivedOrder(o)))} act={act} ask={setConfirmBox} token={token} products={catalog.filter(c=>c.active&&!c.archived).flatMap(c=>c.products||[])}/>} 
- {tab==="Arquivo"&&<OrderArchive orders={orders} request={(path,method,body)=>api(path,token,method,body)} reload={()=>load()}/>}
+ {tab==="Pagamentos e Arquivo"&&<OrderArchive orders={orders} request={(path,method,body)=>api(path,token,method,body)} reload={()=>load()}/>}
  {tab==="Aprovações"&&<Pending rows={filtered(pending)} act={act} courierByUser={courierByUser} requestRequirement={requestRequirement}/>}
  {tab==="Motoboys"&&<CourierDirectory request={path=>api(path,token)} act={act} ask={setConfirmBox} requestRequirement={requestRequirement} epoch={lastSync?.getTime()||0} globalSearch={search} clearGlobalSearch={()=>setSearch("")} renderProfile={(profile,close)=><CourierAdminProfile user={profile.user} app={profile} close={close} act={act} requestRequirement={requestRequirement}/>}/>}
  {tab==="Clientes"&&<People rows={filtered(customers)} kind="Cliente" act={act} ask={setConfirmBox} courierByUser={courierByUser} requestRequirement={requestRequirement}/>}
  {tab==="Parceiros"&&<People rows={filtered(partners)} kind="Parceiro" act={act} ask={setConfirmBox} courierByUser={courierByUser} requestRequirement={requestRequirement}/>}
  {tab==="Catálogo"&&<CatalogPanel categories={catalog} pricing={pricing} act={act}/>}
- {tab==="Pagamentos"&&<Payments rows={filtered(orders)}/>}
  {tab==="Saques"&&<FinancePanel rows={withdrawals} token={token} api={api}/>}
  {tab==="Configurações"&&<div className="settingsWorkspace"><DemandControl epoch={lastSync?.getTime()||0} request={(path,method="GET",body)=>api(path,token,method,body)}/><Settings me={me} dash={dash} pricing={pricing} act={act}/></div>} 
  {confirmBox&&<div className="modalBackdrop" onMouseDown={()=>setConfirmBox(null)}><section className="dangerModal" onMouseDown={e=>e.stopPropagation()}><div className="dangerIcon"><CircleAlert size={27}/></div><small>ATENÇÃO · AÇÃO IRREVERSÍVEL</small><h2>{confirmBox.title}</h2><p>{confirmBox.message}</p>{confirmBox.detail&&<div className="dangerDetail">{confirmBox.detail}</div>}<div className="dangerNotice"><b>Esta ação não poderá ser desfeita.</b><span>Confirme somente se tiver certeza de que deseja remover este registro definitivamente.</span></div><div className="modalActions"><button className="cancelBtn" onClick={()=>setConfirmBox(null)}>Cancelar</button><button className="deleteBtn" onClick={()=>{const fn=confirmBox.action;setConfirmBox(null);fn()}}>{confirmBox.confirm}</button></div></section></div>}
@@ -306,6 +303,6 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
 
 const dispatchEventLabel=(v:string)=>({ADMIN_RELEASED:"Admin liberou o pedido",SEARCH_STARTED:"Busca por motoboy iniciada",OFFER_CREATED:"Oferta enviada",OFFER_DECLINED:"Oferta recusada",OFFER_EXPIRED:"Oferta expirada",OFFER_CANCELED:"Oferta cancelada",OFFER_ACCEPTED:"Motoboy aceitou",COURIER_PICKED_UP:"Pedido coletado",OUT_FOR_DELIVERY:"Saiu para entrega",DELIVERED:"Entrega concluída",WALLET_CREDITED:"Carteira creditada"} as Record<string,string>)[v]||v;
 
-function Payments({rows}:{rows:Row[]}){const paid=rows.filter(x=>x.paymentStatus==="PAID").reduce((s,x)=>s+Number(x.total||0),0);return <><section className="metrics payMetrics"><Card icon={Banknote} label="Volume pago" value={brl(paid)} note="Transações aprovadas"/><Card icon={Check} label="Pagos" value={rows.filter(x=>x.paymentStatus==="PAID").length} note="Pedidos"/><Card icon={CircleAlert} label="Pendentes" value={rows.filter(x=>x.paymentStatus==="PENDING").length} note="Aguardando confirmação"/><Card icon={CircleAlert} label="Falhas" value={rows.filter(x=>x.paymentStatus==="FAILED").length} note="Transações"/></section><Panel title="Histórico financeiro"><div className="tableWrap"><table><thead><tr><th>Pedido</th><th>Cliente</th><th>Método</th><th>Status</th><th>Valor</th><th>Data</th></tr></thead><tbody>{rows.map(o=><tr key={o.id}><td>#{o.id.slice(-7).toUpperCase()}</td><td>{o.customer?.name}</td><td>{o.paymentMethod||"—"}</td><td><Badge v={o.paymentStatus}/></td><td><b>{brl(o.total)}</b></td><td>{dt(o.createdAt)}</td></tr>)}</tbody></table></div></Panel></>}
+
 function Settings({pricing,act}:{me:Row,dash:Row,pricing:Row,act:any}){return <DeliverySettings pricing={pricing} act={act}/>}
 function Empty({text}:{text:string}){return <div className="none" role="status"><div className="emptyIcon"><PackageSearch size={26} aria-hidden="true"/></div><strong>Tudo organizado por aqui</strong><p>{text}</p></div>}
