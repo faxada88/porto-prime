@@ -4,9 +4,13 @@ import '../network/api_client.dart';
 import '../realtime/realtime_client.dart';
 
 class AppState extends ChangeNotifier {
+  bool useCustomerCredit=false;
+  double customerCreditRequested=0;
+  double selectedCustomerCredit([double? available])=>!isCustomer||!useCustomerCredit?0:((customerCreditRequested.clamp(0,min(available??customerCreditBalance,cartSubtotal))*100).round()/100);
+  void chooseCustomerCredit(bool use,{double? amount}){useCustomerCredit=use;customerCreditRequested=use?(amount??min(customerCreditBalance,cartSubtotal)):0;notifyListeners();}
   double customerCreditBalance=0;
   Map<String,dynamic> customerCreditCard={};
-  Future<void> loadCustomerCredit()async{if(!isCustomer){customerCreditBalance=0;customerCreditCard={};return;} final customerId=user?["id"];final result=await api.request("GET","/orders/credits");if(!isCustomer||user?["id"]!=customerId)return; customerCreditCard=Map<String,dynamic>.from(result);customerCreditBalance=double.tryParse(result["available"].toString())??0;notifyListeners();}
+  Future<void> loadCustomerCredit()async{if(!isCustomer){customerCreditBalance=0;customerCreditCard={};useCustomerCredit=false;customerCreditRequested=0;return;} final customerId=user?["id"];final result=await api.request("GET","/orders/credits");if(!isCustomer||user?["id"]!=customerId)return; customerCreditCard=Map<String,dynamic>.from(result);customerCreditBalance=double.tryParse(result["available"].toString())??0;notifyListeners();}
   Future<void> resolveUnavailable(String orderId,String itemId,String choice,{String? productId})async{await api.request("POST","/orders/$orderId/items/$itemId/availability-choice",body:{"choice":choice,if(productId!=null)"productId":productId});await Future.wait([loadOrders(),loadActiveOrder(),loadCustomerCredit()]);}
 
   AppState._() {
@@ -76,7 +80,7 @@ class AppState extends ChangeNotifier {
         if (api.token != null) realtime.connect(api.token!);
       } catch (_) {
         await api.clearSession();
-        user = null;customerCreditBalance=0;customerCreditCard={};
+        user = null;customerCreditBalance=0;customerCreditCard={};useCustomerCredit=false;customerCreditRequested=0;
       }
     }
 
@@ -135,7 +139,7 @@ class AppState extends ChangeNotifier {
       Future<void>(() async {
         realtime.disconnect();
         await api.clearSession();
-        user=null;customerCreditBalance=0;customerCreditCard={};
+        user=null;customerCreditBalance=0;customerCreditCard={};useCustomerCredit=false;customerCreditRequested=0;
         addresses=[];
         orders=[];
         activeOrder=null;
@@ -160,7 +164,7 @@ class AppState extends ChangeNotifier {
     if (!loggedIn) return;
 
     if (isCustomer &&
-        (event == 'order.updated' || event == 'order.created')) {
+        (event == 'order.updated' || event == 'order.created' || event == 'customer.credit.updated')) {
       Future<void>(() async {
         try {
           await Future.wait([loadOrders(), loadActiveOrder()]);
@@ -372,7 +376,7 @@ class AppState extends ChangeNotifier {
         return await login(email, password);
       }
       // Motoboy e parceiro aguardam aprovação: não criamos sessão local.
-      user = null;customerCreditBalance=0;customerCreditCard={};
+      user = null;customerCreditBalance=0;customerCreditCard={};useCustomerCredit=false;customerCreditRequested=0;
       await api.clearSession();
       realtime.disconnect();
       return created;
@@ -428,7 +432,7 @@ class AppState extends ChangeNotifier {
     try{await api.request('POST','/auth/logout');}catch(_){}
     realtime.disconnect();
     await api.clearSession();
-    user=null;customerCreditBalance=0;customerCreditCard={};
+    user=null;customerCreditBalance=0;customerCreditCard={};useCustomerCredit=false;customerCreditRequested=0;
     addresses=[];
     orders=[];
     activeOrder=null;
@@ -450,9 +454,9 @@ class AppState extends ChangeNotifier {
   }
 
   void addProduct(String id){if(!storeStatusKnown || !storeOpen)return;cart[id]=(cart[id]??0)+1;notifyListeners();}
-  void changeQty(String id,int d){final n=(cart[id]??0)+d;if(n<=0)cart.remove(id);else cart[id]=n;notifyListeners();}
-  void removeProduct(String id){cart.remove(id);notifyListeners();}
-  void clearCart(){cart.clear();notifyListeners();}
+  void changeQty(String id,int d){final n=(cart[id]??0)+d;if(n<=0)cart.remove(id);else cart[id]=n;if(cart.isEmpty){useCustomerCredit=false;customerCreditRequested=0;}notifyListeners();}
+  void removeProduct(String id){cart.remove(id);if(cart.isEmpty){useCustomerCredit=false;customerCreditRequested=0;}notifyListeners();}
+  void clearCart(){cart.clear();useCustomerCredit=false;customerCreditRequested=0;notifyListeners();}
   void selectCatalogCategory(String name){catalogCategory=name;notifyListeners();}
   dynamic product(String id){for(final p in products){if(p['id']==id)return p;}return null;}
 
@@ -682,14 +686,14 @@ class AppState extends ChangeNotifier {
     return quote;
   }
 
-  Future<Map<String,dynamic>> createOrder(String addressId,{int? pricingRevision,double? expectedDeliveryFee,double? expectedTotal})async{
+  Future<Map<String,dynamic>> createOrder(String addressId,{int? pricingRevision,double? expectedDeliveryFee,double? expectedTotal,double storeCreditRequested=0})async{
     if(!isCustomer)throw Exception('Entre como cliente para finalizar');
     if(cart.isEmpty)throw Exception('Sua sacola está vazia');
     await loadStore();
     if(!storeOpen)throw Exception(storeMessage);
     loading=true;error=null;notifyListeners();
     try{
-      final order=Map<String,dynamic>.from(await api.request('POST','/orders',body:{'addressId':addressId,if(expectedTotal!=null)'expectedTotal':expectedTotal,if(pricingRevision!=null)'pricingRevision':pricingRevision,if(expectedDeliveryFee!=null)'expectedDeliveryFee':expectedDeliveryFee,'items':cart.entries.map((e)=>{'productId':e.key,'quantity':e.value}).toList()}));
+      final order=Map<String,dynamic>.from(await api.request('POST','/orders',body:{'addressId':addressId,'storeCreditRequested':storeCreditRequested,if(expectedTotal!=null)'expectedTotal':expectedTotal,if(pricingRevision!=null)'pricingRevision':pricingRevision,if(expectedDeliveryFee!=null)'expectedDeliveryFee':expectedDeliveryFee,'items':cart.entries.map((e)=>{'productId':e.key,'quantity':e.value}).toList()}));
       await Future.wait([loadOrders(),loadActiveOrder()]);return order;
     }catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}
   }

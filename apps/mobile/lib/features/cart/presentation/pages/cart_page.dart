@@ -1,3 +1,4 @@
+import '../../../../core/widgets/customer_credit_selector.dart';
 import '../../../addresses/presentation/pages/address_book_page.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/prime_brand.dart';
@@ -22,7 +23,7 @@ class CartPage extends StatelessWidget {
       final quotedFee =
           double.tryParse(s.deliveryQuote['deliveryFee']?.toString() ?? '');
       final delivery = entries.isEmpty ? 0.0 : (quotedFee ?? 0.0);
-      final credit = s.isCustomer ? s.customerCreditBalance.clamp(0,s.cartSubtotal).toDouble() : 0.0;
+      final credit = s.selectedCustomerCredit();
       final total = s.cartSubtotal + delivery - credit;
 
       return SafeArea(
@@ -84,6 +85,7 @@ class CartPage extends StatelessWidget {
                 const SizedBox(height: 10),
               ],
               const SizedBox(height: 10),
+              const CustomerCreditSelector(),
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
@@ -573,7 +575,7 @@ Future<void> _checkout(BuildContext context) async {
   final agreed=Map<String,dynamic>.from(selection['quote']);
 
   try {
-    final order = await s.createOrder(selected,pricingRevision:(agreed['pricingRevision'] as num?)?.toInt(),expectedDeliveryFee:(agreed['deliveryFee'] as num?)?.toDouble(),expectedTotal:s.cartSubtotal+(double.tryParse(agreed['deliveryFee'].toString())??0)-(double.tryParse(agreed['storeCreditBalance'].toString())??0).clamp(0,s.cartSubtotal));
+    final order = await s.createOrder(selected,pricingRevision:(agreed['pricingRevision'] as num?)?.toInt(),expectedDeliveryFee:(agreed['deliveryFee'] as num?)?.toDouble(),storeCreditRequested:(selection['storeCreditRequested'] as num?)?.toDouble()??0,expectedTotal:s.cartSubtotal+(double.tryParse(agreed['deliveryFee'].toString())??0)-((selection['storeCreditRequested'] as num?)?.toDouble()??0));
     if (!context.mounted) return;
 
     final orderId = order['id'].toString();

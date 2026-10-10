@@ -225,7 +225,7 @@ class _OrderCard extends StatelessWidget {
                     const SizedBox(width: 7),
                     Expanded(
                       child: Text(
-                        paid ? 'Pagamento aprovado' : 'Pagamento pendente',
+                        (double.tryParse(order['removedItemsTotal'].toString())??0)>0?'Pedido atualizado · item removido':paid?'Pagamento aprovado':order['paymentStatus']=='REFUNDED'?'Pagamento reembolsado':order['paymentStatus']=='FAILED'?'Pagamento não concluído':'Pagamento pendente',
                         style:
                             Theme.of(context).textTheme.labelMedium?.copyWith(
                                   color: active
@@ -235,7 +235,7 @@ class _OrderCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      _money(order['total']),
+                      _money((double.tryParse(order['removedItemsTotal'].toString())??0)>0?order['adjustedTotal']:order['total']),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: active ? Colors.white : AppColors.ink,
                             fontWeight: AppFontWeight.display,

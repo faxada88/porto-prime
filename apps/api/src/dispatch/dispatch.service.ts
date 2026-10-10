@@ -371,6 +371,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
                       select: {
                         id: true,
                         productName: true,
+                        availabilityStatus: true,
                         quantity: true,
                       },
                     },
@@ -470,6 +471,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
               select: {
                 id: true,
                 productName: true,
+                availabilityStatus: true,
                 quantity: true,
               },
             },

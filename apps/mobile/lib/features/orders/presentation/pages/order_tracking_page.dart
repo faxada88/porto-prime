@@ -175,8 +175,11 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                         ),
                       ),
                       const Divider(),
-                      _value('Produtos a entregar', remainingSubtotal),
-                      _value('Entrega', items.isEmpty?0:current['deliveryFee']),
+                      _value('Produtos a entregar', current['fulfillmentSubtotal']??remainingSubtotal),
+                      if((double.tryParse(current['removedItemsTotal'].toString())??0)>0)_value('Itens removidos',-(double.tryParse(current['removedItemsTotal'].toString())??0)),
+                      _value('Entrega', current['fulfillmentDeliveryFee']??(items.isEmpty?0:current['deliveryFee'])),
+                      if((double.tryParse(current['fulfillmentCreditUsed'].toString())??0)>0)_value('Voucher nos itens restantes',-(double.tryParse(current['fulfillmentCreditUsed'].toString())??0)),
+                      _value('Valor atualizado do pedido',current['adjustedTotal']??(remainingSubtotal+(items.isEmpty?0:(double.tryParse(current['deliveryFee'].toString())??0))),strong:true),
                       const SizedBox(height: 7),
                       _value('Pagamento original', current['total'], strong: true),
                       if((double.tryParse(current['storeCreditUsed'].toString())??0)>0)_value('Voucher usado nesta compra',current['storeCreditUsed']),
@@ -334,7 +337,9 @@ class _Hero extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                order['paymentStatus'] == 'PAID'
+                (double.tryParse(order['removedItemsTotal'].toString())??0)>0
+                    ? 'Valor atualizado do pedido'
+                    :order['paymentStatus'] == 'PAID'
                     ? 'Pagamento original aprovado'
                     : order['paymentStatus']=='REFUNDED'?'Pagamento reembolsado':order['paymentStatus']=='PARTIALLY_REFUNDED'?'Reembolso parcial confirmado':order['paymentStatus']=='FAILED'?'Pagamento não concluído':'Aguardando pagamento',
                 style: Theme.of(
@@ -343,7 +348,7 @@ class _Hero extends StatelessWidget {
               ),
             ),
             Text(
-              _money(order['total']),
+              _money((double.tryParse(order['removedItemsTotal'].toString())??0)>0?order['adjustedTotal']:order['total']),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: Colors.white,
                 fontWeight: AppFontWeight.display,

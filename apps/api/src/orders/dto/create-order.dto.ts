@@ -13,6 +13,7 @@ export class CreateOrderItemDto {
 }
 
 export class CreateOrderDto {
+  @IsOptional() @IsNumber({maxDecimalPlaces:2}) @Min(0) storeCreditRequested?: number;
   @IsOptional() @IsNumber() @Min(0) expectedTotal?: number;
   @IsOptional() @IsInt() @Min(1) pricingRevision?: number;
   @IsOptional() @IsNumber() @Min(0) expectedDeliveryFee?: number;

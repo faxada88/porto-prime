@@ -1,3 +1,4 @@
+import {orderAdjustments} from '../availability/order-adjustments.js';
 import {
   BadRequestException,
   ForbiddenException,
@@ -227,7 +228,7 @@ export class AdminService {
 
   async orders(authorization?: string) {
     await this.requireAdmin(authorization);
-    return this.prisma.order.findMany({
+    const orders=await this.prisma.order.findMany({
       where: { adminDeletedAt: null },
       include: {
         customer: {
@@ -243,6 +244,7 @@ export class AdminService {
       },
       orderBy: { createdAt: 'desc' },
     });
+    return orders.map(order=>orderAdjustments(order));
   }
 
   async users(authorization?: string, compactCouriers=false) {

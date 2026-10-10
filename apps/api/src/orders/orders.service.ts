@@ -1,3 +1,4 @@
+import {orderAdjustments} from '../availability/order-adjustments.js';
 import {
   BadRequestException,
   ForbiddenException,
@@ -43,7 +44,8 @@ export class OrdersService {
       deliveryPinAttempts: _deliveryPinAttempts,
       ...safe
     } = order;
-    return safe;
+    const adjusted=orderAdjustments(safe);
+    return {...adjusted,items:adjusted.fulfillmentItems};
   }
 
   private async ensureCustomerPin<T extends Record<string, any>>(order: T) {
@@ -133,7 +135,10 @@ export class OrdersService {
       }
       await lockCustomerCredit(tx,user.id);
       const balance=await creditBalance(tx,user.id);
-      const storeCreditUsed=Math.min(cents(balance),cents(subtotal))/100;
+      const requested=data.storeCreditRequested??0;
+      if(!Number.isFinite(requested)||requested<0||Math.abs(requested*100-cents(requested))>0.000001)throw new BadRequestException('Informe um valor válido de voucher com até duas casas decimais');
+      if(cents(requested)>cents(balance)||cents(requested)>cents(subtotal))throw new BadRequestException('Confirme o uso do voucher: o valor precisa caber no saldo disponível e nos produtos');
+      const storeCreditUsed=cents(requested)/100;
       const expectedTotal=(cents(subtotal)+cents(deliveryFee)-cents(storeCreditUsed))/100;
       if(data.expectedTotal!==undefined&&cents(data.expectedTotal)!==cents(expectedTotal))throw new BadRequestException('Seu saldo de créditos mudou. Confirme o total novamente antes de pagar');
       allocateCredit(items,storeCreditUsed);
@@ -163,6 +168,7 @@ export class OrdersService {
       at: new Date().toISOString(),
     });
 
+    if(Number(order.storeCreditUsed)>0)this.realtime.emitToUser(user.id,'customer.credit.updated',{at:new Date().toISOString()});
     return order;
   }
 
@@ -202,6 +208,7 @@ export class OrdersService {
         await tx.order.delete({where:{id:order.id}});deleted++;
       });
     }
+    if(pending.some(order=>Number(order.storeCreditUsed)>0)&&deleted>0)this.realtime.emitToUser(user.id,'customer.credit.updated',{at:new Date().toISOString()});
     const result={count:deleted};
 
     return { deleted: result.count };
@@ -243,7 +250,7 @@ export class OrdersService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return Promise.all(orders.map((order) => this.ensureCustomerPin(this.withCourierPhoto(order))));
+    return Promise.all(orders.map((order) => this.ensureCustomerPin(orderAdjustments(this.withCourierPhoto(order)))));
   }
 
   async active(authorization?: string) {
@@ -281,7 +288,7 @@ export class OrdersService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return order ? this.ensureCustomerPin(this.withCourierPhoto(order)) : null;
+    return order ? this.ensureCustomerPin(orderAdjustments(this.withCourierPhoto(order))) : null;
   }
 
   private async courier(authorization?: string) {
@@ -509,7 +516,7 @@ export class OrdersService {
 
   async courierHistory(authorization?: string) {
     const { profile } = await this.courier(authorization);
-    return this.prisma.order.findMany({
+    const orders=await this.prisma.order.findMany({
       where: {
         courierId: profile.id,
         status: { in: [OrderStatus.DELIVERED, OrderStatus.CANCELED] },
@@ -522,6 +529,7 @@ export class OrdersService {
       orderBy: { updatedAt: 'desc' },
       take: 100,
     });
+    return orders.map(order=>this.withoutDeliverySecrets(order));
   }
 
   async courierCurrent(authorization?: string) {
