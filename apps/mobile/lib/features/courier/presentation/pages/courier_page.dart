@@ -643,8 +643,8 @@ class _CourierPageState extends State<CourierPage> {
                   children: [
                     Row(children:[const Expanded(child:Text('Porto Prime / Driver',style:TextStyle(fontSize:13,fontWeight:FontWeight.w800,color:AppColors.ocean800))),IconButton(tooltip:'Menu do motoboy',onPressed:()=>_openDriverMenu(context),icon:const Icon(AppIcons.grid_view_rounded)),IconButton(tooltip:'Sair',onPressed:state.logout,icon:const Icon(AppIcons.logout_rounded))]),
                     const SizedBox(height:14),
+                    if(state.courierHighDemand) ...[CourierDemandNotice(online:state.courierOnline,bonusAmount:state.courierDemandBonus),const SizedBox(height:14)],
                     CourierOperationsHero(name:first,online:state.courierOnline,active:current!=null,onChanged:current==null?state.setCourierOnline:null),
-                    if(state.courierHighDemand) ...[const SizedBox(height:14), CourierDemandNotice(online:state.courierOnline,bonusAmount:state.courierDemandBonus)],
                     const SizedBox(height: 12),
                     _CourierSnapshot(
                       summary: state.walletSummary,
