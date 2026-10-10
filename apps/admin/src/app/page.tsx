@@ -1,5 +1,6 @@
 "use client";
 import OrderAvailabilityEditor from "./order-availability-editor";
+import OrderArchive, {isArchivedOrder} from "./order-archive";
 import DemandControl from "./demand-control";
 import CourierDirectory from "./courier-directory";
 import CourierRecordEditor from "./courier-record-editor";
@@ -11,6 +12,7 @@ import { useEffect,useMemo,useState } from "react";
 import { io } from "socket.io-client";
 import {
   Activity,
+  Archive,
   ChevronDown,
   Trash2,
   History,
@@ -123,6 +125,7 @@ export default function Home(){
  const nav: Array<[string, LucideIcon]> = [
   ["Visão geral", LayoutDashboard],
   ["Pedidos", ClipboardList],
+  ["Arquivo", Archive],
   ["Aprovações", UserCheck],
   ["Motoboys", Bike],
   ["Clientes", Users],
@@ -133,9 +136,10 @@ export default function Home(){
   ["Configurações", SettingsIcon],
 ];
  return <div className="shell"><aside><div className="logo"><b>P</b><div><strong>PORTO PRIME</strong><span>CENTRAL DE OPERAÇÕES</span></div></div><nav aria-label="Navegação administrativa">{nav.map(([n,NavIcon])=><button key={n} aria-current={tab===n?"page":undefined} title={n} className={tab===n?"active":""} onClick={()=>{setTab(n);setSearch("")}}><NavIcon className="navIcon" size={17} strokeWidth={2}/><span>{n}</span>{n==="Aprovações"&&pending.length>0&&<em>{pending.length}</em>}</button>)}</nav><div className="admin"><span>{me.name?.[0]}</span><div><b>{me.name}</b><small>Administrador</small></div><button title="Sair" aria-label="Sair" onClick={async()=>{try{await api("/auth/logout",token,"POST")}catch{}localStorage.removeItem("pp_admin_token");localStorage.removeItem("pp_admin_refresh");localStorage.removeItem("pp_admin_session");location.reload()}}><LogOut size={16}/></button></div></aside>
- <main className="content" aria-busy={busy}><header><div><small>CENTRAL PORTO PRIME</small><h1>{tab}</h1></div><div className="headActions">{tab!=="Visão geral"&&tab!=="Configurações"&&tab!=="Catálogo"&&tab!=="Saques"&&<label className="searchBox"><Search size={16}/><input className="search" aria-label="Buscar" placeholder="Buscar na operação..." value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button type="button" aria-label="Limpar busca" onClick={()=>setSearch("")}><X size={14}/></button>}</label>}<button className="live" title="Clique para sincronizar agora" onClick={()=>load()}><RefreshCw size={14}/><span>Sincronização automática</span>{lastSync&&<small>{lastSync.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</small>}</button></div></header>{activityNotice&&<div className="activityToast" role="status"><b>Nova atividade</b><span>{activityNotice}</span></div>}{error&&<div className="error top" role="alert">{displayMessage(error)}</div>}{busy&&<div className="loading" role="status"><span className="loadingSpinner"/><span>Sincronizando dados...</span></div>}
+ <main className="content" aria-busy={busy}><header><div><small>CENTRAL PORTO PRIME</small><h1>{tab}</h1></div><div className="headActions">{tab!=="Visão geral"&&tab!=="Configurações"&&tab!=="Catálogo"&&tab!=="Saques"&&tab!=="Arquivo"&&<label className="searchBox"><Search size={16}/><input className="search" aria-label="Buscar" placeholder="Buscar na operação..." value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button type="button" aria-label="Limpar busca" onClick={()=>setSearch("")}><X size={14}/></button>}</label>}<button className="live" title="Clique para sincronizar agora" onClick={()=>load()}><RefreshCw size={14}/><span>Sincronização automática</span>{lastSync&&<small>{lastSync.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</small>}</button></div></header>{activityNotice&&<div className="activityToast" role="status"><b>Nova atividade</b><span>{activityNotice}</span></div>}{error&&<div className="error top" role="alert">{displayMessage(error)}</div>}{busy&&<div className="loading" role="status"><span className="loadingSpinner"/><span>Sincronizando dados...</span></div>}
  {tab==="Visão geral"&&<Dashboard dash={dash} orders={orders} pending={pending} withdrawals={withdrawals}/>} 
- {tab==="Pedidos"&&<Orders rows={filtered(orders)} act={act} ask={setConfirmBox} token={token} products={catalog.filter(c=>c.active&&!c.archived).flatMap(c=>c.products||[])}/>} 
+ {tab==="Pedidos"&&<Orders rows={filtered(orders.filter(o=>!isArchivedOrder(o)))} act={act} ask={setConfirmBox} token={token} products={catalog.filter(c=>c.active&&!c.archived).flatMap(c=>c.products||[])}/>} 
+ {tab==="Arquivo"&&<OrderArchive orders={orders} request={(path,method,body)=>api(path,token,method,body)} reload={()=>load()}/>}
  {tab==="Aprovações"&&<Pending rows={filtered(pending)} act={act} courierByUser={courierByUser} requestRequirement={requestRequirement}/>}
  {tab==="Motoboys"&&<CourierDirectory request={path=>api(path,token)} act={act} ask={setConfirmBox} requestRequirement={requestRequirement} epoch={lastSync?.getTime()||0} globalSearch={search} clearGlobalSearch={()=>setSearch("")} renderProfile={(profile,close)=><CourierAdminProfile user={profile.user} app={profile} close={close} act={act} requestRequirement={requestRequirement}/>}/>}
  {tab==="Clientes"&&<People rows={filtered(customers)} kind="Cliente" act={act} ask={setConfirmBox} courierByUser={courierByUser} requestRequirement={requestRequirement}/>}
