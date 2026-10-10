@@ -26,10 +26,19 @@ class _CourierPageState extends State<CourierPage> {
   final _operationsScroll = ScrollController();
   String? _lastPresentedOfferId;
   bool _offerModalOpen = false;
+  String? _soundingOfferId;
+
+  void _syncOfferSound() {
+    final state=AppState.instance;
+    if(_soundingOfferId==null)return;
+    final stillAvailable=state.courierOffers.any((offer)=>(offer['offerId']??offer['orderId']).toString()==_soundingOfferId);
+    if(!state.isCourier||!state.courierOnline||state.courierDelivery!=null||!stillAvailable){stopDeliveryOfferSound();_soundingOfferId=null;}
+  }
 
   @override
   void initState() {
     super.initState();
+    AppState.instance.addListener(_syncOfferSound);
     Future<void>(() async {
       try {
         await AppState.instance.refreshCourier();
@@ -57,6 +66,8 @@ class _CourierPageState extends State<CourierPage> {
 
   @override
   void dispose() {
+    AppState.instance.removeListener(_syncOfferSound);
+    stopDeliveryOfferSound();
     _heartbeatTimer?.cancel();
     _refreshTimer?.cancel();
     _operationsScroll.dispose();
@@ -84,8 +95,6 @@ class _CourierPageState extends State<CourierPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      await playDeliveryOfferSound();
-      if (!mounted) return;
       await _showDeliverySheet(
         context,
         order: offer,
@@ -100,6 +109,12 @@ class _CourierPageState extends State<CourierPage> {
     required Map<String, dynamic> order,
     required bool incoming,
   }) async {
+    if(incoming){
+      _soundingOfferId=(order['offerId']??order['orderId']).toString();
+      final expiry=DateTime.tryParse(order['expiresAt']?.toString()??'');
+      if(expiry!=null)startDeliveryOfferSound(expiry);
+    }
+    try {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -174,6 +189,9 @@ class _CourierPageState extends State<CourierPage> {
               },
       ),
     );
+    } finally {
+      if(incoming){stopDeliveryOfferSound();_soundingOfferId=null;}
+    }
   }
 
   Future<void> _confirmDeliveryWithPin(
