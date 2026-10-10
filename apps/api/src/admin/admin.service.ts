@@ -14,6 +14,7 @@ import {
 import { AuthService } from '../auth/auth.service.js';
 import { DispatchService } from '../dispatch/dispatch.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { validateProfilePhoto } from '../couriers/profile-photo.js';
 import { normalizePix } from '../wallet/pix-key.js';
 import { RealtimeGateway } from '../realtime/realtime.gateway.js';
 import { WalletService } from '../wallet/wallet.service.js';
@@ -121,10 +122,13 @@ export class AdminService {
 
   async editCourier(id: string, body: Record<string, unknown>, authorization?: string) {
     await this.requireAdmin(authorization);
-    const allowed = ['name','email','phone','birthDate','cnh','cnhCategory','cnhExpiry','vehicleType','vehicleBrand','vehicleModel','vehicleYear','vehiclePlate','postalCode','cep','street','number','complement','neighborhood','city','state','pixKey','pixKeyType'];
+    const allowed = ['name','email','phone','birthDate','cnh','cnhCategory','cnhExpiry','vehicleType','vehicleBrand','vehicleModel','vehicleYear','vehiclePlate','postalCode','cep','street','number','complement','neighborhood','city','state','pixKey','pixKeyType','cpf','document','hasMotorcycle','profilePhoto','extraData'];
     if (Object.keys(body).some(k => !allowed.includes(k))) throw new BadRequestException('Campo não permitido para edição');
     const input: Record<string, any> = {};
     for (const [key,value] of Object.entries(body)) {
+      if(key==='extraData'){if(!value||typeof value!=='object'||Array.isArray(value)||JSON.stringify(value).length>20000)throw new BadRequestException('Dados adicionais inválidos');input[key]=value;continue;}
+      if(key==='profilePhoto'){input[key]=validateProfilePhoto(value);continue;}
+      if(key==='hasMotorcycle'){if(typeof value!=='boolean')throw new BadRequestException('Informe se possui moto');input[key]=value;continue;}
       if (typeof value !== 'string' && typeof value !== 'number') throw new BadRequestException('Dados de cadastro inválidos');
       input[key] = String(value).trim();
       if (input[key].length > 250) throw new BadRequestException('Campo muito longo');
@@ -143,13 +147,35 @@ export class AdminService {
       if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0,10) !== iso) throw new BadRequestException('Informe uma data válida');
       if (key === 'birthDate' && date > new Date()) throw new BadRequestException('Data de nascimento inválida');
     }
+    let verified: any, identitySnapshot: any;
+    if ('cpf' in input || 'document' in input || 'birthDate' in input) {
+      identitySnapshot = await this.prisma.courierProfile.findUnique({where:{id}});
+      if(!identitySnapshot)throw new NotFoundException('Motoboy não encontrado');
+      if(input.cpf && input.document && input.cpf.replace(/\D/g,'')!==input.document.replace(/\D/g,''))throw new BadRequestException('CPF e documento devem corresponder');
+      const cpf=String(input.cpf??input.document??identitySnapshot.document??(identitySnapshot.onboardingData as any)?.cpf??'').replace(/\D/g,'');
+      const raw=String(input.birthDate??(identitySnapshot.onboardingData as any)?.birthDate??'');
+      const birthDate=/^\d{4}-\d{2}-\d{2}$/.test(raw)?raw.split('-').reverse().join('/'):raw;
+      const duplicate=await this.prisma.courierProfile.findFirst({where:{document:cpf,id:{not:id}},select:{id:true}});
+      if(duplicate)throw new BadRequestException('Este CPF já possui cadastro');
+      verified=await this.auth.verifyCourierIdentityForAdmin(cpf,birthDate);
+      input.cpf=verified.cpf;input.document=verified.cpf;input.birthDate=verified.birthDate;input.name=verified.name;
+    }
     let userId: string;
     try {
       userId = await this.prisma.$transaction(async tx => {
         await tx.$queryRawUnsafe('SELECT "id" FROM "CourierProfile" WHERE "id" = $1 FOR UPDATE', id);
         const current = await tx.courierProfile.findUnique({ where: { id } });
         if (!current) throw new NotFoundException('Motoboy não encontrado');
-        const profileData: any = { onboardingData: { ...(current.onboardingData as any || {}), ...input } };
+        if(identitySnapshot && (current.document!==identitySnapshot.document || (current.onboardingData as any)?.birthDate!==(identitySnapshot.onboardingData as any)?.birthDate))throw new BadRequestException('O cadastro foi atualizado. Reabra a ficha antes de salvar');
+        const {extraData,...fields}=input;
+        const stored:any=current.onboardingData||{};
+        if(extraData)for(const key of Object.keys(extraData)){
+          if(!Object.prototype.hasOwnProperty.call(stored,key)||allowed.includes(key)||/(password|senha|token|secret|cpf|status|role|verified|approval|commission|balance|earnings|online|session|permission)/i.test(key))throw new BadRequestException('Campo adicional não permitido');
+          if(typeof extraData[key]!==typeof stored[key]||Array.isArray(extraData[key])!==Array.isArray(stored[key]))throw new BadRequestException('Mantenha o formato original dos dados adicionais');
+        }
+        const profileData: any = { onboardingData: { ...stored, ...extraData, ...fields } };
+        if(verified){profileData.document=verified.cpf;profileData.onboardingData.cpfSituation=verified.situation;}
+
         for (const k of ['cnh','cnhCategory','vehicleBrand','vehicleModel','vehiclePlate']) if (k in input) profileData[k] = input[k] || null;
         if ('vehicleYear' in input) profileData.vehicleYear = input.vehicleYear ? Number(input.vehicleYear) : null;
         if ('pixKey' in input || 'pixKeyType' in input) {
@@ -164,9 +190,10 @@ export class AdminService {
         await tx.courierProfile.update({ where: { id }, data: profileData });
         return current.userId;
       });
-    } catch (e: any) { if (e.code === 'P2002') throw new BadRequestException('Este e-mail já está cadastrado'); throw e; }
+    } catch (e: any) { if (e.code === 'P2002') throw new BadRequestException('Este e-mail, telefone ou CPF já está cadastrado'); throw e; }
     this.realtime.emitToUser(userId, 'courier.profile.updated', { courierId: id });
     this.realtime.emitToRole('ADMIN', 'courier.profile.updated', { courierId: id });
+    if(['profilePhoto','name','phone','vehiclePlate'].some(k=>k in input)){const orders=await this.prisma.order.findMany({where:{courierId:id,status:{notIn:['DELIVERED','CANCELED']}},select:{id:true,customerId:true,status:true}});for(const order of orders)this.realtime.emitOrderUpdated(order);}
     return { updated: true };
   }
 

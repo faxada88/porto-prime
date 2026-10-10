@@ -183,6 +183,14 @@ export class AuthService {
     return this.cpfHub.lookup(cpf, birthDate, client);
   }
 
+  async verifyCourierIdentityForAdmin(cpf: string, birthDate: string) {
+    const digits = this.digits(cpf);
+    if (!this.validCpf(digits)) throw new BadRequestException('CPF inválido');
+    const verified = await this.cpfHub.lookup(digits, birthDate, 'admin-courier-profile');
+    if (!verified.regular) throw new BadRequestException(`CPF com situação cadastral ${verified.situation}. Solicite a regularização antes de alterar a identidade.`);
+    return verified;
+  }
+
   async postalCode(raw: string) {
     const cep = this.digits(raw);
 
