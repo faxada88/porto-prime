@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'customer_demand_notice.dart';
 
 import '../../features/cart/presentation/pages/cart_page.dart';
 import '../../features/categories/presentation/pages/categories_page.dart';
@@ -50,7 +51,7 @@ class _AppShellState extends State<AppShell> {
 
       return Scaffold(
         extendBody: true,
-        body: IndexedStack(index: index, children: pages),
+        body: Column(children:[if(state.publicHighDemand) const CustomerDemandNotice(),Expanded(child:IndexedStack(index:index,children:pages))]),
         bottomNavigationBar: SafeArea(
           minimum: const EdgeInsets.fromLTRB(14, 0, 14, 10),
           child: Container(

@@ -54,6 +54,7 @@ export class WalletService {
       id: string;
       courierId: string | null;
       deliveryFee: unknown;
+      courierDemandBonus?: unknown;
     },
   ) {
     if (!order.courierId) {
@@ -73,6 +74,9 @@ export class WalletService {
       0,
       gross * (1 - commissionPercent / 100),
     );
+    // Distributor-funded bonus is not commissioned or charged to the customer.
+    const bonus = Math.max(0, Number(order.courierDemandBonus ?? 0));
+    const credited = (Math.round(Number(net.toFixed(2)) * 100) + Math.round(bonus * 100)) / 100;
     const idempotencyKey = `delivery:${order.id}:credit`;
 
     const existing = await tx.courierLedgerEntry.findUnique({
@@ -86,13 +90,15 @@ export class WalletService {
         courierId: order.courierId,
         orderId: order.id,
         type: 'DELIVERY_CREDIT',
-        amount: Number(net.toFixed(2)),
-        description: `Entrega #${order.id.slice(-8).toUpperCase()}`,
+        amount: credited,
+        description: `Entrega #${order.id.slice(-8).toUpperCase()}${bonus > 0 ? " · Bônus alta demanda" : ""}`,
         idempotencyKey,
         metadata: {
           deliveryFeeGross: Number(gross.toFixed(2)),
           platformCommissionPercent: commissionPercent,
-          courierCredit: Number(net.toFixed(2)),
+          courierCredit: credited,
+          demandBonus: bonus,
+          baseCourierCredit: Number(net.toFixed(2)),
         },
       },
       update: {},
@@ -115,7 +121,8 @@ export class WalletService {
           type: 'WALLET_CREDITED',
           payload: {
             deliveryFee: Number(gross.toFixed(2)),
-            credited: Number(net.toFixed(2)),
+            credited,
+            demandBonus: bonus,
             idempotencyKey,
           },
         },

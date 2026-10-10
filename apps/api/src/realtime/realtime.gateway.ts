@@ -152,6 +152,10 @@ export class RealtimeGateway
     this.catalog?.updated(event, payload);
   }
 
+  emitDemandUpdated(payload: {enabled: boolean; revision: number; updatedAt: unknown}) {
+    this.catalog?.updated('demand.updated', {at:new Date().toISOString(), ...payload});
+  }
+
   emitToUser(userId: string, event: string, payload: unknown) {
     this.server?.to(`user:${userId}`).emit(event, payload);
   }

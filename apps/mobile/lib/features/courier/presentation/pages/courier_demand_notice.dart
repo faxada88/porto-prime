@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// A manual notice from the distributor, never a price or assignment instruction.
+/// The server defines the bonus; the accepted offer retains its own snapshot.
 class CourierDemandNotice extends StatelessWidget {
- const CourierDemandNotice({super.key,required this.online});
+ const CourierDemandNotice({super.key,required this.online,required this.bonusAmount});
  final bool online;
+ final double bonusAmount;
  @override
  Widget build(BuildContext context)=>Semantics(liveRegion:true,child:Container(
   padding:const EdgeInsets.all(20),
@@ -16,9 +17,9 @@ class CourierDemandNotice extends StatelessWidget {
    Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
     const Text('AVISO DA OPERAÇÃO',style:TextStyle(color:Color(0xFF79540E),fontSize:10,fontWeight:FontWeight.w800,letterSpacing:1)),
     const SizedBox(height:6),
-    const Text('Alta demanda',style:TextStyle(color:AppColors.midnight,fontSize:20,fontWeight:FontWeight.w800,letterSpacing:-.4)),
+    const Text('Alta demanda ativa',style:TextStyle(color:AppColors.midnight,fontSize:20,fontWeight:FontWeight.w800,letterSpacing:-.4)),
     const SizedBox(height:8),
-    Text(online?'A distribuidora está chamando a equipe. Confira suas ofertas de entrega.':'A distribuidora está chamando a equipe. Fique online quando estiver disponível para receber entregas.',style:const TextStyle(color:Color(0xFF725B2D),fontSize:13,height:1.5)),
+    Text('Ganhe +R\$ ${bonusAmount.toStringAsFixed(2).replaceAll(".",",")} por entrega enquanto durar a alta demanda.${online?"":" Fique online quando estiver disponível."}',style:const TextStyle(color:Color(0xFF725B2D),fontSize:13,height:1.5)),
    ])),
   ]),
  ));

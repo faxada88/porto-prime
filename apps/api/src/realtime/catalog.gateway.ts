@@ -4,5 +4,5 @@ import type { Server } from 'socket.io';
 @WebSocketGateway({ namespace: '/catalog', cors: { origin: true }, transports: ['websocket', 'polling'] })
 export class CatalogGateway {
   @WebSocketServer() server!: Server;
-  updated(event: string, payload: { at: string; storeOpen?: boolean; storeMessage?: string; updatedAt?: unknown }) { this.server?.emit(event, payload); }
+  updated(event: string, payload: { at: string; storeOpen?: boolean; storeMessage?: string; updatedAt?: unknown; enabled?: boolean; revision?: number }) { this.server?.emit(event, payload); }
 }

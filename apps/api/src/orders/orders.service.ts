@@ -633,6 +633,7 @@ export class OrdersService {
             id: true,
             courierId: true,
             deliveryFee: true,
+            courierDemandBonus: true,
           },
         });
 

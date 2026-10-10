@@ -29,6 +29,9 @@ class AppState extends ChangeNotifier {
   List<dynamic> courierOffers=[];
   bool courierOnline=false;
   bool courierHighDemand=false;
+  double courierDemandBonus=0;
+  bool publicHighDemand=false;
+  int _publicDemandRevision=-1;
   int _courierDemandRevision=-1;
   String courierPresenceStatus='OFFLINE';
   Map<String,dynamic> walletSummary={};
@@ -90,6 +93,10 @@ class AppState extends ChangeNotifier {
   int _quoteGeneration = 0;
 
   void _handleRealtimeEvent(String event, dynamic payload) {
+    if (event == 'demand.updated' && payload is Map) {
+      _applyPublicDemand(Map<String,dynamic>.from(payload));
+      return;
+    }
     if (event == 'courier.demand.updated' && isCourier && payload is Map) {
       _applyCourierDemand(Map<String,dynamic>.from(payload));
       return;
@@ -243,6 +250,7 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> loadProducts({bool silent=false}) async {
+    loadPublicDemand().catchError((_) {});
     if (_catalogRefreshRunning) { _catalogRefreshAgain=true; return; }
     _catalogRefreshRunning=true;
     try {
@@ -519,12 +527,25 @@ class AppState extends ChangeNotifier {
     if (data['enabled'] is! bool || revision is! int || revision < _courierDemandRevision) return;
     _courierDemandRevision=revision;
     final next=data['enabled'] == true;
-    if (courierHighDemand != next) {
+    final bonus=double.tryParse(data['bonusAmount'].toString())??0;
+    if (courierHighDemand != next || courierDemandBonus != bonus) {
       courierHighDemand=next;
+      courierDemandBonus=bonus;
       notifyListeners();
     }
   }
 
+  void _applyPublicDemand(Map<String,dynamic> data) {
+    final revision=data['revision'];
+    if(data['enabled'] is! bool || revision is! int || revision < _publicDemandRevision) return;
+    _publicDemandRevision=revision;
+    final next=data['enabled']==true;
+    if(publicHighDemand!=next){publicHighDemand=next;notifyListeners();}
+  }
+  Future<void> loadPublicDemand() async {
+    final data=await api.request('GET','/operations/demand');
+    if(data is Map)_applyPublicDemand(Map<String,dynamic>.from(data));
+  }
   Future<void> loadCourierDemand() async {
     if (!isCourier) return;
     final requestedUser=user?['id'];

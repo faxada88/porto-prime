@@ -1,23 +1,9 @@
-# Aviso manual de alta demanda
+# Alta Demanda — configuração, avisos e remuneração
 
-## Admin
+Admin: ON manual, OFF manual e Automático. Bônus configurável de R$ 0,01 a R$ 100,00, padrão R$ 2,50. Automático ativa com 10 pedidos pagos sem entregador (PENDING, CONFIRMED, PREPARING, READY_FOR_PICKUP ou SEARCHING_COURIER) e desativa abaixo de 10. Checkout não pago e pedidos cancelados não contam. Verificação a cada 3 segundos, com trava transacional entre instâncias.
 
-Cabeçalhos alinhados no início da área de conteúdo. Corrigida margem automática que centralizava verticalmente abas curtas. Banners mais compactos, cards de aprovação mais limpos e hierarquia de botões preservada.
+O adicional é custeado pela distribuidora; taxa, total do cliente e Stripe permanecem iguais. Cada oferta registra seu bônus. No aceite, ele é copiado ao pedido; alterações posteriores não retiram o incentivo prometido. Ao concluir a entrega, o crédito idempotente existente inclui o bônus integral, sem comissão sobre o adicional. Pedidos e ofertas anteriores à atualização começam com bônus zero. A seleção, rotação, expiração e confirmação por PIN continuam iguais.
 
-O controle Alta demanda aparece no cabeçalho de todas as abas. Somente administrador autenticado pode ativar/desativar. O estado fica salvo no singleton CourierDemandSignal (tabela separada), com revisão monotônica, data e último administrador. Não participa de preços, pagamentos, distribuição, carteira ou online/offline. Não é detecção automática de demanda e não anuncia bônus ou número de ofertas fictícios.
+WebSocket privado comunica valor e motivo ao Admin/motoboy. Canal público /catalog transmite apenas enabled/revision/updatedAt, inclusive para visitantes. GET /operations/demand permite recompor o estado após reconexão; polling existente é o fallback. O cliente vê apenas o aviso de prazo, sem valores.
 
-GET /api/admin/operations/demand e PATCH do mesmo caminho. O corpo do PATCH deve conter enabled boolean. GET /api/couriers/operations/demand é exclusivo de motoboy autenticado. As consultas nunca criam configurações.
-
-## Motoboy
-
-Aviso visual na Home abaixo do hero, inclusive quando offline, sem acionamento automático de disponibilidade. Removido quando o Admin desativa. Evento courier.demand.updated entregue somente aos papéis ADMIN/COURIER. Consultas de reconciliação acompanham o refresh existente do motoboy; falha do novo endpoint não bloqueia entregas ou login. Revisões antigas são ignoradas. O estado local é limpo ao sair ou revogar sessão.
-
-## Instalação
-
-Banco iniciado antes de scripts/update-admin-demand.sh. Script instala dependências existentes, aplica SQL aditivo idempotente somente na tabela nova, gera Prisma e compila Nest/Admin. Reinicie Nest e Admin após executar.
-
-Depois execute scripts/update-mobile-demand.sh e reinicie Flutter. Esse script instala as dependências existentes e compila o frontend. A alteração de estado no servidor pode ser consultada por novas sessões após reinício e por polling após reconexão.
-
-## Verificação
-
-36 testes backend passaram, incluindo acesso por papel, ativar/desativar, corpo inválido, persistência, revisão e broadcasts. Geração do Prisma, build Nest e TypeScript/build de produção Admin passaram; sintaxe dos quatro arquivos Dart validada. Flutter, banco PostgreSQL e navegador não estão disponíveis neste ambiente para teste integrado de execução.
+Instalar scripts/update-admin-demand.sh primeiro, com banco iniciado, depois scripts/update-mobile-demand.sh; reiniciar Nest, Admin e Flutter. SQL é idempotente e não apaga dados. Script não reinicia processos. Builds de Nest/Admin e testes unitários são executados no ambiente de desenvolvimento; validar entrega real e renderização Flutter no Codespaces.

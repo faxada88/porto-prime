@@ -8,6 +8,7 @@ function fixture(count: number) {
   const couriers: any[] = Array.from({ length: count }, (_, i) => ({ id: `courier-${i}`, user: { id: `user-${i}`, name: 'Test' }, approvalStatus: 'APPROVED', isOnline: true, presenceStatus: 'AVAILABLE', lastHeartbeatAt: new Date(), availableSince: new Date(), currentLatitude: i, currentLongitude: i, locationUpdatedAt: new Date(), busy: false, deliveryOffers: [] }));
   const offers: any[] = [];
   const prisma: any = {
+    courierDemandSignal: {findUnique: async()=>({mode:"MANUAL_OFF",bonusAmount:2.5})},
     deliveryPricingConfig: { upsert: async () => ({ offerTimeoutSeconds: 15, heartbeatTimeoutSeconds: 60, distributorName: 'Test', distributorLatitude: 0, distributorLongitude: 0 }) },
     order: {
       findUnique: async () => ({ ...order }),

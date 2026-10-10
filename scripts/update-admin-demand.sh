@@ -4,6 +4,7 @@ project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$project_root/apps/api"
 npm install
 npx --no-install prisma db execute --file prisma/migrations/20261010140000_courier_demand_signal/migration.sql
+npx --no-install prisma db execute --file prisma/migrations/20261010160000_demand_bonus/migration.sql
 npx --no-install prisma generate
 npm run build
 cd "$project_root/apps/admin"

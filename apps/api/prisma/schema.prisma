@@ -310,6 +310,7 @@ model Order {
 
   subtotal    Decimal @db.Decimal(10, 2)
   deliveryFee Decimal @db.Decimal(10, 2)
+  courierDemandBonus Decimal @default(0) @db.Decimal(10, 2)
   total       Decimal @db.Decimal(10, 2)
 
   stripePaymentIntentId String? @unique
@@ -379,6 +380,7 @@ model DeliveryOffer {
   expiredAt  DateTime?
   canceledAt DateTime?
 
+  demandBonus Decimal @default(0) @db.Decimal(10, 2)
   distanceToPickupKm Decimal? @db.Decimal(10, 3)
   metadata Json?
 
@@ -590,6 +592,9 @@ model FinancialAudit {
 model CourierDemandSignal {
   id String @id @default("default")
   enabled Boolean @default(false)
+  mode String @default("AUTO")
+  bonusAmount Decimal @default(2.50) @db.Decimal(10, 2)
+  waitingCount Int @default(0)
   revision Int @default(0)
   updatedBy String?
   updatedAt DateTime @updatedAt

@@ -644,7 +644,7 @@ class _CourierPageState extends State<CourierPage> {
                     Row(children:[const Expanded(child:Text('Porto Prime / Driver',style:TextStyle(fontSize:13,fontWeight:FontWeight.w800,color:AppColors.ocean800))),IconButton(tooltip:'Menu do motoboy',onPressed:()=>_openDriverMenu(context),icon:const Icon(AppIcons.grid_view_rounded)),IconButton(tooltip:'Sair',onPressed:state.logout,icon:const Icon(AppIcons.logout_rounded))]),
                     const SizedBox(height:14),
                     CourierOperationsHero(name:first,online:state.courierOnline,active:current!=null,onChanged:current==null?state.setCourierOnline:null),
-                    if(state.courierHighDemand) ...[const SizedBox(height:14), CourierDemandNotice(online:state.courierOnline)],
+                    if(state.courierHighDemand) ...[const SizedBox(height:14), CourierDemandNotice(online:state.courierOnline,bonusAmount:state.courierDemandBonus)],
                     const SizedBox(height: 12),
                     _CourierSnapshot(
                       summary: state.walletSummary,
@@ -865,7 +865,7 @@ class _OfferCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    _money(order['deliveryFee']),
+                    _money(order['courierEarnings'] ?? ((double.tryParse(order['deliveryFee'].toString())??0)+(double.tryParse((order['courierDemandBonus']??order['demandBonus']??0).toString())??0))),
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: AppFontWeight.display,
@@ -1669,7 +1669,7 @@ class _SheetHero extends StatelessWidget {
         ? 'Oferta protegida'
         : order['customer']?['name']?.toString() ?? 'Cliente Porto Prime';
     final amount =
-        incoming ? order['deliveryFee'] : order['total'];
+        incoming ? (order['courierEarnings'] ?? order['deliveryFee']) : order['total'];
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -1741,7 +1741,7 @@ class _SheetHero extends StatelessWidget {
               ),
               const SizedBox(width: 7),
               Text(
-                incoming ? 'Taxa da entrega' : 'Valor do pedido',
+                incoming ? 'Ganhos da entrega' : 'Valor do pedido',
                 style: const TextStyle(
                   color: Colors.white70,
                   fontSize: AppFontSize.caption,
@@ -1759,6 +1759,10 @@ class _SheetHero extends StatelessWidget {
               ),
             ],
           ),
+          if(incoming && (double.tryParse((order['demandBonus']??0).toString())??0)>0) ...[
+            const SizedBox(height:10),
+            Text('Inclui ${_money(order['demandBonus'])} de bônus garantido nesta oferta.',style:const TextStyle(color:Color(0xFF93F2D9),fontSize:12,fontWeight:FontWeight.w700)),
+          ],
         ],
       ),
     );
@@ -2798,7 +2802,7 @@ class _HistoryRow extends StatelessWidget {
               ),
             ),
             Text(
-              _money(order['deliveryFee']),
+              _money(order['courierEarnings'] ?? ((double.tryParse(order['deliveryFee'].toString())??0)+(double.tryParse((order['courierDemandBonus']??order['demandBonus']??0).toString())??0))),
               style: const TextStyle(
                 fontSize: AppFontSize.caption,
                 fontWeight: AppFontWeight.display,
