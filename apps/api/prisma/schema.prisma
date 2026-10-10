@@ -313,6 +313,8 @@ model Order {
   deliveryFee Decimal @db.Decimal(10, 2)
   courierDemandBonus Decimal @default(0) @db.Decimal(10, 2)
   demandSurchargeIncluded Boolean @default(false)
+  adminDeletedAt DateTime?
+  adminDeletedBy String?
   fulfillmentHold Boolean @default(false)
   refundedTotal Decimal @default(0) @db.Decimal(10, 2)
   creditedTotal Decimal @default(0) @db.Decimal(10, 2)

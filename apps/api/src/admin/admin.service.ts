@@ -228,6 +228,7 @@ export class AdminService {
   async orders(authorization?: string) {
     await this.requireAdmin(authorization);
     return this.prisma.order.findMany({
+      where: { adminDeletedAt: null },
       include: {
         customer: {
           select: { id: true, name: true, email: true, phone: true },
@@ -717,60 +718,39 @@ export class AdminService {
     );
   }
 
-  private async removeOrder(orderId: string) {
+  private async removeOrder(orderId: string, administratorId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
-      select: {
-        id: true,
-        status: true,
-        storeCreditUsed: true,
-        items: {select:{issueId:true}},
-        customer: { select: { name: true } },
-      },
+      select: { id: true, customer: { select: { name: true } } },
     });
     if (!order) throw new NotFoundException('Pedido não encontrado');
-    if (
-      order.status === OrderStatus.PICKED_UP ||
-      order.status === OrderStatus.OUT_FOR_DELIVERY
-    ) {
-      throw new BadRequestException(
-        'Pedido em entrega não pode ser excluído',
-      );
-    }
-
-    if(Number(order.storeCreditUsed)>0||order.items.some(item=>item.issueId))throw new BadRequestException('Pedidos com créditos ou ajustes de itens precisam ser preservados no histórico financeiro');
-    await this.prisma.$transaction(async (tx) => {
-      await tx.courierLedgerEntry.deleteMany({
-        where: { orderId },
-      });
-      await tx.order.delete({ where: { id: orderId } });
+    const changed = await this.prisma.order.updateMany({
+      where: { id: orderId, adminDeletedAt: null },
+      data: { adminDeletedAt: new Date(), adminDeletedBy: administratorId },
     });
-
-    return {
-      id: order.id,
-      customerName: order.customer?.name ?? null,
-    };
+    if (changed.count) this.realtime.emitToRole('ADMIN', 'order.admin.deleted', { id: orderId });
+    return { id: order.id, customerName: order.customer?.name ?? null };
   }
 
   async deleteOrder(orderId: string, authorization?: string) {
-    await this.requireAdmin(authorization);
-    const deleted = await this.removeOrder(orderId);
+    const administrator = await this.requireAdmin(authorization);
+    const deleted = await this.removeOrder(orderId, administrator.id);
     return {
       success: true,
       deleted,
-      message: `Pedido #${deleted.id.slice(-8).toUpperCase()} excluído com sucesso`,
+      message: `Pedido #${deleted.id.slice(-8).toUpperCase()} excluído do painel com sucesso`,
     };
   }
 
   async bulkDeleteOrders(ids: unknown, authorization?: string) {
-    await this.requireAdmin(authorization);
+    const administrator = await this.requireAdmin(authorization);
     const normalized = this.normalizeBulkIds(ids);
     const deleted: Array<{ id: string; customerName: string | null }> = [];
     const failed: Array<{ id: string; reason: string }> = [];
 
     for (const id of normalized) {
       try {
-        deleted.push(await this.removeOrder(id));
+        deleted.push(await this.removeOrder(id, administrator.id));
       } catch (error) {
         failed.push({
           id,
@@ -783,8 +763,8 @@ export class AdminService {
     }
 
     const message = failed.length
-      ? `${deleted.length} pedido(s) excluído(s). ${failed.length} foram preservados por segurança.`
-      : `${deleted.length} pedido(s) excluído(s) com sucesso`;
+      ? `${deleted.length} pedido(s) excluído(s). ${failed.length} não puderam ser encontrados ou atualizados.`
+      : `${deleted.length} pedido(s) excluído(s) do painel com sucesso`;
 
     return {
       success: failed.length === 0,
