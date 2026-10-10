@@ -1,0 +1,22 @@
+import {describe,expect,it,vi} from 'vitest';
+vi.mock('../prisma/prisma.service.js',()=>({PrismaService:class{}}));
+vi.mock('../auth/auth.service.js',()=>({AuthService:class{}}));
+vi.mock('../dispatch/dispatch.service.js',()=>({DispatchService:class{}}));
+vi.mock('../wallet/wallet.service.js',()=>({WalletService:class{}}));
+vi.mock('../realtime/realtime.gateway.js',()=>({RealtimeGateway:class{}}));
+vi.mock('../generated/prisma/client.js',()=>({UserRole:{ADMIN:'ADMIN',COURIER:'COURIER'},CourierStatus:{PENDING:'PENDING'},OrderStatus:{},PaymentStatus:{},UserStatus:{ACTIVE:'ACTIVE',PENDING:'PENDING',BLOCKED:'BLOCKED',SUSPENDED:'SUSPENDED'}}));
+import {AdminService} from './admin.service.js';
+function fixture(role='ADMIN'){
+ const db:any={courierProfile:{count:vi.fn(async(args:any)=>args?.where?.isOnline?40:args?.where?.approvalStatus?5:1001),findMany:vi.fn(async()=>[{id:'c',userId:'u',user:{id:'u',name:'Name'}}]),findUnique:vi.fn(async()=>({id:'c',user:{id:'u',name:'Name'}}))},user:{findMany:vi.fn(async()=>[])}};
+ const service=new AdminService(db,{authenticate:async()=>({role})}as any,{}as any,{}as any,{}as any);return{db,service};
+}
+describe('Diretório paginado de motoboys',()=>{
+ it('pagina no banco com ordem estável e exclui fotos/documentos do resumo',async()=>{const f=fixture();const r=await f.service.courierDirectory({page:'2',size:'25'});expect(r).toMatchObject({page:2,size:25,totalPages:41,totalMatches:1001,summary:{total:1001,online:40,offline:961,pending:5}});expect(f.db.courierProfile.findMany.mock.calls[0][0]).toMatchObject({skip:25,take:25,orderBy:[{createdAt:'desc'},{id:'desc'}]});const select=f.db.courierProfile.findMany.mock.calls[0][0].select;expect(select).not.toHaveProperty('onboardingData');expect(select.user.select).not.toHaveProperty('passwordHash')});
+ it('combina status, presença e busca por CPF formatado',async()=>{const f=fixture();await f.service.courierDirectory({q:'529.982.247-25',status:'ACTIVE',online:'ONLINE'});const where=f.db.courierProfile.findMany.mock.calls[0][0].where;expect(where.AND).toContainEqual({user:{is:{status:'ACTIVE'}}});expect(where.AND).toContainEqual({isOnline:true});expect(JSON.stringify(where)).toContain('52998224725')});
+ it('corrige página removida após exclusões sem resposta vazia infinita',async()=>{const f=fixture();f.db.courierProfile.count.mockResolvedValue(10);const r=await f.service.courierDirectory({page:'41'});expect(r.page).toBe(1);expect(f.db.courierProfile.findMany.mock.calls[0][0].skip).toBe(0)});
+ it.each([{page:'-1'},{page:'1.5'},{size:'1000'},{status:'INVALID'},{online:'INVALID'},{q:'x'.repeat(101)}])('recusa filtros inválidos %s',async query=>{const f=fixture();await expect(f.service.courierDirectory(query)).rejects.toThrow('inválido');expect(f.db.courierProfile.findMany).not.toHaveBeenCalled()});
+ it('restringe diretório e ficha a administradores',async()=>{const f=fixture('COURIER');await expect(f.service.courierDirectory({})).rejects.toThrow('administrador');await expect(f.service.courierRecord('c')).rejects.toThrow('administrador');expect(f.db.courierProfile.findUnique).not.toHaveBeenCalled()});
+ it('busca a ficha completa somente pelo ID solicitado e protege credenciais',async()=>{const f=fixture();await f.service.courierRecord('specific');const call=f.db.courierProfile.findUnique.mock.calls[0][0];expect(call.where).toEqual({id:'specific'});expect(call.include.requirements).toBeDefined();expect(call.include.user.select).not.toHaveProperty('passwordHash');f.db.courierProfile.findUnique.mockResolvedValue(null);await expect(f.service.courierRecord('missing')).rejects.toThrow('não encontrado')});
+ it('mantém o contrato antigo e oferece consulta de candidaturas pendentes',async()=>{const f=fixture();await f.service.couriers();expect(f.db.courierProfile.findMany.mock.calls[0][0]).not.toHaveProperty('where');await f.service.couriers(undefined,true);expect(f.db.courierProfile.findMany.mock.calls[1][0].where.OR).toContainEqual({approvalStatus:'PENDING'})});
+ it('retira fotos e onboarding de motoboys do carregamento global compacto',async()=>{const f=fixture();await f.service.users(undefined,true);const select=f.db.user.findMany.mock.calls[0][0].select;expect(select.courierProfile.select).not.toHaveProperty('onboardingData');expect(select).not.toHaveProperty('passwordHash');expect(select.partnerProfile).toBe(true);expect(select.customerProfile).toBe(true)});
+});

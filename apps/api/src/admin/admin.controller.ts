@@ -16,8 +16,18 @@ export class AdminController {
   }
 
   @Get('couriers')
-  couriers(@Headers('authorization') authorization?: string) {
-    return this.adminService.couriers(authorization);
+  couriers(@Headers('authorization') authorization?: string, @Query('pending') pending?:string) {
+    return this.adminService.couriers(authorization,pending==='true');
+  }
+
+  @Get('couriers/directory')
+  courierDirectory(@Query() query: {q?:string;page?:string;size?:string;status?:string;online?:string}, @Headers('authorization') authorization?: string) {
+    return this.adminService.courierDirectory(query,authorization);
+  }
+
+  @Get('couriers/:id/record')
+  courierRecord(@Param('id') id: string, @Headers('authorization') authorization?: string) {
+    return this.adminService.courierRecord(id,authorization);
   }
 
   @Get('couriers/:id/finance')
@@ -41,8 +51,8 @@ export class AdminController {
   }
 
   @Get('users')
-  users(@Headers('authorization') authorization?: string) {
-    return this.adminService.users(authorization);
+  users(@Headers('authorization') authorization?: string, @Query('compactCouriers') compact?:string) {
+    return this.adminService.users(authorization,compact==='true');
   }
 
   @Get('catalog')

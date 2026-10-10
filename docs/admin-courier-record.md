@@ -11,3 +11,13 @@ Pendências oferecem 12 motivos prontos e uma opção personalizada: foto ilegí
 Atualização: bash scripts/update-courier-admin.sh. Instala dependências API/Admin e verifica TypeScript do Admin. Reiniciar Nest e Admin depois. Não requer alteração de schema, atualização Flutter, reconstrução de rotas ou mudanças financeiras.
 
 Validação: 41 testes de backend e TypeScript do Admin passaram. Cobertura inclui autorização, duplicidade de CPF, falha de verificação, persistência canônica, foto/avisos aos clientes, campos adicionais e preservação de dados. Banco real, CPFHub real e renderização em navegador não foram executados neste ambiente; não é uma alegação de validação ponta a ponta.
+
+## Diretório compacto para muitos cadastros
+
+A aba Motoboys usa linhas expansíveis, busca por nome/CPF/e-mail/telefone/placa, filtros de status da conta e disponibilidade e paginação de 25/50/100 registros. Uma linha pode ser expandida para contato, veículo e ações, sem carregar a ficha completa. A ficha, foto e pendências detalhadas são consultadas sob demanda. A seleção e exclusão em lote ficam restritas à página atual e continuam usando as proteções de exclusão existentes.
+
+Endpoints novos de leitura, restritos ao Admin: GET /admin/couriers/directory (busca e paginação no banco, sem onboarding/fotos na lista), GET /admin/couriers/:id/record (uma ficha completa). O diretório usa ordenação estável e corrige páginas que deixam de existir após exclusões. As atualizações de fundo preservam linhas abertas; respostas antigas de filtros/fichas são descartadas.
+
+O carregamento global do painel utiliza as opções compactCouriers=true em /admin/users e pending=true em /admin/couriers, para não baixar fotos e onboarding de todos os motoboys aprovados. As respostas antigas sem esses parâmetros permanecem compatíveis. Outras áreas do painel ainda têm seus carregamentos existentes; esta alteração não afirma paginação de todos os módulos nem teste de carga de produção. Sem mudanças em schema, presença, despacho, aprovação, financeiro ou permissões.
+
+Validação desta etapa: 42 testes de backend passaram e TypeScript do Admin passou. Cobertura inclui paginação, pesquisa, filtros inválidos, acesso administrativo, ficha sob demanda, payload compacto e compatibilidade dos endpoints anteriores. Não foi executado teste de carga com milhares de registros reais nem inspeção em navegador neste ambiente.

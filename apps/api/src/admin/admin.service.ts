@@ -87,9 +87,10 @@ export class AdminService {
     });
   }
 
-  async couriers(authorization?: string) {
+  async couriers(authorization?: string, onlyPending=false) {
     await this.requireAdmin(authorization);
     return (this.prisma as any).courierProfile.findMany({
+      ...(onlyPending?{where:{OR:[{approvalStatus:CourierStatus.PENDING},{user:{is:{status:UserStatus.PENDING}}}]}}:{}),
       include: {
         user: {
           select: {
@@ -104,6 +105,33 @@ export class AdminService {
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async courierDirectory(query: {q?:string;page?:string;size?:string;status?:string;online?:string}, authorization?: string) {
+    await this.requireAdmin(authorization);
+    const page=Number(query.page||1), size=Number(query.size||25), q=String(query.q||'').trim();
+    if(!Number.isInteger(page)||page<1||page>100000||![25,50,100].includes(size)||q.length>100)throw new BadRequestException('Filtros de pesquisa inválidos');
+    const status=query.status||'ALL', online=query.online||'ALL';
+    if(!['ALL',...Object.values(UserStatus)].includes(status)||!['ALL','ONLINE','OFFLINE'].includes(online))throw new BadRequestException('Status de pesquisa inválido');
+    const and:any[]=[];
+    if(status!=='ALL')and.push({user:{is:{status}}});
+    if(online!=='ALL')and.push({isOnline:online==='ONLINE'});
+    if(q){const digits=q.replace(/\D/g,'');const or:any[]=[{document:{contains:q}},{vehiclePlate:{contains:q,mode:'insensitive'}},{user:{is:{OR:['name','email','phone'].map(k=>({[k]:{contains:q,mode:'insensitive'}}))}}}];if(digits.length>=3)or.push({document:{contains:digits}},{user:{is:{phone:{contains:digits}}}});and.push({OR:or});}
+    const where=and.length?{AND:and}:{};
+    const count=await this.prisma.courierProfile.count({where});
+    const totalPages=Math.max(1,Math.ceil(count/size)), currentPage=Math.min(page,totalPages);
+    const [rows,total,onlineCount,pendingCount]=await Promise.all([
+      this.prisma.courierProfile.findMany({where,skip:(currentPage-1)*size,take:size,orderBy:[{createdAt:'desc'},{id:'desc'}],select:{id:true,userId:true,document:true,approvalStatus:true,isOnline:true,vehicleBrand:true,vehicleModel:true,vehiclePlate:true,createdAt:true,updatedAt:true,user:{select:{id:true,name:true,email:true,phone:true,status:true,createdAt:true}},_count:{select:{requirements:{where:{status:{not:'RESOLVED'}}}}}}}),
+      this.prisma.courierProfile.count(),this.prisma.courierProfile.count({where:{isOnline:true}}),this.prisma.courierProfile.count({where:{approvalStatus:CourierStatus.PENDING}}),
+    ]);
+    return {rows,totalMatches:count,page:currentPage,size,totalPages,summary:{total,online:onlineCount,offline:total-onlineCount,pending:pendingCount}};
+  }
+
+  async courierRecord(id: string, authorization?: string) {
+    await this.requireAdmin(authorization);
+    const row=await this.prisma.courierProfile.findUnique({where:{id},include:{user:{select:{id:true,name:true,email:true,phone:true,status:true,role:true,createdAt:true}},requirements:{orderBy:{requestedAt:'desc'}}}});
+    if(!row)throw new NotFoundException('Motoboy não encontrado');
+    return row;
   }
 
   async courierFinance(id: string, authorization?: string) {
@@ -216,8 +244,9 @@ export class AdminService {
     });
   }
 
-  async users(authorization?: string) {
+  async users(authorization?: string, compactCouriers=false) {
     await this.requireAdmin(authorization);
+    if(compactCouriers)return this.prisma.user.findMany({select:{id:true,name:true,email:true,phone:true,role:true,status:true,createdAt:true,customerProfile:true,partnerProfile:true,courierProfile:{select:{id:true,document:true,approvalStatus:true,isOnline:true,vehicleModel:true,vehiclePlate:true}},_count:{select:{orders:true}}},orderBy:{createdAt:'desc'}});
     return this.prisma.user.findMany({
       include: {
         customerProfile: true,
