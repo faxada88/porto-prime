@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { OperationDemandModule } from './operations/operation-demand.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AdminModule } from './admin/admin.module.js';
@@ -22,6 +23,7 @@ import { WalletModule } from './wallet/wallet.module.js';
     HealthModule,
     AuthModule,
     RealtimeModule,
+    OperationDemandModule,
     DeliveryModule,
     WalletModule,
     DispatchModule,

@@ -139,3 +139,30 @@ input[type=checkbox]{accent-color:var(--pp-ocean-700)}
 .courierDirectoryHero>div>span{color:#83e5e0}.financeAccountTotals strong{color:#fff}.financeAccountTotals>div{background:transparent;border-color:#ffffff20}.content button.reject{background:var(--pp-coral-100);color:#9d3025}
 
 .financeCenter .financeBalance button:not(.secondary){background:var(--pp-action);color:#fff}.financeCenter .financeBalance button.secondary{background:#ffffff14!important;border-color:#ffffff30!important;color:#fff!important}
+/* Fixed page alignment: auto block margins previously centered short pages vertically. */
+.content{margin:0 auto;align-self:start;text-align:left;padding-top:24px}
+.content>header{position:relative;top:auto;display:flex;align-items:flex-start;justify-content:space-between;margin:0 0 24px;padding:0 0 24px;min-height:0;background:none;backdrop-filter:none;width:100%;text-align:left}
+.content>header>div:first-child{margin:0;min-width:150px;flex:0 1 auto;text-align:left;align-self:flex-start}
+.content>header h1{margin:6px 0 0;text-align:left;line-height:1.12}
+.content>header .headActions{margin:0;align-items:flex-start;justify-content:flex-end;flex:1;max-width:72%}
+.content .hero,.content .approvalHero,.content .customerDirectoryHero,.content .courierDirectoryHero{min-height:190px;padding:28px;border-radius:22px;box-shadow:0 12px 30px #102b5009}
+.content .hero h2,.content .approvalHero h2{font-size:30px;letter-spacing:-.8px}
+.approvalGrid{grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:16px}
+.approvalCard{padding:20px;border-radius:20px;box-shadow:0 5px 18px #102b5005}
+.approvalCard:hover{transform:none;border-color:var(--pp-line-strong)}
+.approvalCardTop{align-items:flex-start}.approvalIdentity{min-width:0}.approvalIdentity h3{overflow-wrap:anywhere;line-height:1.3}
+.approvalCount{height:112px;min-width:136px}.approvalCount b{font-size:38px}
+.content .metrics article,.content .panel{box-shadow:0 5px 18px #102b5004}
+.demandControl{position:relative;min-width:210px;max-width:100%}
+.demandControl>button{display:flex;align-items:center;gap:10px;min-height:48px;padding:9px 12px;border:1px solid var(--pp-line);border-radius:14px;background:#fff;color:var(--pp-ocean-800);width:100%;text-align:left}
+.demandControl>button>span{display:grid;gap:3px;flex:1}.demandControl b{font-size:12px}.demandControl small{font-size:10px;color:var(--pp-muted);font-weight:500}
+.demandControl>button>i{width:32px;height:19px;border-radius:99px;background:#d6e0e9;padding:3px;flex:0 0 auto}
+.demandControl>button>i>i{display:block;width:13px;height:13px;background:#fff;border-radius:50%;transition:transform var(--pp-fast)}
+.demandControl.isDemand>button{background:#fff8e9;border-color:#ebd295;color:#79540e}.demandControl.isDemand>button>i{background:var(--pp-action)}.demandControl.isDemand>button>i>i{transform:translateX(13px)}
+.demandControlError{display:block;margin-top:8px;color:#9d3025!important;max-width:260px;line-height:1.5}
+@media(max-width:1100px){.content>header{flex-wrap:wrap}.content>header .headActions{max-width:none;flex-basis:100%;justify-content:flex-start}.demandControl{min-width:200px}}
+@media(max-width:600px){.content{padding:20px 16px}.content>header{gap:18px;padding-bottom:18px}.content>header>div:first-child{width:100%}.content>header .headActions{display:flex;max-width:none;gap:10px}.demandControl{width:100%}.content .hero,.content .approvalHero,.content .customerDirectoryHero,.content .courierDirectoryHero{min-height:0;padding:24px}.content .approvalHero h2{font-size:25px}.approvalCount{min-width:120px;height:100px}}
+.content th{text-align:left}.content th.selectCol{text-align:center}
+.content .courierDirectoryHero{position:relative;top:auto;backdrop-filter:none;margin:0 0 20px}
+.content .panelHead h3,.content .financeHeading h2,.content .catalogFlatTop h2{text-align:left}
+.approvalCardTop .badge{flex-shrink:0}.approvalFacts>div{background:#f8fbfe}

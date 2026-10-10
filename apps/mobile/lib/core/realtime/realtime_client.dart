@@ -61,6 +61,7 @@ class RealtimeClient {
       'courier.presence',
       'wallet.updated',
       'courier.profile.updated',
+      'courier.demand.updated',
       'catalog.updated',
       'store.updated',
       'delivery.pricing.updated',

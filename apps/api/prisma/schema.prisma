@@ -585,3 +585,12 @@ model FinancialAudit {
   @@index([accountUserId, createdAt])
   @@index([withdrawalId])
 }
+
+// Manual operational notice; never participates in prices or dispatch.
+model CourierDemandSignal {
+  id String @id @default("default")
+  enabled Boolean @default(false)
+  revision Int @default(0)
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+}

@@ -28,6 +28,8 @@ class AppState extends ChangeNotifier {
   Map<String,dynamic>? courierDelivery;
   List<dynamic> courierOffers=[];
   bool courierOnline=false;
+  bool courierHighDemand=false;
+  int _courierDemandRevision=-1;
   String courierPresenceStatus='OFFLINE';
   Map<String,dynamic> walletSummary={};
   List<dynamic> walletLedger=[];
@@ -88,6 +90,10 @@ class AppState extends ChangeNotifier {
   int _quoteGeneration = 0;
 
   void _handleRealtimeEvent(String event, dynamic payload) {
+    if (event == 'courier.demand.updated' && isCourier && payload is Map) {
+      _applyCourierDemand(Map<String,dynamic>.from(payload));
+      return;
+    }
     if (event == 'delivery.pricing.updated') {
       _quoteGeneration++;
       deliveryQuote={};
@@ -124,6 +130,8 @@ class AppState extends ChangeNotifier {
         courierDelivery=null;
         courierOffers=[];
         courierOnline=false;
+        courierHighDemand=false;
+        _courierDemandRevision=-1;
         courierPresenceStatus='OFFLINE';
         walletSummary={};
         walletLedger=[];
@@ -413,6 +421,8 @@ class AppState extends ChangeNotifier {
     activeOrder=null;
     courierDelivery=null;
     courierOffers=[];
+    courierHighDemand=false;
+    _courierDemandRevision=-1;
     courierOnline=false;
     courierPresenceStatus='OFFLINE';
     walletSummary={};
@@ -477,6 +487,8 @@ class AppState extends ChangeNotifier {
 
   Future<void> _refreshCourierOnce() async {
     if(!isCourier)return;
+    // Independent notice: an unavailable signal never blocks deliveries or login.
+    loadCourierDemand().catchError((_) {});
 
     final results=await Future.wait([
       api.request('GET','/orders/courier/presence'),
@@ -500,6 +512,26 @@ class AppState extends ChangeNotifier {
     courierHistory=List<dynamic>.from(results[4] as List);
     courierProfile=Map<String,dynamic>.from(results[5] as Map);
     notifyListeners();
+  }
+
+  void _applyCourierDemand(Map<String,dynamic> data) {
+    final revision=data['revision'];
+    if (data['enabled'] is! bool || revision is! int || revision < _courierDemandRevision) return;
+    _courierDemandRevision=revision;
+    final next=data['enabled'] == true;
+    if (courierHighDemand != next) {
+      courierHighDemand=next;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadCourierDemand() async {
+    if (!isCourier) return;
+    final requestedUser=user?['id'];
+    final result=await api.request('GET','/couriers/operations/demand');
+    if (isCourier && user?['id'] == requestedUser && result is Map) {
+      _applyCourierDemand(Map<String,dynamic>.from(result));
+    }
   }
 
   Future<void> heartbeatCourier({
