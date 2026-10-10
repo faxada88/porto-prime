@@ -1,11 +1,11 @@
 import {BadRequestException,ConflictException,ForbiddenException,Injectable,Logger,NotFoundException,OnModuleInit,OnModuleDestroy,ServiceUnavailableException} from '@nestjs/common';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHash} from 'node:crypto';
 import {AuthService} from '../auth/auth.service.js';
 import {PrismaService} from '../prisma/prisma.service.js';
 import {RealtimeGateway} from '../realtime/realtime.gateway.js';
 import {cents,creditBalance,lockCustomerCredit,settlementAmounts} from './customer-credit.js';
 const preDispatch=['PENDING','CONFIRMED','PREPARING','READY_FOR_PICKUP'];
-const open=['AWAITING_CUSTOMER','REFUND_PROCESSING'];
+const open=['AWAITING_CUSTOMER'];
 @Injectable()
 export class ItemAvailabilityService implements OnModuleInit,OnModuleDestroy {
  private timer?:NodeJS.Timeout;
@@ -26,7 +26,7 @@ export class ItemAvailabilityService implements OnModuleInit,OnModuleDestroy {
  private async refreshHold(tx:any,orderId:string){
   const order=await tx.order.findUnique({where:{id:orderId},include:{items:true}});
   const hold=order.items.some((i:any)=>open.includes(i.availabilityStatus));
-  const removed=order.items.length>0&&order.items.every((i:any)=>['REFUNDED','VOUCHERED'].includes(i.availabilityStatus));
+  const removed=order.items.length>0&&order.items.every((i:any)=>['REFUND_PROCESSING','REFUNDED','VOUCHERED'].includes(i.availabilityStatus));
   await tx.order.update({where:{id:orderId},data:{fulfillmentHold:hold,...(removed?{status:'CANCELED',canceledAt:new Date(),...(cents(order.refundedTotal)>=cents(order.total)?{paymentStatus:'REFUNDED'}:{})}:{})}});
  }
  private async notify(id:string){const order=await (this.db as any).order.findUnique({where:{id},include:{items:true,address:true}});if(order)this.realtime.emitOrderUpdated(order);}
@@ -83,10 +83,16 @@ export class ItemAvailabilityService implements OnModuleInit,OnModuleDestroy {
    await this.refreshHold(tx,orderId);
   });
   await this.notify(orderId);
-  if(body.choice==='REFUND')await this.processRefund(itemId);
+  if(body.choice==='REFUND'){try{await this.processRefund(itemId);}catch{this.logger.warn('Escolha registrada; reembolso será retomado sem bloquear a entrega dos itens restantes.');}}
   return {message:'Sua escolha foi registrada. Acompanhe o pedido para ver a atualização.'};
  }
- async credits(authorization?:string){const user=await this.allowed(authorization,'CUSTOMER');return {available:await creditBalance(this.db,user.id)};}
+ async credits(authorization?:string){
+  const user=await this.allowed(authorization,'CUSTOMER');
+  const entries=await (this.db as any).customerCreditEntry.findMany({where:{customerId:user.id},select:{id:true,amount:true,description:true,orderId:true,createdAt:true},orderBy:{createdAt:'desc'},take:50});
+  const digest=createHash('sha256').update('porto-prime-card:'+user.id).digest('hex').slice(0,12).toUpperCase();
+  return {available:await creditBalance(this.db,user.id),cardCode:'PP-'+digest.match(/.{1,4}/g)!.join('-'),entries};
+ }
+
  async retry(orderId:string,itemId:string,authorization?:string){
   await this.allowed(authorization,'ADMIN');
   await (this.db as any).$transaction(async(tx:any)=>{const order=await this.locked(tx,orderId);const item=this.item(order,itemId);if(item.availabilityStatus!=='REFUND_PROCESSING')throw new ConflictException('Não há reembolso pendente neste item');if(['failed','canceled'].includes(item.refundStatus))await tx.orderItem.update({where:{id:itemId},data:{stripeRefundId:null,refundAttempt:{increment:1},refundStatus:'pending'}});});

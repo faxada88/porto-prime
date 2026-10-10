@@ -135,7 +135,7 @@ class _OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final id = order['id'].toString();
-    final items = (order['items'] as List?) ?? const [];
+    final items = ((order['items'] as List?) ?? const []).where((i)=>!['REFUND_PROCESSING','REFUNDED','VOUCHERED'].contains(i['availabilityStatus'])).toList();
     final status = order['status'].toString();
     final paid = order['paymentStatus'] == 'PAID';
     final shortId =

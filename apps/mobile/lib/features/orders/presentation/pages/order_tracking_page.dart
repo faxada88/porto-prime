@@ -78,7 +78,10 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
       final status = current['status'].toString();
       final step = _step(status);
       final courier = current['courier'];
-      final items = (current['items'] as List?) ?? const [];
+      final allItems = (current['items'] as List?) ?? const [];
+      final items = allItems.where((i)=>!['REFUND_PROCESSING','REFUNDED','VOUCHERED'].contains(i['availabilityStatus'])).toList();
+      final remainingSubtotal=items.fold<double>(0,(sum,i)=>sum+(double.tryParse(i['total'].toString())??0));
+      final pendingRefund=allItems.where((i)=>i['availabilityStatus']=='REFUND_PROCESSING').fold<double>(0,(sum,i)=>sum+(double.tryParse(i['refundAmount'].toString())??0));
       final address = current['address'];
 
       return Scaffold(
@@ -106,7 +109,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                 _Hero(order: current, status: status, id: widget.orderId),
                 const SizedBox(height: 16),
                 OrderItemAvailabilityNotice(order:current),
-                _Journey(status: status, step: step),
+                if(status!='CANCELED')_Journey(status: status, step: step) else const _Section(title:'Pedido encerrado',icon:Icons.info_outline_rounded,child:Text('Não há produtos a entregar. Seu histórico e os registros de devolução continuam disponíveis neste acompanhamento.',style:TextStyle(height:1.6))),
                 if (courier != null) ...[
                   const SizedBox(height: 16),
                   _Courier(courier: courier),
@@ -124,7 +127,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                 ],
                 const SizedBox(height: 16),
                 _Section(
-                  title: 'Seu pedido',
+                  title: 'Produtos a entregar',
                   icon: AppIcons.bag,
                   child: Column(
                     children: [
@@ -172,10 +175,14 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                         ),
                       ),
                       const Divider(),
-                      _value('Subtotal', current['subtotal']),
-                      _value('Entrega', current['deliveryFee']),
+                      _value('Produtos a entregar', remainingSubtotal),
+                      _value('Entrega', items.isEmpty?0:current['deliveryFee']),
                       const SizedBox(height: 7),
-                      _value('Total', current['total'], strong: true),
+                      _value('Pagamento original', current['total'], strong: true),
+                      if((double.tryParse(current['storeCreditUsed'].toString())??0)>0)_value('Voucher usado nesta compra',current['storeCreditUsed']),
+                      if((double.tryParse(current['refundedTotal'].toString())??0)>0)_value('Reembolso confirmado',current['refundedTotal']),
+                      if(pendingRefund>0)_value('Reembolso em processamento',pendingRefund),
+                      if((double.tryParse(current['creditedTotal'].toString())??0)>0)_value('Crédito no Cartão Porto Prime',current['creditedTotal']),
                     ],
                   ),
                 ),
@@ -292,7 +299,7 @@ class _Hero extends StatelessWidget {
             PrimeStatusPill(
               label: status == 'DELIVERED'
                   ? 'PEDIDO CONCLUÍDO'
-                  : 'ACOMPANHAMENTO AO VIVO',
+                  : status=='CANCELED'?'PEDIDO ENCERRADO':'ACOMPANHAMENTO AO VIVO',
               tone: PrimeStatusTone.success,
             ),
             const Spacer(),
@@ -328,8 +335,8 @@ class _Hero extends StatelessWidget {
             Expanded(
               child: Text(
                 order['paymentStatus'] == 'PAID'
-                    ? 'Pagamento aprovado'
-                    : 'Pagamento ' + order['paymentStatus'].toString(),
+                    ? 'Pagamento original aprovado'
+                    : order['paymentStatus']=='REFUNDED'?'Pagamento reembolsado':order['paymentStatus']=='PARTIALLY_REFUNDED'?'Reembolso parcial confirmado':order['paymentStatus']=='FAILED'?'Pagamento não concluído':'Aguardando pagamento',
                 style: Theme.of(
                   context,
                 ).textTheme.labelMedium?.copyWith(color: Colors.white),

@@ -1,3 +1,4 @@
+import '../../../wallet/presentation/pages/customer_prime_card_page.dart';
 import '../../../addresses/presentation/pages/address_book_page.dart';
 import '../../../wallet/presentation/pages/partner_wallet_page.dart';
 import 'package:flutter/material.dart';
@@ -2096,6 +2097,8 @@ class _Account extends StatelessWidget {
             ]),
           ],
           if (state.isCustomer) ...[
+            const SizedBox(height:20),
+            _MenuSurface(children:[_MenuLine(icon:AppIcons.wallet,title:'Cartão Porto Prime',subtitle:'Seus vouchers e créditos para a próxima compra',last:true,onTap:()=>Navigator.of(context).push(_primeRoute(const CustomerPrimeCardPage())))]),
             const SizedBox(height: 27),
             const _SectionLabel(
               eyebrow: 'MINHA EXPERIÊNCIA',

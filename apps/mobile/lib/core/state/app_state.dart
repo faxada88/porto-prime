@@ -5,7 +5,8 @@ import '../realtime/realtime_client.dart';
 
 class AppState extends ChangeNotifier {
   double customerCreditBalance=0;
-  Future<void> loadCustomerCredit()async{if(!isCustomer){customerCreditBalance=0;return;} final customerId=user?["id"];final result=await api.request("GET","/orders/credits");if(!isCustomer||user?["id"]!=customerId)return; customerCreditBalance=double.tryParse(result["available"].toString())??0;notifyListeners();}
+  Map<String,dynamic> customerCreditCard={};
+  Future<void> loadCustomerCredit()async{if(!isCustomer){customerCreditBalance=0;customerCreditCard={};return;} final customerId=user?["id"];final result=await api.request("GET","/orders/credits");if(!isCustomer||user?["id"]!=customerId)return; customerCreditCard=Map<String,dynamic>.from(result);customerCreditBalance=double.tryParse(result["available"].toString())??0;notifyListeners();}
   Future<void> resolveUnavailable(String orderId,String itemId,String choice,{String? productId})async{await api.request("POST","/orders/$orderId/items/$itemId/availability-choice",body:{"choice":choice,if(productId!=null)"productId":productId});await Future.wait([loadOrders(),loadActiveOrder(),loadCustomerCredit()]);}
 
   AppState._() {
@@ -75,7 +76,7 @@ class AppState extends ChangeNotifier {
         if (api.token != null) realtime.connect(api.token!);
       } catch (_) {
         await api.clearSession();
-        user = null;customerCreditBalance=0;
+        user = null;customerCreditBalance=0;customerCreditCard={};
       }
     }
 
@@ -134,7 +135,7 @@ class AppState extends ChangeNotifier {
       Future<void>(() async {
         realtime.disconnect();
         await api.clearSession();
-        user=null;customerCreditBalance=0;
+        user=null;customerCreditBalance=0;customerCreditCard={};
         addresses=[];
         orders=[];
         activeOrder=null;
@@ -371,7 +372,7 @@ class AppState extends ChangeNotifier {
         return await login(email, password);
       }
       // Motoboy e parceiro aguardam aprovação: não criamos sessão local.
-      user = null;customerCreditBalance=0;
+      user = null;customerCreditBalance=0;customerCreditCard={};
       await api.clearSession();
       realtime.disconnect();
       return created;
@@ -427,7 +428,7 @@ class AppState extends ChangeNotifier {
     try{await api.request('POST','/auth/logout');}catch(_){}
     realtime.disconnect();
     await api.clearSession();
-    user=null;customerCreditBalance=0;
+    user=null;customerCreditBalance=0;customerCreditCard={};
     addresses=[];
     orders=[];
     activeOrder=null;

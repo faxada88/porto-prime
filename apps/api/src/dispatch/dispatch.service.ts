@@ -446,7 +446,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
         city: offer.order.address?.city ?? null,
       },
       itemCount: Array.isArray(offer.order.items)
-        ? offer.order.items.filter((i:any)=>!['REFUNDED','VOUCHERED'].includes(i.availabilityStatus)).reduce(
+        ? offer.order.items.filter((i:any)=>!['REFUND_PROCESSING','REFUNDED','VOUCHERED'].includes(i.availabilityStatus)).reduce(
             (sum: number, item: any) => sum + Number(item.quantity || 0),
             0,
           )
