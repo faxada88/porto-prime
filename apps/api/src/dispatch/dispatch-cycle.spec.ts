@@ -113,3 +113,7 @@ describe('delivery offer rotation without permanent exclusions', () => {
     expect(f.offers.at(-1).courierId).toBe('courier-2');
   });
 });
+
+describe('Oferta com adicional cobrado no checkout',()=>{
+ it('usa o adicional congelado no pedido e exibe ganhos sem somar novamente',async()=>{const f=fixture(1);Object.assign(f.order,{deliveryFee:8,courierDemandBonus:2.5,demandSurchargeIncluded:true});const payload=await f.service.dispatchOrder(f.order.id);expect(payload).toMatchObject({deliveryFee:8,demandBonus:2.5,courierEarnings:8});expect(f.offers[0].demandBonus).toBe(2.5);f.close('DECLINED');expect(await f.service.dispatchOrder(f.order.id)).toMatchObject({demandBonus:2.5,courierEarnings:8})});
+});

@@ -10,7 +10,7 @@ function fixture(role='ADMIN',waiting=0){
  let row:any={id:'default',enabled:false,mode:'AUTO',bonusAmount:2.5,waitingCount:0,revision:0,updatedBy:'private',updatedAt:null};
  const tx:any={$queryRawUnsafe:vi.fn(async()=>[]),order:{count:vi.fn(async()=>waiting)},courierDemandSignal:{findUnique:vi.fn(async()=>row),upsert:vi.fn(async()=>row),update:vi.fn(async({data}:any)=>{row={...row,...data,revision:row.revision+1};return row;})}};
  const db:any={...tx,$transaction:vi.fn(async(fn:any)=>fn(tx))};
- const realtime:any={emitToRole:vi.fn(),emitDemandUpdated:vi.fn()};
+ const realtime:any={emitToRole:vi.fn(),emitDemandUpdated:vi.fn(),emitCatalogUpdated:vi.fn()};
  return {db,tx,realtime,service:new OperationDemandService(db,{authenticate:async()=>({id:'admin',role})}as any,realtime)};
 }
 describe('Alta demanda com bônus',()=>{
@@ -37,4 +37,8 @@ describe('Bônus prometido na oferta',()=>{
   expect(tx.order.updateMany.mock.calls[0][0].data.courierDemandBonus).toBe(3);
   expect(tx.courierDemandSignal.findUnique).not.toHaveBeenCalled();
  });
+});
+
+describe('Sincronização do preço com os clientes',()=>{
+ it('invalida cotações ao ativar ou alterar o adicional mas não ao variar somente a fila',async()=>{const f=fixture('ADMIN',10);await f.service.read(undefined,'ADMIN');expect(f.realtime.emitCatalogUpdated).toHaveBeenCalledWith('delivery.pricing.updated');f.realtime.emitCatalogUpdated.mockClear();f.tx.order.count.mockResolvedValue(11);await f.service.read(undefined,'ADMIN');expect(f.realtime.emitCatalogUpdated).not.toHaveBeenCalled();await f.service.set({bonusAmount:5});expect(f.realtime.emitCatalogUpdated).toHaveBeenCalledTimes(1)});
 });

@@ -20,3 +20,7 @@ describe('Store closure and checkout',()=>{
  it('open store retains the payment amount and order identity',async()=>{const f=fixture(true);expect(await f.service.createCheckout(request)).toMatchObject({orderId:'o',paymentIntentId:'pi_test'});const body=f.fetcher.mock.calls[0][1].body as URLSearchParams;expect(body.get('amount')).toBe('2000');expect(body.get('metadata[orderId]')).toBe('o');expect(f.prisma.order.update).toHaveBeenCalledWith({where:{id:'o'},data:{paymentMethod:'CARD',stripePaymentIntentId:'pi_test'}})});
  it('database errors fail closed instead of silently starting payment',async()=>{const f=fixture(true);f.prisma.deliveryPricingConfig.findUnique.mockRejectedValue(new Error('database down'));await expect(f.service.createCheckout(request)).rejects.toThrow('database down');expect(f.fetcher).not.toHaveBeenCalled()});
 });
+
+describe('Stripe usa total com adicional já incluído',()=>{
+ it('cobra subtotal mais entrega final exatamente uma vez',async()=>{const f=fixture(true);f.prisma.order.findFirst.mockResolvedValue({id:'o',customerId:'u',total:28,deliveryFee:8,courierDemandBonus:2.5,demandSurchargeIncluded:true,paymentStatus:'PENDING',stripePaymentIntentId:null});await f.service.createCheckout(request);const body=f.fetcher.mock.calls[0][1].body as URLSearchParams;expect(body.get('amount')).toBe('2800')});
+});

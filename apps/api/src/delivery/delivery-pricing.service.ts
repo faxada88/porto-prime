@@ -1,3 +1,4 @@
+import { offeredDemandBonus } from '../operations/demand-policy.js';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import {
@@ -294,9 +295,11 @@ export class DeliveryPricingService {
     }
     const baseFee = Number(cfg.baseFee), includedKm = Number(cfg.includedKm), pricePerKm = Number(cfg.pricePerAdditionalKm);
     const extraKm = Math.max(0, route.distanceKm - includedKm);
-    const deliveryFee = Math.round((baseFee + extraKm * pricePerKm + Number.EPSILON) * 100) / 100;
+    const baseDeliveryFee = Math.round((baseFee + extraKm * pricePerKm + Number.EPSILON) * 100) / 100;
+    const demandSurcharge = await offeredDemandBonus(this.prisma);
+    const deliveryFee = (Math.round(baseDeliveryFee * 100) + Math.round(demandSurcharge * 100)) / 100;
     return {
-      addressId: address.id, deliveryFee, distanceKm: Number(route.distanceKm.toFixed(3)),
+      addressId: address.id, deliveryFee, baseDeliveryFee, demandSurcharge, distanceKm: Number(route.distanceKm.toFixed(3)),
       durationMinutes: route.durationMinutes, withinServiceArea: true, pricingMode: 'ROAD_ROUTE',
       baseFee, includedKm, pricePerAdditionalKm: pricePerKm, excessKm: Number(extraKm.toFixed(3)),
       pricingRevision: cfg.pricingRevision, courierSharePercent: 100, locationAccuracy: destination.accuracy,

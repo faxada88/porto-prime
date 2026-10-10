@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { offeredDemandBonus } from '../operations/demand-policy.js';
 import { randomInt } from 'node:crypto';
 import {
   CourierStatus,
@@ -119,19 +120,32 @@ export class OrdersService {
 
     const deliveryFee = quote.deliveryFee;
 
-    const order = await this.prisma.order.create({
+    const order = await (this.prisma as any).$transaction(async (tx:any) => {
+      // Freeze the agreed price while demand configuration and base rates may change.
+      await tx.$queryRawUnsafe('SELECT pg_advisory_xact_lock(710101600)::text AS demand_lock');
+      await tx.$queryRawUnsafe('SELECT "id" FROM "DeliveryPricingConfig" WHERE "id"=$1 FOR UPDATE', 'default');
+      const current=await tx.deliveryPricingConfig.findUnique({where:{id:'default'}});
+      if(current?.storeOpen===false)throw new BadRequestException(current.storeMessage||'A loja está fechada no momento');
+      const demandSurcharge=await offeredDemandBonus(tx);
+      if(current?.pricingRevision!==quote.pricingRevision || demandSurcharge!==quote.demandSurcharge) {
+        throw new BadRequestException('Os valores de entrega foram atualizados. Confirme a entrega novamente antes de pagar');
+      }
+      return tx.order.create({
       data: {
         customerId: user.id,
         addressId: address.id,
         subtotal,
         deliveryFee,
-        total: subtotal + deliveryFee,
+        courierDemandBonus: quote.demandSurcharge,
+        demandSurchargeIncluded: true,
+        total: (Math.round(subtotal * 100) + Math.round(deliveryFee * 100)) / 100,
         routeDistanceKm: quote.distanceKm,
         routeDurationMinutes: quote.durationMinutes,
         deliveryPin: this.newDeliveryPin(),
         items: { create: items },
       },
       include: { items: true, address: true },
+      });
     });
 
     this.realtime.emitToRole('ADMIN', 'order.created', {
@@ -634,6 +648,7 @@ export class OrdersService {
             courierId: true,
             deliveryFee: true,
             courierDemandBonus: true,
+            demandSurchargeIncluded: true,
           },
         });
 

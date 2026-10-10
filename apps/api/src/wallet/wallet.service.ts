@@ -55,6 +55,7 @@ export class WalletService {
       courierId: string | null;
       deliveryFee: unknown;
       courierDemandBonus?: unknown;
+      demandSurchargeIncluded?: boolean;
     },
   ) {
     if (!order.courierId) {
@@ -69,13 +70,15 @@ export class WalletService {
     });
 
     const gross = Number(order.deliveryFee);
+    const bonus = Math.max(0, Number(order.courierDemandBonus ?? 0));
+    const baseGross = order.demandSurchargeIncluded ? Math.max(0, gross - bonus) : gross;
     const commissionPercent = Number(cfg.platformCommissionPercent ?? 0);
     const net = Math.max(
       0,
-      gross * (1 - commissionPercent / 100),
+      baseGross * (1 - commissionPercent / 100),
     );
-    // Distributor-funded bonus is not commissioned or charged to the customer.
-    const bonus = Math.max(0, Number(order.courierDemandBonus ?? 0));
+    // The surcharge is already in the delivery fee for new orders.
+    // Preserve legacy distributor-funded bonuses and transfer 100% of the extra.
     const credited = (Math.round(Number(net.toFixed(2)) * 100) + Math.round(bonus * 100)) / 100;
     const idempotencyKey = `delivery:${order.id}:credit`;
 
@@ -99,6 +102,7 @@ export class WalletService {
           courierCredit: credited,
           demandBonus: bonus,
           baseCourierCredit: Number(net.toFixed(2)),
+          demandSurchargeIncluded: order.demandSurchargeIncluded ?? false,
         },
       },
       update: {},

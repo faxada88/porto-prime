@@ -883,7 +883,7 @@ class _OfferCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    _money(order['courierEarnings'] ?? ((double.tryParse(order['deliveryFee'].toString())??0)+(double.tryParse((order['courierDemandBonus']??order['demandBonus']??0).toString())??0))),
+                    _money(order['courierEarnings'] ?? ((double.tryParse(order['deliveryFee'].toString())??0)+(order['demandSurchargeIncluded']==true?0:(double.tryParse((order['courierDemandBonus']??order['demandBonus']??0).toString())??0)))),
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: AppFontWeight.display,
@@ -2820,7 +2820,7 @@ class _HistoryRow extends StatelessWidget {
               ),
             ),
             Text(
-              _money(order['courierEarnings'] ?? ((double.tryParse(order['deliveryFee'].toString())??0)+(double.tryParse((order['courierDemandBonus']??order['demandBonus']??0).toString())??0))),
+              _money(order['courierEarnings'] ?? ((double.tryParse(order['deliveryFee'].toString())??0)+(order['demandSurchargeIncluded']==true?0:(double.tryParse((order['courierDemandBonus']??order['demandBonus']??0).toString())??0)))),
               style: const TextStyle(
                 fontSize: AppFontSize.caption,
                 fontWeight: AppFontWeight.display,

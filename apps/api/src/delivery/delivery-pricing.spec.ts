@@ -6,7 +6,7 @@ import { DeliveryPricingService } from './delivery-pricing.service.js';
 const address:any={id:'a',street:'Rua Teste',number:'10',neighborhood:'Centro',city:'Porto Seguro',state:'BA',postalCode:'45810000',locationConfirmed:true,latitude:-16.45,longitude:-39.065};
 function fixture(role='ADMIN',overrides:any={}) {
  const config:any={baseFee:5.5,includedKm:3,pricePerAdditionalKm:2.5,minDeliveryFee:20,maxDeliveryFee:6,maxDistanceKm:25,distributorLatitude:-16.449,distributorLongitude:-39.064,pricingRevision:1,...overrides};
- const db:any={deliveryPricingConfig:{upsert:vi.fn(async()=>config),update:vi.fn(async({data}:any)=>{const{pricingRevision,...rest}=data;Object.assign(config,rest);config.pricingRevision++;return config})},address:{findFirst:vi.fn(async()=>address)}};
+ const db:any={courierDemandSignal:{findUnique:vi.fn(async()=>({mode:'MANUAL_OFF',bonusAmount:2.5}))},order:{count:vi.fn(async()=>0)},deliveryPricingConfig:{upsert:vi.fn(async()=>config),update:vi.fn(async({data}:any)=>{const{pricingRevision,...rest}=data;Object.assign(config,rest);config.pricingRevision++;return config})},address:{findFirst:vi.fn(async()=>address)}};
  const events:any={emitCatalogUpdated:vi.fn()};const service=new DeliveryPricingService(db,{authenticate:async()=>({id:'customer',role})}as any,events);
  return{service,db,config,events};
 }
@@ -48,4 +48,9 @@ describe('Busca de ruas e estabelecimentos selecionáveis',()=>{
  it('identifica a estimativa de rua selecionada sem inventar número',async()=>{route(3000);const q=await indexed().service.preview({...address,street:'Avenida Beira Mar',locationRef:'street'});expect(q.locationAccuracy).toBe('STREET_ESTIMATE');expect(q.deliveryFee).toBe(5.5)});
  it('recusa referência inexistente, local de outra cidade e rua alterada',async()=>{const f=indexed();for(const data of [{...address,locationRef:'invalid'},{...address,locationRef:'other'},{...address,locationRef:'street',street:'Rua Diferente'}])await expect(f.service.preview(data)).rejects.toThrow(/Selecione|selecione/);});
  it('exige sessão e limita consultas vazias ou enormes',async()=>{await expect(indexed('COURIER').service.searchPlaces('hotel')).rejects.toThrow('permitido');expect((await indexed().service.searchPlaces('ab')).results).toHaveLength(0);await expect(indexed().service.searchPlaces('x'.repeat(151))).rejects.toThrow('150')});
+});
+
+describe('Adicional de alta demanda na tarifa do cliente',()=>{
+ it('soma adicional uma única vez à rota e remove da próxima cotação quando desligado',async()=>{route(3000);const f=fixture();f.db.courierDemandSignal.findUnique.mockResolvedValue({mode:'MANUAL_ON',bonusAmount:2.5});const q=await f.service.quoteForAddress(address);expect(q).toMatchObject({baseDeliveryFee:5.5,demandSurcharge:2.5,deliveryFee:8});f.db.courierDemandSignal.findUnique.mockResolvedValue({mode:'MANUAL_OFF',bonusAmount:2.5});expect((await f.service.quoteForAddress(address)).deliveryFee).toBe(5.5)});
+ it('aplica adicional automático com dez pedidos pagos e conserva cobrança proporcional acima de 3 km',async()=>{route(5000);const f=fixture();f.db.courierDemandSignal.findUnique.mockResolvedValue({mode:'AUTO',bonusAmount:3});f.db.order.count.mockResolvedValue(10);expect(await f.service.quoteForAddress(address)).toMatchObject({baseDeliveryFee:10.5,demandSurcharge:3,deliveryFee:13.5});f.db.order.count.mockResolvedValue(9);expect((await f.service.quoteForAddress(address)).deliveryFee).toBe(10.5)});
 });

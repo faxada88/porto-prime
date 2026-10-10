@@ -30,9 +30,11 @@ export class OperationDemandService implements OnModuleInit,OnModuleDestroy {
    const enabled=demandEnabled(mode,waitingCount);
    const changed=previous.enabled!==enabled||previous.mode!==mode||Number(previous.bonusAmount)!==bonusAmount||previous.waitingCount!==waitingCount;
    const row=changed?await tx.courierDemandSignal.update({where:{id:'default'},data:{enabled,mode,bonusAmount,waitingCount,revision:{increment:1},...(patch?{updatedBy:patch.updatedBy}:{})}}):previous;
-   return {row,changed};
+   const priceChanged=previous.enabled!==enabled||Number(previous.bonusAmount)!==bonusAmount;
+   return {row,changed,priceChanged};
   });
   if(result.changed){const payload=this.safe(result.row);this.realtime.emitToRole('COURIER','courier.demand.updated',payload);this.realtime.emitToRole('ADMIN','courier.demand.updated',payload);this.realtime.emitDemandUpdated(this.publicSignal(result.row));}
+  if(result.priceChanged)this.realtime.emitCatalogUpdated('delivery.pricing.updated');
   return result.row;
  }
  private async snapshot(){return await (this.db as any).courierDemandSignal.findUnique({where:{id:'default'}})??{enabled:false,mode:'AUTO',bonusAmount:2.5,waitingCount:0,revision:0,updatedAt:null};}

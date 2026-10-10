@@ -6,7 +6,6 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { offeredDemandBonus } from '../operations/demand-policy.js';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { RealtimeGateway } from '../realtime/realtime.gateway.js';
@@ -343,7 +342,8 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
                 orderId,
                 courierId: candidate.courier.id,
                 status: 'PENDING',
-                demandBonus: await offeredDemandBonus(tx),
+                // New offers use the amount agreed at checkout, never today's rate.
+                demandBonus: Number(order.courierDemandBonus ?? 0),
                 score: candidate.score,
                 expiresAt,
                 distanceToPickupKm: candidate.distance,
@@ -385,7 +385,8 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
                 type: 'OFFER_CREATED',
                 payload: {
                   expiresAt: expiresAt.toISOString(),
-                  demandBonus: await offeredDemandBonus(tx),
+                  // New offers use the amount agreed at checkout, never today's rate.
+                demandBonus: Number(order.courierDemandBonus ?? 0),
                 score: candidate.score,
                   distanceToPickupKm: candidate.distance,
                 },
@@ -425,7 +426,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
       expiresAt: offer.expiresAt,
       deliveryFee: offer.order.deliveryFee,
       demandBonus: Number(offer.demandBonus ?? 0),
-      courierEarnings: Number(offer.order.deliveryFee) + Number(offer.demandBonus ?? 0),
+      courierEarnings: Number(offer.order.deliveryFee) + (offer.order.demandSurchargeIncluded ? 0 : Number(offer.demandBonus ?? 0)),
       routeDistanceKm: offer.order.routeDistanceKm,
       routeDurationMinutes: offer.order.routeDurationMinutes,
       distanceToPickupKm: offer.distanceToPickupKm,
