@@ -207,6 +207,10 @@ model CourierRequirement {
   requestedAt DateTime          @default(now())
   answeredAt  DateTime?
   resolvedAt  DateTime?
+  canceledAt  DateTime?
+  canceledBy  String?
+  previousApprovalStatus String?
+  previousUserStatus String?
 
   courier CourierProfile @relation(fields: [courierId], references: [id], onDelete: Cascade)
 

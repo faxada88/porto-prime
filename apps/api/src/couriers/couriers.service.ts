@@ -173,14 +173,11 @@ export class CouriersService {
       );
     }
 
-    return (this.prisma as any).courierRequirement.update({
-      where: { id: requirementId },
-      data: {
+    return this.answerRequirement(requirementId, {
         response: answer,
         status: 'ANSWERED',
         answeredAt: new Date(),
-      },
-    });
+      });
   }
 
   async profile(authorization?: string) {
@@ -307,13 +304,16 @@ export class CouriersService {
       );
     }
 
-    return (this.prisma as any).courierRequirement.update({
-      where: { id },
-      data: {
+    return this.answerRequirement(id, {
         response: response.trim(),
         status: 'ANSWERED',
         answeredAt: new Date(),
-      },
-    });
+      });
+  }
+
+  private async answerRequirement(id: string, data: Record<string, unknown>) {
+    const changed = await (this.prisma as any).courierRequirement.updateMany({where: {id, status: {not: 'RESOLVED'}, canceledAt: null}, data});
+    if (!changed.count) throw new BadRequestException('Esta pendência foi concluída ou cancelada. Atualize a consulta.');
+    return (this.prisma as any).courierRequirement.findUnique({where: {id}});
   }
 }

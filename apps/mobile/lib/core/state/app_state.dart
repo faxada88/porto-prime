@@ -279,7 +279,8 @@ class AppState extends ChangeNotifier {
       await api.request(
         'POST',
         '/couriers/application/status',
-        body: {'document': document},
+        body: {'document': document.replaceAll(RegExp(r'\D'), '')},
+        retryOnUnauthorized: false,
       ),
     );
   }
@@ -381,12 +382,16 @@ class AppState extends ChangeNotifier {
       await api.setSession(x);
       user=Map<String,dynamic>.from(x['user']);
       if(api.token!=null)realtime.connect(api.token!);
+      try {
       if(isCustomer){
         await Future.wait([loadAddresses(),loadOrders(),loadActiveOrder()]);
       }
       if(isPartner) await loadWallet();
       if(isCourier){
         await refreshCourier();
+      }
+      } catch (_) {
+        error = "Você entrou. Não foi possível atualizar todos os dados agora. Tente atualizar o painel.";
       }
       return x;
     } catch(e) {
@@ -461,11 +466,12 @@ class AppState extends ChangeNotifier {
 
     final future = _refreshCourierOnce();
     _courierRefreshFuture = future;
-    future.whenComplete(() {
+    void clearRunning() {
       if (identical(_courierRefreshFuture, future)) {
         _courierRefreshFuture = null;
       }
-    });
+    }
+    future.then((_) => clearRunning(), onError: (Object _) => clearRunning());
     return future;
   }
 

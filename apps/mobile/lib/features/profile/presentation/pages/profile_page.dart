@@ -1265,7 +1265,8 @@ class _ApplicationOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final raw = (application['approvalStatus'] ?? 'PENDING').toString();
+    final access = application['userStatus']?.toString();
+    final raw = access == 'BLOCKED' ? 'REJECTED' : access == 'SUSPENDED' ? 'SUSPENDED' : access == 'PENDING' ? 'PENDING' : (application['approvalStatus'] ?? 'PENDING').toString();
     final config = _statusConfig(raw);
     return Container(
       padding: const EdgeInsets.all(18),

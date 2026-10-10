@@ -300,6 +300,10 @@ export class AdminService {
     });
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
+    if (status === 'ACTIVE' && user.role === UserRole.COURIER) {
+      return this.approve(userId, authorization);
+    }
+
     return this.prisma.$transaction(async (tx) => {
       return tx.user.update({
         where: { id: userId },
@@ -463,7 +467,7 @@ export class AdminService {
     });
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       if (user.role === UserRole.COURIER && user.courierProfile) {
         const open = await (tx as any).courierRequirement.count({
           where: {
@@ -493,6 +497,8 @@ export class AdminService {
         select: { id: true, name: true, email: true, role: true, status: true },
       });
     });
+    this.applicationChanged(userId, user.courierProfile?.id);
+    return result;
   }
 
   async reject(userId: string, authorization?: string) {
@@ -547,25 +553,30 @@ export class AdminService {
       throw new NotFoundException('Candidatura do motoboy não encontrada');
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
+      const current = await (tx as any).courierProfile.findUnique({where: {id: profile.id}, include: {user: true}});
+      if (!current) throw new NotFoundException('Candidatura não encontrada');
+      const previous = await (tx as any).courierRequirement.findFirst({where: {courierId: profile.id, status: {not: 'RESOLVED'}}, orderBy: {requestedAt: 'asc'}});
       const requirement = await (tx as any).courierRequirement.create({
         data: {
           courierId: profile.id,
           title,
           description,
+          previousApprovalStatus: previous?.previousApprovalStatus ?? current.approvalStatus,
+          previousUserStatus: previous?.previousUserStatus ?? current.user.status,
         },
       });
 
       await (tx as any).courierProfile.update({
         where: { id: profile.id },
         data: {
-          approvalStatus: CourierStatus.PENDING,
+          approvalStatus: current.approvalStatus === CourierStatus.SUSPENDED || current.approvalStatus === CourierStatus.REJECTED ? current.approvalStatus : CourierStatus.PENDING,
         },
       });
 
       await tx.user.update({
         where: { id: profile.userId },
-        data: { status: UserStatus.PENDING },
+        data: { status: current.user.status === UserStatus.ACTIVE ? UserStatus.PENDING : current.user.status },
       });
 
       return {
@@ -576,20 +587,47 @@ export class AdminService {
           name: profile.user?.name ?? null,
         },
       };
-    });
+    }, {isolationLevel: 'Serializable'});
+    this.applicationChanged(profile.userId, profile.id);
+    return result;
+  }
+
+  private applicationChanged(userId: string, courierId?: string) {
+    this.realtime.emitToUser(userId, 'courier.profile.updated', {courierId});
+    this.realtime.emitToRole('ADMIN', 'courier.profile.updated', {courierId});
+  }
+
+  async cancelRequirement(id: string, authorization?: string) {
+    const admin = await this.requireAdmin(authorization);
+    const result = await this.prisma.$transaction(async (tx) => {
+      const db = tx as any;
+      const requirement = await db.courierRequirement.findUnique({where: {id}, include: {courier: {include: {user: true}}}});
+      if (!requirement) throw new NotFoundException('Pendência não encontrada');
+      if (requirement.canceledAt) return requirement;
+      const updated = await db.courierRequirement.update({where: {id}, data: {status: 'RESOLVED', resolvedAt: requirement.resolvedAt ?? new Date(), canceledAt: new Date(), canceledBy: admin.id}});
+      const remaining = await db.courierRequirement.count({where: {courierId: requirement.courierId, status: {not: 'RESOLVED'}}});
+      const profile = requirement.courier;
+      // Restore only access that this requirement actually interrupted.
+      // New applicants and independently suspended/blocked accounts stay restricted.
+      if (requirement.status !== 'RESOLVED' && !remaining && requirement.previousApprovalStatus === 'APPROVED' && requirement.previousUserStatus === 'ACTIVE' && profile.approvalStatus === 'PENDING' && profile.user.status === 'PENDING') {
+        await db.courierProfile.update({where: {id: profile.id}, data: {approvalStatus: 'APPROVED'}});
+        await tx.user.update({where: {id: profile.userId}, data: {status: 'ACTIVE'}});
+      }
+      return {...updated, courier: profile};
+    }, {isolationLevel: 'Serializable'});
+    this.applicationChanged(result.courier.userId, result.courierId);
+    const {courier, ...safe} = result;
+    return safe;
   }
 
   async resolveRequirement(id: string, authorization?: string) {
     await this.requireAdmin(authorization);
-    const requirement = await (this.prisma as any).courierRequirement.findUnique({
-      where: { id },
-    });
+    const requirement = await (this.prisma as any).courierRequirement.findUnique({where: {id}, include: {courier: true}});
     if (!requirement) throw new NotFoundException('Pendência não encontrada');
-
-    return (this.prisma as any).courierRequirement.update({
-      where: { id },
-      data: { status: 'RESOLVED', resolvedAt: new Date() },
-    });
+    if (requirement.canceledAt) throw new BadRequestException('Esta pendência foi cancelada');
+    const result = await (this.prisma as any).courierRequirement.update({where: {id}, data: {status: 'RESOLVED', resolvedAt: new Date()}});
+    this.applicationChanged(requirement.courier.userId, requirement.courierId);
+    return result;
   }
 
   async updateOrderStatus(

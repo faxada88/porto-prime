@@ -1,0 +1,1 @@
+ALTER TABLE "CourierRequirement" ADD COLUMN IF NOT EXISTS "canceledAt" TIMESTAMP(3), ADD COLUMN IF NOT EXISTS "canceledBy" TEXT, ADD COLUMN IF NOT EXISTS "previousApprovalStatus" TEXT, ADD COLUMN IF NOT EXISTS "previousUserStatus" TEXT;
