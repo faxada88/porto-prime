@@ -123,7 +123,8 @@ export class PaymentsService {
   private async completePayment(intent: StripeIntent) {
     const order = await this.prisma.order.findUnique({ where: { id: intent.metadata?.orderId ?? '' } });
     if (!order || !isVerifiedPayment(intent, order)) return false;
-    const where = { id: order.id, stripePaymentIntentId: intent.id, paymentStatus: { not: PaymentStatus.PAID } };
+    if (order.paymentStatus===PaymentStatus.REFUNDED||order.paymentStatus===PaymentStatus.PARTIALLY_REFUNDED) return false;
+    const where = { id: order.id, stripePaymentIntentId: intent.id, paymentStatus: { notIn: [PaymentStatus.PAID,PaymentStatus.REFUNDED,PaymentStatus.PARTIALLY_REFUNDED] } };
     // Never regress an order already being prepared, dispatched or delivered.
     const pending = await this.prisma.order.updateMany({
       where: { ...where, status: OrderStatus.PENDING },

@@ -22,7 +22,8 @@ class CartPage extends StatelessWidget {
       final quotedFee =
           double.tryParse(s.deliveryQuote['deliveryFee']?.toString() ?? '');
       final delivery = entries.isEmpty ? 0.0 : (quotedFee ?? 0.0);
-      final total = s.cartSubtotal + delivery;
+      final credit = s.isCustomer ? s.customerCreditBalance.clamp(0,s.cartSubtotal).toDouble() : 0.0;
+      final total = s.cartSubtotal + delivery - credit;
 
       return SafeArea(
         bottom: false,
@@ -108,6 +109,7 @@ class CartPage extends StatelessWidget {
                       padding: EdgeInsets.symmetric(vertical: 14),
                       child: Divider(height: 1),
                     ),
+                    if(credit>0) _Price('Voucher aplicado', '−${_brl(credit)}'),
                     _Price('Total', _brl(total), strong: true),
                   ],
                 ),
@@ -571,7 +573,7 @@ Future<void> _checkout(BuildContext context) async {
   final agreed=Map<String,dynamic>.from(selection['quote']);
 
   try {
-    final order = await s.createOrder(selected,pricingRevision:(agreed['pricingRevision'] as num?)?.toInt(),expectedDeliveryFee:(agreed['deliveryFee'] as num?)?.toDouble());
+    final order = await s.createOrder(selected,pricingRevision:(agreed['pricingRevision'] as num?)?.toInt(),expectedDeliveryFee:(agreed['deliveryFee'] as num?)?.toDouble(),expectedTotal:s.cartSubtotal+(double.tryParse(agreed['deliveryFee'].toString())??0)-(double.tryParse(agreed['storeCreditBalance'].toString())??0).clamp(0,s.cartSubtotal));
     if (!context.mounted) return;
 
     final orderId = order['id'].toString();

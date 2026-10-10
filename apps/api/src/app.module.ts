@@ -1,3 +1,4 @@
+import { ItemAvailabilityModule } from './availability/item-availability.module.js';
 import { Module } from '@nestjs/common';
 import { OperationDemandModule } from './operations/operation-demand.module.js';
 import { AppController } from './app.controller.js';
@@ -24,6 +25,7 @@ import { WalletModule } from './wallet/wallet.module.js';
     AuthModule,
     RealtimeModule,
     OperationDemandModule,
+    ItemAvailabilityModule,
     DeliveryModule,
     WalletModule,
     DispatchModule,

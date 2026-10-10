@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../../core/widgets/order_item_availability_notice.dart';
 import '../../../../core/widgets/courier_portrait.dart';
 
 import 'package:flutter/material.dart';
@@ -104,6 +105,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
               children: [
                 _Hero(order: current, status: status, id: widget.orderId),
                 const SizedBox(height: 16),
+                OrderItemAvailabilityNotice(order:current),
                 _Journey(status: status, step: step),
                 if (courier != null) ...[
                   const SizedBox(height: 16),

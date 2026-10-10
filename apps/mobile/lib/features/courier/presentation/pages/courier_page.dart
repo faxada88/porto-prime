@@ -1193,7 +1193,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
         Map<String, dynamic>.from(order['pickup'] ?? const {});
     final dropoff =
         Map<String, dynamic>.from(order['dropoff'] ?? const {});
-    final items = incoming ? const [] : ((order['items'] as List?) ?? const []);
+    final items = incoming ? const [] : ((order['items'] as List?) ?? const []).where((item)=>!['REFUNDED','VOUCHERED'].contains(item['availabilityStatus'])).toList();
     final status = incoming
         ? 'READY_FOR_PICKUP'
         : order['status']?.toString() ?? 'COURIER_ASSIGNED';

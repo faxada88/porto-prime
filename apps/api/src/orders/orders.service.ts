@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { offeredDemandBonus } from '../operations/demand-policy.js';
+import {allocateCredit,cents,creditBalance,lockCustomerCredit} from '../availability/customer-credit.js';
 import { randomInt } from 'node:crypto';
 import {
   CourierStatus,
@@ -130,7 +131,13 @@ export class OrdersService {
       if(current?.pricingRevision!==quote.pricingRevision || demandSurcharge!==quote.demandSurcharge) {
         throw new BadRequestException('Os valores de entrega foram atualizados. Confirme a entrega novamente antes de pagar');
       }
-      return tx.order.create({
+      await lockCustomerCredit(tx,user.id);
+      const balance=await creditBalance(tx,user.id);
+      const storeCreditUsed=Math.min(cents(balance),cents(subtotal))/100;
+      const expectedTotal=(cents(subtotal)+cents(deliveryFee)-cents(storeCreditUsed))/100;
+      if(data.expectedTotal!==undefined&&cents(data.expectedTotal)!==cents(expectedTotal))throw new BadRequestException('Seu saldo de créditos mudou. Confirme o total novamente antes de pagar');
+      allocateCredit(items,storeCreditUsed);
+      const created=await tx.order.create({
       data: {
         customerId: user.id,
         addressId: address.id,
@@ -138,7 +145,8 @@ export class OrdersService {
         deliveryFee,
         courierDemandBonus: quote.demandSurcharge,
         demandSurchargeIncluded: true,
-        total: (Math.round(subtotal * 100) + Math.round(deliveryFee * 100)) / 100,
+        storeCreditUsed,
+        total: expectedTotal,
         routeDistanceKm: quote.distanceKm,
         routeDurationMinutes: quote.durationMinutes,
         deliveryPin: this.newDeliveryPin(),
@@ -146,6 +154,8 @@ export class OrdersService {
       },
       include: { items: true, address: true },
       });
+      if(storeCreditUsed>0)await tx.customerCreditEntry.create({data:{customerId:user.id,amount:-storeCreditUsed,idempotencyKey:'order:'+created.id+':credit-use',description:'Voucher aplicado no pedido',orderId:created.id}});
+      return created;
     });
 
     this.realtime.emitToRole('ADMIN', 'order.created', {
@@ -169,17 +179,30 @@ export class OrdersService {
           in: [PaymentStatus.PENDING, PaymentStatus.FAILED],
         },
       },
-      select: { id: true },
+      select: { id: true,storeCreditUsed:true,stripePaymentIntentId:true },
     });
 
     if (pending.length === 0) return { deleted: 0 };
 
-    const result = await this.prisma.order.deleteMany({
-      where: {
-        id: { in: pending.map((order) => order.id) },
-        customerId: user.id,
-      },
-    });
+    // Preserve the previous cleanup for orders that have no reserved voucher.
+    const regular=pending.filter(order=>Number(order.storeCreditUsed)===0);
+    let deleted=regular.length?(await this.prisma.order.deleteMany({where:{id:{in:regular.map(order=>order.id)},customerId:user.id}})).count:0;
+    for(const order of pending.filter(order=>Number(order.storeCreditUsed)>0)){
+      if(order.stripePaymentIntentId){
+        const secret=process.env.STRIPE_SECRET_KEY;if(!secret)throw new BadRequestException('Retome o pagamento deste pedido antes de liberar seus créditos');
+        const response=await fetch('https://api.stripe.com/v1/payment_intents/'+encodeURIComponent(order.stripePaymentIntentId)+'/cancel',{method:'POST',headers:{Authorization:'Bearer '+secret,'Idempotency-Key':'order:'+order.id+':credit-cancel'},signal:AbortSignal.timeout(10000)});
+        const intent:any=await response.json();if(!response.ok||intent.status!=='canceled')throw new BadRequestException('O pagamento deste pedido não pôde ser cancelado. Retome o pedido em Pagamentos');
+      }
+      await (this.prisma as any).$transaction(async(tx:any)=>{
+        await tx.$queryRawUnsafe('SELECT "id" FROM "Order" WHERE "id"=$1 FOR UPDATE',order.id);
+        const current=await tx.order.findUnique({where:{id:order.id}});
+        if(!current||!['PENDING','FAILED'].includes(current.paymentStatus))return;
+        await lockCustomerCredit(tx,user.id);
+        await tx.customerCreditEntry.upsert({where:{idempotencyKey:'order:'+order.id+':credit-release'},create:{customerId:user.id,amount:current.storeCreditUsed,idempotencyKey:'order:'+order.id+':credit-release',description:'Voucher liberado de pedido não pago',orderId:order.id},update:{}});
+        await tx.order.delete({where:{id:order.id}});deleted++;
+      });
+    }
+    const result={count:deleted};
 
     return { deleted: result.count };
   }

@@ -1,4 +1,5 @@
 import { offeredDemandBonus } from '../operations/demand-policy.js';
+import {creditBalance} from '../availability/customer-credit.js';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import {
@@ -187,7 +188,8 @@ export class DeliveryPricingService {
     const user = await this.auth.authenticate(authorization);
     if (user.role !== 'CUSTOMER') throw new ForbiddenException('Acesso exclusivo de cliente');
     // Coordenadas recebidas no preview nunca substituem a busca pelo endereço.
-    return this.quoteForAddress({ ...address, id: 'preview', latitude: undefined, longitude: undefined, locationConfirmed: false });
+    const quote=await this.quoteForAddress({ ...address, id: 'preview', latitude: undefined, longitude: undefined, locationConfirmed: false });
+    return {...quote,storeCreditBalance:await creditBalance(this.prisma,user.id)};
   }
 
   private validPoint(lat: unknown, lng: unknown) {
@@ -320,6 +322,7 @@ export class DeliveryPricingService {
     });
     if (!address) throw new NotFoundException('Endereço não encontrado');
 
-    return this.quoteForAddress(address);
+    const quote=await this.quoteForAddress(address);
+    return {...quote,storeCreditBalance:await creditBalance(this.prisma,user.id)};
   }
 }

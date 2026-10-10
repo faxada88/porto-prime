@@ -130,6 +130,7 @@ model User {
   courierProfile  CourierProfile?
   partnerProfile  PartnerProfile?
 
+  customerCredits CustomerCreditEntry[]
   addresses Address[]
   orders    Order[] @relation("CustomerOrders")
 
@@ -312,6 +313,10 @@ model Order {
   deliveryFee Decimal @db.Decimal(10, 2)
   courierDemandBonus Decimal @default(0) @db.Decimal(10, 2)
   demandSurchargeIncluded Boolean @default(false)
+  fulfillmentHold Boolean @default(false)
+  refundedTotal Decimal @default(0) @db.Decimal(10, 2)
+  creditedTotal Decimal @default(0) @db.Decimal(10, 2)
+  storeCreditUsed Decimal @default(0) @db.Decimal(10, 2)
   total       Decimal @db.Decimal(10, 2)
 
   stripePaymentIntentId String? @unique
@@ -352,6 +357,19 @@ model OrderItem {
   orderId   String
   productId String
 
+  availabilityStatus String @default("AVAILABLE")
+  availabilityNote String?
+  availabilityOptions Json?
+  issueId String?
+  originalProductName String?
+  customerChoice String?
+  stripeRefundId String?
+  refundStatus String?
+  refundAttempt Int @default(0)
+  refundAmount Decimal @default(0) @db.Decimal(10, 2)
+  creditAmount Decimal @default(0) @db.Decimal(10, 2)
+  storeCreditShare Decimal @default(0) @db.Decimal(10, 2)
+  resolvedAt DateTime?
   productName String
   unitPrice   Decimal @db.Decimal(10, 2)
   quantity    Int
@@ -599,4 +617,16 @@ model CourierDemandSignal {
   revision Int @default(0)
   updatedBy String?
   updatedAt DateTime @updatedAt
+}
+
+model CustomerCreditEntry {
+ id String @id @default(cuid())
+ customerId String
+ amount Decimal @db.Decimal(10, 2)
+ idempotencyKey String @unique
+ description String
+ orderId String?
+ createdAt DateTime @default(now())
+ customer User @relation(fields:[customerId],references:[id])
+ @@index([customerId,createdAt])
 }

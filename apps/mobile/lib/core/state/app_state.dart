@@ -4,6 +4,10 @@ import '../network/api_client.dart';
 import '../realtime/realtime_client.dart';
 
 class AppState extends ChangeNotifier {
+  double customerCreditBalance=0;
+  Future<void> loadCustomerCredit()async{if(!isCustomer){customerCreditBalance=0;return;} final customerId=user?["id"];final result=await api.request("GET","/orders/credits");if(!isCustomer||user?["id"]!=customerId)return; customerCreditBalance=double.tryParse(result["available"].toString())??0;notifyListeners();}
+  Future<void> resolveUnavailable(String orderId,String itemId,String choice,{String? productId})async{await api.request("POST","/orders/$orderId/items/$itemId/availability-choice",body:{"choice":choice,if(productId!=null)"productId":productId});await Future.wait([loadOrders(),loadActiveOrder(),loadCustomerCredit()]);}
+
   AppState._() {
     realtime.onEvent = _handleRealtimeEvent;
     api.onAccessTokenChanged = (freshToken) {
@@ -71,7 +75,7 @@ class AppState extends ChangeNotifier {
         if (api.token != null) realtime.connect(api.token!);
       } catch (_) {
         await api.clearSession();
-        user = null;
+        user = null;customerCreditBalance=0;
       }
     }
 
@@ -130,7 +134,7 @@ class AppState extends ChangeNotifier {
       Future<void>(() async {
         realtime.disconnect();
         await api.clearSession();
-        user=null;
+        user=null;customerCreditBalance=0;
         addresses=[];
         orders=[];
         activeOrder=null;
@@ -367,7 +371,7 @@ class AppState extends ChangeNotifier {
         return await login(email, password);
       }
       // Motoboy e parceiro aguardam aprovação: não criamos sessão local.
-      user = null;
+      user = null;customerCreditBalance=0;
       await api.clearSession();
       realtime.disconnect();
       return created;
@@ -423,7 +427,7 @@ class AppState extends ChangeNotifier {
     try{await api.request('POST','/auth/logout');}catch(_){}
     realtime.disconnect();
     await api.clearSession();
-    user=null;
+    user=null;customerCreditBalance=0;
     addresses=[];
     orders=[];
     activeOrder=null;
@@ -473,7 +477,7 @@ class AppState extends ChangeNotifier {
   Future<void> updateAddress(String id,Map<String,dynamic>d)async{await api.request('PATCH','/addresses/$id',body:d);await loadAddresses();}
   Future<void> removeAddress(String id)async{await api.request('DELETE','/addresses/$id');await loadAddresses();}
   Future<int> clearPendingOrders()async{if(!isCustomer)return 0;final x=Map<String,dynamic>.from(await api.request('DELETE','/orders/pending'));await Future.wait([loadOrders(),loadActiveOrder()]);return (x['deleted'] as num?)?.toInt()??0;}
-  Future<void> loadOrders()async{if(!isCustomer)return;orders=List<dynamic>.from(await api.request('GET','/orders/mine'));notifyListeners();}
+  Future<void> loadOrders()async{if(!isCustomer)return;orders=List<dynamic>.from(await api.request('GET','/orders/mine'));try{await loadCustomerCredit();}catch(_){}notifyListeners();}
   Future<void> loadActiveOrder()async{if(!isCustomer)return;final x=await api.request('GET','/orders/active');activeOrder=x==null?null:Map<String,dynamic>.from(x);notifyListeners();}
 
   Future<void>? _courierRefreshFuture;
@@ -677,14 +681,14 @@ class AppState extends ChangeNotifier {
     return quote;
   }
 
-  Future<Map<String,dynamic>> createOrder(String addressId,{int? pricingRevision,double? expectedDeliveryFee})async{
+  Future<Map<String,dynamic>> createOrder(String addressId,{int? pricingRevision,double? expectedDeliveryFee,double? expectedTotal})async{
     if(!isCustomer)throw Exception('Entre como cliente para finalizar');
     if(cart.isEmpty)throw Exception('Sua sacola está vazia');
     await loadStore();
     if(!storeOpen)throw Exception(storeMessage);
     loading=true;error=null;notifyListeners();
     try{
-      final order=Map<String,dynamic>.from(await api.request('POST','/orders',body:{'addressId':addressId,if(pricingRevision!=null)'pricingRevision':pricingRevision,if(expectedDeliveryFee!=null)'expectedDeliveryFee':expectedDeliveryFee,'items':cart.entries.map((e)=>{'productId':e.key,'quantity':e.value}).toList()}));
+      final order=Map<String,dynamic>.from(await api.request('POST','/orders',body:{'addressId':addressId,if(expectedTotal!=null)'expectedTotal':expectedTotal,if(pricingRevision!=null)'pricingRevision':pricingRevision,if(expectedDeliveryFee!=null)'expectedDeliveryFee':expectedDeliveryFee,'items':cart.entries.map((e)=>{'productId':e.key,'quantity':e.value}).toList()}));
       await Future.wait([loadOrders(),loadActiveOrder()]);return order;
     }catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}
   }

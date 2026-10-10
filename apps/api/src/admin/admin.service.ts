@@ -723,6 +723,8 @@ export class AdminService {
       select: {
         id: true,
         status: true,
+        storeCreditUsed: true,
+        items: {select:{issueId:true}},
         customer: { select: { name: true } },
       },
     });
@@ -736,6 +738,7 @@ export class AdminService {
       );
     }
 
+    if(Number(order.storeCreditUsed)>0||order.items.some(item=>item.issueId))throw new BadRequestException('Pedidos com créditos ou ajustes de itens precisam ser preservados no histórico financeiro');
     await this.prisma.$transaction(async (tx) => {
       await tx.courierLedgerEntry.deleteMany({
         where: { orderId },

@@ -6,7 +6,7 @@ import { DeliveryPricingService } from './delivery-pricing.service.js';
 const address:any={id:'a',street:'Rua Teste',number:'10',neighborhood:'Centro',city:'Porto Seguro',state:'BA',postalCode:'45810000',locationConfirmed:true,latitude:-16.45,longitude:-39.065};
 function fixture(role='ADMIN',overrides:any={}) {
  const config:any={baseFee:5.5,includedKm:3,pricePerAdditionalKm:2.5,minDeliveryFee:20,maxDeliveryFee:6,maxDistanceKm:25,distributorLatitude:-16.449,distributorLongitude:-39.064,pricingRevision:1,...overrides};
- const db:any={courierDemandSignal:{findUnique:vi.fn(async()=>({mode:'MANUAL_OFF',bonusAmount:2.5}))},order:{count:vi.fn(async()=>0)},deliveryPricingConfig:{upsert:vi.fn(async()=>config),update:vi.fn(async({data}:any)=>{const{pricingRevision,...rest}=data;Object.assign(config,rest);config.pricingRevision++;return config})},address:{findFirst:vi.fn(async()=>address)}};
+ const db:any={customerCreditEntry:{aggregate:vi.fn(async()=>({_sum:{amount:0}})),create:vi.fn()},courierDemandSignal:{findUnique:vi.fn(async()=>({mode:'MANUAL_OFF',bonusAmount:2.5}))},order:{count:vi.fn(async()=>0)},deliveryPricingConfig:{upsert:vi.fn(async()=>config),update:vi.fn(async({data}:any)=>{const{pricingRevision,...rest}=data;Object.assign(config,rest);config.pricingRevision++;return config})},address:{findFirst:vi.fn(async()=>address)}};
  const events:any={emitCatalogUpdated:vi.fn()};const service=new DeliveryPricingService(db,{authenticate:async()=>({id:'customer',role})}as any,events);
  return{service,db,config,events};
 }

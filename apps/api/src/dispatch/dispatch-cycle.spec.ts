@@ -50,6 +50,7 @@ function fixture(count: number) {
 beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date('2026-10-08T12:00:00Z')); });
 afterEach(() => vi.useRealTimers());
 describe('delivery offer rotation without permanent exclusions', () => {
+  it('does not offer an order held for a customer decision',async()=>{const f=fixture(2);f.order.fulfillmentHold=true;expect(await f.service.dispatchOrder(f.order.id)).toBeNull();expect(f.offers).toHaveLength(0);});
   it.each([1, 2, 3, 4])('continues for three full rounds with %i couriers', async count => {
     const f = fixture(count);
     for (let i = 0; i < count * 3; i++) {

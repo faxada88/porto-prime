@@ -102,6 +102,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
           courierId: null,
           activeOfferId: null,
           paymentStatus: 'PAID',
+          fulfillmentHold: false,
         },
         select: { id: true },
         orderBy: { updatedAt: 'asc' },
@@ -131,6 +132,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
         paymentStatus: true,
         status: true,
         activeOfferId: true,
+        fulfillmentHold: true,
       },
     });
 
@@ -140,6 +142,8 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
         'O pedido precisa estar pago antes do despacho',
       );
     }
+    if (order.fulfillmentHold) throw new BadRequestException('Aguarde a decisão do cliente sobre os itens indisponíveis antes de liberar');
+    if (order.status==='CANCELED') throw new BadRequestException('Pedido cancelado não pode ser liberado');
     if (order.courierId) return order;
 
     const updated = await (this.prisma as any).$transaction(async (tx: any) => {
@@ -147,6 +151,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
         where: {
           id: orderId,
           courierId: null,
+          fulfillmentHold: false,
           status: {
             in: ['CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'SEARCHING_COURIER'],
           },
@@ -196,6 +201,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
     if (
       !order ||
       order.status !== 'SEARCHING_COURIER' ||
+      order.fulfillmentHold ||
       order.courierId ||
       order.activeOfferId
     ) {
@@ -328,6 +334,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
                 status: 'SEARCHING_COURIER',
                 courierId: null,
                 activeOfferId: null,
+                fulfillmentHold: false,
               },
               data: { activeOfferId: offerId },
             });
@@ -439,7 +446,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
         city: offer.order.address?.city ?? null,
       },
       itemCount: Array.isArray(offer.order.items)
-        ? offer.order.items.reduce(
+        ? offer.order.items.filter((i:any)=>!['REFUNDED','VOUCHERED'].includes(i.availabilityStatus)).reduce(
             (sum: number, item: any) => sum + Number(item.quantity || 0),
             0,
           )
