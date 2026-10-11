@@ -1,3 +1,4 @@
+import '../../../support/presentation/pages/support_page.dart';
 import '../../../partners/presentation/pages/partner_referral_card.dart';
 import '../../../partners/presentation/pages/partner_dashboard_page.dart';
 import '../../../wallet/presentation/pages/customer_prime_card_page.dart';
@@ -2101,6 +2102,10 @@ class _Account extends StatelessWidget {
                 onTap:()=>Navigator.of(context).push(_primeRoute(const PartnerWalletPage()))),
             ]),
           ],
+          if (!state.isCustomer && !pending) ...[
+            const SizedBox(height:16),
+            _MenuSurface(children:[_MenuLine(icon:AppIcons.help,title:'Ajuda e suporte',subtitle:state.isPartner ? 'Tickets, indicações e repasses' : 'Fale com a distribuidora',last:true,onTap:()=>_support(context))]),
+          ],
           if (state.isCustomer) ...[
             const SizedBox(height:20),
             _MenuSurface(children:[_MenuLine(icon:AppIcons.wallet,title:'Cartão Porto Prime',subtitle:'Seus vouchers e créditos para a próxima compra',last:true,onTap:()=>Navigator.of(context).push(_primeRoute(const CustomerPrimeCardPage())))]),
@@ -2441,11 +2446,11 @@ void _addresses(BuildContext context) {
 }
 
 void _support(BuildContext context) {
-  _simpleMessage(
-    context,
-    'Central Porto Prime',
-    'Precisa de ajuda? Nossa equipe acompanha pedidos, cadastros, pagamentos e entregas. Entre em contato pelos canais oficiais da Porto Prime.',
-  );
+  if (!AppState.instance.loggedIn) {
+    _simpleMessage(context,'Ajuda e suporte','Entre na sua conta para abrir um atendimento e acompanhar as respostas da nossa equipe.');
+    return;
+  }
+  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SupportPage()));
 }
 
 void _simpleMessage(

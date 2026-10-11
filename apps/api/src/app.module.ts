@@ -1,3 +1,4 @@
+import {SupportModule} from './support/support.module.js';
 import {PartnersModule} from './partners/partners.module.js';
 import { ItemAvailabilityModule } from './availability/item-availability.module.js';
 import { Module } from '@nestjs/common';
@@ -30,6 +31,7 @@ import { WalletModule } from './wallet/wallet.module.js';
     DeliveryModule,
     WalletModule,
     PartnersModule,
+    SupportModule,
     DispatchModule,
     AdminModule,
     CouriersModule,

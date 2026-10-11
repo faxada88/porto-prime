@@ -1,3 +1,4 @@
+import '../../../support/presentation/pages/support_page.dart';
 import 'dart:async';
 import 'courier_operations_dashboard.dart';
 import 'courier_demand_notice.dart';
@@ -1728,6 +1729,10 @@ class _SheetHero extends StatelessWidget {
                 ),
             ],
           ),
+          if (!incoming) ...[
+            const SizedBox(height:12),
+            TextButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>SupportPage(orderId:id.toString()))),icon:const Icon(AppIcons.mail,color:Colors.white,size:18),label:const Text('Suporte da entrega',style:TextStyle(color:Colors.white))),
+          ],
           const SizedBox(height: 17),
           Text(
             customerName,
@@ -2427,6 +2432,8 @@ class _DriverSectionSheet extends StatelessWidget {
     if (section == 'profile') {
       final user = state.user ?? {};
       return [
+        OutlinedButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const SupportPage())),icon:const Icon(AppIcons.help,size:19),label:const Text('Ajuda e suporte')),
+        const SizedBox(height:16),
         const CourierPhotoCard(),
         const SizedBox(height:14),
         _DataPanel(

@@ -130,6 +130,8 @@ model User {
   courierProfile  CourierProfile?
   partnerProfile  PartnerProfile?
 
+  supportThreads SupportThread[]
+  supportMessages SupportMessage[]
   customerCredits CustomerCreditEntry[]
   addresses Address[]
   orders    Order[] @relation("CustomerOrders")
@@ -642,4 +644,37 @@ model CustomerCreditEntry {
  createdAt DateTime @default(now())
  customer User @relation(fields:[customerId],references:[id])
  @@index([customerId,createdAt])
+}
+
+
+// Support is independent of payment, wallet and dispatch state.
+model SupportThread {
+  id String @id @default(cuid())
+  ownerId String?
+  owner User? @relation(fields:[ownerId], references:[id], onDelete:SetNull)
+  ownerRole UserRole
+  orderId String?
+  category String
+  subject String
+  status String @default("OPEN")
+  messages SupportMessage[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([ownerId, orderId])
+  @@index([status, updatedAt])
+  @@index([ownerId, updatedAt])
+}
+
+model SupportMessage {
+  id String @id @default(cuid())
+  threadId String
+  thread SupportThread @relation(fields:[threadId], references:[id], onDelete:Cascade)
+  senderId String?
+  sender User? @relation(fields:[senderId], references:[id], onDelete:SetNull)
+  senderRole UserRole
+  text String
+  requestId String
+  createdAt DateTime @default(now())
+  @@unique([senderId, requestId])
+  @@index([threadId, createdAt, id])
 }

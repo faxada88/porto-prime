@@ -1,3 +1,4 @@
+import '../../../support/presentation/pages/support_page.dart';
 import 'dart:async';
 import '../../../../core/widgets/order_item_availability_notice.dart';
 import '../../../../core/widgets/courier_portrait.dart';
@@ -93,6 +94,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
           leading: Navigator.of(context).canPop() ? const PrimeBackButton() : null,
           title: const Text('Acompanhar pedido'),
           actions: [
+            IconButton(tooltip:'Falar com a distribuidora',icon:const Icon(AppIcons.mail),onPressed:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>SupportPage(orderId:widget.orderId)))),
             IconButton(
               tooltip: 'Início',
               onPressed: AppNav.instance.home,
@@ -111,6 +113,8 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
               children: [
                 _Hero(order: current, status: status, id: widget.orderId),
                 const SizedBox(height: 16),
+                OutlinedButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>SupportPage(orderId:widget.orderId))),icon:const Icon(AppIcons.mail,size:18),label:const Text('Falar com a distribuidora')),
+                const SizedBox(height:16),
                 OrderItemAvailabilityNotice(order:current),
                 if(status!='CANCELED')_Journey(status: status, step: step) else const _Section(title:'Pedido encerrado',icon:Icons.info_outline_rounded,child:Text('Não há produtos a entregar. Seu histórico e os registros de devolução continuam disponíveis neste acompanhamento.',style:TextStyle(height:1.6))),
                 if (courier != null) ...[
