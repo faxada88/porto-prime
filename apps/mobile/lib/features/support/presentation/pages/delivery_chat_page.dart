@@ -31,7 +31,7 @@ class _DeliveryChatPageState extends State<DeliveryChatPage> with WidgetsBinding
  Future<void> _load({bool older=false}) async {
   if(_fetching){_queued=true;return;}_fetching=true;
   try {
-   final before=older?_data?['olderCursor']:null;
+   final before = older ? (_data?['olderCursor']) : null;
    final result=await AppState.instance.api.request('GET','$_path${before==null?'':'?before=${Uri.encodeComponent(before.toString())}'}');
    if(!mounted)return;
    final data=Map<String,dynamic>.from(result as Map);
