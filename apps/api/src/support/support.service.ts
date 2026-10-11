@@ -36,8 +36,9 @@ export class SupportService {
   const orderId=body.orderId==null?null:this.text(body.orderId,'Pedido',100);
   if(orderId){const order=await this.db.order.findFirst({where:{id:orderId,adminDeletedAt:null,...(u.role==='CUSTOMER'?{customerId:u.id}:u.role==='COURIER'?{courier:{userId:u.id}}:{id:'__not_allowed__'})},select:{id:true}});if(!order)throw new ForbiddenException('Este pedido não está vinculado à sua conta');}
   const thread=await this.db.$transaction(async tx=>{
+   // PostgreSQL advisory locks return void: execute them without result decoding.
    // Serialize retries for this account. No lock on order/dispatch/payment rows.
-   await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${u.id}))`;
+   await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${u.id}))`;
    const duplicate=await tx.supportMessage.findUnique({where:{senderId_requestId:{senderId:u.id,requestId}}});
    if(duplicate){const previous=await tx.supportThread.findUniqueOrThrow({where:{id:duplicate.threadId}});if(previous.orderId!==orderId||duplicate.text!==text)throw new BadRequestException('Identificador de envio já utilizado');return previous;}
    const existing=orderId?await tx.supportThread.findUnique({where:{ownerId_orderId:{ownerId:u.id,orderId}}}):null;
@@ -60,7 +61,7 @@ export class SupportService {
   const u=await this.user(authorization);await this.thread(id,u);
   const text=this.text(body.text,'Mensagem',4000),requestId=this.text(body.requestId,'Identificador',100);
   const thread=await this.db.$transaction(async tx=>{
-   await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${u.id}))`;
+   await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${u.id}))`;
    const duplicate=await tx.supportMessage.findUnique({where:{senderId_requestId:{senderId:u.id,requestId}}});
    if(duplicate){if(duplicate.threadId!==id||duplicate.text!==text)throw new BadRequestException('Identificador de envio já utilizado');return tx.supportThread.findUniqueOrThrow({where:{id}});}
    await tx.supportMessage.create({data:{threadId:id,senderId:u.id,senderRole:u.role,text,requestId}});

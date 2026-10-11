@@ -1,11 +1,14 @@
 import {describe,it,expect,vi} from 'vitest';
+import {PrismaPg} from '@prisma/adapter-pg';
+import {Pool} from 'pg';
 vi.mock('../prisma/prisma.service.js',()=>({PrismaService:class{}}));
 import {SupportService} from './support.service.js';
 function fixture(role='CUSTOMER') {
  const threads:any[]=[],messages:any[]=[];
  const user:any={id:'owner',role};
  const db:any={
-  $queryRaw:vi.fn().mockResolvedValue([]),
+  $queryRaw:vi.fn().mockRejectedValue(new Error('Unsupported column type void')),
+  $executeRaw:vi.fn().mockResolvedValue(1),
   user:{findUnique:vi.fn().mockResolvedValue({id:'owner',name:'Pessoa',role})},
   order:{findFirst:vi.fn().mockResolvedValue({id:'order'})},
   supportThread:{
@@ -29,6 +32,16 @@ function fixture(role='CUSTOMER') {
  return{service,db,auth,realtime,user,threads,messages,body};
 }
 describe('Support ownership, persistence and isolated realtime',()=>{
+ it('executes advisory locks without decoding PostgreSQL void in the installed Prisma adapter',async()=>{
+  const pool=new Pool();const query=vi.spyOn(pool,'query').mockResolvedValue({fields:[{name:'pg_advisory_xact_lock',dataTypeID:2278}],rows:[['']],rowCount:1} as never);
+  const adapter=await new PrismaPg(pool).connect();const sql={sql:'SELECT pg_advisory_xact_lock(1)',args:[],argTypes:[]};
+  try{await expect(adapter.queryRaw(sql)).rejects.toThrow();await expect(adapter.executeRaw(sql)).resolves.toBe(1);expect(query).toHaveBeenCalledTimes(2)}finally{await adapter.dispose();await pool.end()}
+ });
+ it('creates a partner ticket and reply even when raw result decoding rejects advisory lock void',async()=>{
+  const f=fixture('PARTNER');const ticket=await f.service.create(f.body,'token');await f.service.reply(ticket.id,{text:'Mais informações',requestId:'reply'},'token');
+  expect(f.messages).toHaveLength(2);expect(f.db.$queryRaw).not.toHaveBeenCalled();expect(f.db.$executeRaw).toHaveBeenCalledTimes(2);
+ });
+
  it('refuses Admin endpoints to non-admins',async()=>{const f=fixture();await expect(f.service.list('token',{},true)).rejects.toThrow('Acesso exclusivo');expect(f.db.supportThread.findMany).not.toHaveBeenCalled()});
  it('never exposes another account conversation',async()=>{const f=fixture();f.threads.push({id:'private',ownerId:'other'});await expect(f.service.detail('private','token')).rejects.toThrow('não encontrado');expect(f.db.supportMessage.findMany).not.toHaveBeenCalled()});
  it('limits the personal list to its authenticated account',async()=>{const f=fixture();await f.service.list('token',{role:'ADMIN',status:'INVALID'});expect(f.db.supportThread.findMany.mock.calls[0][0].where).toEqual({ownerId:'owner'})});
