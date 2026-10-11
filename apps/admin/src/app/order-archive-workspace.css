@@ -1,0 +1,214 @@
+/* Isolated archive layout: all selectors belong to this workspace. */
+.archiveWorkspaceV2 {
+  --archive-ink: #153b48;
+  --archive-muted: #647e89;
+  --archive-line: #dfe8ec;
+  --archive-green: #087c68;
+  --archive-surface: #f5f9fa;
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+  color: var(--archive-ink);
+}
+.archiveWorkspaceV2 *, .archiveWorkspaceV2 *::before, .archiveWorkspaceV2 *::after { box-sizing: border-box; }
+.archiveWorkspaceV2 button, .archiveWorkspaceV2 input, .archiveWorkspaceV2 select { font: inherit; }
+.archiveWorkspaceV2 button { min-height: 40px; }
+.archiveWorkspaceV2 :focus-visible { outline: 3px solid #25a58b; outline-offset: 3px; }
+.archiveWorkspaceV2 > .ledgerHeader {
+  position: static;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  margin: 0;
+  padding: 30px 32px;
+  border: 0;
+  border-radius: 25px;
+  background: linear-gradient(115deg, #102e42, #115d64 70%, #087b69);
+  color: white;
+  box-shadow: 0 10px 30px #103e4610;
+}
+.archiveWorkspaceV2 .ledgerHeader small { color: #94dacf; font-size: 10px; letter-spacing: 1.5px; font-weight: 800; }
+.archiveWorkspaceV2 .ledgerHeader h2 { text-align: left; margin: 12px 0 11px; color: white; font-size: clamp(24px, 2.7vw, 34px); font-weight: 800; letter-spacing: -1.1px; line-height: 1.15; }
+.archiveWorkspaceV2 .ledgerHeader p { margin: 0; color: #d0e8e6; font-size: 13px; line-height: 1.8; max-width: 650px; }
+.archiveWorkspaceV2 .ledgerHeaderSeal { display: flex; align-items: center; gap: 13px; flex-shrink: 0; padding: 16px; border: 1px solid #ffffff25; border-radius: 16px; background: #ffffff08; color: #b9e8de; }
+.archiveWorkspaceV2 .ledgerHeaderSeal > span { display: grid; gap: 7px; letter-spacing: 1.5px; font-size: 9px; }
+.archiveWorkspaceV2 .ledgerHeaderSeal b { letter-spacing: 0; font-weight: 500; font-size: 10px; color: #d2e6e1; }
+.archiveWorkspaceV2 .ledgerMetrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; width: 100%; max-width: none; margin: 0; }
+.archiveWorkspaceV2 .ledgerMetrics article { position: relative; display: grid; align-content: start; gap: 10px; min-width: 0; padding: 22px; border: 1px solid var(--archive-line); border-radius: 20px; background: white; box-shadow: 0 4px 15px #17394704; }
+.archiveWorkspaceV2 .ledgerMetrics .ledgerMetricPrimary { background: linear-gradient(130deg, #e6f4ef, #f5fbf8); border-color: #cde5dc; }
+.archiveWorkspaceV2 .ledgerMetrics .ledgerMetricIcon { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid #dceae6; border-radius: 11px; background: #f3f8f6; color: #16846b; margin-bottom: 4px; }
+.archiveWorkspaceV2 .ledgerMetrics article:nth-child(2) .ledgerMetricIcon { background: #edf4fd; color: #376eab; border-color: #dce8f5; }
+.archiveWorkspaceV2 .ledgerMetrics article:nth-child(3) .ledgerMetricIcon { background: #f2efff; color: #7461a4; border-color: #e6e0f4; }
+.archiveWorkspaceV2 .ledgerMetrics article:nth-child(4) .ledgerMetricIcon { background: #fff5df; color: #9a7529; border-color: #f0e5c5; }
+.archiveWorkspaceV2 .ledgerMetrics small { font-size: 11px; font-weight: 700; color: #597784; line-height: 1.5; min-height: 32px; }
+.archiveWorkspaceV2 .ledgerMetrics strong { font-size: clamp(21px, 2vw, 29px); line-height: 1.25; font-weight: 800; letter-spacing: -1px; color: var(--archive-ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; min-height: 37px; }
+.archiveWorkspaceV2 .ledgerMetrics article > span:not(.ledgerMetricIcon) { font-size: 10px; color: #738b96; line-height: 1.5; }
+.archiveWorkspaceV2 .ledgerSurface { min-width: 0; border: 1px solid var(--archive-line); border-radius: 22px; box-shadow: 0 6px 25px #17394705; background: white; }
+.archiveWorkspaceV2 .ledgerSurfaceHead { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 76px; padding: 16px 24px; border-bottom: 1px solid #e7eef1; }
+.archiveWorkspaceV2 .ledgerSurfaceHead nav { display: flex; align-items: center; gap: 5px; margin: 0; padding: 5px; border-radius: 13px; background: #eef4f4; }
+.archiveWorkspaceV2 .ledgerSurfaceHead nav button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 10px 15px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #617c87; font-size: 12px; line-height: 1.2; font-weight: 700; }
+.archiveWorkspaceV2 .ledgerSurfaceHead nav button[aria-pressed=true] { background: white; border-color: #e4edeb; color: #116c58; box-shadow: 0 2px 7px #173d3808; }
+.archiveWorkspaceV2 .ledgerSurfaceHead nav b { font-size: 9px; border-radius: 5px; padding: 4px 6px; background: #e7f3ed; color: #37715a; font-variant-numeric: tabular-nums; }
+.archiveWorkspaceV2 .ledgerNeutral { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border: 1px solid #dbe6e8; border-radius: 10px; color: #55717e; background: #f7fafb; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.archiveWorkspaceV2 .ledgerNeutral[aria-pressed=true] { background: #edf7f0; color: #167457; border-color: #bddccb; }
+.archiveWorkspaceV2 .ledgerFilters { display: grid; grid-template-columns: minmax(0, 1fr) 215px 110px; align-items: end; gap: 14px; padding: 22px 24px 16px; }
+.archiveWorkspaceV2 .ledgerSearch { display: flex; align-items: center; gap: 10px; height: 46px; margin: 0; padding: 0 14px; min-width: 0; border: 1px solid #d9e6ea; border-radius: 12px; background: #fbfdfd; color: #8298a0; }
+.archiveWorkspaceV2 .ledgerSearch:focus-within { border-color: #25a58b; box-shadow: 0 0 0 3px #25a58b15; }
+.archiveWorkspaceV2 .ledgerSearch input { width: 100%; min-width: 0; height: 44px; min-height: 0; margin: 0; padding: 0; outline: 0; box-shadow: none !important; background: transparent; color: var(--archive-ink); border: 0 !important; border-radius: 0; font-size: 12px; }
+.archiveWorkspaceV2 .ledgerSearch input::placeholder { color: #8b9da6; }
+.archiveWorkspaceV2 .ledgerFilters > label:not(.ledgerSearch) { display: grid; gap: 7px; margin: 0; min-width: 0; font-size: 10px; color: #708895; font-weight: 700; }
+.archiveWorkspaceV2 .ledgerFilters select { width: 100%; min-width: 0; min-height: 46px; height: 46px; padding: 0 11px; margin: 0; border: 1px solid #d9e6ea; border-radius: 12px; background: white; color: #3f6170; font-size: 12px; }
+.archiveWorkspaceV2 .ledgerDateFilter { position: relative; margin: 0; padding: 0; border: 0; min-width: 0; }
+.archiveWorkspaceV2 .ledgerDateFilter summary { display: flex; align-items: center; justify-content: center; gap: 10px; list-style: none; height: 46px; padding: 10px 13px; border: 1px solid #d9e6ea; border-radius: 12px; font-size: 11px; color: #5d7b87; background: #f8fbfc; cursor: pointer; }
+.archiveWorkspaceV2 .ledgerDateFilter summary::-webkit-details-marker { display: none; }
+.archiveWorkspaceV2 .ledgerDateFilter[open] summary { background: #eaf5f0; border-color: #c8dfd7; color: #286d59; }
+.archiveWorkspaceV2 .ledgerDateFilter > div { top: 54px; right: 0; width: 270px; max-width: calc(100vw - 48px); padding: 18px; z-index: 30; border: 1px solid #d9e6ea; border-radius: 16px; background: white; box-shadow: 0 16px 40px #14394720; }
+.archiveWorkspaceV2 .ledgerDateFilter input { width: 100%; min-width: 0; height: 42px; margin: 0; padding: 9px; background: #fbfdfd; font-size: 12px; color: var(--archive-ink); }
+.archiveWorkspaceV2 .ledgerDateFilter button { border-radius: 10px; padding: 10px; font-size: 11px; }
+.archiveWorkspaceV2 .ledgerResultCount { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 0 24px 18px; color: #6f8791; font-size: 11px; line-height: 1.5; }
+.archiveWorkspaceV2 .ledgerResultCount b { color: #29566a; font-weight: 800; }
+.archiveWorkspaceV2 .ledgerResultCount small { font-size: 10px; color: #8498a3; }
+.archiveWorkspaceV2 .ledgerColumnNames, .archiveWorkspaceV2 .ledgerRowOpen { display: grid; grid-template-columns: minmax(150px, 1.35fr) minmax(135px, 1fr) minmax(130px, 1fr) 110px 92px; align-items: center; gap: 16px; }
+.archiveWorkspaceV2 .ledgerColumnNames { padding: 15px 24px 15px 78px; border-top: 1px solid #e5edf0; border-bottom: 1px solid #e5edf0; background: #f5f9fa; color: #7b919c; font-size: 9px; font-weight: 700; letter-spacing: .2px; }
+.archiveWorkspaceV2 .ledgerColumnNames > span:nth-child(4), .archiveWorkspaceV2 .ledgerColumnNames > span:nth-child(5) { text-align: right; }
+.archiveWorkspaceV2 .ledgerRow { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: center; gap: 14px; padding: 0 24px; min-width: 0; border: 0; border-bottom: 1px solid #e9eff2; background: white; transition: background .14s ease; }
+.archiveWorkspaceV2 .ledgerRow:hover, .archiveWorkspaceV2 .ledgerRow:focus-within { background: #f6fbf9; }
+.archiveWorkspaceV2 .ledgerRowLeading { grid-column: 1; grid-row: 1; display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #dce9e4; border-radius: 12px; background: #eef6f2; color: #548779; }
+.archiveWorkspaceV2 .ledgerRowLeading.isSelecting { visibility: hidden; }
+.archiveWorkspaceV2 .ledgerRowSelect { grid-column: 1; grid-row: 1; display: flex; align-items: center; justify-content: center; padding: 0; width: 40px; height: 40px; margin: 0; z-index: 1; }
+.archiveWorkspaceV2 input[type=checkbox] { appearance: auto; display: inline-block; width: 19px; height: 19px; min-height: 0; min-width: 0; margin: 0; padding: 0; border-radius: 5px; box-shadow: none; flex: 0 0 19px; accent-color: #087c68; cursor: pointer; }
+.archiveWorkspaceV2 .ledgerRowOpen { grid-column: 2; grid-row: 1; width: 100%; min-width: 0; min-height: 102px; margin: 0; padding: 20px 0; border: 0; border-radius: 0; background: transparent; text-align: left; font-weight: 500; color: #527784; }
+.archiveWorkspaceV2 .ledgerIdentity { display: grid; gap: 6px; min-width: 0; align-content: center; }
+.archiveWorkspaceV2 .ledgerIdentity b { color: #1d4e60; font-size: 12px; letter-spacing: .4px; font-weight: 800; }
+.archiveWorkspaceV2 .ledgerIdentity span { font-size: 12px; color: #5b7886; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.archiveWorkspaceV2 .ledgerIdentity small { font-size: 10px; color: #8b9da7; }
+.archiveWorkspaceV2 .ledgerState { min-width: 0; display: grid; gap: 6px; justify-items: start; }
+.archiveWorkspaceV2 .ledgerState > span { display: inline-block; max-width: 100%; padding: 6px 9px; border-radius: 7px; font-size: 9px; font-weight: 750; line-height: 1.5; color: #816521; background: #fff3da; }
+.archiveWorkspaceV2 .ledgerState .confirmed { color: #267455; background: #e6f5ec; }
+.archiveWorkspaceV2 .ledgerState small { font-size: 9px; line-height: 1.5; color: #899ca7; }
+.archiveWorkspaceV2 .ledgerAdjustments { display: grid; gap: 7px; min-width: 0; color: #5c7d89; font-size: 10px; line-height: 1.4; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.archiveWorkspaceV2 .ledgerAdjustments span { border-left: 2px solid #b8dace; padding-left: 8px; }
+.archiveWorkspaceV2 .ledgerAdjustments small { color: #8d9fa9; font-size: 10px; line-height: 1.5; }
+.archiveWorkspaceV2 .ledgerValue { font-size: 15px; font-weight: 800; letter-spacing: -.3px; text-align: right; color: #235066; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.archiveWorkspaceV2 .ledgerRowAction { display: flex; align-items: center; justify-content: flex-end; gap: 7px; color: #2b8068; font-size: 10px; font-weight: 750; white-space: nowrap; }
+.archiveWorkspaceV2 .ledgerSelection { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; margin: 0 24px 16px; padding: 12px 15px; border: 1px solid #d2e7dc; border-radius: 12px; background: #edf7f1; color: #4b7c64; font-size: 11px; }
+.archiveWorkspaceV2 .ledgerSelection label { display: flex; gap: 9px; align-items: center; font-size: 11px; font-weight: 700; }
+.archiveWorkspaceV2 .ledgerSelection button { min-height: 36px; margin-left: auto; padding: 8px 11px; border-radius: 9px; background: #fff; font-size: 10px; }
+.archiveWorkspaceV2 .financeDeleteSuccess, .archiveWorkspaceV2 .financeDeleteError { margin: 0 24px 16px; padding: 12px 15px; border-radius: 11px; line-height: 1.6; font-size: 12px; }
+.archiveWorkspaceV2 .financeDeleteError { background: #fff1ee; }
+.archiveWorkspaceV2 .ledgerPagination { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 24px; border: 0; border-top: 1px solid #e7eef0; margin: 0; color: #77909c; font-size: 11px; }
+.archiveWorkspaceV2 .ledgerPagination button { min-height: 38px; padding: 9px 14px; border-radius: 10px; background: #f0f6f5; color: #426d70; font-size: 11px; }
+.archiveWorkspaceV2 .archiveEmpty { margin: 24px; padding: 50px 25px; border-radius: 16px; border: 1px dashed #d3e1e6; background: #fcfefe; color: #8ca0aa; }
+.archiveWorkspaceV2 .archiveEmpty h3 { margin: 17px 0 9px; font-size: 18px; font-weight: 800; letter-spacing: -.5px; color: #315c6e; }
+.archiveWorkspaceV2 .archiveEmpty p { font-size: 12px; line-height: 1.7; }
+/* The receipt opens in a centered workspace rather than a side panel. */
+.archiveWorkspaceV2 .ledgerDetailBackdrop { position: fixed; inset: 0; z-index: 1050; display: flex; align-items: center; justify-content: center; padding: 24px; background: #102b3cb0; backdrop-filter: blur(6px); }
+.archiveWorkspaceV2 .ledgerDetail { display: flex; flex-direction: column; width: min(1050px, 100%); height: min(850px, calc(100dvh - 48px)); max-height: calc(100dvh - 48px); min-width: 0; border: 1px solid #e0eaed; border-radius: 24px; background: #f3f7f9; overflow: hidden; box-shadow: 0 25px 75px #061b3a36; }
+.archiveWorkspaceV2 .ledgerDetail > header { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 0; padding: 25px 30px; border: 0; border-bottom: 1px solid #e0e9ed; background: white; }
+.archiveWorkspaceV2 .ledgerDetail > header small { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; color: #45897d; }
+.archiveWorkspaceV2 .ledgerDetail > header h3 { margin: 10px 0 7px; font-size: 25px; font-weight: 800; letter-spacing: -.8px; color: #194658; text-align: left; }
+.archiveWorkspaceV2 .ledgerDetail > header p { margin: 0; font-size: 11px; color: #7d96a2; line-height: 1.5; }
+.archiveWorkspaceV2 .ledgerDetail > header button { display: grid; place-items: center; width: 42px; height: 42px; padding: 0; border: 1px solid #e2ebed; border-radius: 12px; background: #f4f8fa; color: #688391; flex-shrink: 0; align-self: center; }
+.archiveWorkspaceV2 .ledgerDetailScroll { padding: 24px; flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.archiveWorkspaceV2 .ledgerDetailGrid { display: grid; grid-template-columns: 330px minmax(0, 1fr); align-items: start; gap: 20px; }
+.archiveWorkspaceV2 .ledgerDetailSummary, .archiveWorkspaceV2 .ledgerDetailHistory { display: grid; gap: 16px; min-width: 0; }
+.archiveWorkspaceV2 .ledgerReceipt { display: grid; gap: 11px; margin: 0; padding: 25px; border: 1px solid #c6e0d4; border-radius: 20px; background: linear-gradient(125deg, #e5f3eb, #f0f9f3); color: #386f52; }
+.archiveWorkspaceV2 .ledgerReceipt strong { color: #215d46; font-size: clamp(28px, 3vw, 38px); font-weight: 800; letter-spacing: -1.4px; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.archiveWorkspaceV2 .ledgerReceipt span { font-weight: 800; font-size: 10px; }
+.archiveWorkspaceV2 .ledgerReceipt small { color: #6e957f; font-size: 10px; }
+.archiveWorkspaceV2 .ledgerDetailSummary > section, .archiveWorkspaceV2 .ledgerDetailHistory > section { min-width: 0; padding: 21px; border: 1px solid #e0e9ed; border-radius: 18px; background: white; }
+.archiveWorkspaceV2 .ledgerDetail h4 { display: flex; align-items: center; gap: 9px; margin: 0 0 17px; padding-bottom: 13px; border-bottom: 1px solid #edf2f4; color: #3e697a; font-size: 12px; font-weight: 800; letter-spacing: -.1px; }
+.archiveWorkspaceV2 .ledgerDetail p { font-size: 12px; line-height: 1.7; color: #738d9a; overflow-wrap: anywhere; }
+.archiveWorkspaceV2 .ledgerDetail dl { display: grid; gap: 16px; margin: 0; }
+.archiveWorkspaceV2 .ledgerDetail dl > div { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; font-size: 11px; line-height: 1.5; }
+.archiveWorkspaceV2 .ledgerDetail dt { color: #75909c; min-width: 0; }
+.archiveWorkspaceV2 .ledgerDetail dd { margin: 0; color: #295a6e; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.archiveWorkspaceV2 .ledgerDetailItem { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; min-width: 0; padding: 15px 0; border-top: 1px solid #eaf0f3; font-size: 12px; line-height: 1.5; }
+.archiveWorkspaceV2 .ledgerDetailItem:first-of-type { border-top: 0; padding-top: 0; }
+.archiveWorkspaceV2 .ledgerDetailItem:last-of-type { padding-bottom: 0; }
+.archiveWorkspaceV2 .ledgerDetailItem > span { display: grid; gap: 7px; min-width: 0; color: #3a6274; overflow-wrap: anywhere; }
+.archiveWorkspaceV2 .ledgerDetailItem small { font-size: 10px; color: #8a9fa9; }
+.archiveWorkspaceV2 .ledgerDetailItem b { color: #2b6073; font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.archiveWorkspaceV2 .ledgerDetail code { display: block; margin-top: 8px; padding: 10px 12px; border: 1px solid #e6eef0; border-radius: 9px; background: #f5f9fa; color: #58818d; font-size: 10px; overflow-wrap: anywhere; }
+.archiveWorkspaceV2 .ledgerDetail > footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-shrink: 0; padding: 17px 25px; margin: 0; border-top: 1px solid #dfe9ed; background: white; }
+.archiveWorkspaceV2 .ledgerDetail > footer > button { min-height: 43px; padding: 11px 17px; font-size: 11px; border-radius: 11px; }
+.archiveWorkspaceV2 .financeDeleteBackdrop { z-index: 1200; background: #142b3cb3; padding: 24px; }
+.archiveWorkspaceV2 .financeDeleteDialog { padding: 30px; border-radius: 24px; max-width: 510px; color: var(--archive-ink); box-shadow: 0 25px 75px #061b3a36; }
+.archiveWorkspaceV2 .financeDeleteDialog h2 { font-size: 26px; font-weight: 800; letter-spacing: -.8px; margin: 19px 0 12px; }
+.archiveWorkspaceV2 .financeDeleteDialog p { font-size: 13px; color: #75909d; line-height: 1.8; }
+.archiveWorkspaceV2 .financeDeleteDialog .financeDeleteError { margin: 16px 0; }
+.archiveWorkspaceV2 .financeDeleteDialog > footer { display: flex; gap: 12px; justify-content: flex-end; margin: 22px 0 0; padding: 0; border: 0; }
+.archiveWorkspaceV2 .financeDeleteDialog > footer > button { min-height: 43px; border-radius: 11px; padding: 11px 17px; font-size: 11px; }
+.archiveWorkspaceV2 .financeDeleteDialog > footer > button:not(.financeDeleteButton) { background: #edf4f6; color: #5b7a88; border: 1px solid #dce8ec; }
+@media (max-width: 1250px) {
+  .archiveWorkspaceV2 .ledgerHeaderSeal { display: none; }
+  .archiveWorkspaceV2 .ledgerMetrics article { padding: 18px; }
+  .archiveWorkspaceV2 .ledgerColumnNames, .archiveWorkspaceV2 .ledgerRowOpen { grid-template-columns: minmax(130px, 1.35fr) minmax(125px, 1fr) minmax(110px, .9fr) 100px 22px; gap: 12px; }
+  .archiveWorkspaceV2 .ledgerRowAction > span { display: none; }
+}
+@media (max-width: 1000px) {
+  .archiveWorkspaceV2 .ledgerMetrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .archiveWorkspaceV2 .ledgerFilters { grid-template-columns: minmax(0, 1fr) 120px; }
+  .archiveWorkspaceV2 .ledgerSearch { grid-column: 1 / -1; }
+  .archiveWorkspaceV2 .ledgerDetailGrid { grid-template-columns: 290px minmax(0, 1fr); gap: 16px; }
+  .archiveWorkspaceV2 .ledgerDetailScroll { padding: 18px; }
+}
+@media (max-width: 960px) {
+  .archiveWorkspaceV2 > .ledgerHeader { padding: 24px; border-radius: 20px; }
+  .archiveWorkspaceV2 .ledgerHeader h2 { font-size: 26px; }
+  .archiveWorkspaceV2 .ledgerSurfaceHead { padding: 15px; flex-wrap: wrap; }
+  .archiveWorkspaceV2 .ledgerSurfaceHead nav { flex: 1; }
+  .archiveWorkspaceV2 .ledgerSurfaceHead nav button { flex: 1; padding: 10px; gap: 7px; font-size: 11px; }
+  .archiveWorkspaceV2 .ledgerSurfaceHead > .ledgerNeutral { width: 100%; }
+  .archiveWorkspaceV2 .ledgerFilters { padding: 18px 16px 14px; }
+  .archiveWorkspaceV2 .ledgerResultCount { padding: 0 16px 16px; }
+  .archiveWorkspaceV2 .ledgerResultCount small { display: none; }
+  .archiveWorkspaceV2 .ledgerColumnNames { display: none; }
+  .archiveWorkspaceV2 .ledgerRow { grid-template-columns: 32px minmax(0, 1fr); padding: 0 16px; gap: 11px; }
+  .archiveWorkspaceV2 .ledgerRowLeading { width: 32px; height: 32px; border-radius: 10px; align-self: start; margin-top: 21px; }
+  .archiveWorkspaceV2 .ledgerRowSelect { width: 32px; align-self: start; margin-top: 16px; }
+  .archiveWorkspaceV2 .ledgerRowOpen { grid-template-columns: minmax(0, 1fr) auto; gap: 13px 10px; padding: 20px 0; }
+  .archiveWorkspaceV2 .ledgerIdentity { grid-column: 1; grid-row: 1; }
+  .archiveWorkspaceV2 .ledgerValue { grid-column: 2; grid-row: 1; font-size: 15px; }
+  .archiveWorkspaceV2 .ledgerState { grid-column: 1; grid-row: 2; }
+  .archiveWorkspaceV2 .ledgerAdjustments { grid-column: 1; grid-row: 3; text-align: left; }
+  .archiveWorkspaceV2 .ledgerRowAction { grid-column: 2; grid-row: 2 / 4; align-self: end; justify-content: flex-end; }
+  .archiveWorkspaceV2 .ledgerRowAction > span { display: inline; font-size: 9px; }
+  .archiveWorkspaceV2 .ledgerSelection { margin: 0 16px 16px; }
+  .archiveWorkspaceV2 .ledgerSelection button { margin-left: 0; }
+  .archiveWorkspaceV2 .ledgerPagination { flex-wrap: wrap; padding: 16px; }
+  .archiveWorkspaceV2 .ledgerPagination > div { width: 100%; justify-content: space-between; }
+  .archiveWorkspaceV2 .ledgerDetailBackdrop { padding: 0; }
+  .archiveWorkspaceV2 .ledgerDetail { width: 100%; height: 100dvh; max-height: 100dvh; border: 0; border-radius: 0; }
+  .archiveWorkspaceV2 .ledgerDetail > header { padding: 20px; }
+  .archiveWorkspaceV2 .ledgerDetail > header h3 { font-size: 21px; }
+  .archiveWorkspaceV2 .ledgerDetailScroll { padding: 16px; }
+  .archiveWorkspaceV2 .ledgerDetailGrid { grid-template-columns: minmax(0, 1fr); }
+  .archiveWorkspaceV2 .ledgerDetail > footer { padding: 15px 16px; }
+  .archiveWorkspaceV2 .ledgerDetail > footer > button { flex: 1; padding: 10px; font-size: 10px; }
+}
+@media (max-width: 420px) {
+  .archiveWorkspaceV2 .ledgerMetrics { gap: 10px; }
+  .archiveWorkspaceV2 .ledgerMetrics article { padding: 15px; }
+  .archiveWorkspaceV2 .ledgerMetrics strong { font-size: 20px; letter-spacing: -.6px; }
+  .archiveWorkspaceV2 .ledgerMetrics small { font-size: 10px; }
+  .archiveWorkspaceV2 .ledgerMetrics article > span:not(.ledgerMetricIcon) { font-size: 9px; }
+  .archiveWorkspaceV2 .ledgerSurfaceHead nav b { padding: 3px; font-size: 8px; }
+  .archiveWorkspaceV2 .financeDeleteDialog { padding: 23px; }
+  .archiveWorkspaceV2 .financeDeleteDialog > footer { flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .archiveWorkspaceV2 * { transition: none; scroll-behavior: auto; }
+}
+
+.archiveWorkspaceV2 .ledgerState > span[data-payment-status=REFUNDED],
+.archiveWorkspaceV2 .ledgerState > span[data-payment-status=PARTIALLY_REFUNDED] { background: #e9f2fd; color: #366c9c; }
+.archiveWorkspaceV2 .ledgerState > span[data-payment-status=FAILED] { background: #fff0ec; color: #a05043; }
+.archiveWorkspaceV2 .ledgerRowLeading[data-payment-status=REFUNDED],
+.archiveWorkspaceV2 .ledgerRowLeading[data-payment-status=PARTIALLY_REFUNDED] { background: #eff5fd; border-color: #dce9f6; color: #5786b2; }
+.archiveWorkspaceV2 .ledgerRowLeading[data-payment-status=FAILED] { background: #fff5f2; border-color: #f1ded7; color: #b47b65; }
+.archiveWorkspaceV2 .ledgerReceipt[data-payment-status=REFUNDED],
+.archiveWorkspaceV2 .ledgerReceipt[data-payment-status=PARTIALLY_REFUNDED] { background: linear-gradient(125deg, #e7f1fc, #f2f8fd); border-color: #d2e5f4; color: #4b7ca2; }
+.archiveWorkspaceV2 .ledgerReceipt[data-payment-status=REFUNDED] strong,
+.archiveWorkspaceV2 .ledgerReceipt[data-payment-status=PARTIALLY_REFUNDED] strong { color: #326c98; }
