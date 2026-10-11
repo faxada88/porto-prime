@@ -325,7 +325,7 @@ export class AdminService {
     });
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
-    if (status === 'ACTIVE' && user.role === UserRole.COURIER) {
+    if (status === 'ACTIVE' && (user.role===UserRole.COURIER||user.role===UserRole.PARTNER)) {
       return this.approve(userId, authorization);
     }
 
@@ -523,6 +523,7 @@ export class AdminService {
       });
     });
     this.applicationChanged(userId, user.courierProfile?.id);
+    if(user.role===UserRole.PARTNER){this.realtime.emitToUser(userId,'partner.profile.updated',{userId});this.realtime.emitToRole('ADMIN','partner.profile.updated',{userId});}
     return result;
   }
 

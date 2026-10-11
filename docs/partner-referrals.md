@@ -15,3 +15,11 @@ Admin: lista pesquisável em páginas de 20, edição cadastral e de comissão, 
 Nest e Admin compilados. Testes automatizados cobrem elegibilidade, cálculo, itens removidos, percentual congelado, arredondamento, idempotência, propagação de falha, autorização e campos protegidos. A sintaxe Dart foi verificada; não há Flutter SDK nem PostgreSQL de teste neste ambiente.
 
 No Codespaces: execute a atualização Admin/backend antes da atualização Flutter, mantendo banco e OSRM ligados. Verifique cadastro CPF/CNPJ, aprovação, QR em janela anônima, login do cliente, compra, liberação e conclusão da entrega. A carteira do parceiro deve permanecer sem crédito até a entrega e receber uma única comissão depois; repetir a confirmação não deve duplicar o saldo. Confirme também mudança do percentual entre dois pedidos, escolha de voucher/reembolso e saque por PIX.
+
+## Correção de ativação e divulgação (11/10)
+
+A ativação administrativa de um parceiro agora utiliza a aprovação completa, sincronizando `User.status` com `PartnerProfile.approved`. Uma migração corrige perfis já ativos que ficaram com a flag de aprovação falsa pelo controle anterior.
+
+O perfil Flutter mostra diretamente um cartão com QR, link selecionável, cópia e compartilhamento por WhatsApp. O endpoint leve `/partners/me/referral` não consulta carteira, pedidos ou saques. O mesmo link mantém a atribuição existente por 30 dias.
+
+O Admin preserva cadastro e edição quando dados financeiros/indicações estiverem temporariamente indisponíveis, exibindo avisos explícitos e valores indisponíveis em vez de inventar saldos. A origem pública pode ser obtida do Codespace atual mesmo ao reiniciar o Nest manualmente. Um erro na preparação do QR não impede a abertura do cadastro; o link permanece utilizável quando disponível.

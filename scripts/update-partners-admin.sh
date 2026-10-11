@@ -12,6 +12,7 @@ for attempt in {1..20}; do if ! ss -ltnH | awk '{print $4}' | grep -Eq ':(3000|3
 cd "$project_root/apps/api"
 npm install
 npx --no-install prisma db execute --file prisma/migrations/20261011150000_partner_referrals/migration.sql
+npx --no-install prisma db execute --file prisma/migrations/20261011161000_partner_activation_repair/migration.sql
 npx --no-install prisma generate
 npm run build
 cd "$project_root/apps/admin"
