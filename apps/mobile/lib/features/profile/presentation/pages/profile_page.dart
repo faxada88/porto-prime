@@ -2096,7 +2096,7 @@ class _Account extends StatelessWidget {
             const PartnerReferralCard(),
             const SizedBox(height: 16),
             _MenuSurface(children: [
-              _MenuLine(icon: AppIcons.storefront_outlined, title: 'Meu QR e indicações', subtitle:'Divulgue, acompanhe e ganhe', onTap:()=>Navigator.of(context).push(_primeRoute(const PartnerDashboardPage()))),
+              _MenuLine(icon: AppIcons.storefront_outlined, title: 'Meu espaço parceiro', subtitle:'Visão geral, indicações e cadastro', onTap:()=>Navigator.of(context).push(_primeRoute(const PartnerDashboardPage()))),
               _MenuLine(icon: AppIcons.wallet, title: 'Carteira e saques', subtitle: 'Saldo, movimentações e repasses', last:true,
                 onTap:()=>Navigator.of(context).push(_primeRoute(const PartnerWalletPage()))),
             ]),

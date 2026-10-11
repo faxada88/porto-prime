@@ -429,10 +429,9 @@ export class OrdersService {
           },
           select: { id: true },
         }),
-        (this.prisma as any).deliveryOffer.findFirst({
+        this.prisma.deliveryOffer.findFirst({
           where: {
             courierId: profile.id,
-            adminDeletedAt:null,
             status: 'PENDING',
             order:{adminDeletedAt:null},
             expiresAt: { gt: now },

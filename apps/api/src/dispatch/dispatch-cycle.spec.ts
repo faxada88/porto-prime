@@ -44,12 +44,13 @@ function fixture(count: number) {
     order.activeOfferId = null;
     vi.advanceTimersByTime(10);
   }
-  return { service, order, couriers, offers, close, prisma };
+  return { service, order, couriers, offers, close, prisma, realtime };
 }
 
 beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date('2026-10-08T12:00:00Z')); });
 afterEach(() => vi.useRealTimers());
 describe('delivery offer rotation without permanent exclusions', () => {
+  it('notifies a courier for a paid partner-referred order',async()=>{const f=fixture(1);f.order.referralPartnerId='partner';f.order.partnerCommissionPercent=7.5;const offer=await f.service.dispatchOrder(f.order.id);expect(offer).not.toBeNull();expect(f.realtime.emitToUser).toHaveBeenCalledWith('user-0','delivery.offer',expect.objectContaining({orderId:f.order.id}));expect(f.offers).toHaveLength(1);});
   it('never offers an administratively removed order',async()=>{const f=fixture(2);f.order.adminDeletedAt=new Date();expect(await f.service.dispatchOrder(f.order.id)).toBeNull();expect(f.offers).toHaveLength(0);});
   it('does not offer an order held for a customer decision',async()=>{const f=fixture(2);f.order.fulfillmentHold=true;expect(await f.service.dispatchOrder(f.order.id)).toBeNull();expect(f.offers).toHaveLength(0);});
   it.each([1, 2, 3, 4])('continues for three full rounds with %i couriers', async count => {
