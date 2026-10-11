@@ -227,7 +227,7 @@ export class OrdersService {
     }
 
     const orders = await this.prisma.order.findMany({
-      where: { customerId: user.id },
+      where: { customerId: user.id, adminDeletedAt:null },
       include: {
         items: true,
         address: true,
@@ -262,6 +262,7 @@ export class OrdersService {
     const order = await this.prisma.order.findFirst({
       where: {
         customerId: user.id,
+        adminDeletedAt:null,
         status: {
           notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED],
         },
@@ -419,6 +420,7 @@ export class OrdersService {
         this.prisma.order.findFirst({
           where: {
             courierId: profile.id,
+            adminDeletedAt:null,
             status: {
               notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED],
             },
@@ -428,7 +430,9 @@ export class OrdersService {
         (this.prisma as any).deliveryOffer.findFirst({
           where: {
             courierId: profile.id,
+            adminDeletedAt:null,
             status: 'PENDING',
+            order:{adminDeletedAt:null},
             expiresAt: { gt: now },
           },
           select: { id: true },
@@ -519,6 +523,7 @@ export class OrdersService {
     const orders=await this.prisma.order.findMany({
       where: {
         courierId: profile.id,
+        adminDeletedAt:null,
         status: { in: [OrderStatus.DELIVERED, OrderStatus.CANCELED] },
       },
       include: {
@@ -538,6 +543,7 @@ export class OrdersService {
     const order = await this.prisma.order.findFirst({
       where: {
         courierId: profile.id,
+        adminDeletedAt:null,
         status: {
           notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED],
         },
@@ -590,7 +596,7 @@ export class OrdersService {
     }
 
     const order = await this.prisma.order.findFirst({
-      where: { id: orderId, courierId: profile.id },
+      where: { id: orderId, courierId: profile.id, adminDeletedAt:null },
     });
     if (!order) throw new NotFoundException('Entrega não encontrada');
 
@@ -649,6 +655,7 @@ export class OrdersService {
           id: orderId,
           courierId: profile.id,
           status: order.status,
+          adminDeletedAt:null,
         },
         data: {
           status,

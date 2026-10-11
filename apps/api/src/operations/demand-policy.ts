@@ -1,5 +1,6 @@
 export const DEMAND_THRESHOLD = 10;
 export const waitingOrders = {
+ adminDeletedAt:null,
  paymentStatus: 'PAID', courierId: null,
  status: {in: ['PENDING','CONFIRMED','PREPARING','READY_FOR_PICKUP','SEARCHING_COURIER']},
 };

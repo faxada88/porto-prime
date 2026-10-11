@@ -58,6 +58,9 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     animation: AppState.instance,
     builder: (_, __) {
       final current = order;
+      if(AppState.instance.removedOrderIds.contains(widget.orderId)){
+        return Scaffold(appBar:AppBar(title:const Text('Pedido removido')),body:Center(child:Padding(padding:const EdgeInsets.all(24),child:Column(mainAxisSize:MainAxisSize.min,children:[const Icon(Icons.receipt_long_outlined,size:56),const SizedBox(height:16),const Text('Este pedido foi removido pela administração.',textAlign:TextAlign.center),const SizedBox(height:20),FilledButton(onPressed:()=>Navigator.of(context).popUntil((route)=>route.isFirst),child:const Text('Voltar ao início'))]))));
+      }
       if (current == null) {
         return Scaffold(
           backgroundColor: AppColors.canvas,

@@ -43,7 +43,7 @@ export class PaymentsService {
     }
 
     const order = await this.prisma.order.findFirst({
-      where: { id: data.orderId, customerId: user.id },
+      where: { id: data.orderId, customerId: user.id, adminDeletedAt:null },
     });
 
     if (!order) throw new BadRequestException('Pedido não encontrado');
@@ -110,7 +110,7 @@ export class PaymentsService {
   async reconcile(orderId: string, authorization?: string) {
     const user = await this.auth.authenticate(authorization);
     if (user.role !== UserRole.CUSTOMER) throw new ForbiddenException('Apenas clientes podem verificar seus pagamentos');
-    const order = await this.prisma.order.findFirst({ where: { id: orderId, customerId: user.id } });
+    const order = await this.prisma.order.findFirst({ where: { id: orderId, customerId: user.id, adminDeletedAt:null } });
     if (!order) throw new BadRequestException('Pedido não encontrado');
     if (order.paymentStatus === PaymentStatus.PAID) return { paid: true, status: 'succeeded' };
     if (!order.stripePaymentIntentId) return { paid: false, status: 'requires_payment_method' };

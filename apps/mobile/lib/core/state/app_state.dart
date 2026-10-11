@@ -4,6 +4,7 @@ import '../network/api_client.dart';
 import '../realtime/realtime_client.dart';
 
 class AppState extends ChangeNotifier {
+  final Set<String> removedOrderIds={};
   bool useCustomerCredit=false;
   double customerCreditRequested=0;
   double selectedCustomerCredit([double? available])=>!isCustomer||!useCustomerCredit?0:((customerCreditRequested.clamp(0,min(available??customerCreditBalance,cartSubtotal))*100).round()/100);
@@ -163,8 +164,19 @@ class AppState extends ChangeNotifier {
 
     if (!loggedIn) return;
 
+    if(event=='order.deleted' && payload is Map){
+      final id=payload['orderId']?.toString();
+      if(id!=null)removedOrderIds.add(id);
+      orders.removeWhere((o)=>o['id'].toString()==id);
+      if(activeOrder?['id'].toString()==id)activeOrder=null;
+      if(courierDelivery?['id'].toString()==id)courierDelivery=null;
+      courierHistory.removeWhere((o)=>o['id'].toString()==id);
+      courierOffers.removeWhere((o)=>o['orderId']?.toString()==id);
+      notifyListeners();
+    }
+
     if (isCustomer &&
-        (event == 'order.updated' || event == 'order.created' || event == 'customer.credit.updated')) {
+        (event == 'order.deleted' || event == 'order.updated' || event == 'order.created' || event == 'customer.credit.updated')) {
       Future<void>(() async {
         try {
           await Future.wait([loadOrders(), loadActiveOrder()]);
@@ -177,7 +189,7 @@ class AppState extends ChangeNotifier {
         (event == 'delivery.offer' ||
             event == 'delivery.offer.closed' ||
             event == 'delivery.accepted' ||
-            event == 'order.updated' ||
+            event == 'order.deleted' || event == 'order.updated' ||
             event == 'courier.presence')) {
       Future<void>(() async {
         try {

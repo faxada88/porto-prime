@@ -268,11 +268,11 @@ export class AdminService {
     if(!user || user.role !== UserRole.CUSTOMER) throw new NotFoundException('Cliente não encontrado');
     const now = new Date();
     const [orders,totalOrders,paid,delivered,active,addresses,sessions] = await Promise.all([
-      this.prisma.order.findMany({where:{customerId:id},include:{items:true,address:true,courier:{select:{vehicleBrand:true,vehicleModel:true,vehiclePlate:true,user:{select:{name:true,phone:true}}}}},orderBy:[{createdAt:'desc'},{id:'desc'}],take:20,skip:(page-1)*20}),
-      this.prisma.order.count({where:{customerId:id}}),
+      this.prisma.order.findMany({where:{customerId:id,adminDeletedAt:null},include:{items:true,address:true,courier:{select:{vehicleBrand:true,vehicleModel:true,vehiclePlate:true,user:{select:{name:true,phone:true}}}}},orderBy:[{createdAt:'desc'},{id:'desc'}],take:20,skip:(page-1)*20}),
+      this.prisma.order.count({where:{customerId:id,adminDeletedAt:null}}),
       this.prisma.order.aggregate({where:{customerId:id,paymentStatus:PaymentStatus.PAID},_sum:{total:true},_count:true}),
-      this.prisma.order.count({where:{customerId:id,status:OrderStatus.DELIVERED}}),
-      this.prisma.order.count({where:{customerId:id,status:{notIn:[OrderStatus.DELIVERED,OrderStatus.CANCELED]}}}),
+      this.prisma.order.count({where:{customerId:id,adminDeletedAt:null,status:OrderStatus.DELIVERED}}),
+      this.prisma.order.count({where:{customerId:id,adminDeletedAt:null,status:{notIn:[OrderStatus.DELIVERED,OrderStatus.CANCELED]}}}),
       this.prisma.address.findMany({where:{userId:id},orderBy:[{isDefault:'desc'},{createdAt:'desc'}]}),
       this.prisma.authSession.findMany({where:{userId:id,revokedAt:null,OR:[{expiresAt:{gt:now}},{refreshExpiresAt:{gt:now}}]},select:{deviceName:true,lastSeenAt:true,createdAt:true},orderBy:{lastSeenAt:'desc'},take:20}),
     ]);
@@ -721,16 +721,36 @@ export class AdminService {
   }
 
   private async removeOrder(orderId: string, administratorId: string) {
-    const order = await this.prisma.order.findUnique({
-      where: { id: orderId },
-      select: { id: true, customer: { select: { name: true } } },
+    const result = await this.prisma.$transaction(async (tx) => {
+      // Updating the order first serializes deletion against offer acceptance/finalization.
+      const changed = await tx.order.updateMany({
+        where: { id: orderId, adminDeletedAt: null },
+        data: { adminDeletedAt: new Date(), adminDeletedBy: administratorId },
+      });
+      const order = await tx.order.findUnique({where:{id:orderId},include:{customer:{select:{name:true}}}});
+      if (!order) throw new NotFoundException('Pedido não encontrado');
+      if (!changed.count) return {order,changed:false,couriers:[] as string[]};
+      const offers=await tx.deliveryOffer.findMany({where:{orderId,status:'PENDING'},select:{courierId:true}});
+      await tx.deliveryOffer.updateMany({where:{orderId,status:'PENDING'},data:{status:'CANCELED',respondedAt:new Date(),canceledAt:new Date()}});
+      const updated=await tx.order.update({where:{id:orderId},data:{activeOfferId:null,...(!['DELIVERED','CANCELED'].includes(order.status)?{status:OrderStatus.CANCELED,canceledAt:new Date()}:{} )}});
+      const couriers=[...new Set([...offers.map(o=>o.courierId),...(order.courierId?[order.courierId]:[])])];
+      for(const courierId of couriers){
+        const active=await tx.order.findFirst({where:{courierId,adminDeletedAt:null,status:{notIn:[OrderStatus.DELIVERED,OrderStatus.CANCELED]}},select:{id:true}});
+        const pending=await tx.deliveryOffer.findFirst({where:{courierId,status:'PENDING',expiresAt:{gt:new Date()},order:{adminDeletedAt:null}},select:{id:true}});
+        if(!active&&!pending){
+          const courier=await tx.courierProfile.findUnique({where:{id:courierId},select:{isOnline:true}});
+          if(courier)await tx.courierProfile.update({where:{id:courierId},data:{presenceStatus:courier.isOnline?'AVAILABLE':'OFFLINE',availableSince:courier.isOnline?new Date():null}});
+        }
+      }
+      return {order:{...order,...updated},changed:true,couriers};
     });
-    if (!order) throw new NotFoundException('Pedido não encontrado');
-    const changed = await this.prisma.order.updateMany({
-      where: { id: orderId, adminDeletedAt: null },
-      data: { adminDeletedAt: new Date(), adminDeletedBy: administratorId },
-    });
-    if (changed.count) this.realtime.emitToRole('ADMIN', 'order.admin.deleted', { id: orderId });
+    const {order}=result;
+    if(result.changed){
+      this.realtime.emitToRole('ADMIN','order.admin.deleted',{id:orderId});
+      this.realtime.emitToUser(order.customerId,'order.deleted',{orderId});
+      for(const courierId of result.couriers)this.realtime.emitToCourier(courierId,'order.deleted',{orderId});
+      this.realtime.emitOrderUpdated(order);
+    }
     return { id: order.id, customerName: order.customer?.name ?? null };
   }
 
@@ -740,7 +760,7 @@ export class AdminService {
     return {
       success: true,
       deleted,
-      message: `Pedido #${deleted.id.slice(-8).toUpperCase()} excluído do painel com sucesso`,
+      message: `Pedido #${deleted.id.slice(-8).toUpperCase()} removido do Admin, cliente e entregas com sucesso`,
     };
   }
 

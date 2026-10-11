@@ -99,6 +99,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
       const orders = await (this.prisma as any).order.findMany({
         where: {
           status: 'SEARCHING_COURIER',
+          adminDeletedAt:null,
           courierId: null,
           activeOfferId: null,
           paymentStatus: 'PAID',
@@ -133,10 +134,11 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
         status: true,
         activeOfferId: true,
         fulfillmentHold: true,
+        adminDeletedAt:true,
       },
     });
 
-    if (!order) throw new NotFoundException('Pedido não encontrado');
+    if (!order || order.adminDeletedAt) throw new NotFoundException('Pedido não encontrado');
     if (order.paymentStatus !== 'PAID') {
       throw new BadRequestException(
         'O pedido precisa estar pago antes do despacho',
@@ -150,6 +152,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
       const result = await tx.order.updateMany({
         where: {
           id: orderId,
+          adminDeletedAt:null,
           courierId: null,
           fulfillmentHold: false,
           status: {
@@ -199,7 +202,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
     });
 
     if (
-      !order ||
+      !order || order.adminDeletedAt ||
       order.status !== 'SEARCHING_COURIER' ||
       order.fulfillmentHold ||
       order.courierId ||
@@ -332,6 +335,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
               where: {
                 id: orderId,
                 status: 'SEARCHING_COURIER',
+          adminDeletedAt:null,
                 courierId: null,
                 activeOfferId: null,
                 fulfillmentHold: false,
@@ -461,6 +465,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
       where: {
         courierId,
         status: 'PENDING',
+        order:{adminDeletedAt:null},
         expiresAt: { gt: new Date() },
       },
       include: {
@@ -503,6 +508,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
             orderId,
             courierId,
             status: 'PENDING',
+            order:{adminDeletedAt:null},
           },
         });
 
@@ -550,6 +556,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
           where: {
             id: orderId,
             status: 'SEARCHING_COURIER',
+          adminDeletedAt:null,
             courierId: null,
             activeOfferId: offer.id,
           },
@@ -572,6 +579,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
             orderId,
             id: { not: offer.id },
             status: 'PENDING',
+            order:{adminDeletedAt:null},
           },
           select: { id: true, courierId: true },
         });
@@ -581,6 +589,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
             orderId,
             id: { not: offer.id },
             status: 'PENDING',
+            order:{adminDeletedAt:null},
           },
           data: {
             status: 'CANCELED',
@@ -668,6 +677,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
             orderId,
             courierId,
             status: 'PENDING',
+            order:{adminDeletedAt:null},
           },
         });
         if (!offer) {
@@ -742,6 +752,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
     const expired = await (this.prisma as any).deliveryOffer.findMany({
       where: {
         status: 'PENDING',
+        order:{adminDeletedAt:null},
         expiresAt: { lte: new Date() },
       },
       include: {
