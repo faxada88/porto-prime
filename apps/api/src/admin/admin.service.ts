@@ -1,3 +1,4 @@
+import {editCustomerProfile,editCustomerAddress} from './customer-profile.js';
 import {customerCard,adjustCustomerCard} from './customer-card.js';
 import {orderAdjustments} from '../availability/order-adjustments.js';
 import {
@@ -260,6 +261,15 @@ export class AdminService {
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async editCustomer(id:string,body:Record<string,unknown>,authorization?:string){
+    await this.requireAdmin(authorization);const result=await editCustomerProfile(this.prisma,id,body);
+    this.realtime.emitToUser(id,'customer.profile.updated',{customerId:id});this.realtime.emitToRole('ADMIN','customer.profile.updated',{customerId:id});return result;
+  }
+  async editCustomerAddress(id:string,addressId:string,body:any,authorization?:string){
+    await this.requireAdmin(authorization);const result=await editCustomerAddress(this.prisma,id,addressId,body);
+    this.realtime.emitToUser(id,'addresses.updated',{customerId:id});this.realtime.emitToRole('ADMIN','addresses.updated',{customerId:id});return result;
   }
 
   async customerCard(id:string,authorization?:string){await this.requireAdmin(authorization);return customerCard(this.prisma,id);}

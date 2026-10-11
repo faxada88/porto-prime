@@ -175,6 +175,10 @@ class AppState extends ChangeNotifier {
       notifyListeners();
     }
 
+    if(isCustomer && event=='customer.profile.updated'){
+      Future<void>(()async{try{user=Map<String,dynamic>.from(await api.request('GET','/auth/me'));notifyListeners();}catch(_){}});
+      return;
+    }
     if (isCustomer &&
         (event == 'order.deleted' || event == 'order.updated' || event == 'order.created' || event == 'customer.credit.updated')) {
       Future<void>(() async {

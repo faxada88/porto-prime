@@ -1,3 +1,4 @@
+import {CreateAddressDto} from '../addresses/dto/create-address.dto.js';
 import { Body, Controller, Delete, Get, Headers, Param, Query, Patch, Post } from '@nestjs/common';
 import { AdminService } from './admin.service.js';
 
@@ -39,6 +40,11 @@ export class AdminController {
   editCourier(@Param('id') id: string, @Body() body: Record<string, unknown>, @Headers('authorization') authorization?: string) {
     return this.adminService.editCourier(id, body, authorization);
   }
+
+  @Patch('customers/:id/profile')
+  editCustomer(@Param('id') id:string,@Body() body:Record<string,unknown>,@Headers('authorization') authorization?:string){return this.adminService.editCustomer(id,body,authorization);}
+  @Patch('customers/:id/addresses/:addressId')
+  editCustomerAddress(@Param('id') id:string,@Param('addressId') addressId:string,@Body() body:CreateAddressDto,@Headers('authorization') authorization?:string){return this.adminService.editCustomerAddress(id,addressId,body,authorization);}
 
   @Get('customers/:id/card')
   customerCard(@Param('id') id:string,@Headers('authorization') authorization?:string){return this.adminService.customerCard(id,authorization);}
