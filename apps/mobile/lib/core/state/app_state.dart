@@ -106,10 +106,10 @@ class AppState extends ChangeNotifier {
   int _quoteGeneration = 0;
 
   void _handleRealtimeEvent(String event, dynamic payload) {
-    if (event == 'support.updated' || event == 'session.ready') {
+    if (event == 'support.updated' || event == 'delivery.chat.updated' || event == 'session.ready') {
       supportEpoch++;
       notifyListeners();
-      if (event == 'support.updated') return;
+      if (event == 'support.updated' || event == 'delivery.chat.updated') return;
     }
     if (event == 'demand.updated' && payload is Map) {
       _applyPublicDemand(Map<String,dynamic>.from(payload));

@@ -678,3 +678,16 @@ model SupportMessage {
   @@unique([senderId, requestId])
   @@index([threadId, createdAt, id])
 }
+
+// Private delivery coordination. Authorization always checks the current Order.
+model DeliveryChatMessage {
+ id String @id @default(cuid())
+ orderId String
+ senderId String
+ senderRole UserRole
+ text String
+ requestId String
+ createdAt DateTime @default(now())
+ @@unique([senderId,requestId])
+ @@index([orderId,createdAt,id])
+}

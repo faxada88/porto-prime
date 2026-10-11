@@ -1,6 +1,7 @@
+import {DeliveryChatService} from './delivery-chat.service.js';
 import {Module} from '@nestjs/common';
 import {AuthModule} from '../auth/auth.module.js';
 import {SupportController} from './support.controller.js';
 import {SupportService} from './support.service.js';
-@Module({imports:[AuthModule],controllers:[SupportController],providers:[SupportService]})
+@Module({imports:[AuthModule],controllers:[SupportController],providers:[SupportService,DeliveryChatService]})
 export class SupportModule {}
