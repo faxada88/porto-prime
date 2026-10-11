@@ -1,3 +1,4 @@
+import {customerCard,adjustCustomerCard} from './customer-card.js';
 import {orderAdjustments} from '../availability/order-adjustments.js';
 import {
   BadRequestException,
@@ -259,6 +260,17 @@ export class AdminService {
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async customerCard(id:string,authorization?:string){await this.requireAdmin(authorization);return customerCard(this.prisma,id);}
+  async adjustCustomerCard(id:string,body:Record<string,unknown>,authorization?:string){
+    const admin=await this.requireAdmin(authorization);
+    const result=await adjustCustomerCard(this.prisma,id,admin.id,body);
+    if(!result.replayed){
+      // Existing mobile versions refresh their card alongside the order list.
+      this.realtime.emitToUser(id,'order.updated',{customerId:id,reason:'CUSTOMER_CREDIT_ADJUSTMENT'});
+      this.realtime.emitToUser(id,'customer.credit.updated',{customerId:id,at:new Date().toISOString()});this.realtime.emitToRole('ADMIN','customer.credit.updated',{customerId:id});}
+    return result;
   }
 
   async customerActivity(id: string, pageRaw: number = 1, authorization?: string) {
