@@ -1,3 +1,4 @@
+import {referralSnapshot,creditPartnerDeliveryTx} from '../partners/partner-commission.js';
 import {orderAdjustments} from '../availability/order-adjustments.js';
 import {
   BadRequestException,
@@ -144,6 +145,7 @@ export class OrdersService {
       allocateCredit(items,storeCreditUsed);
       const created=await tx.order.create({
       data: {
+        ...await referralSnapshot(tx,data.referralCode,user.id),
         customerId: user.id,
         addressId: address.id,
         subtotal,
@@ -695,6 +697,7 @@ export class OrdersService {
         }
 
         await this.wallet.creditDeliveryTx(tx, freshOrder);
+        await creditPartnerDeliveryTx(tx,orderId);
 
         await (tx as any).courierProfile.update({
           where: { id: profile.id },
@@ -727,6 +730,7 @@ export class OrdersService {
     });
 
     if (!updated) throw new NotFoundException('Entrega não encontrada');
+    if(status===OrderStatus.DELIVERED&&updated.referralPartnerId){const partner=await this.prisma.partnerProfile.findUnique({where:{id:updated.referralPartnerId},select:{userId:true}});if(partner){this.realtime.emitToUser(partner.userId,'wallet.updated',{orderId});this.realtime.emitToUser(partner.userId,'partner.profile.updated',{orderId});this.realtime.emitToRole('ADMIN','wallet.updated',{orderId});}}
 
     this.realtime.emitOrderUpdated(updated);
     if (status === OrderStatus.DELIVERED) {

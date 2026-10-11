@@ -1,3 +1,4 @@
+import '../../../partners/presentation/pages/partner_dashboard_page.dart';
 import '../../../wallet/presentation/pages/customer_prime_card_page.dart';
 import '../../../addresses/presentation/pages/address_book_page.dart';
 import '../../../wallet/presentation/pages/partner_wallet_page.dart';
@@ -2092,6 +2093,7 @@ class _Account extends StatelessWidget {
           if (state.isPartner && !pending) ...[
             const SizedBox(height: 20),
             _MenuSurface(children: [
+              _MenuLine(icon: AppIcons.storefront_outlined, title: 'Meu QR e indicações', subtitle:'Divulgue, acompanhe e ganhe', onTap:()=>Navigator.of(context).push(_primeRoute(const PartnerDashboardPage()))),
               _MenuLine(icon: AppIcons.wallet, title: 'Carteira e saques', subtitle: 'Saldo, movimentações e repasses', last:true,
                 onTap:()=>Navigator.of(context).push(_primeRoute(const PartnerWalletPage()))),
             ]),

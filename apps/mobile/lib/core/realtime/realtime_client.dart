@@ -56,6 +56,7 @@ class RealtimeClient {
       'order.deleted',
       'customer.credit.updated',
       'customer.profile.updated',
+      'partner.profile.updated',
       'delivery.offer',
       'delivery.offer.closed',
       'delivery.accepted',

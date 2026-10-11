@@ -10,6 +10,6 @@ import { WalletService } from './wallet.service.js';
   imports: [AuthModule],
   controllers: [WalletController, FinanceController],
   providers: [WalletService, FinanceService],
-  exports: [WalletService],
+  exports: [WalletService, FinanceService],
 })
 export class WalletModule {}

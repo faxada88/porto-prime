@@ -7,10 +7,10 @@ const brl=(v:any)=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currenc
 const when=(v:any)=>v?new Date(v).toLocaleString('pt-BR'):'—';
 const labels:Row={PENDING:'Solicitado',PROCESSING:'Em processamento',PAID:'Pago',REJECTED:'Rejeitado',CANCELED:'Cancelado',BONUS_CREDIT:'Bônus',ADJUSTMENT_CREDIT:'Crédito administrativo',WITHDRAWAL_DEBIT:'Reserva de saque',DELIVERY_CREDIT:'Entrega',REVERSAL:'Estorno',WITHDRAWAL_REQUESTED:'Solicitação de saque'};
 const Status=({value}:{value:string})=><span className={`financeStatus ${value.toLowerCase()}`}>{labels[value]||value}</span>;
-export default function FinancePanel({token,rows,api}:{token:string,rows:Row[],api:any}){
+export default function FinancePanel({token,rows,api,initialAccountId=""}:{token:string,rows:Row[],api:any,initialAccountId?:string}){
  const [view,setView]=useState('withdrawals'),[query,setQuery]=useState(''),[filter,setFilter]=useState('all'),[role,setRole]=useState('all');
  const [accountQuery,setAccountQuery]=useState('');
- const [overview,setOverview]=useState<Row>({rows:[],stats:{}}),[accounts,setAccounts]=useState<Row[]>([]),[accountId,setAccountId]=useState(''),[detail,setDetail]=useState<Row|null>(null);
+ const [overview,setOverview]=useState<Row>({rows:[],stats:{}}),[accounts,setAccounts]=useState<Row[]>([]),[accountId,setAccountId]=useState(initialAccountId),[detail,setDetail]=useState<Row|null>(null);
  const [loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[limit,setLimit]=useState(30),[history,setHistory]=useState('ledger');
  const [operation,setOperation]=useState<'credit'|'withdraw'|'status'|null>(null),[form,setForm]=useState<Row>({}),[saving,setSaving]=useState(false),[formError,setFormError]=useState(''),[revision,setRevision]=useState(0);
  const lastAccount=useRef('');

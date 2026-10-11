@@ -25,14 +25,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
   GlobalKey<FormState> get form=>forms[step];
   final Map<String,TextEditingController> c={};
   TextEditingController ctl(String k)=>c.putIfAbsent(k,()=>TextEditingController());
+  @override void initState(){super.initState();if(widget.role=='PARTNER')ctl('documentType').text='CPF';}
   bool get customer=>widget.role=='CUSTOMER'; bool get courier=>widget.role=='COURIER';
   String get title=>customer?'Cliente':courier?'Motoboy':'Parceiro';
   List<List<_F>> get groups=>courier ? courierGroups : commonGroups;
   List<List<_F>> get commonGroups=>[
     [const _F('name','Nome completo',AppIcons.person_outline_rounded),const _F('birthDate','Data de nascimento',AppIcons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date),const _F('phone','Celular / WhatsApp',AppIcons.phone_outlined,keyboard:TextInputType.phone,format:_Format.phone)],
-    if(!customer)[const _F('businessName','Nome do estabelecimento',AppIcons.storefront_outlined),const _F('legalName','Razão social',AppIcons.business_outlined),const _F('cnpj','CNPJ / documento',AppIcons.badge_outlined,keyboard:TextInputType.number,format:_Format.cnpj),const _F('businessType','Tipo de estabelecimento',AppIcons.category_outlined,hint:'Hotel, pousada, receptivo...')]
+    if(!customer)[const _F('businessName','Nome para divulgação',AppIcons.storefront_outlined,hint:'Seu nome ou nome do seu negócio'),const _F('documentType','Cadastrar com',AppIcons.badge_outlined),if(ctl('documentType').text=='CNPJ')const _F('cnpj','CNPJ',AppIcons.badge_outlined,keyboard:TextInputType.number,format:_Format.cnpj)else const _F('partnerCpf','CPF',AppIcons.badge_outlined,keyboard:TextInputType.number,format:_Format.cpf),const _F('legalName','Razão social (se houver)',AppIcons.business_outlined,required:false),const _F('businessType','Sua atividade',AppIcons.category_outlined)]
     else [const _F('cep','CEP',AppIcons.local_post_office_outlined,keyboard:TextInputType.number,format:_Format.cep),const _F('street','Rua / avenida',AppIcons.route_outlined),const _F('number','Número',AppIcons.numbers_outlined),const _F('neighborhood','Bairro',AppIcons.map_outlined),const _F('complement','Complemento',AppIcons.home_work_outlined,required:false)],
-    [const _F('email','E-mail',AppIcons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',AppIcons.lock_outline_rounded,secret:true,hint:'Mínimo de 8 caracteres'),if(courier)const _F('pixKey','Chave PIX para recebimentos',AppIcons.account_balance_wallet_outlined,required:false),if(!customer&&!courier)const _F('contactRole','Seu cargo / função',AppIcons.work_outline_rounded,required:false)],
+    [const _F('email','E-mail',AppIcons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',AppIcons.lock_outline_rounded,secret:true,hint:'Mínimo de 8 caracteres'),if(courier)const _F('pixKey','Chave PIX para recebimentos',AppIcons.account_balance_wallet_outlined,required:false),if(!customer&&!courier)const _F('pixKeyType','Tipo de chave PIX',AppIcons.account_balance_wallet_outlined,required:false),if(!customer&&!courier)const _F('pixKey','Chave PIX (opcional)',AppIcons.wallet,required:false),if(!customer&&!courier)const _F('contactRole','Seu cargo / função',AppIcons.work_outline_rounded,required:false)],
   ];
   List<List<_F>> get courierGroups=>[
     [const _F('cpf','CPF',AppIcons.badge_outlined,keyboard:TextInputType.number,format:_Format.cpf),const _F('birthDate','Data de nascimento',AppIcons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date),const _F('name','Nome na Receita Federal',AppIcons.person_outline_rounded)],
@@ -555,7 +556,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     ]);
   }
   Widget field(_F f) {
-    if (courier && const ['cnhCategory','vehicleType','vehicleBrand','vehicleModel','state','pixKeyType'].contains(f.key)) return choiceField(f);
+    if ((!customer&&!courier&&const ['documentType','businessType','pixKeyType'].contains(f.key)) || courier && const ['cnhCategory','vehicleType','vehicleBrand','vehicleModel','state','pixKeyType'].contains(f.key)) return choiceField(f);
     final accent = customer
         ? AppColors.ocean
         : courier
@@ -597,7 +598,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         if (f.key == 'phone' && digits.length != 11) {
           return 'Informe um celular com DDD';
         }
-        if (f.key == 'cpf' && digits.length != 11) return 'CPF incompleto';
+        if ((f.key == 'cpf'||f.key=='partnerCpf') && digits.length != 11) return 'CPF incompleto';
         if (courier && f.key == 'cpf' && (remoteError['cpfLookup']?.isNotEmpty ?? false)) return remoteError['cpfLookup'];
         if (f.key == 'cnpj' && digits.length != 14) return 'CNPJ incompleto';
         if (f.key == 'cep' && digits.length != 8) return 'CEP incompleto';
@@ -667,7 +668,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             ? AppColors.sand
             : AppColors.lavender;
     List<String> options;
-    if (f.key == 'pixKeyType') {
+    if(f.key=='documentType'){options=const ['CPF','CNPJ'];}else if(f.key=='businessType'){options=const ['Autônomo','Garçom','Trabalhador de praia','Ambulante','Taxista / motorista','Hotel / pousada','Anfitrião Airbnb / Booking','Estabelecimento','Outro'];}else if (f.key == 'pixKeyType') {
       options = const ['CPF','CNPJ','E-mail','Celular','Aleatória'];
     } else if (f.key == 'state') {
       options = const ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
@@ -722,6 +723,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     if(picked==null||!mounted)return;
     setState((){
       ctl(f.key).text=picked;
+      if(f.key=='documentType'){for(final key in ['partnerCpf','cnpj']){ctl(key).clear();remoteDebounce[key]?.cancel();validationTicket[key]=(validationTicket[key]??0)+1;checking[key]=false;remoteError.remove(key);}}
       if(f.key=='vehicleType'){ctl('vehicleBrand').clear();ctl('vehicleModel').clear();}
       if(f.key=='vehicleBrand')ctl('vehicleModel').clear();
     });
@@ -840,7 +842,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   void _queueRemoteCheck(String key, String value) {
-    final field = key == 'cpf'
+    final field = key == 'partnerCpf' ? 'partnerCpf' : key == 'cpf'
         ? 'cpf'
         : key == 'cnpj'
             ? 'cnpj'
@@ -858,7 +860,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     final trimmed = value.trim();
     final digits = trimmed.replaceAll(RegExp(r'\D'), '');
     final ready = switch (field) {
-      'cpf' => digits.length == 11,
+      'cpf' || 'partnerCpf' => digits.length == 11,
       'cnpj' => digits.length == 14,
       'phone' => digits.length == 11,
       'email' => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(trimmed),
@@ -892,7 +894,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         if (!mounted || validationTicket[key] != ticket) return;
 
         final message = result['valid'] != true
-            ? (field == 'cpf'
+            ? ((field == 'cpf' || field == 'partnerCpf')
                 ? 'CPF inválido'
                 : field == 'cnpj'
                     ? 'CNPJ inválido'
@@ -901,7 +903,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         : 'Telefone inválido')
             : result['available'] == true
                 ? ''
-                : (field == 'cpf'
+                : ((field == 'cpf' || field == 'partnerCpf')
                     ? 'Este CPF já possui cadastro'
                     : field == 'cnpj'
                         ? 'Este CNPJ já possui cadastro'
@@ -1007,7 +1009,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         phone: data['phone'] ?? '',
         password: data['password'] ?? '',
         role: widget.role,
-        document: customer ? null : (courier ? data['cpf'] : data['cnpj']),
+        document: customer ? null : (courier ? data['cpf'] : (data['documentType']=='CNPJ'?data['cnpj']:data['partnerCpf'])),
         businessName:
             !customer && !courier ? data['businessName'] : null,
         profileData: {...data, if (courier) 'cpfSituation': cpfSituation, if(courier) 'profilePhoto':profilePhoto}..remove('password')..remove('confirmPassword'),

@@ -1,3 +1,4 @@
+import 'partner_referral.dart';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../network/api_client.dart';
@@ -70,6 +71,7 @@ class AppState extends ChangeNotifier {
   double get cartSubtotal=>cart.entries.fold(0,(sum,e){final p=product(e.key);return sum+(p==null?0:(double.tryParse(p['price'].toString())??0)*e.value);});
 
   Future<void> bootstrap() async {
+    await PartnerReferral.capture(api);
     realtime.connectCatalog();
     await loadProducts();
     startCatalogSync();
@@ -175,7 +177,7 @@ class AppState extends ChangeNotifier {
       notifyListeners();
     }
 
-    if(isCustomer && event=='customer.profile.updated'){
+    if((isCustomer && event=='customer.profile.updated')||(isPartner&&event=='partner.profile.updated')){
       Future<void>(()async{try{user=Map<String,dynamic>.from(await api.request('GET','/auth/me'));notifyListeners();}catch(_){}});
       return;
     }
@@ -709,7 +711,7 @@ class AppState extends ChangeNotifier {
     if(!storeOpen)throw Exception(storeMessage);
     loading=true;error=null;notifyListeners();
     try{
-      final order=Map<String,dynamic>.from(await api.request('POST','/orders',body:{'addressId':addressId,'storeCreditRequested':storeCreditRequested,if(expectedTotal!=null)'expectedTotal':expectedTotal,if(pricingRevision!=null)'pricingRevision':pricingRevision,if(expectedDeliveryFee!=null)'expectedDeliveryFee':expectedDeliveryFee,'items':cart.entries.map((e)=>{'productId':e.key,'quantity':e.value}).toList()}));
+      final order=Map<String,dynamic>.from(await api.request('POST','/orders',body:{'addressId':addressId,if(PartnerReferral.code!=null)'referralCode':PartnerReferral.code,'storeCreditRequested':storeCreditRequested,if(expectedTotal!=null)'expectedTotal':expectedTotal,if(pricingRevision!=null)'pricingRevision':pricingRevision,if(expectedDeliveryFee!=null)'expectedDeliveryFee':expectedDeliveryFee,'items':cart.entries.map((e)=>{'productId':e.key,'quantity':e.value}).toList()}));
       await Future.wait([loadOrders(),loadActiveOrder()]);return order;
     }catch(e){error=e.toString().replaceFirst('Exception: ','');rethrow;}finally{loading=false;notifyListeners();}
   }

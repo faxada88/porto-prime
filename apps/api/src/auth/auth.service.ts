@@ -122,7 +122,7 @@ export class AuthService {
   async availability(field: string, raw: string) {
     const value = (raw ?? '').trim();
 
-    if (!['email', 'phone', 'cpf', 'cnpj'].includes(field)) {
+    if (!['email', 'phone', 'cpf', 'cnpj','partnerCpf'].includes(field)) {
       throw new BadRequestException('Campo de verificação inválido');
     }
 
@@ -154,7 +154,7 @@ export class AuthService {
 
     const document = this.digits(value);
     const valid =
-      field === 'cpf'
+      (field === 'cpf'||field==='partnerCpf')
         ? this.validCpf(document)
         : this.validCnpj(document);
 
@@ -398,8 +398,8 @@ export class AuthService {
     if (data.role === UserRole.PARTNER) {
       partnerDocument = this.digits(data.document);
 
-      if (!this.validCnpj(partnerDocument)) {
-        throw new BadRequestException('CNPJ inválido');
+      if (!(partnerDocument.length===11?this.validCpf(partnerDocument):this.validCnpj(partnerDocument))) {
+        throw new BadRequestException('CPF ou CNPJ inválido');
       }
 
       const usedCnpj = await this.prisma.partnerProfile.findFirst({
@@ -408,7 +408,7 @@ export class AuthService {
       });
 
       if (usedCnpj) {
-        throw new ConflictException('CNPJ já possui cadastro');
+        throw new ConflictException('CPF ou CNPJ já possui cadastro de parceiro');
       }
     }
 

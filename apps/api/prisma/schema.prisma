@@ -230,6 +230,10 @@ model PartnerProfile {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  referralCode String @unique @default(cuid())
+  commissionPercent Decimal @default(5) @db.Decimal(5,2)
+  referredOrders Order[] @relation("PartnerReferrals")
+
 }
 
 model Address {
@@ -352,6 +356,13 @@ model Order {
   @@index([status])
   @@index([activeOfferId])
   @@index([createdAt])
+  referralPartnerId String?
+  referralPartner PartnerProfile? @relation("PartnerReferrals",fields:[referralPartnerId],references:[id],onDelete:Restrict)
+  partnerCommissionPercent Decimal @default(0) @db.Decimal(5,2)
+  partnerCommissionAmount Decimal @default(0) @db.Decimal(10,2)
+  partnerCommissionCreditedAt DateTime?
+  @@index([referralPartnerId,createdAt])
+
 }
 
 model OrderItem {
