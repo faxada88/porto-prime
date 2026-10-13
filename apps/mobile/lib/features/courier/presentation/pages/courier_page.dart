@@ -1732,7 +1732,7 @@ class _SheetHero extends StatelessWidget {
           ),
           if (!incoming) ...[
             const SizedBox(height:12),
-            TextButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>DeliveryChatPage(orderId:id.toString()))),icon:const Icon(AppIcons.mail,color:Colors.white,size:18),label:const Text('Conversar com cliente',style:TextStyle(color:Colors.white))),
+            TextButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(settings:RouteSettings(name:'/delivery-chat/$id'),builder:(_)=>DeliveryChatPage(orderId:id.toString()))),icon:const Icon(AppIcons.mail,color:Colors.white,size:18),label:const Text('Conversar com cliente',style:TextStyle(color:Colors.white))),
           ],
           const SizedBox(height: 17),
           Text(

@@ -1,3 +1,5 @@
+import 'dart:async';
+import '../../features/support/presentation/pages/delivery_chat_page.dart';
 import 'package:flutter/material.dart';
 import 'customer_demand_notice.dart';
 
@@ -26,19 +28,46 @@ class _AppShellState extends State<AppShell> {
     ProfilePage(),
   ];
 
+  int _chatEpoch=0;
+  bool _openingChat=false;
   @override
   void initState() {
     super.initState();
     AppNav.instance.index.addListener(_changed);
+    AppState.instance.addListener(_incomingChat);
+    WidgetsBinding.instance.addPostFrameCallback((_){if(mounted)_incomingChat();});
   }
 
   @override
   void dispose() {
     AppNav.instance.index.removeListener(_changed);
+    AppState.instance.removeListener(_incomingChat);
     super.dispose();
   }
 
   void _changed() => setState(() {});
+  void _incomingChat() {
+    final app=AppState.instance;
+    if(!mounted||_openingChat||_chatEpoch==app.deliveryChatEpoch)return;
+    _chatEpoch=app.deliveryChatEpoch;
+    final notice=app.incomingDeliveryChat;
+    if(!app.loggedIn||notice==null||notice['recipientId']!=(app.user?['id'])||!(app.isCustomer||app.isCourier))return;
+    final id=notice['orderId'].toString();
+    final name='/delivery-chat/$id';
+    if(AppNav.instance.observer.currentName==name)return;
+    _openingChat=true;
+    final recipient=app.user?['id'];
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        // Recheck current assignment before bringing the private conversation to the front.
+        final result=await app.api.request('GET','/support/orders/${Uri.encodeComponent(id)}/delivery');
+        if(!mounted||(app.user?['id'])!=recipient||result['canSend']!=true||AppNav.instance.observer.currentName==name)return;
+        final navigator=AppNav.instance.rootNavigatorKey.currentState;
+        if(navigator!=null)unawaited(navigator.push<void>(MaterialPageRoute<void>(settings:RouteSettings(name:name),builder:(_)=>DeliveryChatPage(orderId:id))).then((_){}));
+      }catch(_){/* History remains available from the delivery page if offline. */}
+      finally{_openingChat=false;if(mounted)_incomingChat();}
+    });
+  }
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(

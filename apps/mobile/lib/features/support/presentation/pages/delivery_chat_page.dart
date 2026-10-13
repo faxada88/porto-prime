@@ -1,3 +1,4 @@
+import '../../../../core/widgets/prime_ui.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -30,12 +31,14 @@ class _DeliveryChatPageState extends State<DeliveryChatPage> with WidgetsBinding
  void didChangeAppLifecycleState(AppLifecycleState state){if(state==AppLifecycleState.resumed)_load();}
  Future<void> _load({bool older=false}) async {
   if(_fetching){_queued=true;return;}_fetching=true;
+  final followLatest = !older && (_data==null || !_scroll.hasClients || _scroll.position.extentAfter<120);
   try {
    final before = older ? (_data?['olderCursor']) : null;
    final result=await AppState.instance.api.request('GET','$_path${before==null?'':'?before=${Uri.encodeComponent(before.toString())}'}');
    if(!mounted)return;
    final data=Map<String,dynamic>.from(result as Map);
    setState((){for(final raw in (data['messages'] as List? ?? [])){final m=Map<String,dynamic>.from(raw as Map);_messages['${m['id']}']=m;}if(older){_data?['olderCursor']=data['olderCursor'];}else{final previous=_data?['olderCursor'];_data=data;if(_messages.length>100)_data!['olderCursor']=previous;}_error=null;});
+   if(followLatest)WidgetsBinding.instance.addPostFrameCallback((_){if(mounted&&_scroll.hasClients)_scroll.jumpTo(_scroll.position.maxScrollExtent);});
   }catch(_){if(mounted)setState(()=>_error='Não foi possível atualizar a conversa. Tente novamente.');}
   finally{_fetching=false;if(_queued&&mounted){_queued=false;_load();}}
  }
@@ -43,9 +46,9 @@ class _DeliveryChatPageState extends State<DeliveryChatPage> with WidgetsBinding
   final text=_draft.text.trim();if(text.isEmpty||_busy)return;
   if(text.length>4000)return;
   if(text!=_pendingText){_pendingText=text;_pendingId=_id();}
-  setState(()=>_busy=true);
+  setState((){_busy=true;_error=null;});
   try{await AppState.instance.api.request('POST','$_path/messages',body:{'text':text,'requestId':_pendingId});if(!mounted)return;_draft.clear();_pendingId=null;_pendingText=null;await _load();WidgetsBinding.instance.addPostFrameCallback((_){if(_scroll.hasClients)_scroll.animateTo(_scroll.position.maxScrollExtent,duration:const Duration(milliseconds:180),curve:Curves.easeOut);});}
-  catch(_){if(mounted)setState(()=>_error='Mensagem não enviada. Seu texto foi preservado para tentar novamente.');}
+  catch(e){if(mounted)setState(()=>_error='${PrimeMessages.friendly(e)} Seu texto foi preservado. Toque em enviar para tentar novamente.');}
   finally{if(mounted)setState(()=>_busy=false);}
  }
  Future<void> _help() async {

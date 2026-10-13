@@ -20,6 +20,7 @@ class PortoPrimeApp extends StatelessWidget {
     title: 'Porto Prime',
     theme: AppTheme.light,
     navigatorKey: AppNav.instance.rootNavigatorKey,
+    navigatorObservers:[AppNav.instance.observer],
     home: const SplashPage(),
   );
 }

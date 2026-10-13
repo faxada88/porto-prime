@@ -7,8 +7,8 @@ import {SupportService} from './support.service.js';
 export class DeliveryChatService {
  constructor(private readonly db:PrismaService,private readonly auth:AuthService,private readonly realtime:RealtimeGateway,private readonly support:SupportService){}
  private value(value:unknown,max:number){if(typeof value!=='string'||!value.trim()||value.trim().length>max)throw new BadRequestException('Confira a mensagem e tente novamente');return value.trim();}
- private async access(orderId:string,authorization?:string,db:PrismaService|any=this.db){
-  const user=await this.auth.authenticate(authorization);
+ private async access(orderId:string,authorization?:string,db:PrismaService|any=this.db,authenticated?:Awaited<ReturnType<AuthService['authenticate']>>){
+  const user=authenticated??await this.auth.authenticate(authorization);
   if(!['CUSTOMER','COURIER'].includes(user.role))throw new ForbiddenException('Conversa exclusiva dos participantes da entrega');
   const order=await db.order.findFirst({where:{id:orderId,adminDeletedAt:null,...(user.role==='CUSTOMER'?{customerId:user.id}:{courier:{userId:user.id}})},select:{id:true,status:true,customerId:true,customer:{select:{name:true}},courier:{select:{userId:true,user:{select:{name:true}}}}}});
   if(!order)throw new ForbiddenException('Este pedido não está disponível para sua conta');
@@ -24,17 +24,19 @@ export class DeliveryChatService {
  }
  async send(orderId:string,body:Record<string,unknown>,authorization?:string){
   const text=this.value(body?.text,4000),requestId=this.value(body?.requestId,100);
+  // Authenticate before borrowing the transaction connection: local Prisma dev has pool max=1.
+  const authenticated=await this.auth.authenticate(authorization);
   const result=await this.db.$transaction(async tx=>{
    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`delivery-chat:${orderId}`}))`;
-   const {user,order}=await this.access(orderId,authorization,tx);
+   const {user,order}=await this.access(orderId,authorization,tx,authenticated);
    const duplicate=await tx.deliveryChatMessage.findUnique({where:{senderId_requestId:{senderId:user.id,requestId}}});
-   if(duplicate){if(duplicate.orderId!==orderId||duplicate.text!==text)throw new BadRequestException('Identificador já utilizado');return {user,order};}
+   if(duplicate){if(duplicate.orderId!==orderId||duplicate.text!==text)throw new BadRequestException('Identificador já utilizado');return {user,order,message:duplicate};}
    if(!order.courier||['DELIVERED','CANCELED'].includes(order.status))throw new BadRequestException('A conversa está disponível durante a entrega com motoboy definido');
-   await tx.deliveryChatMessage.create({data:{orderId,senderId:user.id,senderRole:user.role,text,requestId}});
-   return {user,order};
+   const message=await tx.deliveryChatMessage.create({data:{orderId,senderId:user.id,senderRole:user.role,text,requestId}});
+   return {user,order,message};
   });
-  for(const id of new Set([result.order.customerId,result.order.courier?.userId].filter(Boolean)))this.realtime.emitToUser(id as string,'delivery.chat.updated',{orderId,senderRole:result.user.role});
-  return {sent:true};
+  for(const id of new Set([result.order.customerId,result.order.courier?.userId].filter(Boolean)))this.realtime.emitToUser(id as string,'delivery.chat.updated',{orderId,messageId:result.message.id,senderId:result.user.id,recipientId:id,senderRole:result.user.role,at:result.message.createdAt});
+  return {sent:true,messageId:result.message.id};
  }
  async escalate(orderId:string,body:Record<string,unknown>,authorization?:string){
   const {user}=await this.access(orderId,authorization);

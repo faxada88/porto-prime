@@ -102,10 +102,22 @@ class AppState extends ChangeNotifier {
   }
 
   int supportEpoch = 0;
+  int deliveryChatEpoch = 0;
+  final Set<String> _deliveryChatSeen={};
+  Map<String,dynamic>? incomingDeliveryChat;
   int deliveryPricingEpoch = 0;
   int _quoteGeneration = 0;
 
   void _handleRealtimeEvent(String event, dynamic payload) {
+    if(event=='delivery.chat.updated' && payload is Map && loggedIn && (isCustomer||isCourier)) {
+      final incoming=Map<String,dynamic>.from(payload);
+      if(incoming['recipientId']==(user?['id']) && incoming['senderId']!=(user?['id']) && incoming['orderId'] is String && incoming['messageId'] is String) {
+        if(_deliveryChatSeen.add(incoming['messageId'] as String)) {
+          if(_deliveryChatSeen.length>500)_deliveryChatSeen.remove(_deliveryChatSeen.first);
+          incomingDeliveryChat=incoming;deliveryChatEpoch++;
+        }
+      }
+    }
     if (event == 'support.updated' || event == 'delivery.chat.updated' || event == 'session.ready') {
       supportEpoch++;
       notifyListeners();
