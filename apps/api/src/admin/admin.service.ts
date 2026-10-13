@@ -45,7 +45,7 @@ export class AdminService {
     const [users, products, orders, onlineCouriers, paid] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.product.count({ where: { active: true } }),
-      this.prisma.order.count(),
+      this.prisma.order.count({where:{adminDeletedAt:null,paymentStatus:{in:[PaymentStatus.PAID,PaymentStatus.PARTIALLY_REFUNDED,PaymentStatus.REFUNDED]}}}),
       (this.prisma as any).courierProfile.count({
         where: {
           presenceStatus: { in: ['AVAILABLE', 'OFFERED', 'DELIVERING'] },
@@ -231,7 +231,7 @@ export class AdminService {
   async orders(authorization?: string) {
     await this.requireAdmin(authorization);
     const orders=await this.prisma.order.findMany({
-      where: { adminDeletedAt: null },
+      where: { adminDeletedAt: null, paymentStatus:{in:[PaymentStatus.PAID,PaymentStatus.PARTIALLY_REFUNDED,PaymentStatus.REFUNDED]} },
       include: {
         customer: {
           select: { id: true, name: true, email: true, phone: true },

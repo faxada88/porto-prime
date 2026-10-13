@@ -34,7 +34,7 @@ class _CheckoutFlowPageState extends State<CheckoutFlowPage> {
    final payment=await app.createCheckout(_orderId!);
    if(!mounted)return;
    final summary=payment['summary'] is Map?Map<String,dynamic>.from(payment['summary'] as Map):_order;
-   final result=await Navigator.of(context).push<String>(MaterialPageRoute(builder:(_)=>StripeCheckoutPage(clientSecret:payment['clientSecret'].toString(),publishableKey:payment['publishableKey'].toString(),orderId:_orderId!,summary:summary)));
+   final result=await Navigator.of(context).push<String>(MaterialPageRoute(builder:(_)=>StripeCheckoutPage(clientSecret:(payment['clientSecret']??'').toString(),publishableKey:(payment['publishableKey']??'').toString(),creditOnly:payment['creditOnly']==true,orderId:_orderId!,summary:summary)));
    if(!mounted)return;
    if(result=='track'||result=='shop'||result=='home')Navigator.of(context).pop(<String,dynamic>{'result':result,'orderId':_orderId});
   } finally {_preparing=false;}

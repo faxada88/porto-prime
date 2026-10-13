@@ -14,6 +14,8 @@ export function settlementAmounts(item:any,order:any,others:any[]){
  const allRemoved=others.every(i=>['REFUND_PROCESSING','REFUNDED','VOUCHERED'].includes(i.availabilityStatus));
  const delivery=allRemoved?cents(order.deliveryFee):0;
  const entitlement=cents(item.total)+delivery;
- const restored=cents(item.storeCreditShare);
+ const productCredit=[item,...others].reduce((sum,i)=>sum+cents(i.storeCreditShare),0);
+ const deliveryCredit=allRemoved?Math.max(0,Math.min(delivery,cents(order.storeCreditUsed)-productCredit)):0;
+ const restored=cents(item.storeCreditShare)+deliveryCredit;
  return {cash:(entitlement-restored)/100,credit:restored/100,voucher:entitlement/100};
 }

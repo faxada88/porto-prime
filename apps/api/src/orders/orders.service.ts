@@ -138,10 +138,12 @@ export class OrdersService {
       const balance=await creditBalance(tx,user.id);
       const requested=data.storeCreditRequested??0;
       if(!Number.isFinite(requested)||requested<0||Math.abs(requested*100-cents(requested))>0.000001)throw new BadRequestException('Informe um valor válido de voucher com até duas casas decimais');
-      if(cents(requested)>cents(balance)||cents(requested)>cents(subtotal))throw new BadRequestException('Confirme o uso do voucher: o valor precisa caber no saldo disponível e nos produtos');
+      if(cents(requested)>cents(balance)||cents(requested)>cents(subtotal+deliveryFee))throw new BadRequestException('Confirme o uso do voucher: o valor precisa caber no saldo disponível e no total com entrega');
       const storeCreditUsed=cents(requested)/100;
       const expectedTotal=(cents(subtotal)+cents(deliveryFee)-cents(storeCreditUsed))/100;
       if(data.expectedTotal!==undefined&&cents(data.expectedTotal)!==cents(expectedTotal))throw new BadRequestException('Seu saldo de créditos mudou. Confirme o total novamente antes de pagar');
+      // Stripe requires a minimum BRL cash charge; zero is handled by credit confirmation.
+      if(cents(expectedTotal)>0&&cents(expectedTotal)<50)throw new BadRequestException('O pagamento restante pelo Stripe precisa ser de pelo menos R$ 0,50. Reduza o saldo utilizado ou cubra toda a compra com saldo');
       allocateCredit(items,storeCreditUsed);
       const created=await tx.order.create({
       data: {
@@ -161,16 +163,13 @@ export class OrdersService {
       },
       include: { items: true, address: true },
       });
-      if(storeCreditUsed>0)await tx.customerCreditEntry.create({data:{customerId:user.id,amount:-storeCreditUsed,idempotencyKey:'order:'+created.id+':credit-use',description:'Voucher aplicado no pedido',orderId:created.id}});
+      if(storeCreditUsed>0)await tx.customerCreditEntry.create({data:{customerId:user.id,amount:-storeCreditUsed,idempotencyKey:'order:'+created.id+':credit-use',description:'Saldo Porto Prime aplicado na compra',orderId:created.id}});
       return created;
     });
 
-    this.realtime.emitToRole('ADMIN', 'order.created', {
-      orderId: order.id,
-      at: new Date().toISOString(),
-    });
-
+    this.realtime.emitToUser(user.id,'order.created',{orderId:order.id,at:new Date().toISOString()});
     if(Number(order.storeCreditUsed)>0)this.realtime.emitToUser(user.id,'customer.credit.updated',{at:new Date().toISOString()});
+
     return order;
   }
 

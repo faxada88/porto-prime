@@ -349,7 +349,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
         ? 'Pagamento não concluído'
         : 'Aguardando pagamento';
     final created = order['createdAt']?.toString();
-    final method = order['paymentMethod']?.toString();
+    final method = (double.tryParse('${order['total']}')??0)==0&&(double.tryParse('${order['storeCreditUsed']}')??0)>0?'Cartão Porto Prime':order['paymentMethod']?.toString();
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),

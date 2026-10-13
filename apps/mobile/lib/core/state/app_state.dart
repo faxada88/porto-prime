@@ -8,8 +8,13 @@ class AppState extends ChangeNotifier {
   final Set<String> removedOrderIds={};
   bool useCustomerCredit=false;
   double customerCreditRequested=0;
-  double selectedCustomerCredit([double? available])=>!isCustomer||!useCustomerCredit?0:((customerCreditRequested.clamp(0,min(available??customerCreditBalance,cartSubtotal))*100).round()/100);
-  void chooseCustomerCredit(bool use,{double? amount}){useCustomerCredit=use;customerCreditRequested=use?(amount??min(customerCreditBalance,cartSubtotal)):0;notifyListeners();}
+  double get cartTotalBeforeCredit=>cartSubtotal+(double.tryParse(deliveryQuote['deliveryFee']?.toString()??'')??0);
+  double customerCreditLimit([double? available,double? total]){
+    final balance=((available??customerCreditBalance)*100).round();final bill=((total??cartTotalBeforeCredit)*100).round();
+    return (balance>=bill?bill:min(balance,max(0,bill-50)))/100;
+  }
+  double selectedCustomerCredit([double? available,double? total])=>!isCustomer||!useCustomerCredit?0:((customerCreditRequested.clamp(0,customerCreditLimit(available,total))*100).round()/100);
+  void chooseCustomerCredit(bool use,{double? amount}){useCustomerCredit=use;customerCreditRequested=use?(amount??customerCreditLimit()):0;notifyListeners();}
   double customerCreditBalance=0;
   Map<String,dynamic> customerCreditCard={};
   Future<void> loadCustomerCredit()async{if(!isCustomer){customerCreditBalance=0;customerCreditCard={};useCustomerCredit=false;customerCreditRequested=0;return;} final customerId=user?["id"];final result=await api.request("GET","/orders/credits");if(!isCustomer||user?["id"]!=customerId)return; customerCreditCard=Map<String,dynamic>.from(result);customerCreditBalance=double.tryParse(result["available"].toString())??0;notifyListeners();}

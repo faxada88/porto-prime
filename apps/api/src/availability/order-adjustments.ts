@@ -6,7 +6,9 @@ export function orderAdjustments<T extends Record<string,any>>(order:T){
  const fulfillmentItems=items.filter(i=>!removedStatuses.includes(i.availabilityStatus));
  const removedItems=items.filter(i=>removedStatuses.includes(i.availabilityStatus));
  const subtotal=fulfillmentItems.reduce((sum,i)=>sum+cents(i.total),0);
- const retainedCredit=fulfillmentItems.reduce((sum,i)=>sum+cents(i.storeCreditShare),0);
+ const productCredit=items.reduce((sum,i)=>sum+cents(i.storeCreditShare),0);
+ const deliveryCredit=fulfillmentItems.length?Math.max(0,Math.min(cents(order.deliveryFee),cents(order.storeCreditUsed)-productCredit)):0;
+ const retainedCredit=fulfillmentItems.reduce((sum,i)=>sum+cents(i.storeCreditShare),0)+deliveryCredit;
  const delivery=fulfillmentItems.length?cents(order.deliveryFee):0;
  return {...order,fulfillmentItems,removedItems,removedItemsTotal:removedItems.reduce((sum,i)=>sum+cents(i.total),0)/100,fulfillmentSubtotal:subtotal/100,fulfillmentDeliveryFee:delivery/100,fulfillmentCreditUsed:retainedCredit/100,adjustedTotal:Math.max(0,subtotal+delivery-retainedCredit)/100};
 }

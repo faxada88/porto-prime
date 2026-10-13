@@ -31,11 +31,6 @@ export class PaymentsService {
     const secret = process.env.STRIPE_SECRET_KEY;
     const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY;
 
-    if (!secret || !publishableKey) {
-      throw new ServiceUnavailableException(
-        'Pagamento Stripe ainda não configurado no servidor',
-      );
-    }
 
     const user = await this.auth.authenticate(authorization);
     if (user.role !== UserRole.CUSTOMER) {
@@ -55,6 +50,13 @@ export class PaymentsService {
 
     const store = await this.prisma.deliveryPricingConfig.findUnique({ where: { id: 'default' }, select: { storeOpen: true, storeMessage: true } });
     if (store?.storeOpen === false) throw new BadRequestException(store.storeMessage || 'A loja está fechada no momento');
+
+    if(Number(order.total)===0&&Number(order.storeCreditUsed)>0)return {orderId:order.id,creditOnly:true,summary};
+    if (!secret || !publishableKey) {
+      throw new ServiceUnavailableException(
+        'Pagamento Stripe ainda não configurado no servidor',
+      );
+    }
 
     if (order.stripePaymentIntentId) {
       const existing = await retrieveStripeIntent(order.stripePaymentIntentId);
@@ -108,6 +110,25 @@ export class PaymentsService {
       publishableKey,
       summary,
     };
+  }
+
+  async confirmCredit(orderId:string,authorization?:string){
+    const user=await this.auth.authenticate(authorization);
+    if(user.role!==UserRole.CUSTOMER)throw new ForbiddenException('Acesso exclusivo de cliente');
+    const result=await this.prisma.$transaction(async tx=>{
+      await tx.$queryRaw`SELECT "id" FROM "Order" WHERE "id"=${orderId} FOR UPDATE`;
+      const order=await tx.order.findFirst({where:{id:orderId,customerId:user.id,adminDeletedAt:null}});
+      if(!order)throw new BadRequestException('Pedido não encontrado');
+      if(Number(order.total)!==0||Number(order.storeCreditUsed)<=0||order.stripePaymentIntentId)throw new BadRequestException('Este pedido precisa do pagamento restante pelo Stripe');
+      if(order.paymentStatus===PaymentStatus.PAID)return {order,changed:false};
+      if(order.status!==OrderStatus.PENDING||!['PENDING','FAILED'].includes(order.paymentStatus))throw new BadRequestException('Este pedido não pode ser confirmado');
+      const debit=await tx.customerCreditEntry.findUnique({where:{idempotencyKey:'order:'+order.id+':credit-use'}});
+      if(!debit||debit.customerId!==user.id||Math.round(-Number(debit.amount)*100)!==Math.round(Number(order.storeCreditUsed)*100)||Math.round(Number(order.storeCreditUsed)*100)!==Math.round((Number(order.subtotal)+Number(order.deliveryFee))*100))throw new BadRequestException('Confirme o saldo do cartão antes de finalizar');
+      const updated=await tx.order.update({where:{id:order.id},data:{paymentStatus:PaymentStatus.PAID,status:OrderStatus.CONFIRMED}});
+      return {order:updated,changed:true};
+    });
+    if(result.changed){this.realtime.emitOrderUpdated(result.order);this.realtime.emitToUser(user.id,'customer.credit.updated',{orderId,at:new Date().toISOString()});}
+    return {paid:true,status:'succeeded',orderId};
   }
 
   async reconcile(orderId: string, authorization?: string) {

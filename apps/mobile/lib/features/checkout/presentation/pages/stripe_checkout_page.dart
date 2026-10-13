@@ -19,8 +19,10 @@ class StripeCheckoutPage extends StatefulWidget {
     required this.publishableKey,
     required this.orderId,
     this.summary,
+    this.creditOnly=false,
   });
 
+  final bool creditOnly;
   final String clientSecret;
   final String publishableKey;
   final String orderId;
@@ -63,6 +65,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
         _startPaymentCheck();
         return;
       }
+      if(widget.creditOnly){setState(()=>ready=true);return;}
       Stripe.publishableKey = widget.publishableKey;
       await Stripe.instance.applySettings();
 
@@ -155,7 +158,9 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
     });
 
     try {
-      if (kIsWeb) {
+      if(widget.creditOnly){
+        await AppState.instance.api.request('POST','/payments/confirm-credit',body:{'orderId':widget.orderId});
+      }else if (kIsWeb) {
         // On web the official Stripe.js Payment Element owns confirmation.
         // The server verifies Stripe before the order is treated as paid.
       } else {
@@ -424,8 +429,8 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
         const CheckoutProgress(step:2),const SizedBox(height:26),
         Container(padding:const EdgeInsets.all(23),decoration:BoxDecoration(gradient:const LinearGradient(colors:[AppColors.ocean900,AppColors.ocean700]),borderRadius:BorderRadius.circular(24)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
           const Row(children:[Icon(AppIcons.lock,color:AppColors.ocean300,size:18),SizedBox(width:9),Text('ÚLTIMO PASSO',style:TextStyle(color:Colors.white70,fontSize:10,fontWeight:FontWeight.w800,letterSpacing:1.7))]),const SizedBox(height:14),
-          Text(summary['total']==null?'Finalize sua compra':checkoutMoney(summary['total']),style:const TextStyle(color:Colors.white,fontSize:34,fontWeight:FontWeight.w800,letterSpacing:-1)),const SizedBox(height:6),
-          const Text('Tudo pronto. Escolha como pagar.',style:TextStyle(color:Colors.white70,fontSize:14,height:1.5)),
+          Text(summary['total']==null?'Finalize sua compra':checkoutMoney(widget.creditOnly?summary['storeCreditUsed']:summary['total']),style:const TextStyle(color:Colors.white,fontSize:34,fontWeight:FontWeight.w800,letterSpacing:-1)),const SizedBox(height:6),
+          Text(widget.creditOnly?'Produtos e entrega pagos com seu saldo.':'Tudo pronto. Escolha como pagar.',style:TextStyle(color:Colors.white70,fontSize:14,height:1.5)),
         ])),const SizedBox(height:16),
         if(address.isNotEmpty)Container(padding:const EdgeInsets.all(17),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(18),border:Border.all(color:AppColors.stroke)),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[const Icon(AppIcons.mapPin,color:AppColors.ocean700,size:21),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${address['label']??'Endereço de entrega'}',style:const TextStyle(fontWeight:FontWeight.w800)),const SizedBox(height:5),Text('${address['street']}, ${address['number']}',style:const TextStyle(fontSize:13,height:1.5)),if(distance!=null&&duration!=null)Text('$distance km por rota · aproximadamente $duration min',style:const TextStyle(fontSize:11,color:AppColors.muted,height:1.5))])),TextButton(onPressed:()=>_leave(),child:const Text('Revisar'))])),
         if(summary['total']!=null)Padding(padding:const EdgeInsets.symmetric(vertical:8),child:ExpansionTile(tilePadding:const EdgeInsets.symmetric(horizontal:4),childrenPadding:const EdgeInsets.fromLTRB(4,0,4,16),title:const Text('Resumo da compra',style:TextStyle(fontSize:14,fontWeight:FontWeight.w800)),subtitle:const Text('Produtos, entrega e saldo utilizado',style:TextStyle(fontSize:11,color:AppColors.muted)),children:[
@@ -433,17 +438,18 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
           const Divider(),CheckoutPriceLine(label:'Produtos',value:checkoutMoney(summary['subtotal'])),CheckoutPriceLine(label:'Entrega',value:checkoutMoney(summary['deliveryFee'])),if(credit>0)CheckoutPriceLine(label:'Saldo Porto Prime',value:'−${checkoutMoney(credit)}'),CheckoutPriceLine(label:'Total a pagar',value:checkoutMoney(summary['total']),strong:true),
         ])),
         const SizedBox(height:8),Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(24),border:Border.all(color:AppColors.stroke),boxShadow:AppShadows.soft),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-          const Row(children:[Icon(AppIcons.creditCard,color:AppColors.ocean700,size:22),SizedBox(width:10),Expanded(child:Text('Como você quer pagar?',style:TextStyle(fontSize:19,fontWeight:FontWeight.w800,letterSpacing:-.4)))]),const SizedBox(height:8),const Text('Preencha os dados abaixo. A confirmação é feita com segurança pelo Stripe.',style:TextStyle(color:AppColors.muted,fontSize:12,height:1.6)),const SizedBox(height:22),
+          const Row(children:[Icon(AppIcons.creditCard,color:AppColors.ocean700,size:22),SizedBox(width:10),Expanded(child:Text('Como você quer pagar?',style:TextStyle(fontSize:19,fontWeight:FontWeight.w800,letterSpacing:-.4)))]),const SizedBox(height:8),Text(widget.creditOnly?'Seu cartão Porto Prime paga esta compra.':'Preencha os dados abaixo. A confirmação é feita com segurança pelo Stripe.',style:TextStyle(color:AppColors.muted,fontSize:12,height:1.6)),const SizedBox(height:22),
           if(_paymentSubmitted)Container(padding:const EdgeInsets.all(20),decoration:BoxDecoration(color:AppColors.ocean50,borderRadius:BorderRadius.circular(18)),child:Column(children:[const Icon(AppIcons.shield,color:AppColors.ocean700,size:30),const SizedBox(height:12),const Text('Confirmando seu pedido',style:TextStyle(fontWeight:FontWeight.w800,fontSize:18)),const SizedBox(height:8),const Text('Estamos verificando o pagamento. Você não precisa pagar novamente.',textAlign:TextAlign.center,style:TextStyle(color:AppColors.muted,height:1.5)),if(paying)const Padding(padding:EdgeInsets.only(top:18),child:LinearProgressIndicator())]))
           else if(!ready&&error==null)const PrimeSkeleton(height:250,radius:18)
+          else if(ready&&widget.creditOnly)const Text('O saldo Porto Prime cobre os produtos e a entrega. Confirme abaixo para concluir, sem cobrança no Stripe.',style:TextStyle(color:AppColors.muted,height:1.6))
           else if(ready&&kIsWeb)StripeWebElement(publishableKey:widget.publishableKey,clientSecret:widget.clientSecret,onPaymentState:_onWebPaymentState)
           else if(ready)const Text('Toque em Pagar para escolher sua forma de pagamento no formulário seguro.',style:TextStyle(color:AppColors.muted,height:1.5)),
-          if(!kIsWeb&&ready&&!_paymentSubmitted)Padding(padding:const EdgeInsets.only(top:20),child:SizedBox(width:double.infinity,height:56,child:FilledButton.icon(onPressed:paying?null:_pay,icon:paying?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):const Icon(AppIcons.lock,size:17),label:Text(paying?'Processando…':'Pagar')))),
+          if((!kIsWeb||widget.creditOnly)&&ready&&!_paymentSubmitted)Padding(padding:const EdgeInsets.only(top:20),child:SizedBox(width:double.infinity,height:56,child:FilledButton.icon(onPressed:paying?null:_pay,icon:paying?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):const Icon(AppIcons.lock,size:17),label:Text(paying?'Processando…':widget.creditOnly?'Confirmar compra com saldo':'Pagar')))),
         ])),
         if(error!=null)Padding(padding:const EdgeInsets.only(top:14),child:PrimeErrorBanner(message:error!)),
         if(_paymentSubmitted&&!paying&&error!=null)Padding(padding:const EdgeInsets.only(top:12),child:FilledButton.icon(onPressed:_startPaymentCheck,icon:const Icon(AppIcons.refresh,size:17),label:const Text('Verificar meu pedido'))),
         if(!ready&&!_paymentSubmitted&&error!=null)TextButton.icon(onPressed:_configure,icon:const Icon(AppIcons.refresh,size:17),label:const Text('Carregar pagamento novamente')),
-        const SizedBox(height:18),const Row(children:[Icon(AppIcons.shield,size:16,color:AppColors.ocean700),SizedBox(width:9),Expanded(child:Text('Dados de pagamento protegidos pelo Stripe.',style:TextStyle(fontSize:11,color:AppColors.muted,height:1.5)))]),const SizedBox(height:12),TextButton(onPressed:()=>_leave(),child:const Text('Voltar à entrega e revisão')),
+        const SizedBox(height:18),Row(children:[const Icon(AppIcons.shield,size:16,color:AppColors.ocean700),const SizedBox(width:9),Expanded(child:Text(widget.creditOnly?'Pagamento com seu saldo Porto Prime.':'Dados de pagamento protegidos pelo Stripe.',style:TextStyle(fontSize:11,color:AppColors.muted,height:1.5)))]),const SizedBox(height:12),TextButton(onPressed:()=>_leave(),child:const Text('Voltar à entrega e revisão')),
       ])))),
     ));
   }

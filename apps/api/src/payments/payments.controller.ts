@@ -17,6 +17,9 @@ export class PaymentsController {
     return this.payments.createCheckout(body, authorization);
   }
 
+  @Post('confirm-credit')
+  confirmCredit(@Body() body:ReconcilePaymentDto,@Headers('authorization') authorization?:string){return this.payments.confirmCredit(body.orderId,authorization);}
+
   @Post('reconcile')
   reconcile(@Body() body: ReconcilePaymentDto, @Headers('authorization') authorization?: string) {
     return this.payments.reconcile(body.orderId, authorization);
