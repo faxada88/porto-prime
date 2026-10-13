@@ -50,7 +50,7 @@ class _CustomerCancellationPanelState extends State<CustomerCancellationPanel> {
           const SizedBox(height: 14),
           _RefundRow(icon: AppIcons.creditCard, label: 'Pagamento via Stripe', amount: record['cashRefund']),
           _RefundRow(icon: AppIcons.wallet, label: 'Cartão Porto Prime', amount: record['creditRefund']),
-          if ((double.tryParse('${record['fee']}') ?? 0) > 0) _RefundRow(icon: AppIcons.bike, label: 'Taxa repassada ao entregador', amount: record['fee']),
+          if ((double.tryParse('${record['fee']}') ?? 0) > 0) _RefundRow(icon: AppIcons.bike, label: 'Taxa de cancelamento', amount: record['fee']),
         ]),
       );
     }

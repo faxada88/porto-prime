@@ -541,7 +541,7 @@ export class OrdersService {
     const { profile } = await this.courier(authorization);
 
     const returning = await this.prisma.order.findFirst({where:{courierId:profile.id,cancellation:{is:{returnStatus:{in:['REQUIRED','IN_TRANSIT','ARRIVED']}}}},include:{items:true,cancellation:true,address:true,customer:{select:{name:true,phone:true}}}});
-    if(returning)return this.withoutDeliverySecrets(returning);
+    if(returning){const paid=await this.prisma.courierLedgerEntry.findUnique({where:{idempotencyKey:'cancel:'+returning.cancellation!.id+':courier'},select:{id:true}});return {...this.withoutDeliverySecrets(returning),returnFeePaid:!!paid};}
     const order = await this.prisma.order.findFirst({
       where: {
         courierId: profile.id,

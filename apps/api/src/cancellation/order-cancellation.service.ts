@@ -34,7 +34,7 @@ export class OrderCancellationService implements OnModuleInit,OnModuleDestroy {
    const record=await tx.orderCancellation.create({data:{orderId:id,customerId:u.id,courierId:order.courierId,paymentIntentId:order.stripePaymentIntentId,reason:input.reason,returnStatus:order.courierId&&['PICKED_UP','OUT_FOR_DELIVERY'].includes(order.status)?'REQUIRED':'NOT_REQUIRED',...amounts}});
    if(record.returnStatus==='REQUIRED')await tx.courierProfile.update({where:{id:record.courierId},data:{presenceStatus:'DELIVERING'}});
    await this.restoreCredit(tx,record);
-   if(cents(record.fee)>0&&record.courierId)await tx.courierLedgerEntry.upsert({where:{idempotencyKey:'cancel:'+record.id+':courier'},create:{courierId:record.courierId,orderId:id,type:'ADJUSTMENT_CREDIT',amount:record.fee,description:'Taxa de cancelamento · pedido #'+id.slice(-8).toUpperCase(),idempotencyKey:'cancel:'+record.id+':courier',metadata:{kind:'ORDER_CANCELLATION',cancellationId:record.id}},update:{}});
+   await this.payCourierFee(tx,record);
    await tx.deliveryOffer.updateMany({where:{orderId:id,status:'PENDING'},data:{status:'CANCELED',respondedAt:new Date(),canceledAt:new Date()}});
    const updated=await tx.order.update({where:{id},data:{status:'CANCELED',canceledAt:new Date(),activeOfferId:null,fulfillmentHold:true}});
    return {record,order:updated,couriers:[...new Set<string>([...offers.map((o:any)=>o.courierId),...(order.courierId?[order.courierId]:[])])]};
@@ -48,6 +48,11 @@ export class OrderCancellationService implements OnModuleInit,OnModuleDestroy {
   try{if(cents(result.record.fee)>0&&result.record.courierId){const courier=await this.db.courierProfile.findUnique({where:{id:result.record.courierId},select:{userId:true}});if(courier)this.realtime.emitToUser(courier.userId,'wallet.updated',{orderId:id});this.realtime.emitToRole('ADMIN','wallet.updated',{courierId:result.record.courierId});}}catch{this.logger.warn('Crédito registrado; atualização de carteira será recuperada na próxima consulta.');}
   void this.process(result.record.id).catch(()=>this.logger.warn('Cancelamento registrado; devolução será verificada novamente.'));
   return result.record;
+ }
+ private async payCourierFee(tx:any,record:any){
+  if(cents(record.fee)===0||!record.courierId||!['NOT_REQUIRED','CONFIRMED'].includes(record.returnStatus))return;
+  const key='cancel:'+record.id+':courier';
+  await tx.courierLedgerEntry.upsert({where:{idempotencyKey:key},create:{courierId:record.courierId,orderId:record.orderId,type:'ADJUSTMENT_CREDIT',amount:record.fee,description:(record.returnStatus==='CONFIRMED'?'Retorno confirmado':'Taxa de cancelamento')+' · pedido #'+record.orderId.slice(-8).toUpperCase(),idempotencyKey:key,metadata:{kind:'ORDER_CANCELLATION',cancellationId:record.id}},update:{}});
  }
  private async restoreCredit(tx:any,record:any){
   if(cents(record.creditRefund)===0)return;
@@ -96,7 +101,7 @@ export class OrderCancellationService implements OnModuleInit,OnModuleDestroy {
     await tx.$queryRaw`SELECT "id" FROM "Order" WHERE "id"=${record.orderId} FOR UPDATE`;
     const current=await tx.orderCancellation.findUnique({where:{id}});if(!current||current.status!=='PENDING')return false;
     await this.restoreCredit(tx,current);
-    if(cents(current.fee)>0&&current.courierId)await tx.courierLedgerEntry.upsert({where:{idempotencyKey:'cancel:'+id+':courier'},create:{courierId:current.courierId,orderId:current.orderId,type:'ADJUSTMENT_CREDIT',amount:current.fee,description:'Taxa de cancelamento · pedido #'+current.orderId.slice(-8).toUpperCase(),idempotencyKey:'cancel:'+id+':courier',metadata:{kind:'ORDER_CANCELLATION',cancellationId:id}},update:{}});
+    await this.payCourierFee(tx,current);
     const pending=await tx.orderItem.count({where:{orderId:current.orderId,availabilityStatus:'REFUND_PROCESSING',refundStatus:{not:'succeeded'}}});
     await tx.order.update({where:{id:current.orderId},data:{refundedTotal:{increment:current.cashRefund},paymentStatus:cents(current.fee)>0||pending>0?'PARTIALLY_REFUNDED':'REFUNDED'}});
     await tx.orderCancellation.update({where:{id},data:{status:'COMPLETED',completedAt:new Date(),lastError:null}});return true;
@@ -117,9 +122,11 @@ export class OrderCancellationService implements OnModuleInit,OnModuleDestroy {
    if(record.returnStatus===step)return record;
    const previous=step==='IN_TRANSIT'?'REQUIRED':step==='ARRIVED'?'IN_TRANSIT':'ARRIVED';
    if(record.returnStatus!==previous)throw new ConflictException('A etapa da devolução foi atualizada. Atualize a tela');
-   return tx.orderCancellation.update({where:{id},data:{returnStatus:step,...(step==='IN_TRANSIT'?{returnStartedAt:new Date()}:step==='ARRIVED'?{returnArrivedAt:new Date()}:{returnedAt:new Date(),returnConfirmedBy:user.id})}});
+   const updated=await tx.orderCancellation.update({where:{id},data:{returnStatus:step,...(step==='IN_TRANSIT'?{returnStartedAt:new Date()}:step==='ARRIVED'?{returnArrivedAt:new Date()}:{returnedAt:new Date(),returnConfirmedBy:user.id})}});
+   if(step==='CONFIRMED')await this.payCourierFee(tx,updated);
+   return updated;
   });
-  if(result.courierId){if(step==='CONFIRMED')await this.release(result.courierId);const courier=await this.db.courierProfile.findUnique({where:{id:result.courierId},select:{userId:true}});if(courier)this.realtime.emitToUser(courier.userId,'order.updated',{orderId:result.orderId});}
+  if(result.courierId){if(step==='CONFIRMED')await this.release(result.courierId);const courier=await this.db.courierProfile.findUnique({where:{id:result.courierId},select:{userId:true}});if(courier){this.realtime.emitToUser(courier.userId,'order.updated',{orderId:result.orderId});if(step==='CONFIRMED')this.realtime.emitToUser(courier.userId,'wallet.updated',{orderId:result.orderId});}if(step==='CONFIRMED')this.realtime.emitToRole('ADMIN','wallet.updated',{courierId:result.courierId});}
   await this.notify(result.orderId);return result;
  }
  private async notify(id:string){const order=await this.db.order.findUnique({where:{id}});if(order)this.realtime.emitOrderUpdated(order);}
