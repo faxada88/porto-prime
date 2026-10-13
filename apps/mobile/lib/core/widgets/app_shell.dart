@@ -79,7 +79,8 @@ class _AppShellState extends State<AppShell> {
       final index = AppNav.instance.index.value;
 
       return Scaffold(
-        extendBody: true,
+        // The cart has a fixed checkout action; reserve the navigation height.
+        extendBody: index != 2,
         body: Column(children:[if(state.publicHighDemand) const CustomerDemandNotice(),Expanded(child:IndexedStack(index:index,children:pages))]),
         bottomNavigationBar: SafeArea(
           minimum: const EdgeInsets.fromLTRB(14, 0, 14, 10),
