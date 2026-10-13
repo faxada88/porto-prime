@@ -33,3 +33,12 @@ A revisão automática bloqueou a execução do SDK Flutter local por tentativa 
 O instalador compila em uma pasta separada, conserva o bundle anterior e serve o novo em 8090. API, Admin, banco, rotas e Stripe CLI permanecem ligados. Os novos ícones nativos serão incorporados no próximo build da respectiva plataforma; o comando de Codespaces atualiza a versão web. As fontes e dependências existentes são preservadas.
 
 Referências técnicas primárias: https://docs.flutter.dev/perf/best-practices ; https://docs.flutter.dev/ui/animations ; https://api.flutter.dev/flutter/material/ThemeData-class.html ; https://pub.dev/packages/lucide_icons_flutter .
+
+
+## Refinamento de navegação e iconografia — 13/10/2026
+- Paleta preservada; nenhuma dependência adicionada.
+- Dez ilustrações vetoriais próprias de categorias, desenhadas em uma grade de 48 unidades, com traço de 2 unidades e preenchimento discreto. Categorias adicionais mantêm o fallback Lucide existente.
+- Home: busca e categorias antes da campanha compacta; títulos menores e ações diretas. Cartões sem fotografia usam a ilustração da categoria, sem simular uma fotografia de produto.
+- Cabeçalhos compartilhados mais compactos; navegação ativa em verde profundo com ícone dourado; carrinho com subtotal e próximo passo mais claros.
+- Ações de estado, navegação e chamadas à API comparadas com a versão anterior e preservadas. Backend, banco, autenticação, checkout e despacho não fazem parte desta alteração.
+- Sintaxe Dart verificada estaticamente. Testes Flutter e build são executados pelo atualizador no Codespaces antes de substituir o bundle em execução; não foram executados localmente nesta etapa.

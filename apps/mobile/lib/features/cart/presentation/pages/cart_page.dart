@@ -37,7 +37,7 @@ class _CartPageState extends State<CartPage> {
     final working=_opening||app.loading;
     return SafeArea(child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:680),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
       Padding(padding:const EdgeInsets.fromLTRB(20,18,20,18),child:Row(children:[
-        Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Seu carrinho Prime',style:TextStyle(fontSize:28,fontWeight:FontWeight.w800,letterSpacing:-.8)),const SizedBox(height:4),Text('${app.cartCount} ${app.cartCount==1?'item':'itens'}',style:const TextStyle(fontSize:12,color:AppColors.muted))])),
+        Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Seu carrinho',style:TextStyle(fontSize:28,fontWeight:FontWeight.w800,letterSpacing:-.8)),const SizedBox(height:4),Text('${app.cartCount} ${app.cartCount==1?'item':'itens'}',style:const TextStyle(fontSize:12,color:AppColors.muted))])),
         IconButton(tooltip:'Adicionar produtos',onPressed:AppNav.instance.home,icon:const Icon(AppIcons.plus,color:AppColors.ocean700)),
 
       ])),
@@ -49,7 +49,7 @@ class _CartPageState extends State<CartPage> {
       if(entries.isNotEmpty)Container(padding:const EdgeInsets.fromLTRB(20,16,20,18),decoration:BoxDecoration(color:Colors.white,borderRadius:const BorderRadius.vertical(top:Radius.circular(26)),border:const Border(top:BorderSide(color:AppColors.stroke)),boxShadow:[BoxShadow(color:AppColors.ocean900.withValues(alpha:.05),blurRadius:24,offset:const Offset(0,-5))]),child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.stretch,children:[
         Row(crossAxisAlignment:CrossAxisAlignment.center,children:[
           Container(width:42,height:42,decoration:BoxDecoration(color:AppColors.ocean50,borderRadius:BorderRadius.circular(13)),child:const Icon(AppIcons.cart,size:20,color:AppColors.ocean700)),const SizedBox(width:12),
-          const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Entrega é o próximo passo',style:TextStyle(fontSize:14,fontWeight:FontWeight.w800,color:AppColors.ocean900)),SizedBox(height:4),Text('Subtotal dos produtos',style:TextStyle(fontSize:11,color:AppColors.muted))])),
+          const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Subtotal',style:TextStyle(fontSize:14,fontWeight:FontWeight.w800,color:AppColors.ocean900)),SizedBox(height:4),Text('Entrega calculada a seguir',style:TextStyle(fontSize:11,color:AppColors.muted))])),
           Text(_brl(app.cartSubtotal),style:const TextStyle(fontSize:22,fontWeight:FontWeight.w800,color:AppColors.ocean900)),
         ]),
         if(app.storeStatusKnown&&!app.storeOpen)Padding(padding:const EdgeInsets.only(top:10),child:Text(app.storeMessage,style:const TextStyle(fontSize:12,color:AppColors.coralStrong,height:1.4))),
@@ -72,7 +72,7 @@ class _CartItem extends StatelessWidget {
     final price=double.tryParse('${product['price']}')??0;
     final image='${product['imageUrl']??''}';
     final name='${product['name']??'Produto'}';
-    return Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(AppRadius.lg),border:Border.all(color:AppColors.stroke)),child:Column(children:[
+    return Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(AppRadius.lg),border:Border.all(color:AppColors.stroke),boxShadow:AppShadows.soft),child:Column(children:[
       Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
         Container(width:76,height:76,padding:const EdgeInsets.all(8),decoration:BoxDecoration(color:AppColors.surfaceSoft,borderRadius:BorderRadius.circular(12)),child:image.isEmpty?const Icon(AppIcons.package,size:27,color:AppColors.ocean700):Image.network(image,fit:BoxFit.contain,filterQuality:FilterQuality.medium,errorBuilder:(_,__,___)=>const Icon(AppIcons.package,size:27,color:AppColors.ocean700))),
         const SizedBox(width:12),Expanded(child:Padding(padding:const EdgeInsets.only(top:4),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(name,maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:15,fontWeight:FontWeight.w700,height:1.4)),if(qty>1)Padding(padding:const EdgeInsets.only(top:5),child:Text('${_brl(price)} cada',style:const TextStyle(fontSize:11,color:AppColors.muted)))]))),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../state/app_state.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
+import 'prime_category_artwork.dart';
 
 class PrimeProductCard extends StatefulWidget {
   const PrimeProductCard({super.key, required this.product, this.onOpen});
@@ -72,11 +73,11 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(
-                  color: _hovered
+                  color: qty > 0 ? AppColors.ocean300 : _hovered
                       ? AppColors.ocean300.withValues(alpha: .72)
                       : AppColors.stroke,
                 ),
-                boxShadow: _hovered ? AppShadows.elevated : null,
+                boxShadow: _hovered ? AppShadows.elevated : AppShadows.soft,
               ),
               clipBehavior: Clip.antiAlias,
               child: LayoutBuilder(
@@ -118,10 +119,10 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                                         fit: BoxFit.contain,
                                         filterQuality: FilterQuality.medium,
                                         errorBuilder: (_, __, ___) =>
-                                            const _FallbackProduct(),
+                                            _FallbackProduct(icon: AppIcons.category(category)),
                                       ),
                                     )
-                                  : const _FallbackProduct(),
+                                  : _FallbackProduct(icon: AppIcons.category(category)),
                             ),
                             if (discount != null)
                               Positioned(
@@ -465,7 +466,8 @@ class _QtyButton extends StatelessWidget {
 }
 
 class _FallbackProduct extends StatelessWidget {
-  const _FallbackProduct();
+  const _FallbackProduct({required this.icon});
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) => Center(
@@ -476,7 +478,7 @@ class _FallbackProduct extends StatelessWidget {
         color: AppColors.ocean50,
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
-      child: const Icon(AppIcons.cart, color: AppColors.ocean700, size: 28),
+      child: PrimeCategoryArtwork(icon: icon, color: AppColors.ocean700, size: 42),
     ),
   );
 }

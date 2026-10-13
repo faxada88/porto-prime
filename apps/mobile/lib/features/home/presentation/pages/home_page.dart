@@ -98,33 +98,12 @@ class HomePage extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.lg,
-                        14,
-                        AppSpacing.lg,
-                        0,
-                      ),
-                      child: _Hero(onTap: () => AppNav.instance.go(1)),
-                    ),
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: AppControl.maxContentWidth,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg,
                         24,
                         AppSpacing.lg,
                         10,
                       ),
                       child: PrimeSectionHeader(
-                        eyebrow: 'EXPLORE',
-                        title: 'Categorias',
-                        subtitle:
-                            'Encontre seu favorito.',
+                        title: 'O que você procura?',
                         actionLabel: 'Ver tudo',
                         onAction: () => AppNav.instance.go(1),
                       ),
@@ -156,14 +135,31 @@ class HomePage extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.lg,
+                        14,
+                        AppSpacing.lg,
+                        0,
+                      ),
+                      child: _Hero(onTap: () => AppNav.instance.go(1)),
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: AppControl.maxContentWidth,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
                         26,
                         AppSpacing.lg,
                         10,
                       ),
                       child: const PrimeSectionHeader(
-                        eyebrow: 'DESTAQUES',
-                        title: 'Gelou, chegou',
-                        subtitle: 'Uma seleção rápida para começar.',
+                        title: 'Escolha e adicione',
+                        subtitle: 'Seus produtos, a um toque do carrinho.',
                       ),
                     ),
                   ),
@@ -189,9 +185,7 @@ class HomePage extends StatelessWidget {
                         10,
                       ),
                       child: const PrimeSectionHeader(
-                        eyebrow: 'PORTO PRIME',
                         title: 'Para o seu momento',
-                        subtitle: 'Praia, encontro, descanso ou festa — escolha no seu ritmo.',
                       ),
                     ),
                   ),
@@ -212,8 +206,7 @@ class HomePage extends StatelessWidget {
                         10,
                       ),
                       child: const PrimeSectionHeader(
-                        eyebrow: 'RECOMENDADOS',
-                        title: 'Mais opções para você',
+                        title: 'Continue explorando',
                       ),
                     ),
                   ),
@@ -359,16 +352,32 @@ class _Header extends StatelessWidget {
 }
 
 class _Hero extends StatelessWidget {
- const _Hero({required this.onTap});final VoidCallback onTap;
- @override Widget build(BuildContext context)=>LayoutBuilder(builder:(context,box){final wide=box.maxWidth>=560;return Material(color:AppColors.ocean900,borderRadius:BorderRadius.circular(30),clipBehavior:Clip.antiAlias,child:InkWell(onTap:onTap,child:Stack(children:[
-  const Positioned.fill(child:PrimeCoastArtwork()),
-  Padding(padding:const EdgeInsets.all(24),child:SizedBox(width:wide?box.maxWidth*.62:double.infinity,child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-   const Text('PORTO SEGURO, NA SUA PORTA.',style:TextStyle(color:AppColors.ocean300,fontSize:10,fontWeight:FontWeight.w800,letterSpacing:1.3)),const SizedBox(height:16),
-   Text('Aproveite o momento.\nDeixa com a Prime.',style:TextStyle(color:Colors.white,fontSize:wide?38:29,height:1.13,fontWeight:FontWeight.w800,letterSpacing:-1)),const SizedBox(height:12),
-   const Text('Seu catálogo de bebidas e conveniência,\ncom a cara de Porto Seguro.',style:TextStyle(color:Color(0xFFD5E8E3),fontSize:13,height:1.6)),const SizedBox(height:20),
-   Container(padding:const EdgeInsets.symmetric(horizontal:15,vertical:12),decoration:BoxDecoration(color:AppColors.sun500,borderRadius:BorderRadius.circular(14)),child:const Row(mainAxisSize:MainAxisSize.min,children:[Icon(AppIcons.cart,color:AppColors.ocean900,size:18),SizedBox(width:10),Flexible(child:Text('Encontrar meu próximo pedido',style:TextStyle(color:AppColors.ocean900,fontSize:12,fontWeight:FontWeight.w800))),SizedBox(width:12),Icon(AppIcons.arrowRight,color:AppColors.ocean900,size:16)])),
-  ]))),
- ])));});
+ const _Hero({required this.onTap});
+ final VoidCallback onTap;
+ @override
+ Widget build(BuildContext context) => Material(
+  color: AppColors.ocean900, borderRadius: BorderRadius.circular(24),
+  clipBehavior: Clip.antiAlias,
+  child: InkWell(onTap: onTap, child: Stack(children: [
+   const Positioned.fill(child: PrimeCoastArtwork()),
+   Padding(padding: const EdgeInsets.all(20), child: Row(children: [
+    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+     const Text('SEU MOMENTO, SEM PAUSA', style: TextStyle(color: AppColors.ocean300,
+      fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1)),
+     const SizedBox(height: 10),
+     Text('O melhor de Porto.\nNa sua porta.', style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+      color: Colors.white, fontSize: 26, height: 1.15, letterSpacing: -.8)),
+     const SizedBox(height: 12),
+     const Text('Explorar o catálogo →', style: TextStyle(color: AppColors.sun500,
+      fontSize: 13, fontWeight: FontWeight.w800)),
+    ])),
+    const SizedBox(width: 12),
+    Container(width: 54, height: 54, decoration: BoxDecoration(
+     color: AppColors.sun500, borderRadius: BorderRadius.circular(18)),
+     child: const Icon(AppIcons.cart, size: 28, color: AppColors.ocean900)),
+   ])),
+  ])),
+ );
 }
 
 class _CategoryGrid extends StatelessWidget {

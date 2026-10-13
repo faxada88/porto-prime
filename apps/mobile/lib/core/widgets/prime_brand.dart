@@ -29,15 +29,35 @@ class _CoastPainter extends CustomPainter {
 class PrimeEditorialHeader extends StatelessWidget {
  const PrimeEditorialHeader({super.key,required this.title,required this.subtitle,required this.icon,this.eyebrow='PORTO PRIME'});
  final String title,subtitle,eyebrow;final IconData icon;
- @override Widget build(BuildContext context)=>Container(width:double.infinity,padding:const EdgeInsets.all(24),decoration:BoxDecoration(color:AppColors.surface,borderRadius:BorderRadius.circular(AppRadius.xl),border:Border.all(color:AppColors.stroke)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-  Row(children:[Container(width:38,height:38,decoration:BoxDecoration(color:AppColors.ocean50,borderRadius:BorderRadius.circular(13)),child:Icon(icon,color:AppColors.ocean700,size:20)),const SizedBox(width:12),Expanded(child:Text(eyebrow,style:const TextStyle(color:AppColors.ocean700,fontSize:10,fontWeight:FontWeight.w800,letterSpacing:1.3))),const PrimeBrandMark(size:30)]),
-  const SizedBox(height:22),Text(title,style:Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize:28,letterSpacing:-.8)),const SizedBox(height:9),Text(subtitle,style:Theme.of(context).textTheme.bodySmall?.copyWith(height:1.6)),
- ]));
+ @override
+ Widget build(BuildContext context) => Container(
+  width: double.infinity,
+  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+  decoration: BoxDecoration(color: AppColors.surface,
+   borderRadius: BorderRadius.circular(AppRadius.xl),
+   border: Border.all(color: AppColors.stroke)),
+  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+   Container(width: 48, height: 48,
+    decoration: BoxDecoration(color: AppColors.ocean900,
+     borderRadius: BorderRadius.circular(16)),
+    child: Icon(icon, color: AppColors.sun500, size: 24)),
+   const SizedBox(width: 14),
+   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Text(eyebrow, style: const TextStyle(color: AppColors.ocean700,
+     fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1)),
+    const SizedBox(height: 7),
+    Text(title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+     fontSize: 24, height: 1.15, letterSpacing: -.7)),
+    const SizedBox(height: 8),
+    Text(subtitle, style: Theme.of(context).textTheme.bodySmall?.copyWith(height: 1.5)),
+   ])),
+  ]),
+ );
 }
 class PrimePageIntro extends StatelessWidget {
  const PrimePageIntro({super.key,required this.title,required this.subtitle,required this.icon,this.label='PORTO PRIME'});
  final String title,subtitle,label;final IconData icon;
- @override Widget build(BuildContext context)=>Padding(padding:const EdgeInsets.only(bottom:24),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(label,style:const TextStyle(fontSize:10,color:AppColors.ocean700,fontWeight:FontWeight.w800,letterSpacing:1.2)),const SizedBox(height:10),Text(title,style:Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize:28,letterSpacing:-.8)),const SizedBox(height:8),Text(subtitle,style:const TextStyle(fontSize:13,color:AppColors.muted,height:1.6))])),const SizedBox(width:16),Container(width:48,height:48,decoration:BoxDecoration(color:AppColors.sand100,borderRadius:BorderRadius.circular(16)),child:Icon(icon,size:23,color:AppColors.ocean900))]));
+ @override Widget build(BuildContext context)=>Padding(padding:const EdgeInsets.only(bottom:18),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(label,style:const TextStyle(fontSize:10,color:AppColors.ocean700,fontWeight:FontWeight.w800,letterSpacing:1.2)),const SizedBox(height:7),Text(title,style:Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize:26,height:1.2,letterSpacing:-.8)),const SizedBox(height:8),Text(subtitle,style:const TextStyle(fontSize:13,color:AppColors.muted,height:1.6))])),const SizedBox(width:16),Container(width:48,height:48,decoration:BoxDecoration(color:AppColors.sand100,borderRadius:BorderRadius.circular(16)),child:Icon(icon,size:23,color:AppColors.ocean900))]));
 }
 
 class PrimeBalancePanel extends StatelessWidget {

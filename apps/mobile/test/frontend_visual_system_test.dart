@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:porto_prime/core/widgets/prime_category_artwork.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porto_prime/core/theme/app_icons.dart';
 import 'package:porto_prime/core/theme/app_theme.dart';
@@ -35,4 +36,17 @@ void main() {
   await tester.pump();
   expect(taps, 1);
  });
+ testWidgets('Original category vectors paint on the shared optical grid', (tester) async {
+  final icons = [AppIcons.beer, AppIcons.wine, AppIcons.spirits,
+   AppIcons.softDrink, AppIcons.energy, AppIcons.water, AppIcons.ice,
+   AppIcons.convenience, AppIcons.combo, AppIcons.offers, AppIcons.all];
+  await tester.pumpWidget(MaterialApp(home: Scaffold(body: Wrap(children: [
+   for (final icon in icons) Padding(padding: const EdgeInsets.all(8),
+    child: PrimeCategoryArtwork(icon: icon, color: AppColors.ocean700)),
+  ]))));
+  await tester.pump();
+  expect(find.byType(PrimeCategoryArtwork), findsNWidgets(11));
+  expect(tester.takeException(), isNull);
+ });
+
 }

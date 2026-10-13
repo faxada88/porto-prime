@@ -33,7 +33,7 @@ class PrimeSectionHeader extends StatelessWidget {
             ),
             const SizedBox(height: 5),
           ],
-          Text(title, style: Theme.of(context).textTheme.headlineMedium),
+          Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -.5)),
           if (subtitle != null) ...[
             const SizedBox(height: 5),
             Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),

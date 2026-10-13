@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/app_icons.dart';
+import 'prime_category_artwork.dart';
 import '../theme/app_theme.dart';
 
 class PrimeCategoryTile extends StatefulWidget {
@@ -117,9 +118,9 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                       width: iconBox,
                       height: iconBox,
                       decoration: BoxDecoration(
-                        color: selected ? AppColors.ocean100 : visual.background,
+                        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [visual.background, selected ? AppColors.ocean100 : AppColors.surface]),
                         boxShadow: [BoxShadow(color: visual.foreground.withValues(alpha: .045), blurRadius: 10, offset: const Offset(0, 4))],
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
+                        borderRadius: BorderRadius.circular(22),
                         border: Border.all(
                           color: selected
                               ? visual.foreground.withValues(alpha: .13)
@@ -143,9 +144,9 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                           ),
                           Transform.translate(
                             offset: visual.offset,
-                            child: Icon(
-                              visual.icon,
-                              size: visual.size - (compact ? 2 : 0),
+                            child: PrimeCategoryArtwork(
+                              icon: visual.icon,
+                              size: compact ? 37 : 42,
                               color: visual.foreground,
                             ),
                           ),

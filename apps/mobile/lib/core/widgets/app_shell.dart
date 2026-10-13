@@ -131,7 +131,7 @@ class _AppShellState extends State<AppShell> {
                 _item(
                   value: 3,
                   icon: AppIcons.user,
-                  label: 'Perfil',
+                  label: 'Conta',
                   current: index,
                 ),
               ],
@@ -164,10 +164,10 @@ class _AppShellState extends State<AppShell> {
             curve: AppMotion.curve,
             margin: const EdgeInsets.symmetric(horizontal: 2),
             decoration: BoxDecoration(
-              color: selected ? AppColors.ocean50 : Colors.transparent,
+              color: Colors.transparent,
               borderRadius: BorderRadius.circular(AppRadius.md),
               border: Border.all(
-                color: selected ? AppColors.ocean100 : Colors.transparent,
+                color: Colors.transparent,
               ),
             ),
             child: Stack(
@@ -184,7 +184,7 @@ class _AppShellState extends State<AppShell> {
                       height: 30,
                       decoration: BoxDecoration(
                         color: selected
-                            ? AppColors.ocean100
+                            ? AppColors.ocean900
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
@@ -192,7 +192,7 @@ class _AppShellState extends State<AppShell> {
                       child: Icon(
                         icon,
                         size: AppIconSize.md,
-                        color: selected ? AppColors.ocean700 : AppColors.muted,
+                        color: selected ? AppColors.sun500 : AppColors.muted,
                       ),
                     ),
                     const SizedBox(height: 3),
