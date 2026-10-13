@@ -523,8 +523,8 @@ class AppState extends ChangeNotifier {
   Future<void> updateAddress(String id,Map<String,dynamic>d)async{await api.request('PATCH','/addresses/$id',body:d);await loadAddresses();}
   Future<void> removeAddress(String id)async{await api.request('DELETE','/addresses/$id');await loadAddresses();}
   Future<int> clearPendingOrders()async{if(!isCustomer)return 0;final x=Map<String,dynamic>.from(await api.request('DELETE','/orders/pending'));await Future.wait([loadOrders(),loadActiveOrder()]);return (x['deleted'] as num?)?.toInt()??0;}
-  Future<void> loadOrders()async{if(!isCustomer)return;orders=List<dynamic>.from(await api.request('GET','/orders/mine'));try{await loadCustomerCredit();}catch(_){}notifyListeners();}
-  Future<void> loadActiveOrder()async{if(!isCustomer)return;final x=await api.request('GET','/orders/active');activeOrder=x==null?null:Map<String,dynamic>.from(x);notifyListeners();}
+  Future<void> loadOrders()async{if(!isCustomer)return;final customerId=user?['id'];final result=await api.request('GET','/orders/mine');if(!isCustomer||user?['id']!=customerId)return;orders=List<dynamic>.from(result);try{await loadCustomerCredit();}catch(_){}if(isCustomer&&user?['id']==customerId)notifyListeners();}
+  Future<void> loadActiveOrder()async{if(!isCustomer)return;final customerId=user?['id'];final x=await api.request('GET','/orders/active');if(!isCustomer||user?['id']!=customerId)return;activeOrder=x==null?null:Map<String,dynamic>.from(x);notifyListeners();}
 
   Future<void>? _courierRefreshFuture;
 

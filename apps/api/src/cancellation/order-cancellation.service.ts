@@ -32,12 +32,14 @@ export class OrderCancellationService implements OnModuleInit,OnModuleDestroy {
    if(amounts.cashRefund>0&&!order.stripePaymentIntentId)throw new ConflictException('A loja precisa verificar a referência do pagamento antes deste cancelamento');
    const offers=await tx.deliveryOffer.findMany({where:{orderId:id,status:'PENDING'},select:{courierId:true}});
    const record=await tx.orderCancellation.create({data:{orderId:id,customerId:u.id,courierId:order.courierId,paymentIntentId:order.stripePaymentIntentId,reason:input.reason,...amounts}});
+   await this.restoreCredit(tx,record);
    if(cents(record.fee)>0&&record.courierId)await tx.courierLedgerEntry.upsert({where:{idempotencyKey:'cancel:'+record.id+':courier'},create:{courierId:record.courierId,orderId:id,type:'ADJUSTMENT_CREDIT',amount:record.fee,description:'Taxa de cancelamento · pedido #'+id.slice(-8).toUpperCase(),idempotencyKey:'cancel:'+record.id+':courier',metadata:{kind:'ORDER_CANCELLATION',cancellationId:record.id}},update:{}});
    await tx.deliveryOffer.updateMany({where:{orderId:id,status:'PENDING'},data:{status:'CANCELED',respondedAt:new Date(),canceledAt:new Date()}});
    const updated=await tx.order.update({where:{id},data:{status:'CANCELED',canceledAt:new Date(),activeOfferId:null,fulfillmentHold:true}});
    return {record,order:updated,couriers:[...new Set<string>([...offers.map((o:any)=>o.courierId),...(order.courierId?[order.courierId]:[])])]};
   });
   this.realtime.emitOrderUpdated(result.order);
+  if(cents(result.record.creditRefund)>0)this.realtime.emitToUser(result.record.customerId,'customer.credit.updated',{orderId:id});
   for(const courierId of result.couriers){
    this.realtime.emitToCourier(courierId,'delivery.offer.closed',{orderId:id,reason:'Pedido cancelado pelo cliente'});
    try{await this.release(courierId);}catch{this.logger.warn('Cancelamento registrado; disponibilidade será verificada novamente.');}
@@ -45,6 +47,15 @@ export class OrderCancellationService implements OnModuleInit,OnModuleDestroy {
   try{if(cents(result.record.fee)>0&&result.record.courierId){const courier=await this.db.courierProfile.findUnique({where:{id:result.record.courierId},select:{userId:true}});if(courier)this.realtime.emitToUser(courier.userId,'wallet.updated',{orderId:id});this.realtime.emitToRole('ADMIN','wallet.updated',{courierId:result.record.courierId});}}catch{this.logger.warn('Crédito registrado; atualização de carteira será recuperada na próxima consulta.');}
   void this.process(result.record.id).catch(()=>this.logger.warn('Cancelamento registrado; devolução será verificada novamente.'));
   return result.record;
+ }
+ private async restoreCredit(tx:any,record:any){
+  if(cents(record.creditRefund)===0)return;
+  await lockCustomerCredit(tx,record.customerId);
+  const key='cancel:'+record.id+':credit';
+  const existing=await tx.customerCreditEntry.findUnique({where:{idempotencyKey:key},select:{id:true}});
+  if(existing)return;
+  await tx.customerCreditEntry.upsert({where:{idempotencyKey:key},create:{customerId:record.customerId,orderId:record.orderId,amount:record.creditRefund,idempotencyKey:key,description:'Saldo devolvido por cancelamento do pedido'},update:{}});
+  await tx.order.update({where:{id:record.orderId},data:{creditedTotal:{increment:record.creditRefund}}});
  }
  private async release(courierId:string){
   await this.db.$transaction(async tx=>{
@@ -74,16 +85,17 @@ export class OrderCancellationService implements OnModuleInit,OnModuleDestroy {
    const record=await this.db.orderCancellation.findUnique({where:{id}});if(!record||record.status!=='PENDING')return;
    const closed=await this.db.deliveryOffer.findMany({where:{orderId:record.orderId,status:'CANCELED'},select:{courierId:true}});
    for(const courierId of new Set<string>([...closed.map(o=>o.courierId),...(record.courierId?[record.courierId]:[])]))await this.release(courierId);
+   await this.db.$transaction(async tx=>{await tx.$queryRaw`SELECT "id" FROM "Order" WHERE "id"=${record.orderId} FOR UPDATE`;await this.restoreCredit(tx,record);});
    const refund=await this.refund(record);
    if(cents(record.cashRefund)>0){await this.db.orderCancellation.updateMany({where:{id,status:'PENDING'},data:{stripeRefundId:refund.id,stripeRefundStatus:refund.status,...(['failed','canceled','requires_action'].includes(refund.status)?{status:'REVIEW',lastError:'A devolução precisa de verificação pela loja.'}:{})}});}
    if(refund.status!=='succeeded'){await this.notify(record.orderId);return;}
    const settled=await this.db.$transaction(async tx=>{
     await tx.$queryRaw`SELECT "id" FROM "Order" WHERE "id"=${record.orderId} FOR UPDATE`;
     const current=await tx.orderCancellation.findUnique({where:{id}});if(!current||current.status!=='PENDING')return false;
-    if(cents(current.creditRefund)>0){await lockCustomerCredit(tx,current.customerId);await tx.customerCreditEntry.upsert({where:{idempotencyKey:'cancel:'+id+':credit'},create:{customerId:current.customerId,orderId:current.orderId,amount:current.creditRefund,idempotencyKey:'cancel:'+id+':credit',description:'Saldo devolvido por cancelamento do pedido'},update:{}});}
+    await this.restoreCredit(tx,current);
     if(cents(current.fee)>0&&current.courierId)await tx.courierLedgerEntry.upsert({where:{idempotencyKey:'cancel:'+id+':courier'},create:{courierId:current.courierId,orderId:current.orderId,type:'ADJUSTMENT_CREDIT',amount:current.fee,description:'Taxa de cancelamento · pedido #'+current.orderId.slice(-8).toUpperCase(),idempotencyKey:'cancel:'+id+':courier',metadata:{kind:'ORDER_CANCELLATION',cancellationId:id}},update:{}});
     const pending=await tx.orderItem.count({where:{orderId:current.orderId,availabilityStatus:'REFUND_PROCESSING',refundStatus:{not:'succeeded'}}});
-    await tx.order.update({where:{id:current.orderId},data:{refundedTotal:{increment:current.cashRefund},creditedTotal:{increment:current.creditRefund},paymentStatus:cents(current.fee)>0||pending>0?'PARTIALLY_REFUNDED':'REFUNDED'}});
+    await tx.order.update({where:{id:current.orderId},data:{refundedTotal:{increment:current.cashRefund},paymentStatus:cents(current.fee)>0||pending>0?'PARTIALLY_REFUNDED':'REFUNDED'}});
     await tx.orderCancellation.update({where:{id},data:{status:'COMPLETED',completedAt:new Date(),lastError:null}});return true;
    });
    if(settled){this.realtime.emitToUser(record.customerId,'customer.credit.updated',{orderId:record.orderId});if(record.courierId){const courier=await this.db.courierProfile.findUnique({where:{id:record.courierId},select:{userId:true}});if(courier)this.realtime.emitToUser(courier.userId,'wallet.updated',{orderId:record.orderId});this.realtime.emitToRole('ADMIN','wallet.updated',{courierId:record.courierId});}await this.notify(record.orderId);}

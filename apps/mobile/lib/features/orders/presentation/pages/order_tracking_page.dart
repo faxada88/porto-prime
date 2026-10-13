@@ -114,7 +114,6 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 34),
               children: [
                 _Hero(order: current, status: status, id: widget.orderId),
-                if(status=='SEARCHING_COURIER')const Padding(padding:EdgeInsets.only(top:16),child:CourierSearchNotice()),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(settings:RouteSettings(name:'/delivery-chat/${widget.orderId}'),builder:(_)=>DeliveryChatPage(orderId:widget.orderId))),icon:const Icon(AppIcons.mail,size:18),label:const Text('Conversar sobre a entrega')),
                 const SizedBox(height:16),
@@ -328,6 +327,7 @@ class _Hero extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 22),
+        if (status == 'SEARCHING_COURIER') const CourierSearchNotice() else ...[
         Text(
           _title(status),
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -342,6 +342,7 @@ class _Hero extends StatelessWidget {
             context,
           ).textTheme.bodySmall?.copyWith(color: const Color(0xFFD4ECE7)),
         ),
+        ],
         const SizedBox(height: 22),
         Row(
           children: [
@@ -418,7 +419,7 @@ class _Journey extends StatelessWidget {
       child: Column(
         children: [
           for (var i = 0; i < stages.length; i++)
-            _Stage(
+            if (!(status == 'SEARCHING_COURIER' && i == 4)) _Stage(
               icon: stages[i].$3,
               title: stages[i].$1,
               subtitle: stages[i].$2,

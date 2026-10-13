@@ -3,6 +3,9 @@ import {cancellationAmounts} from './cancellation-policy.js';
 const now=new Date('2026-10-13T12:00:00Z');
 function order(age:number,extra:any={}){return {paidAt:new Date(now.getTime()-age),createdAt:new Date(now.getTime()-age),total:61,deliveryFee:16,storeCreditUsed:0,refundedTotal:0,items:[{total:45}],...extra};}
 describe('Cancelamento em centavos',()=>{
+ it('pagamento misto dentro do prazo devolve integralmente cada origem',()=>expect(cancellationAmounts(order(60000,{total:11,storeCreditUsed:50}),true,now)).toEqual({fee:0,cashRefund:11,creditRefund:50}));
+ it('a taxa não excede a parcela Stripe; o restante retido vem do saldo, uma única vez',()=>expect(cancellationAmounts(order(999999,{total:2,storeCreditUsed:59}),true,now)).toEqual({fee:8,cashRefund:0,creditRefund:53}));
+
  it.each([0,119999,120000])('sem custo até dois minutos, mesmo com aceite (%s)',age=>expect(cancellationAmounts(order(age),true,now)).toEqual({fee:0,cashRefund:61,creditRefund:0}));
  it('cobra exatamente metade da entrega após a janela',()=>expect(cancellationAmounts(order(120001),true,now)).toEqual({fee:8,cashRefund:53,creditRefund:0}));
  it('sem aceite não cobra taxa mesmo após a janela',()=>expect(cancellationAmounts(order(999999),false,now)).toEqual({fee:0,cashRefund:61,creditRefund:0}));

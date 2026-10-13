@@ -2,6 +2,7 @@ import 'dart:async';
 import '../../features/support/presentation/pages/delivery_chat_page.dart';
 import 'package:flutter/material.dart';
 import 'customer_demand_notice.dart';
+import 'active_order_shortcut.dart';
 
 import '../../features/cart/presentation/pages/cart_page.dart';
 import '../../features/categories/presentation/pages/categories_page.dart';
@@ -28,11 +29,19 @@ class _AppShellState extends State<AppShell> {
     ProfilePage(),
   ];
 
+  Timer? _orderSync;
+  bool _syncingOrder = false;
   int _chatEpoch=0;
   bool _openingChat=false;
   @override
   void initState() {
     super.initState();
+    _orderSync = Timer.periodic(const Duration(seconds: 12), (_) async {
+      final state = AppState.instance;
+      if (_syncingOrder || !state.isCustomer || AppNav.instance.observer.top?.isFirst == false) return;
+      _syncingOrder = true;
+      try { await Future.wait([state.loadActiveOrder(), state.loadOrders()]); } catch (_) {} finally { _syncingOrder = false; }
+    });
     AppNav.instance.index.addListener(_changed);
     AppState.instance.addListener(_incomingChat);
     WidgetsBinding.instance.addPostFrameCallback((_){if(mounted)_incomingChat();});
@@ -42,6 +51,7 @@ class _AppShellState extends State<AppShell> {
   void dispose() {
     AppNav.instance.index.removeListener(_changed);
     AppState.instance.removeListener(_incomingChat);
+    _orderSync?.cancel();
     super.dispose();
   }
 
@@ -77,11 +87,15 @@ class _AppShellState extends State<AppShell> {
       if (state.isCourier) return const CourierPage();
 
       final index = AppNav.instance.index.value;
+      final liveOrder = index == 2 ? null : customerLiveOrder(state);
 
       return Scaffold(
         // The cart has a fixed checkout action; reserve the navigation height.
-        extendBody: index != 2,
-        body: Column(children:[if(state.publicHighDemand) const CustomerDemandNotice(),Expanded(child:IndexedStack(index:index,children:pages))]),
+        extendBody: index != 2 && liveOrder == null,
+        body: Column(children:[if(state.publicHighDemand) const CustomerDemandNotice(),Expanded(child:Stack(children:[
+          Positioned.fill(child:Padding(padding:EdgeInsets.only(bottom:liveOrder == null ? 0 : 98),child:IndexedStack(index:index,children:pages))),
+          if(liveOrder != null) Positioned(left:14,right:14,bottom:12,child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:520),child:ActiveOrderShortcut(order:liveOrder)))),
+        ]))]),
         bottomNavigationBar: SafeArea(
           minimum: const EdgeInsets.fromLTRB(14, 0, 14, 10),
           child: Container(
