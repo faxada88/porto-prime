@@ -155,7 +155,8 @@ abstract final class AppResponsive {
   }
 
   static double categoryHeight(BuildContext context) =>
-      120.0 +
+      // Reserve room for the 64px icon, two label lines, padding and borders.
+      128.0 +
       (MediaQuery.textScalerOf(context).scale(12) - 12)
               .clamp(0, 32)
               .toDouble() *
