@@ -10,7 +10,7 @@ afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();vi.clearAllMocks()});
 function fixture(open:boolean,existing=false){
  vi.stubEnv('STRIPE_SECRET_KEY','test');vi.stubEnv('STRIPE_PUBLISHABLE_KEY','test');
  const fetcher=vi.fn(async(_url:string,_init:RequestInit)=>({ok:true,json:async()=>({id:'pi_test',client_secret:'test'})}));vi.stubGlobal('fetch',fetcher);
- const prisma:any={order:{findFirst:vi.fn(async()=>({id:'o',customerId:'u',total:20,paymentStatus:'PENDING',stripePaymentIntentId:existing?'pi_old':null})),update:vi.fn()},deliveryPricingConfig:{findUnique:vi.fn(async()=>({storeOpen:open,storeMessage:'Loja fechada. Voltamos em breve.'}))}};
+ const prisma:any={order:{findFirst:vi.fn(async()=>({id:'o',customerId:'u',total:20,subtotal:14.5,deliveryFee:5.5,storeCreditUsed:0,routeDistanceKm:2,routeDurationMinutes:8,address:{label:'Casa',street:'Rua A',number:'10',city:'Porto Seguro'},items:[{productName:'Produto',quantity:1,unitPrice:14.5,total:14.5}],paymentStatus:'PENDING',stripePaymentIntentId:existing?'pi_old':null})),update:vi.fn()},deliveryPricingConfig:{findUnique:vi.fn(async()=>({storeOpen:open,storeMessage:'Loja fechada. Voltamos em breve.'}))}};
  return{prisma,fetcher,service:new PaymentsService(prisma,{authenticate:async()=>({id:'u',role:'CUSTOMER',email:'u@example.test'})} as any,{} as any)};
 }
 const request={orderId:'o',successUrl:'https://example.test/s',cancelUrl:'https://example.test/c'};
@@ -22,5 +22,10 @@ describe('Store closure and checkout',()=>{
 });
 
 describe('Stripe usa total com adicional já incluído',()=>{
- it('cobra subtotal mais entrega final exatamente uma vez',async()=>{const f=fixture(true);f.prisma.order.findFirst.mockResolvedValue({id:'o',customerId:'u',total:28,deliveryFee:8,courierDemandBonus:2.5,demandSurchargeIncluded:true,paymentStatus:'PENDING',stripePaymentIntentId:null});await f.service.createCheckout(request);const body=f.fetcher.mock.calls[0][1].body as URLSearchParams;expect(body.get('amount')).toBe('2800')});
+ it('cobra subtotal mais entrega final exatamente uma vez',async()=>{const f=fixture(true);f.prisma.order.findFirst.mockResolvedValue({id:'o',customerId:'u',total:28,subtotal:20,storeCreditUsed:0,items:[],deliveryFee:8,courierDemandBonus:2.5,demandSurchargeIncluded:true,paymentStatus:'PENDING',stripePaymentIntentId:null});await f.service.createCheckout(request);const body=f.fetcher.mock.calls[0][1].body as URLSearchParams;expect(body.get('amount')).toBe('2800')});
+});
+
+describe('Authenticated checkout review',()=>{
+ it('returns the frozen totals and delivery address without secrets or delivery PIN',async()=>{const f=fixture(true);const result=await f.service.createCheckout(request);expect(result.summary).toMatchObject({subtotal:14.5,deliveryFee:5.5,storeCreditUsed:0,total:20,distanceKm:2,durationMinutes:8,address:{street:'Rua A'},items:[{productName:'Produto',quantity:1,total:14.5}]});expect(result.summary).not.toHaveProperty('deliveryPin');expect(result.summary).not.toHaveProperty('customerId');expect(f.prisma.order.findFirst).toHaveBeenCalledWith(expect.objectContaining({where:{id:'o',customerId:'u',adminDeletedAt:null}}));});
+ it('reuses the same payment intent and summary when returning to payment',async()=>{const f=fixture(true,true);vi.mocked(retrieveStripeIntent).mockResolvedValue({id:'pi_old',status:'requires_payment_method',client_secret:'existing_secret'} as any);const result=await f.service.createCheckout(request);expect(result.paymentIntentId).toBe('pi_old');expect(result.summary.total).toBe(20);expect(f.fetcher).not.toHaveBeenCalled();});
 });

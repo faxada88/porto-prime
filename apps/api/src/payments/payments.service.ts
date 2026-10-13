@@ -44,9 +44,11 @@ export class PaymentsService {
 
     const order = await this.prisma.order.findFirst({
       where: { id: data.orderId, customerId: user.id, adminDeletedAt:null },
+      include:{address:{select:{label:true,street:true,number:true,complement:true,neighborhood:true,city:true,state:true}},items:{select:{productName:true,quantity:true,unitPrice:true,total:true}}},
     });
 
     if (!order) throw new BadRequestException('Pedido não encontrado');
+    const summary={subtotal:Number(order.subtotal),deliveryFee:Number(order.deliveryFee),storeCreditUsed:Number(order.storeCreditUsed),total:Number(order.total),distanceKm:order.routeDistanceKm==null?null:Number(order.routeDistanceKm),durationMinutes:order.routeDurationMinutes,address:order.address,items:order.items.map(item=>({productName:item.productName,quantity:item.quantity,unitPrice:Number(item.unitPrice),total:Number(item.total)}))};
     if (order.paymentStatus === PaymentStatus.PAID) {
       throw new BadRequestException('Este pedido já está pago');
     }
@@ -60,7 +62,7 @@ export class PaymentsService {
       if (existing.status !== 'canceled') {
         if (!existing.client_secret) throw new ServiceUnavailableException('Não foi possível recuperar o pagamento. Tente novamente mais tarde.');
         if (existing.status === 'succeeded') await this.completePayment(existing);
-        return { orderId: order.id, paymentIntentId: existing.id, clientSecret: existing.client_secret, publishableKey };
+        return { orderId: order.id, paymentIntentId: existing.id, clientSecret: existing.client_secret, publishableKey, summary };
       }
     }
 
@@ -104,6 +106,7 @@ export class PaymentsService {
       paymentIntentId: payload.id,
       clientSecret: payload.client_secret,
       publishableKey,
+      summary,
     };
   }
 

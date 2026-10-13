@@ -1,3 +1,5 @@
+import '../../../../core/navigation/app_nav.dart';
+import '../../../checkout/presentation/widgets/checkout_progress.dart';
 import '../../../../core/widgets/customer_credit_selector.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -9,8 +11,9 @@ import '../../../../core/widgets/prime_ui.dart';
 String _money(dynamic value) => 'R\$ ${(double.tryParse(value.toString()) ?? 0).toStringAsFixed(2).replaceAll('.', ',')}';
 
 class AddressBookPage extends StatefulWidget {
-  const AddressBookPage({super.key, this.selectForCheckout = false});
+  const AddressBookPage({super.key, this.selectForCheckout = false, this.onContinue});
   final bool selectForCheckout;
+  final Future<void> Function(Map<String,dynamic> selection)? onContinue;
   @override
   State<AddressBookPage> createState() => _AddressBookState();
 }
@@ -18,7 +21,7 @@ class _AddressBookState extends State<AddressBookPage> {
   final app = AppState.instance;
   String? selected, error;
   Map<String,dynamic> quote = {};
-  bool loading = false, managing = false;
+  bool loading = false, managing = false, preparing = false;
   int generation = 0, epoch = 0;
   @override
   void initState() {
@@ -63,8 +66,46 @@ class _AddressBookState extends State<AddressBookPage> {
     } catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(PrimeMessages.friendly(e))));}
     finally{if(mounted)setState(()=>managing=false);}
   }
+  Future<void> _continueCheckout() async {
+    if(preparing||loading||managing||quote.isEmpty||error!=null||selected==null)return;
+    final selection=<String,dynamic>{'addressId':selected,'quote':Map<String,dynamic>.from(quote),'storeCreditRequested':app.selectedCustomerCredit(double.tryParse(quote['storeCreditBalance'].toString())??0)};
+    if(widget.onContinue==null){Navigator.pop(context,selection);return;}
+    setState(()=>preparing=true);
+    try{await widget.onContinue!(selection);}
+    catch(e){if(mounted){setState(()=>error=PrimeMessages.friendly(e));}}
+    finally{if(mounted)setState(()=>preparing=false);}
+  }
+  Widget _checkoutView(BuildContext context){
+    final balance=double.tryParse(quote['storeCreditBalance'].toString())??0;
+    final credit=app.selectedCustomerCredit(balance);
+    final fee=double.tryParse(quote['deliveryFee'].toString())??0;
+    final valid=selected!=null&&quote.isNotEmpty&&error==null&&!loading&&!managing&&!preparing&&app.cart.isNotEmpty;
+    return PopScope(canPop:true,child:Scaffold(backgroundColor:AppColors.canvas,
+      appBar:AppBar(title:const Text('Entrega e revisão'),leading:IconButton(tooltip:'Voltar ao carrinho',onPressed:()=>Navigator.of(context).pop(),icon:const Icon(AppIcons.arrowLeft)),actions:[IconButton(tooltip:'Voltar ao início',onPressed:AppNav.instance.home,icon:const Icon(AppIcons.home))]),
+      body:SafeArea(child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:680),child:Column(children:[
+       Expanded(child:ListView(padding:const EdgeInsets.fromLTRB(22,12,22,24),children:[
+        const CheckoutProgress(step:1),const SizedBox(height:28),
+        const Text('Onde seu pedido vai chegar?',style:TextStyle(fontSize:27,fontWeight:FontWeight.w800,letterSpacing:-.8)),const SizedBox(height:8),
+        const Text('Confirme a entrega, revise o total e siga para pagar.',style:TextStyle(color:AppColors.muted,height:1.5)),const SizedBox(height:22),
+        Row(children:[const Expanded(child:Text('Endereço de entrega',style:TextStyle(fontWeight:FontWeight.w800,fontSize:16))),TextButton.icon(onPressed:preparing||managing?null:()=>_edit(),icon:const Icon(AppIcons.plus,size:17),label:const Text('Adicionar'))]),
+        if(app.addresses.isEmpty)PrimeEmptyState(icon:AppIcons.mapPin,title:'Seu primeiro endereço',message:'Informe a rua, hotel ou ponto de entrega para calcularmos a rota.',actionLabel:'Adicionar endereço',onAction:()=>_edit()),
+        ...app.addresses.map((raw){final a=Map<String,dynamic>.from(raw as Map);final chosen=a['id']==selected;return Container(margin:const EdgeInsets.only(bottom:10),decoration:BoxDecoration(color:chosen?AppColors.ocean50:Colors.white,borderRadius:BorderRadius.circular(18),border:Border.all(color:chosen?AppColors.ocean600:AppColors.stroke,width:chosen?1.5:1)),child:InkWell(borderRadius:BorderRadius.circular(18),onTap:preparing||managing?null:(){setState(()=>selected=a['id'].toString());_calculate();},child:Padding(padding:const EdgeInsets.all(17),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Icon(chosen?AppIcons.check:AppIcons.mapPin,color:chosen?AppColors.ocean700:AppColors.muted,size:22),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${a['label']??'Entrega'}',style:const TextStyle(fontSize:16,fontWeight:FontWeight.w800)),const SizedBox(height:5),Text('${a['street']}, ${a['number']}',style:const TextStyle(height:1.5)),if('${a['complement']??''}'.isNotEmpty)Text('${a['complement']}',style:const TextStyle(color:AppColors.muted,height:1.5)),Text('${a['neighborhood']} · ${a['city']}',style:const TextStyle(fontSize:12,color:AppColors.muted,height:1.5))])),IconButton(tooltip:'Editar endereço',onPressed:preparing||managing?null:()=>_edit(a),icon:const Icon(AppIcons.edit_rounded,size:17))]))));}),
+        if(loading)const Padding(padding:EdgeInsets.symmetric(vertical:12),child:PrimeSkeleton(height:78,radius:18)),
+        if(!loading&&quote.isNotEmpty)Container(padding:const EdgeInsets.all(17),margin:const EdgeInsets.only(top:8),decoration:BoxDecoration(color:AppColors.ocean900,borderRadius:BorderRadius.circular(18)),child:Row(children:[const Icon(AppIcons.route,color:AppColors.ocean300),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Entrega Prime',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w800)),const SizedBox(height:5),Text('${quote['distanceKm']??'—'} km por rota · aproximadamente ${quote['durationMinutes']??'—'} min',style:const TextStyle(color:Colors.white70,fontSize:12,height:1.5))])),Text(_money(fee),style:const TextStyle(color:Colors.white,fontWeight:FontWeight.w800,fontSize:18))])),
+        if(error!=null)Padding(padding:const EdgeInsets.only(top:14),child:Column(children:[PrimeErrorBanner(message:error!),TextButton.icon(onPressed:preparing?null:_calculate,icon:const Icon(AppIcons.refresh,size:16),label:const Text('Atualizar entrega e tentar novamente'))])),
+        const SizedBox(height:24),
+        Container(padding:const EdgeInsets.all(20),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(22),border:Border.all(color:AppColors.stroke)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Row(children:[const Icon(AppIcons.cart,size:20,color:AppColors.ocean700),const SizedBox(width:9),Expanded(child:Text('Sua compra · ${app.cartCount} itens',style:const TextStyle(fontWeight:FontWeight.w800,fontSize:16)))]),const SizedBox(height:14),
+         ...app.cart.entries.map((entry){final product=app.product(entry.key);return Padding(padding:const EdgeInsets.symmetric(vertical:5),child:Row(children:[Text('${entry.value}×',style:const TextStyle(color:AppColors.ocean700,fontWeight:FontWeight.w800)),const SizedBox(width:10),Expanded(child:Text('${product?['name']??'Produto'}',maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:13))),const SizedBox(width:10),Text(_money((double.tryParse('${product?['price']}')??0)*entry.value),style:const TextStyle(fontSize:13,fontWeight:FontWeight.w700))]));}),
+         const Padding(padding:EdgeInsets.symmetric(vertical:14),child:Divider(height:1)),CheckoutPriceLine(label:'Produtos',value:_money(app.cartSubtotal)),CheckoutPriceLine(label:'Entrega',value:loading?'Calculando…':quote.isEmpty?'Selecione um endereço':_money(fee)),if(credit>0)CheckoutPriceLine(label:'Saldo Porto Prime escolhido',value:'−${_money(credit)}'),
+        ])),
+        if(quote.isNotEmpty&&!loading)AbsorbPointer(absorbing:preparing,child:CustomerCreditSelector(available:balance)),
+        const SizedBox(height:8),const Row(children:[Icon(AppIcons.shield,size:16,color:AppColors.ocean700),SizedBox(width:8),Expanded(child:Text('Na próxima etapa, seus dados de pagamento ficam com o Stripe.',style:TextStyle(fontSize:12,color:AppColors.muted,height:1.5)))]),
+       ])),
+       Container(padding:const EdgeInsets.fromLTRB(22,16,22,18),decoration:const BoxDecoration(color:Colors.white,border:Border(top:BorderSide(color:AppColors.stroke))),child:Column(mainAxisSize:MainAxisSize.min,children:[CheckoutPriceLine(label:'Total a pagar',value:quote.isEmpty||loading?'—':_money(app.cartSubtotal+fee-credit),strong:true),const SizedBox(height:10),SizedBox(width:double.infinity,height:54,child:FilledButton.icon(onPressed:valid?_continueCheckout:null,icon:preparing?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):const Icon(AppIcons.arrowRight,size:18),label:Text(preparing?'Preparando pagamento seguro…':'Ir para pagamento seguro'))),const SizedBox(height:7),const Text('Você ainda não será cobrado nesta etapa.',style:TextStyle(fontSize:11,color:AppColors.muted))])),
+      ]))))));
+  }
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => widget.selectForCheckout?_checkoutView(context):Scaffold(
     appBar:AppBar(title:Text(widget.selectForCheckout?'Onde vamos entregar?':'Seus endereços')),
     body:SafeArea(child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:680),child:ListView(padding:const EdgeInsets.all(20),children:[
       Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(gradient:const LinearGradient(colors:[AppColors.midnight,AppColors.ocean700]),borderRadius:BorderRadius.circular(24),boxShadow:AppShadows.elevated),child:const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Icon(AppIcons.mapPin,color:AppColors.mint,size:28),SizedBox(height:14),Text('Seu pedido, no lugar certo.',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w800,fontSize:24)),SizedBox(height:8),Text('Informe seu endereço. Nós calculamos a entrega para você, sem abrir mapas.',style:TextStyle(color:Color(0xFFD2E6E3),height:1.5))])),

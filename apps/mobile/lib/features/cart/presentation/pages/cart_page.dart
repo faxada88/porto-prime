@@ -1,5 +1,5 @@
-import '../../../../core/widgets/customer_credit_selector.dart';
-import '../../../addresses/presentation/pages/address_book_page.dart';
+import '../../../checkout/presentation/pages/checkout_flow_page.dart';
+import '../../../checkout/presentation/widgets/checkout_progress.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/prime_brand.dart';
 
@@ -8,12 +8,20 @@ import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/prime_ui.dart';
-import '../../../checkout/presentation/pages/stripe_checkout_page.dart';
 import '../../../orders/presentation/pages/order_tracking_page.dart';
 
-class CartPage extends StatelessWidget {
+class CartPage extends StatefulWidget {
   const CartPage({super.key});
-
+  @override
+  State<CartPage> createState()=>_CartPageState();
+}
+class _CartPageState extends State<CartPage> {
+  bool _opening=false;
+  Future<void> _startCheckout() async {
+    if(_opening)return;
+    setState(()=>_opening=true);
+    try{await _checkout(context);}finally{if(mounted)setState(()=>_opening=false);}
+  }
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: AppState.instance,
@@ -28,12 +36,14 @@ class CartPage extends StatelessWidget {
 
       return SafeArea(
         bottom: false,
-        child: PrimePageViewport(child: ListView(
+        child: PrimePageViewport(child: Column(children:[Expanded(child:ListView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 22, 20, 120),
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 24),
           children: [
-            const PrimeEditorialHeader(title: 'Seu carrinho', subtitle: 'Escolha feita. Agora é só revisar e aproveitar.', icon: AppIcons.cart, eyebrow: 'QUASE CHEGANDO'),
+            const PrimeEditorialHeader(title: 'Seu carrinho', subtitle: 'Seus favoritos, a poucos passos de chegar.', icon: AppIcons.cart, eyebrow: 'PORTO PRIME · SUA COMPRA'),
             const SizedBox(height: 20),
+            const CheckoutProgress(step:0),
+            Align(alignment:Alignment.centerLeft,child:TextButton.icon(onPressed:AppNav.instance.home,icon:const Icon(AppIcons.plus,size:16),label:const Text('Continuar comprando'))),
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -47,7 +57,7 @@ class CartPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        'Revise tudo antes de seguir para o pagamento.',
+                        'A próxima etapa confirma o endereço e a entrega.',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -74,7 +84,7 @@ class CartPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 22),
-            _Delivery(quote: s.deliveryQuote),
+            if(entries.isNotEmpty) _Delivery(quote: s.deliveryQuote),
             const SizedBox(height: 14),
 
             if (entries.isEmpty)
@@ -85,7 +95,6 @@ class CartPage extends StatelessWidget {
                 const SizedBox(height: 10),
               ],
               const SizedBox(height: 10),
-              const CustomerCreditSelector(),
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
@@ -112,7 +121,7 @@ class CartPage extends StatelessWidget {
                       child: Divider(height: 1),
                     ),
                     if(credit>0) _Price('Voucher aplicado', '−${_brl(credit)}'),
-                    _Price('Total', _brl(total), strong: true),
+                    _Price(quotedFee==null?'Produtos':'Total estimado', _brl(total), strong: true),
                   ],
                 ),
               ),
@@ -121,49 +130,14 @@ class CartPage extends StatelessWidget {
                 child: Text(s.storeMessage, style: const TextStyle(color: Color(0xFF795D28), height:1.5)),
               ),
               const SizedBox(height: 14),
-              InkWell(
-                onTap: s.loading || !s.storeOpen ? null : () => _checkout(context),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                child: Container(
-                  height: 58,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppColors.ocean800,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    boxShadow: AppShadows.elevated,
-                  ),
-                  child: s.loading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              !s.storeStatusKnown ? 'Verificando disponibilidade…' : s.storeOpen ? 'Continuar para pagamento' : 'Loja fechada no momento',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: AppFontWeight.display,
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Icon(
-                              AppIcons.arrowRight,
-                              color: Colors.white,
-                              size: 19,
-                            ),
-                          ],
-                        ),
-                ),
-              ),
             ],
           ],
         )),
+        if(entries.isNotEmpty)Container(padding:const EdgeInsets.fromLTRB(20,14,20,16),decoration:const BoxDecoration(color:Colors.white,border:Border(top:BorderSide(color:AppColors.stroke))),child:Column(mainAxisSize:MainAxisSize.min,children:[
+          Row(children:[Expanded(child:Text(quotedFee==null?'Produtos no carrinho':'Total estimado',style:const TextStyle(fontSize:12,color:AppColors.muted))),Text(_brl(total),style:const TextStyle(fontSize:23,fontWeight:FontWeight.w800,color:AppColors.ocean900))]),const SizedBox(height:10),
+          SizedBox(width:double.infinity,height:54,child:FilledButton.icon(onPressed:_opening||s.loading||!s.storeStatusKnown||!s.storeOpen?null:_startCheckout,icon:s.loading?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):const Icon(AppIcons.arrowRight,size:18),label:Text(_opening||s.loading?'Preparando…':!s.storeStatusKnown?'Verificando loja…':s.storeOpen?'Escolher entrega':'Loja fechada no momento'))),
+        ])),
+        ])),
       );
     },
   );
@@ -454,98 +428,12 @@ class _Price extends StatelessWidget {
   );
 }
 
-class _CheckoutStages extends StatelessWidget {
-  const _CheckoutStages();
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceOcean,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.ocean100),
-        ),
-        child: const Row(
-          children: [
-            _CheckoutStage(icon: AppIcons.mapPin, label: 'Endereço', active: true),
-            _StageConnector(active: true),
-            _CheckoutStage(icon: AppIcons.route, label: 'Entrega', active: true),
-            _StageConnector(active: false),
-            _CheckoutStage(icon: AppIcons.creditCard, label: 'Pagamento'),
-          ],
-        ),
-      );
-}
-
-class _CheckoutStage extends StatelessWidget {
-  const _CheckoutStage({
-    required this.icon,
-    required this.label,
-    this.active = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-        child: Column(
-          children: [
-            Container(
-              width: 31,
-              height: 31,
-              decoration: BoxDecoration(
-                color: active ? AppColors.ocean800 : AppColors.surface,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: active ? AppColors.ocean800 : AppColors.strokeStrong,
-                ),
-              ),
-              child: Icon(
-                icon,
-                size: 14,
-                color: active ? Colors.white : AppColors.subtle,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              label,
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: AppFontSize.caption,
-                fontWeight: AppFontWeight.display,
-                color: active ? AppColors.ocean800 : AppColors.subtle,
-              ),
-            ),
-          ],
-        ),
-      );
-}
-
-class _StageConnector extends StatelessWidget {
-  const _StageConnector({required this.active});
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-        child: Container(
-          height: 2,
-          margin: const EdgeInsets.only(bottom: 17),
-          decoration: BoxDecoration(
-            color: active ? AppColors.ocean300 : AppColors.stroke,
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-          ),
-        ),
-      );
-}
-
 class _EmptyCart extends StatelessWidget {
   const _EmptyCart();
 
   @override
   Widget build(BuildContext context) => PrimeEmptyState(
-        icon: AppIcons.bag,
+        icon: AppIcons.cart,
         title: 'Seu carrinho está vazio',
         message:
             'Escolha seus produtos favoritos e volte aqui para finalizar.',
@@ -567,60 +455,15 @@ Future<void> _checkout(BuildContext context) async {
     return;
   }
 
-  final selection = await Navigator.of(context).push<Map<String,dynamic>>(
-    MaterialPageRoute(builder: (_) => const AddressBookPage(selectForCheckout: true)),
-  );
-  if (selection == null || !context.mounted) return;
-  final selected=selection['addressId'].toString();
-  final agreed=Map<String,dynamic>.from(selection['quote']);
-
-  try {
-    final order = await s.createOrder(selected,pricingRevision:(agreed['pricingRevision'] as num?)?.toInt(),expectedDeliveryFee:(agreed['deliveryFee'] as num?)?.toDouble(),storeCreditRequested:(selection['storeCreditRequested'] as num?)?.toDouble()??0,expectedTotal:s.cartSubtotal+(double.tryParse(agreed['deliveryFee'].toString())??0)-((selection['storeCreditRequested'] as num?)?.toDouble()??0));
-    if (!context.mounted) return;
-
-    final orderId = order['id'].toString();
-    final payment = await s.createCheckout(orderId);
-    if (!context.mounted) return;
-
-    final result = await Navigator.of(context).push<String>(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => StripeCheckoutPage(
-          clientSecret: payment['clientSecret'].toString(),
-          publishableKey: payment['publishableKey'].toString(),
-          orderId: orderId,
-        ),
-      ),
-    );
-
-    if (!context.mounted) return;
-
-    if (result == 'track') {
-      s.clearCart();
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => OrderTrackingPage(orderId: orderId),
-        ),
-      );
-    } else if (result == 'shop') {
-      s.clearCart();
-      AppNav.instance.go(0);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Pedido criado. Você pode concluir o pagamento depois.',
-          ),
-        ),
-      );
-    }
-  } catch (e) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(PrimeMessages.friendly(e)),
-        ),
-      );
-    }
+  final result=await Navigator.of(context).push<Map<String,dynamic>>(MaterialPageRoute(builder:(_)=>const CheckoutFlowPage()));
+  if(!context.mounted||result==null)return;
+  final action=result['result'];
+  if(action=='track'){
+    s.clearCart();
+    await Navigator.of(context).push(MaterialPageRoute(builder:(_)=>OrderTrackingPage(orderId:result['orderId'].toString())));
+  }else if(action=='shop'){
+    s.clearCart();AppNav.instance.home();
+  }else if(action=='home'){
+    AppNav.instance.home();
   }
 }
