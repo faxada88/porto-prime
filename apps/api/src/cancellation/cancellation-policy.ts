@@ -15,7 +15,8 @@ export function cancellationAmounts(order:any,accepted:boolean,now=new Date()){
  const cash=Math.max(0,cents(order.total)-cashReturned),credit=Math.max(0,cents(order.storeCreditUsed)-creditReturned);
  const paidAt=new Date(order.paidAt??order.createdAt);
  const late=Number.isFinite(paidAt.getTime())&&now.getTime()-paidAt.getTime()>120000;
- const fee=accepted&&late?Math.min(cash+credit,Math.round(cents(order.deliveryFee)/2)):0;
+ const collected=accepted&&['PICKED_UP','OUT_FOR_DELIVERY'].includes(order.status);
+ const fee=collected?Math.min(cash+credit,cents(order.deliveryFee)):accepted&&late?Math.min(cash+credit,Math.round(cents(order.deliveryFee)/2)):0;
  const cashFee=Math.min(fee,cash),creditFee=fee-cashFee;
  return {fee:fee/100,cashRefund:(cash-cashFee)/100,creditRefund:(credit-creditFee)/100};
 }

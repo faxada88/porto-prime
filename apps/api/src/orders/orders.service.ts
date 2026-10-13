@@ -423,10 +423,7 @@ export class OrdersService {
         this.prisma.order.findFirst({
           where: {
             courierId: profile.id,
-            adminDeletedAt:null,
-            status: {
-              notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED],
-            },
+            OR:[{adminDeletedAt:null,status:{notIn:[OrderStatus.DELIVERED,OrderStatus.CANCELED]}},{cancellation:{is:{returnStatus:{in:['REQUIRED','IN_TRANSIT','ARRIVED']}}}}],
           },
           select: { id: true },
         }),
@@ -543,6 +540,8 @@ export class OrdersService {
   async courierCurrent(authorization?: string) {
     const { profile } = await this.courier(authorization);
 
+    const returning = await this.prisma.order.findFirst({where:{courierId:profile.id,cancellation:{is:{returnStatus:{in:['REQUIRED','IN_TRANSIT','ARRIVED']}}}},include:{items:true,cancellation:true,address:true,customer:{select:{name:true,phone:true}}}});
+    if(returning)return this.withoutDeliverySecrets(returning);
     const order = await this.prisma.order.findFirst({
       where: {
         courierId: profile.id,

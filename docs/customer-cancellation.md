@@ -13,3 +13,9 @@ Validação local: testes automatizados de API e compilação TypeScript/Next. N
 O modal tem altura limitada, conteúdo rolável e ações fixas; a busca tem um único destaque no acompanhamento. Um atalho flutuante aparece na navegação principal (fora do carrinho), somente para pedidos pagos ativos. Eventos existentes atualizam o atalho e uma consulta periódica recupera alterações quando a tela principal está aberta.
 
 A parcela utilizada do Cartão Porto Prime volta em transação no cancelamento, independentemente de atraso ou falha Stripe. A parcela Stripe volta pela referência original do pagamento. A taxa é abatida uma única vez, da parcela Stripe primeiro; se insuficiente, o restante vem do crédito utilizado. Retentativas recuperam registros anteriores sem duplicar o saldo ou o repasse.
+
+## Cancelamento após coleta
+
+Aceite sem coleta mantém a regra anterior: até dois minutos sem custo, depois 50% da taxa. Após PICKED_UP ou OUT_FOR_DELIVERY, retém 100% da taxa, inclusive dentro da janela inicial, e repassa ao entregador. O cliente revisa os valores antes de confirmar.
+
+A devolução física tem estados REQUIRED → IN_TRANSIT → ARRIVED → CONFIRMED separados do estorno financeiro. Só o motoboy atribuído pode iniciar e registrar chegada; só o Admin confirma produtos recebidos. Até essa confirmação, a operação permanece ativa para o motoboy e ele é excluído de novos despachos, O pedido em devolução só pode ser removido após a confirmação do recebimento, para preservar a conferência dos produtos. A confirmação fica registrada com usuário e horário. Migração aditiva sem reset; Script update-delivery-return.sh atualiza e reinicia API/Admin/app.

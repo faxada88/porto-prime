@@ -119,7 +119,7 @@ class _CancellationSheetState extends State<_CancellationSheet> {
           const SizedBox(height: 16),
           if (value('fee') > 0) ...[
             _RefundRow(icon: AppIcons.bike, label: 'Taxa de cancelamento', amount: quote['fee']),
-            const Text('Este valor já foi descontado das devoluções acima e será repassado integralmente ao entregador que aceitou seu pedido.', style: TextStyle(fontSize: 12, color: AppColors.muted, height: 1.5)),
+            const Text('Este valor já foi descontado das devoluções acima e será repassado ao entregador. Após a coleta, a taxa de entrega é retida integralmente para cobrir o retorno à distribuidora.', style: TextStyle(fontSize: 12, color: AppColors.muted, height: 1.5)),
           ] else const Text('Cancelamento sem custo.', style: TextStyle(color: AppColors.ocean700, fontWeight: FontWeight.w700)),
           const SizedBox(height: 16), const Text('O saldo retorna ao Cartão Porto Prime. O prazo do estorno Stripe depende da instituição financeira.', style: TextStyle(fontSize: 12, color: AppColors.muted, height: 1.5)),
           if (error != null) Padding(padding: const EdgeInsets.only(top: 16), child: PrimeErrorBanner(message: error!)),

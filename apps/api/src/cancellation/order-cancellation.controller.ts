@@ -12,5 +12,8 @@ export class OrderCancellationController {
  constructor(private readonly service:OrderCancellationService){}
  @Get('orders/:id/cancellation-quote') quote(@Param('id') id:string,@Headers('authorization') auth?:string){return this.service.quote(id,auth);}
  @Post('orders/:id/cancel') cancel(@Param('id') id:string,@Body() input:CancelOrderDto,@Headers('authorization') auth?:string){return this.service.cancel(id,input,auth);}
+ @Post('orders/cancellations/:id/return/start') start(@Param('id') id:string,@Headers('authorization') auth?:string){return this.service.returnStep(id,'IN_TRANSIT',auth);}
+ @Post('orders/cancellations/:id/return/arrived') arrived(@Param('id') id:string,@Headers('authorization') auth?:string){return this.service.returnStep(id,'ARRIVED',auth);}
+ @Post('admin/cancellations/:id/return/confirm') confirm(@Param('id') id:string,@Headers('authorization') auth?:string){return this.service.returnStep(id,'CONFIRMED',auth);}
  @Post('admin/cancellations/:id/retry') retry(@Param('id') id:string,@Headers('authorization') auth?:string){return this.service.retry(id,auth);}
 }

@@ -708,6 +708,11 @@ model OrderCancellation {
  status String @default("PENDING")
  stripeRefundId String?
  stripeRefundStatus String?
+ returnStatus String @default("NOT_REQUIRED")
+ returnStartedAt DateTime?
+ returnArrivedAt DateTime?
+ returnedAt DateTime?
+ returnConfirmedBy String?
  refundAttempt Int @default(0)
  refundHistory Json @default("[]")
  lastError String?

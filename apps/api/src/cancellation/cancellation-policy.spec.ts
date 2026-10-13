@@ -3,6 +3,8 @@ import {cancellationAmounts} from './cancellation-policy.js';
 const now=new Date('2026-10-13T12:00:00Z');
 function order(age:number,extra:any={}){return {paidAt:new Date(now.getTime()-age),createdAt:new Date(now.getTime()-age),total:61,deliveryFee:16,storeCreditUsed:0,refundedTotal:0,items:[{total:45}],...extra};}
 describe('Cancelamento em centavos',()=>{
+ it.each(['PICKED_UP','OUT_FOR_DELIVERY'])('coleta ou rota %s retém entrega inteira, mesmo antes de dois minutos',status=>expect(cancellationAmounts(order(30000,{status,total:11,storeCreditUsed:50}),true,now)).toEqual({fee:16,cashRefund:0,creditRefund:45}));
+
  it('pagamento misto dentro do prazo devolve integralmente cada origem',()=>expect(cancellationAmounts(order(60000,{total:11,storeCreditUsed:50}),true,now)).toEqual({fee:0,cashRefund:11,creditRefund:50}));
  it('a taxa não excede a parcela Stripe; o restante retido vem do saldo, uma única vez',()=>expect(cancellationAmounts(order(999999,{total:2,storeCreditUsed:59}),true,now)).toEqual({fee:8,cashRefund:0,creditRefund:53}));
 

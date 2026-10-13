@@ -1,3 +1,4 @@
+import '../widgets/delivery_return_page.dart';
 import '../../../support/presentation/pages/delivery_chat_page.dart';
 import '../../../support/presentation/pages/support_page.dart';
 import 'dart:async';
@@ -632,6 +633,7 @@ class _CourierPageState extends State<CourierPage> {
           final current = state.courierDelivery == null
               ? null
               : Map<String, dynamic>.from(state.courierDelivery!);
+          if(current?['cancellation'] is Map && ['REQUIRED','IN_TRANSIT','ARRIVED'].contains(current!['cancellation']['returnStatus'])) return DeliveryReturnPage(order:current);
           final offers = state.courierOffers
               .map((x) => Map<String, dynamic>.from(x))
               .toList();

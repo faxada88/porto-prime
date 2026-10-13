@@ -750,10 +750,11 @@ export class AdminService {
     const result = await this.prisma.$transaction(async (tx) => {
       // Updating the order first serializes deletion against offer acceptance/finalization.
       const changed = await tx.order.updateMany({
-        where: { id: orderId, adminDeletedAt: null },
+        where: { id: orderId, adminDeletedAt: null, cancellation:{isNot:{returnStatus:{in:['REQUIRED','IN_TRANSIT','ARRIVED']}}} },
         data: { adminDeletedAt: new Date(), adminDeletedBy: administratorId },
       });
-      const order = await tx.order.findUnique({where:{id:orderId},include:{customer:{select:{name:true}}}});
+      const order = await tx.order.findUnique({where:{id:orderId},include:{customer:{select:{name:true}},cancellation:true}});
+      if(order?.cancellation&&['REQUIRED','IN_TRANSIT','ARRIVED'].includes(order.cancellation.returnStatus))throw new BadRequestException('Confirme o recebimento dos produtos antes de remover este pedido em devolução');
       if (!order) throw new NotFoundException('Pedido não encontrado');
       if (!changed.count) return {order,changed:false,couriers:[] as string[]};
       const offers=await tx.deliveryOffer.findMany({where:{orderId,status:'PENDING'},select:{courierId:true}});

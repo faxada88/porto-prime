@@ -220,9 +220,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
         user: { status: 'ACTIVE' },
         deliveries: {
           none: {
-            status: {
-              notIn: ['DELIVERED', 'CANCELED'],
-            },
+            OR:[{status:{notIn:['DELIVERED','CANCELED']}},{cancellation:{is:{returnStatus:{in:['REQUIRED','IN_TRANSIT','ARRIVED']}}}}],
           },
         },
       },
