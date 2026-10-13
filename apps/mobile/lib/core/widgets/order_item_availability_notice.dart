@@ -62,7 +62,7 @@ class _NoticeState extends State<OrderItemAvailabilityNotice> {
 
   @override
   Widget build(BuildContext context) {
-    final items = ((widget.order['items'] as List?) ?? []).where((i) => i['availabilityStatus'] != null && i['availabilityStatus'] != 'AVAILABLE').toList();
+    final items = ((widget.order['items'] as List?) ?? []).where((i) => i['availabilityStatus'] != null && i['availabilityStatus'] != 'AVAILABLE' && (widget.order['cancellation']==null||i['availabilityStatus']!='AWAITING_CUSTOMER')).toList();
     if (items.isEmpty) return const SizedBox.shrink();
     final awaiting = items.any((i) => i['availabilityStatus'] == 'AWAITING_CUSTOMER');
     return Padding(padding: const EdgeInsets.only(bottom: 18), child: Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: awaiting ? const Color(0xFFFFF5F2) : const Color(0xFFF0F8F5), borderRadius: BorderRadius.circular(24), border: Border.all(color: awaiting ? const Color(0xFFF0C3B9) : const Color(0xFFBCDCCC))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

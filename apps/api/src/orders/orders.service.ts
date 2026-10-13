@@ -231,6 +231,7 @@ export class OrdersService {
       where: { customerId: user.id, adminDeletedAt:null },
       include: {
         items: true,
+        cancellation: true,
         address: true,
         courier: {
           select: {
@@ -270,6 +271,7 @@ export class OrdersService {
       },
       include: {
         items: true,
+        cancellation: true,
         address: true,
         courier: {
           select: {
@@ -528,6 +530,7 @@ export class OrdersService {
       },
       include: {
         items: true,
+        cancellation: true,
         address: true,
         customer: { select: { name: true } },
       },
@@ -550,6 +553,7 @@ export class OrdersService {
       },
       include: {
         items: true,
+        cancellation: true,
         address: true,
         customer: {
           select: { name: true, phone: true },

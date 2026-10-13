@@ -212,3 +212,12 @@
 .archiveWorkspaceV2 .ledgerReceipt[data-payment-status=PARTIALLY_REFUNDED] { background: linear-gradient(125deg, #e7f1fc, #f2f8fd); border-color: #d2e5f4; color: #4b7ca2; }
 .archiveWorkspaceV2 .ledgerReceipt[data-payment-status=REFUNDED] strong,
 .archiveWorkspaceV2 .ledgerReceipt[data-payment-status=PARTIALLY_REFUNDED] strong { color: #326c98; }
+
+.archiveWorkspaceV2 .cancellationRecord{border:1px solid #d8e9e4;border-radius:14px;padding:16px;background:#f2faf6}
+.archiveWorkspaceV2 .cancellationRecord h4{display:flex;align-items:center;gap:8px}
+.archiveWorkspaceV2 .cancellationRecord dl{display:grid;gap:10px;margin:16px 0}
+.archiveWorkspaceV2 .cancellationRecord dl>div{display:flex;justify-content:space-between;gap:12px;font-size:12px}
+.archiveWorkspaceV2 .cancellationRecord dd{margin:0;font-weight:800;white-space:nowrap}
+.archiveWorkspaceV2 .cancellationRecord button{display:inline-flex;gap:8px;align-items:center;border:1px solid #b6d4c8;border-radius:9px;padding:10px;background:white;color:#1c6554;font-size:12px;cursor:pointer}
+.archiveWorkspaceV2 .cancellationRecord button:disabled{opacity:.5}
+.archiveWorkspaceV2 .cancellationRecord small{overflow-wrap:anywhere}

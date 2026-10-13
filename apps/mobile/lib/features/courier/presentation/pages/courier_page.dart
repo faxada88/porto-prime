@@ -2340,7 +2340,9 @@ class _DriverSectionSheet extends StatelessWidget {
     if (section == 'earnings') {
       final credits = state.walletLedger
           .map((x) => Map<String, dynamic>.from(x as Map))
-          .where((x) => x['type'] == 'DELIVERY_CREDIT')
+          .where((x) => x['type'] == 'DELIVERY_CREDIT' ||
+              (x['type'] == 'ADJUSTMENT_CREDIT' && x['metadata'] is Map &&
+                  x['metadata']['kind'] == 'ORDER_CANCELLATION'))
           .toList();
       return [
         _FinanceHero(

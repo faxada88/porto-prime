@@ -24,7 +24,12 @@ export class ItemAvailabilityService implements OnModuleInit,OnModuleDestroy {
  private item(order:any,id:string){const item=order.items.find((i:any)=>i.id===id);if(!item)throw new NotFoundException('Produto não pertence a este pedido');return item;}
  private editable(order:any){if(order.courierId||!preDispatch.includes(order.status)||order.paymentStatus!=='PAID')throw new ConflictException('A disponibilidade só pode ser ajustada em pedidos pagos antes do despacho');}
  private async refreshHold(tx:any,orderId:string){
-  const order=await tx.order.findUnique({where:{id:orderId},include:{items:true}});
+  const order=await tx.order.findUnique({where:{id:orderId},include:{items:true,cancellation:true}});
+  if(order.cancellation){
+   const pending=order.items.some((i:any)=>i.availabilityStatus==='REFUND_PROCESSING'&&i.refundStatus!=='succeeded');
+   if(order.cancellation.status==='COMPLETED'&&!pending)await tx.order.update({where:{id:orderId},data:{paymentStatus:cents(order.cancellation.fee)>0?'PARTIALLY_REFUNDED':'REFUNDED'}});
+   return;
+  }
   const hold=order.items.some((i:any)=>open.includes(i.availabilityStatus));
   const removed=order.items.length>0&&order.items.every((i:any)=>['REFUND_PROCESSING','REFUNDED','VOUCHERED'].includes(i.availabilityStatus));
   await tx.order.update({where:{id:orderId},data:{fulfillmentHold:hold,...(removed?{status:'CANCELED',canceledAt:new Date(),...(cents(order.refundedTotal)>=cents(order.total)?{paymentStatus:'REFUNDED'}:{})}:{})}});

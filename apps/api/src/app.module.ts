@@ -1,3 +1,4 @@
+import {OrderCancellationModule} from './cancellation/order-cancellation.module.js';
 import {SupportModule} from './support/support.module.js';
 import {PartnersModule} from './partners/partners.module.js';
 import { ItemAvailabilityModule } from './availability/item-availability.module.js';
@@ -37,6 +38,7 @@ import { WalletModule } from './wallet/wallet.module.js';
     CouriersModule,
     AddressesModule,
     OrdersModule,
+    OrderCancellationModule,
     PaymentsModule,
     CategoriesModule,
     ProductsModule,

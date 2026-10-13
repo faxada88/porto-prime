@@ -1,3 +1,4 @@
+import '../widgets/customer_cancellation_panel.dart';
 import '../widgets/courier_search_notice.dart';
 import '../../../support/presentation/pages/delivery_chat_page.dart';
 import 'dart:async';
@@ -117,6 +118,8 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                 const SizedBox(height: 16),
                 OutlinedButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(settings:RouteSettings(name:'/delivery-chat/${widget.orderId}'),builder:(_)=>DeliveryChatPage(orderId:widget.orderId))),icon:const Icon(AppIcons.mail,size:18),label:const Text('Conversar sobre a entrega')),
                 const SizedBox(height:16),
+                CustomerCancellationPanel(order:current),
+                const SizedBox(height:16),
                 OrderItemAvailabilityNotice(order:current),
                 if(status!='CANCELED')_Journey(status: status, step: step) else const _Section(title:'Pedido encerrado',icon:Icons.info_outline_rounded,child:Text('Não há produtos a entregar. Seu histórico e os registros de devolução continuam disponíveis neste acompanhamento.',style:TextStyle(height:1.6))),
                 if (courier != null) ...[
@@ -135,7 +138,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                   const _PinConfirmed(),
                 ],
                 const SizedBox(height: 16),
-                _Section(
+                if(current['cancellation']==null) _Section(
                   title: 'Produtos a entregar',
                   icon: AppIcons.bag,
                   child: Column(

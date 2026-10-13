@@ -142,7 +142,7 @@ export class AdminService {
     const profile = await this.prisma.courierProfile.findUnique({ where: { id } });
     if (!profile) throw new NotFoundException('Motoboy não encontrado');
     const [credits, available, deliveries, withdrawals] = await Promise.all([
-      this.prisma.courierLedgerEntry.aggregate({ where: { courierId: id, type: 'DELIVERY_CREDIT' }, _sum: { amount: true } }),
+      this.prisma.courierLedgerEntry.aggregate({ where: { courierId: id, OR: [{type:'DELIVERY_CREDIT'},{type:'ADJUSTMENT_CREDIT',metadata:{path:['kind'],equals:'ORDER_CANCELLATION'}}] }, _sum: { amount: true } }),
       this.prisma.courierLedgerEntry.aggregate({ where: { courierId: id, availableAt: { lte: new Date() } }, _sum: { amount: true } }),
       this.prisma.order.count({ where: { courierId: id, status: 'DELIVERED' } }),
       this.prisma.withdrawal.findMany({ where: { courierId: id }, orderBy: { requestedAt: 'desc' } }),
@@ -242,6 +242,7 @@ export class AdminService {
           },
         },
         address: true,
+        cancellation: true,
         items: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -677,15 +678,16 @@ export class AdminService {
     }
 
     const order = await this.prisma.order.findUnique({
-      where: { id: orderId },
+      where: { id: orderId },include:{cancellation:true},
     });
     if (!order) throw new NotFoundException('Pedido não encontrado');
 
+    if(order.cancellation)throw new BadRequestException('O cancelamento financeiro já foi registrado. Consulte Pagamentos e Arquivo');
     const data: any = { status: status as OrderStatus };
     if (status === 'CANCELED') data.canceledAt = new Date();
 
     return this.prisma.order.update({
-      where: { id: orderId },
+      where: { id: orderId, status:order.status, cancellation:{is:null} },
       data,
       include: {
         customer: { select: { id: true, name: true, phone: true } },
@@ -695,6 +697,7 @@ export class AdminService {
           },
         },
         address: true,
+        cancellation: true,
         items: true,
       },
     });

@@ -124,7 +124,7 @@ export class PaymentsService {
       if(order.status!==OrderStatus.PENDING||!['PENDING','FAILED'].includes(order.paymentStatus))throw new BadRequestException('Este pedido não pode ser confirmado');
       const debit=await tx.customerCreditEntry.findUnique({where:{idempotencyKey:'order:'+order.id+':credit-use'}});
       if(!debit||debit.customerId!==user.id||Math.round(-Number(debit.amount)*100)!==Math.round(Number(order.storeCreditUsed)*100)||Math.round(Number(order.storeCreditUsed)*100)!==Math.round((Number(order.subtotal)+Number(order.deliveryFee))*100))throw new BadRequestException('Confirme o saldo do cartão antes de finalizar');
-      const updated=await tx.order.update({where:{id:order.id},data:{paymentStatus:PaymentStatus.PAID,status:OrderStatus.CONFIRMED}});
+      const updated=await tx.order.update({where:{id:order.id},data:{paymentStatus:PaymentStatus.PAID,status:OrderStatus.CONFIRMED,paidAt:new Date()}});
       return {order:updated,changed:true};
     });
     if(result.changed){this.realtime.emitOrderUpdated(result.order);this.realtime.emitToUser(user.id,'customer.credit.updated',{orderId,at:new Date().toISOString()});}
@@ -152,11 +152,11 @@ export class PaymentsService {
     // Never regress an order already being prepared, dispatched or delivered.
     const pending = await this.prisma.order.updateMany({
       where: { ...where, status: OrderStatus.PENDING },
-      data: { paymentStatus: PaymentStatus.PAID, paymentMethod: PaymentMethod.CARD, status: OrderStatus.CONFIRMED },
+      data: { paymentStatus: PaymentStatus.PAID, paymentMethod: PaymentMethod.CARD, status: OrderStatus.CONFIRMED, paidAt:new Date() },
     });
     const other = await this.prisma.order.updateMany({
       where: { ...where, status: { not: OrderStatus.PENDING } },
-      data: { paymentStatus: PaymentStatus.PAID, paymentMethod: PaymentMethod.CARD },
+      data: { paymentStatus: PaymentStatus.PAID, paymentMethod: PaymentMethod.CARD, paidAt:new Date() },
     });
     if (pending.count + other.count > 0) {
       const updated = await this.prisma.order.findUnique({ where: { id: order.id }, select: { id: true, customerId: true, courierId: true, status: true } });

@@ -181,7 +181,7 @@ export class WalletService {
       this.prisma.courierLedgerEntry.aggregate({
         where: {
           courierId: courier.id,
-          type: 'DELIVERY_CREDIT',
+          OR: [{ type: 'DELIVERY_CREDIT' }, { type: 'ADJUSTMENT_CREDIT', metadata: { path: ['kind'], equals: 'ORDER_CANCELLATION' } }],
           createdAt: { gte: startToday },
         },
         _sum: { amount: true },
@@ -189,7 +189,7 @@ export class WalletService {
       this.prisma.courierLedgerEntry.aggregate({
         where: {
           courierId: courier.id,
-          type: 'DELIVERY_CREDIT',
+          OR: [{ type: 'DELIVERY_CREDIT' }, { type: 'ADJUSTMENT_CREDIT', metadata: { path: ['kind'], equals: 'ORDER_CANCELLATION' } }],
           createdAt: { gte: weekStart },
         },
         _sum: { amount: true },
