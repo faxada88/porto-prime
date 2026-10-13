@@ -62,7 +62,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     builder: (_, __) {
       final current = order;
       if(AppState.instance.removedOrderIds.contains(widget.orderId)){
-        return Scaffold(appBar:AppBar(title:const Text('Pedido removido')),body:Center(child:Padding(padding:const EdgeInsets.all(24),child:Column(mainAxisSize:MainAxisSize.min,children:[const Icon(Icons.receipt_long_outlined,size:56),const SizedBox(height:16),const Text('Este pedido foi removido pela administração.',textAlign:TextAlign.center),const SizedBox(height:20),FilledButton(onPressed:()=>Navigator.of(context).popUntil((route)=>route.isFirst),child:const Text('Voltar ao início'))]))));
+        return Scaffold(appBar:AppBar(title:const Text('Pedido removido')),body:Center(child:Padding(padding:const EdgeInsets.all(24),child:Column(mainAxisSize:MainAxisSize.min,children:[const Icon(AppIcons.receipt,size:56),const SizedBox(height:16),const Text('Este pedido foi removido pela administração.',textAlign:TextAlign.center),const SizedBox(height:20),FilledButton(onPressed:()=>Navigator.of(context).popUntil((route)=>route.isFirst),child:const Text('Voltar ao início'))]))));
       }
       if (current == null) {
         return Scaffold(
@@ -120,7 +120,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                 CustomerCancellationPanel(order:current),
                 const SizedBox(height:16),
                 OrderItemAvailabilityNotice(order:current),
-                if(status!='CANCELED')_Journey(status: status, step: step) else const _Section(title:'Pedido encerrado',icon:Icons.info_outline_rounded,child:Text('Não há produtos a entregar. Seu histórico e os registros de devolução continuam disponíveis neste acompanhamento.',style:TextStyle(height:1.6))),
+                if(status!='CANCELED')_Journey(status: status, step: step) else const _Section(title:'Pedido encerrado',icon:AppIcons.info,child:Text('Não há produtos a entregar. Seu histórico e os registros de devolução continuam disponíveis neste acompanhamento.',style:TextStyle(height:1.6))),
                 if (courier != null) ...[
                   const SizedBox(height: 16),
                   _Courier(courier: courier),
@@ -920,3 +920,4 @@ String _subtitle(String status) => switch (status) {
   'CANCELED' => 'Este pedido não seguirá para entrega.',
   _ => 'Acompanhe as próximas etapas por aqui.',
 };
+

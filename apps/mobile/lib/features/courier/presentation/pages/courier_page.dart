@@ -1,3 +1,4 @@
+import '../../../../core/widgets/prime_brand.dart';
 import '../widgets/delivery_return_page.dart';
 import '../../../support/presentation/pages/delivery_chat_page.dart';
 import '../../../support/presentation/pages/support_page.dart';
@@ -2607,63 +2608,7 @@ class _FinanceHero extends StatelessWidget {
   final IconData icon;
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.ocean900, AppColors.ocean700],
-          ),
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: .11),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: Icon(icon, color: Colors.white, size: 25),
-            ),
-            const SizedBox(width: 13),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    eyebrow,
-                    style: const TextStyle(
-                      color: Color(0xFF91E8D5),
-                      fontSize: AppFontSize.caption,
-                      fontWeight: AppFontWeight.display,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 23,
-                      fontWeight: AppFontWeight.display,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: AppFontSize.caption,
-                      fontWeight: AppFontWeight.medium,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
+  Widget build(BuildContext context)=>PrimeBalancePanel(label:eyebrow,value:value,note:subtitle,icon:icon);
 }
 
 class _LedgerRow extends StatelessWidget {
@@ -3051,3 +2996,4 @@ String _money(dynamic value) {
   final number = double.tryParse(value?.toString() ?? '') ?? 0;
   return 'R\$ ${number.toStringAsFixed(2).replaceAll('.', ',')}';
 }
+

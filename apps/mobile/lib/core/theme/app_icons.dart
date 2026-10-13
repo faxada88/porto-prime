@@ -66,6 +66,12 @@ abstract final class AppIcons {
   static const waves = LucideIcons.waves;
   static const tag = LucideIcons.badgePercent;
   static const alert = LucideIcons.circleAlert;
+  static const share = LucideIcons.share2;
+  static const copy = LucideIcons.copy;
+  static const arrowUpRight = LucideIcons.arrowUpRight;
+  static const arrowDownLeft = LucideIcons.arrowDownLeft;
+  static const undo = LucideIcons.undo2;
+  static const swap = LucideIcons.arrowRightLeft;
   static const info = LucideIcons.circleHelp;
 
   // Categorias
@@ -346,3 +352,4 @@ class CategoryIconSpec {
   final Color foreground;
   final Offset offset;
 }
+

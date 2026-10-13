@@ -212,7 +212,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
               ),
               const SizedBox(height: 5),
               const Text(
-                'Cada cobrança está ligada ao pedido real e ao status confirmado pelo backend.',
+                'Cobranças, créditos e devoluções organizados por pedido.',
                 style: TextStyle(
                   color: AppColors.muted,
                   fontSize: AppFontSize.caption,
@@ -482,3 +482,4 @@ class _PaymentsPageState extends State<PaymentsPage> {
     }
   }
 }
+

@@ -100,7 +100,7 @@ class PrimeSurface extends StatelessWidget {
       color: background,
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(color: borderColor),
-      boxShadow: shadow ? AppShadows.elevated : AppShadows.soft,
+      boxShadow: shadow ? AppShadows.soft : null,
     ),
     child: child,
   );
@@ -246,7 +246,7 @@ class _PrimeSearchFieldState extends State<PrimeSearchField> {
       textInputAction: TextInputAction.search,
       decoration: InputDecoration(
         hintText: widget.hint,
-        prefixIcon: const Icon(AppIcons.search, size: AppIconSize.sm),
+        prefixIcon: const Padding(padding: EdgeInsets.all(12), child: DecoratedBox(decoration: BoxDecoration(color: AppColors.ocean50, borderRadius: BorderRadius.all(Radius.circular(10))), child: Icon(AppIcons.search, size: AppIconSize.sm, color: AppColors.ocean700))),
         suffixIcon: widget.loading
             ? const Padding(
                 padding: EdgeInsets.all(17),
@@ -293,10 +293,10 @@ class PrimeEmptyState extends StatelessWidget {
     child: Column(
       children: [
         Container(
-          width: 76,
-          height: 76,
+          width: 84,
+          height: 84,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [AppColors.ocean100, AppColors.sky]),
+            gradient: const LinearGradient(colors: [AppColors.sand100, AppColors.ocean50]),
             borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           child: Icon(icon, color: AppColors.ocean700, size: AppIconSize.lg),
@@ -660,3 +660,4 @@ class PrimeMetricCard extends StatelessWidget {
     ),
   );
 }
+

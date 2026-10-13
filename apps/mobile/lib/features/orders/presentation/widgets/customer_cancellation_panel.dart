@@ -42,7 +42,7 @@ class _CustomerCancellationPanelState extends State<CustomerCancellationPanel> {
       final done = record['status'] == 'COMPLETED';
       return Container(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(22), border: Border.all(color: AppColors.stroke)),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(AppRadius.lg), border: Border.all(color: AppColors.stroke)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [Icon(done ? AppIcons.checkCircle : AppIcons.clock, color: AppColors.ocean700), const SizedBox(width: 12), Expanded(child: Text(done ? 'Cancelamento concluído' : 'Pedido cancelado', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)))]),
           const SizedBox(height: 12),
@@ -140,3 +140,4 @@ class _RefundRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(padding: const EdgeInsets.symmetric(vertical: 9), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, size: 18, color: AppColors.ocean700), const SizedBox(width: 10), Expanded(child: Text(label, style: const TextStyle(fontSize: 12, height: 1.5))), const SizedBox(width: 12), Text(_money(amount), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14))]));
 }
+

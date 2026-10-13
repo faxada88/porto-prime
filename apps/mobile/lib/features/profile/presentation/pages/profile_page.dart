@@ -164,7 +164,7 @@ class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader();
   @override
   Widget build(BuildContext context) => const PrimeEditorialHeader(
-    title: 'Seu espaço', subtitle: 'Sua conta. Suas escolhas. Tudo por perto.', icon: AppIcons.user,
+    title: 'Seu espaço Prime', subtitle: 'Pedidos, saldo e sua conta. Tudo organizado para você.', icon: AppIcons.user,
   );
 }
 
@@ -264,7 +264,7 @@ class _GuestHero extends StatelessWidget {
                                 Icon(
                                   AppIcons.lock_rounded,
                                   size: 12,
-                                  color: Color(0xFFFFD889),
+                                  color: AppColors.sun500,
                                 ),
                                 SizedBox(width: 5),
                                 Text(
@@ -665,7 +665,7 @@ class _MenuLine extends StatelessWidget {
           ListTile(
             onTap: onTap,
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
             leading: _MiniIconBox(
               icon: icon,
               background: AppColors.mint,
@@ -674,7 +674,7 @@ class _MenuLine extends StatelessWidget {
             title: Text(
               title,
               style: const TextStyle(
-                fontSize: 12.5,
+                fontSize: 14,
                 fontWeight: AppFontWeight.display,
               ),
             ),
@@ -858,7 +858,7 @@ Future<void> _accountMenu(BuildContext context) async {
                         Text(
                           'Acompanhar candidatura',
                           style: TextStyle(
-                            fontSize: 12.5,
+                            fontSize: 14,
                             fontWeight: AppFontWeight.display,
                           ),
                         ),
@@ -1398,7 +1398,7 @@ class _RequirementCard extends StatelessWidget {
                     Text(
                       (requirement['title'] ?? 'Pendência').toString(),
                       style: const TextStyle(
-                        fontSize: 12.5,
+                        fontSize: 14,
                         fontWeight: AppFontWeight.display,
                       ),
                     ),
@@ -2195,7 +2195,7 @@ class _Account extends StatelessWidget {
                       Text(
                         'Entrega do seu jeito',
                         style: TextStyle(
-                          fontSize: 12.5,
+                          fontSize: 14,
                           fontWeight: AppFontWeight.display,
                         ),
                       ),
@@ -2251,7 +2251,7 @@ class _AccountHero extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.midnight, Color(0xFF075E54)],
+          colors: [AppColors.ocean900, AppColors.ocean700],
         ),
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
@@ -2270,7 +2270,7 @@ class _AccountHero extends StatelessWidget {
                 width: 62,
                 height: 62,
                 decoration: BoxDecoration(
-                  color: AppColors.mint,
+                  color: AppColors.sun500,
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 alignment: Alignment.center,
@@ -2344,7 +2344,7 @@ class _AccountHero extends StatelessWidget {
               children: [
                 Icon(
                   AppIcons.verified_user_rounded,
-                  color: Color(0xFFFFD889),
+                  color: AppColors.sun500,
                   size: 18,
                 ),
                 SizedBox(width: 9),
@@ -2483,3 +2483,4 @@ void _simpleMessage(
     ),
   );
 }
+

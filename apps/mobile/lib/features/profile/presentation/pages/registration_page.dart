@@ -1,3 +1,4 @@
+import '../../../../core/widgets/prime_brand.dart';
 import 'dart:async';
 import '../../../courier/presentation/pages/courier_photo_card.dart';
 
@@ -115,15 +116,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                               : AppIcons.arrow_back_rounded,
                         ),
                       ),
-                      Container(
-                        width: 43,
-                        height: 43,
-                        decoration: BoxDecoration(
-                          color: soft,
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
-                        ),
-                        child: Icon(roleIcon, color: accent, size: 21),
-                      ),
+                      const PrimeBrandMark(size: 43),
                       const SizedBox(width: 11),
                       Expanded(
                         child: Column(
@@ -132,9 +125,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             Text(
                               'Conta de $title',
                               style: const TextStyle(
-                                fontSize: 15,
+                                fontSize: 17,
                                 fontWeight: AppFontWeight.display,
-                                letterSpacing: -.25,
+                                letterSpacing: -.4,
                               ),
                             ),
                             const SizedBox(height: 3),
@@ -1297,3 +1290,4 @@ class _UpperFormatter extends TextInputFormatter {
     );
   }
 }
+

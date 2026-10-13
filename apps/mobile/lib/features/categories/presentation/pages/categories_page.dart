@@ -1,3 +1,4 @@
+import '../../../../core/widgets/prime_brand.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/state/app_state.dart';
@@ -65,43 +66,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Buscar',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.headlineLarge,
-                                ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  'Encontre rápido o que combina com o seu momento.',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.ocean900,
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                            ),
-                            child: const Icon(
-                              AppIcons.sparkles,
-                              color: Colors.white,
-                              size: 19,
-                            ),
-                          ),
-                        ],
-                      ),
+                      child: const PrimePageIntro(title:'O que combina com hoje?',subtitle:'Encontre seu favorito por produto ou categoria.',icon:AppIcons.search,label:'CATÁLOGO / PORTO PRIME'),
                     ),
                   ),
                 ),
@@ -323,3 +288,4 @@ class _CatalogSkeleton extends StatelessWidget {
     },
   );
 }
+

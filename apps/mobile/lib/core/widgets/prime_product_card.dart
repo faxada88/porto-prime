@@ -76,7 +76,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                       ? AppColors.ocean300.withValues(alpha: .72)
                       : AppColors.stroke,
                 ),
-                boxShadow: _hovered ? AppShadows.elevated : AppShadows.soft,
+                boxShadow: _hovered ? AppShadows.elevated : null,
               ),
               clipBehavior: Clip.antiAlias,
               child: LayoutBuilder(
@@ -92,21 +92,21 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                           fit: StackFit.expand,
                           children: [
                             Container(
-                              margin: const EdgeInsets.fromLTRB(8, 8, 8, 3),
+                              margin: const EdgeInsets.fromLTRB(10, 10, 10, 3),
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
                                     AppColors.surface,
-                                    AppColors.sky,
+                                    AppColors.surfaceMuted,
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(
                                   AppRadius.md,
                                 ),
                                 border: Border.all(
-                                  color: AppColors.stroke.withValues(alpha: .6),
+                                  color: Colors.transparent,
                                 ),
                               ),
                               clipBehavior: Clip.antiAlias,
@@ -132,7 +132,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                             if (!available)
                               Positioned.fill(
                                 child: Container(
-                                  margin: const EdgeInsets.fromLTRB(8, 8, 8, 3),
+                                  margin: const EdgeInsets.fromLTRB(10, 10, 10, 3),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withValues(alpha: .76),
                                     borderRadius: BorderRadius.circular(
@@ -164,7 +164,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                                 overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context).textTheme.labelSmall
                                     ?.copyWith(
-                                      color: AppColors.ocean600,
+                                      color: AppColors.muted,
                                       fontSize: AppFontSize.caption,
                                       letterSpacing: .72,
                                     ),
@@ -480,3 +480,4 @@ class _FallbackProduct extends StatelessWidget {
     ),
   );
 }
+

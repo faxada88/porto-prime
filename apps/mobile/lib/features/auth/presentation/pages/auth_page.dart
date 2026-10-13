@@ -1,3 +1,4 @@
+import '../../../../core/widgets/prime_brand.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/state/app_state.dart';
@@ -68,38 +69,7 @@ class _AuthPageState extends State<AuthPage> {
     body: ListView(
       padding: const EdgeInsets.all(22),
       children: [
-        Container(
-          padding: const EdgeInsets.all(22),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primaryDark, AppColors.primary],
-            ),
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'PORTO PRIME',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: AppFontWeight.display,
-                  letterSpacing: 1,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Bebidas, praia e conveniência.\nTudo no seu ritmo.',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: AppFontWeight.display,
-                  height: 1.1,
-                ),
-              ),
-            ],
-          ),
-        ),
+        PrimeEditorialHeader(title: register ? 'Seu próximo capítulo.' : 'Bem-vindo à Prime.', subtitle: 'Sua conta conecta você aos melhores momentos em Porto Seguro.', icon: AppIcons.user, eyebrow: 'CONTA / PORTO PRIME'),
         const SizedBox(height: 20),
         if (register) ...[
           TextField(
@@ -221,3 +191,4 @@ class _AuthPageState extends State<AuthPage> {
     ),
   );
 }
+

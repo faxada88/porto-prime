@@ -102,9 +102,9 @@ class _AppShellState extends State<AppShell> {
             height: AppControl.navHeight,
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.midnight,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(AppRadius.xl),
-              border: Border.all(color: AppColors.ocean800),
+              border: Border.all(color: AppColors.stroke),
               boxShadow: AppShadows.floating,
             ),
             child: Row(
@@ -164,10 +164,10 @@ class _AppShellState extends State<AppShell> {
             curve: AppMotion.curve,
             margin: const EdgeInsets.symmetric(horizontal: 2),
             decoration: BoxDecoration(
-              color: selected ? Colors.white.withValues(alpha: .09) : Colors.transparent,
+              color: selected ? AppColors.ocean50 : Colors.transparent,
               borderRadius: BorderRadius.circular(AppRadius.md),
               border: Border.all(
-                color: selected ? AppColors.ocean500.withValues(alpha: .4) : Colors.transparent,
+                color: selected ? AppColors.ocean100 : Colors.transparent,
               ),
             ),
             child: Stack(
@@ -180,11 +180,11 @@ class _AppShellState extends State<AppShell> {
                     AnimatedContainer(
                       duration: AppMotion.resolve(context, AppMotion.standard),
                       curve: AppMotion.curve,
-                      width: 30,
+                      width: 42,
                       height: 30,
                       decoration: BoxDecoration(
                         color: selected
-                            ? AppColors.action
+                            ? AppColors.ocean100
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
@@ -192,14 +192,14 @@ class _AppShellState extends State<AppShell> {
                       child: Icon(
                         icon,
                         size: AppIconSize.md,
-                        color: selected ? Colors.white : AppColors.ocean300,
+                        color: selected ? AppColors.ocean700 : AppColors.muted,
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       label,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: selected ? Colors.white : AppColors.ocean300,
+                        color: selected ? AppColors.ocean700 : AppColors.muted,
                         fontSize: AppFontSize.caption,
                         letterSpacing: .05,
                         fontWeight: selected
@@ -244,3 +244,4 @@ class _AppShellState extends State<AppShell> {
     );
   }
 }
+

@@ -27,7 +27,7 @@ class ActiveOrderShortcut extends StatelessWidget {
     };
     final id = order['id'].toString();
     return Semantics(button: true, label: '$label. Abrir acompanhamento do pedido.', child: Material(
-      color: AppColors.ocean900, elevation: 10, shadowColor: AppColors.midnight.withValues(alpha: .22), borderRadius: BorderRadius.circular(22), clipBehavior: Clip.antiAlias,
+      color: AppColors.ocean900, elevation: 10, shadowColor: AppColors.midnight.withValues(alpha: .22), borderRadius: BorderRadius.circular(AppRadius.lg), clipBehavior: Clip.antiAlias,
       child: InkWell(onTap: () => Navigator.of(context).push(MaterialPageRoute(settings: RouteSettings(name: '/order-tracking/$id'), builder: (_) => OrderTrackingPage(orderId: id))), child: Padding(padding: const EdgeInsets.all(14), child: Row(children: [
         Container(width: 44, height: 44, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .12), borderRadius: BorderRadius.circular(15)), child: Icon(status == 'SEARCHING_COURIER' ? AppIcons.search : AppIcons.bike, size: 24, color: Colors.white)),
         const SizedBox(width: 12), Expanded(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -38,3 +38,4 @@ class ActiveOrderShortcut extends StatelessWidget {
     ));
   }
 }
+

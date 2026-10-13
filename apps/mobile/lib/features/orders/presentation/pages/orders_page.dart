@@ -91,7 +91,7 @@ class _OrdersPageState extends State<OrdersPage> {
                 ),
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 34),
                 children: [
-                  const PrimeEditorialHeader(title: 'Cada pedido, bem acompanhado.', subtitle: 'Sua compra atual e seus bons momentos anteriores, no mesmo lugar.', icon: AppIcons.receipt, eyebrow: 'SEUS PEDIDOS'),
+                  const PrimeEditorialHeader(title: 'Seus pedidos Prime.', subtitle: 'Sua entrega atual e seu histórico, sem perder nenhum detalhe.', icon: AppIcons.receipt, eyebrow: 'SEUS PEDIDOS'),
                   const SizedBox(height: 24),
                   if (active.isNotEmpty) ...[
                     const PrimeSectionHeader(
@@ -280,3 +280,4 @@ String _status(String status) => switch (status) {
       'CANCELED' => 'CANCELADO',
       _ => status.replaceAll('_', ' '),
     };
+

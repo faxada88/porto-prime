@@ -34,7 +34,7 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
     final visual = AppIcons.categoryVisual(widget.name);
     final selected = widget.selected;
     final compact = widget.compact;
-    final iconBox = compact ? 54.0 : 62.0;
+    final iconBox = compact ? 56.0 : 64.0;
 
     return Semantics(
       button: true,
@@ -117,11 +117,9 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                       width: iconBox,
                       height: iconBox,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [visual.background, Color.lerp(visual.background, visual.foreground, .17)!]),
-                        boxShadow: [BoxShadow(color: visual.foreground.withValues(alpha: .12), blurRadius: 12, offset: const Offset(0, 5))],
-                        borderRadius: BorderRadius.circular(
-                          compact ? AppRadius.md : AppRadius.lg,
-                        ),
+                        color: selected ? AppColors.ocean100 : visual.background,
+                        boxShadow: [BoxShadow(color: visual.foreground.withValues(alpha: .045), blurRadius: 10, offset: const Offset(0, 4))],
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                         border: Border.all(
                           color: selected
                               ? visual.foreground.withValues(alpha: .13)
@@ -132,11 +130,11 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                         alignment: Alignment.center,
                         children: [
                           Positioned(
-                            right: -11,
-                            top: -11,
+                            right: -8,
+                            top: -8,
                             child: Container(
-                              width: 31,
-                              height: 31,
+                              width: 39,
+                              height: 39,
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: .32),
                                 shape: BoxShape.circle,
@@ -206,3 +204,4 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
     );
   }
 }
+

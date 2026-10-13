@@ -124,7 +124,7 @@ class HomePage extends StatelessWidget {
                         eyebrow: 'EXPLORE',
                         title: 'Categorias',
                         subtitle:
-                            'Tudo organizado para você chegar mais rápido.',
+                            'Encontre seu favorito.',
                         actionLabel: 'Ver tudo',
                         onAction: () => AppNav.instance.go(1),
                       ),
@@ -288,23 +288,7 @@ class _Header extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: AppColors.ocean900,
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'P',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 21,
-                          fontWeight: AppFontWeight.display,
-                        ),
-                      ),
-                    ),
+                    const PrimeBrandMark(size: 44),
                     const SizedBox(width: 11),
                     Expanded(
                       child: Column(
@@ -375,32 +359,16 @@ class _Header extends StatelessWidget {
 }
 
 class _Hero extends StatelessWidget {
-  const _Hero({required this.onTap});
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
-    final spacious = box.maxWidth >= 560;
-    return Container(
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(30), boxShadow: AppShadows.elevated),
-      child: Material(color: AppColors.midnight, borderRadius: BorderRadius.circular(30), clipBehavior: Clip.antiAlias,
-        child: InkWell(onTap: onTap, child: Stack(children: [
-          const Positioned.fill(child: PrimeCoastArtwork()),
-          if (spacious) Positioned(right: 44, top: 72, child: Transform.rotate(angle: -.12, child: Container(
-            width: 118, height: 118, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .10), borderRadius: BorderRadius.circular(32), border: Border.all(color: Colors.white.withValues(alpha: .2))),
-            child: const Icon(AppIcons.cart, size: 64, color: Colors.white)))),
-          Padding(padding: const EdgeInsets.all(26), child: SizedBox(width: spacious ? box.maxWidth * .60 : double.infinity, child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .10), borderRadius: BorderRadius.circular(AppRadius.pill)), child: const Text('PORTO SEGURO · DO SEU JEITO', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: .8))),
-            const SizedBox(height: 22),
-            Text('Seu momento.\nA gente entrega.', style: TextStyle(color: Colors.white, fontSize: spacious ? 38 : 31, height: 1.06, fontWeight: FontWeight.w800, letterSpacing: -1.1)),
-            const SizedBox(height: 12),
-            const Text('Bebidas, conveniência e tudo para aproveitar Porto Seguro.', style: TextStyle(color: Color(0xFFD8EBFA), fontSize: 13, height: 1.5)),
-            const SizedBox(height: 24),
-            Container(padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 13), decoration: BoxDecoration(color: AppColors.sun500, borderRadius: BorderRadius.circular(16)), child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(AppIcons.cart, color: AppColors.midnight, size: 18), SizedBox(width: 10), Flexible(child: Text('Explorar produtos', style: TextStyle(color: AppColors.midnight, fontWeight: FontWeight.w800, fontSize: 13))), SizedBox(width: 12), Icon(AppIcons.arrowRight, color: AppColors.midnight, size: 17)])),
-          ]))),
-        ])),
-      ),
-    );
-  });
+ const _Hero({required this.onTap});final VoidCallback onTap;
+ @override Widget build(BuildContext context)=>LayoutBuilder(builder:(context,box){final wide=box.maxWidth>=560;return Material(color:AppColors.ocean900,borderRadius:BorderRadius.circular(30),clipBehavior:Clip.antiAlias,child:InkWell(onTap:onTap,child:Stack(children:[
+  const Positioned.fill(child:PrimeCoastArtwork()),
+  Padding(padding:const EdgeInsets.all(24),child:SizedBox(width:wide?box.maxWidth*.62:double.infinity,child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+   const Text('PORTO SEGURO, NA SUA PORTA.',style:TextStyle(color:AppColors.ocean300,fontSize:10,fontWeight:FontWeight.w800,letterSpacing:1.3)),const SizedBox(height:16),
+   Text('Aproveite o momento.\nDeixa com a Prime.',style:TextStyle(color:Colors.white,fontSize:wide?38:29,height:1.13,fontWeight:FontWeight.w800,letterSpacing:-1)),const SizedBox(height:12),
+   const Text('Seu catálogo de bebidas e conveniência,\ncom a cara de Porto Seguro.',style:TextStyle(color:Color(0xFFD5E8E3),fontSize:13,height:1.6)),const SizedBox(height:20),
+   Container(padding:const EdgeInsets.symmetric(horizontal:15,vertical:12),decoration:BoxDecoration(color:AppColors.sun500,borderRadius:BorderRadius.circular(14)),child:const Row(mainAxisSize:MainAxisSize.min,children:[Icon(AppIcons.cart,color:AppColors.ocean900,size:18),SizedBox(width:10),Flexible(child:Text('Encontrar meu próximo pedido',style:TextStyle(color:AppColors.ocean900,fontSize:12,fontWeight:FontWeight.w800))),SizedBox(width:12),Icon(AppIcons.arrowRight,color:AppColors.ocean900,size:16)])),
+  ]))),
+ ])));});
 }
 
 class _CategoryGrid extends StatelessWidget {
@@ -647,3 +615,4 @@ class _PrimePromise extends StatelessWidget {
     ),
   );
 }
+

@@ -1,3 +1,5 @@
+import '../../../../core/widgets/prime_brand.dart';
+import '../../../../core/widgets/prime_ui.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -262,8 +264,7 @@ class _SupportConversationPageState extends State<SupportConversationPage> with 
 class _SupportHero extends StatelessWidget {
  const _SupportHero({required this.title,required this.subtitle});
  final String title,subtitle;
- @override
- Widget build(BuildContext context) => Container(padding:const EdgeInsets.all(24),decoration:BoxDecoration(gradient:const LinearGradient(colors:[AppColors.ocean900,AppColors.ocean700],begin:Alignment.topLeft,end:Alignment.bottomRight),borderRadius:BorderRadius.circular(26),boxShadow:[BoxShadow(color:AppColors.ocean700.withValues(alpha:.12),blurRadius:24,offset:const Offset(0,8))]),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Row(children:[Icon(AppIcons.help,size:20,color:AppColors.ocean300),SizedBox(width:9),Text('PORTO PRIME · SUPORTE',style:TextStyle(fontSize:10,letterSpacing:1.2,fontWeight:FontWeight.w800,color:AppColors.ocean300))]),const SizedBox(height:20),Text(title,style:const TextStyle(color:Colors.white,fontSize:25,fontWeight:FontWeight.w800,letterSpacing:-.8,height:1.15)),const SizedBox(height:12),Text(subtitle,style:const TextStyle(color:Colors.white70,fontSize:13,height:1.7))]));
+ @override Widget build(BuildContext context)=>PrimeEditorialHeader(title:title,subtitle:subtitle,icon:AppIcons.help,eyebrow:'AJUDA / PORTO PRIME');
 }
 class _StatusPill extends StatelessWidget {
  const _StatusPill({required this.status});
@@ -278,8 +279,7 @@ class _SupportSkeleton extends StatelessWidget {
 }
 class _SupportEmpty extends StatelessWidget {
  const _SupportEmpty();
- @override
- Widget build(BuildContext context) => Container(padding:const EdgeInsets.all(30),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(22)),child:const Column(children:[Icon(AppIcons.mail,size:38,color:AppColors.ocean700),SizedBox(height:17),Text('Estamos aqui para ajudar.',style:TextStyle(fontWeight:FontWeight.w800,fontSize:17,color:AppColors.ink)),SizedBox(height:9),Text('Abra um atendimento. Suas conversas e respostas ficam organizadas aqui.',textAlign:TextAlign.center,style:TextStyle(fontSize:13,height:1.7,color:AppColors.muted))]));
+ @override Widget build(BuildContext context)=>const PrimeEmptyState(icon:AppIcons.mail,title:'Estamos aqui para ajudar.',message:'Abra um atendimento. Suas conversas e respostas ficam organizadas aqui.');
 }
 class _SupportError extends StatelessWidget {
  const _SupportError({required this.message,required this.onRetry});
@@ -288,3 +288,4 @@ class _SupportError extends StatelessWidget {
  @override
  Widget build(BuildContext context) => Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:AppColors.coral100,borderRadius:BorderRadius.circular(14)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(message,style:const TextStyle(color:AppColors.coral600,fontSize:12,height:1.6)),TextButton(onPressed:onRetry,child:const Text('Tentar novamente'))]));
 }
+

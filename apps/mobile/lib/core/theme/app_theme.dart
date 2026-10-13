@@ -2,42 +2,42 @@ import 'package:flutter/material.dart';
 
 abstract final class AppColors {
   // Porto Prime — oceano, areia e pôr do sol em doses controladas.
-  static const ocean900 = Color(0xFF102B50);
-  static const ocean800 = Color(0xFF123D69);
-  static const ocean700 = Color(0xFF075E75);
-  static const ocean600 = Color(0xFF007F88);
-  static const ocean500 = Color(0xFF00A5AB);
-  static const ocean300 = Color(0xFF71DED5);
-  static const ocean100 = Color(0xFFDDF7F4);
-  static const ocean50 = Color(0xFFEDFBF9);
+  static const ocean900 = Color(0xFF092E34);
+  static const ocean800 = Color(0xFF0D4F53);
+  static const ocean700 = Color(0xFF086A68);
+  static const ocean600 = Color(0xFF078A83);
+  static const ocean500 = Color(0xFF1CAB9D);
+  static const ocean300 = Color(0xFF8CDED0);
+  static const ocean100 = Color(0xFFDEF4EE);
+  static const ocean50 = Color(0xFFEEF9F5);
 
-  static const sun500 = Color(0xFFFFC13D);
-  static const sun200 = Color(0xFFFFE1A9);
-  static const sand100 = Color(0xFFFFF3DD);
-  static const sand50 = Color(0xFFFFFAF2);
+  static const sun500 = Color(0xFFF5C866);
+  static const sun200 = Color(0xFFF9E4B6);
+  static const sand100 = Color(0xFFFBF0DC);
+  static const sand50 = Color(0xFFFFFBF3);
 
-  static const coral600 = Color(0xFFCD3E2B);
-  static const coral100 = Color(0xFFFFF0EA);
+  static const coral600 = Color(0xFFB9412D);
+  static const coral100 = Color(0xFFFCEDE7);
   static const lavender100 = Color(0xFFEDE9FF);
   static const violet600 = Color(0xFF6D5AA8);
   static const sky100 = Color(0xFFE5F3FB);
   static const sky700 = Color(0xFF356D8D);
 
-  static const ink = Color(0xFF132C46);
-  static const inkSoft = Color(0xFF344E63);
-  static const muted = Color(0xFF637689);
-  static const subtle = Color(0xFF8C9AAB);
-  static const canvas = Color(0xFFF5F8FC);
+  static const ink = Color(0xFF16373D);
+  static const inkSoft = Color(0xFF3D5B62);
+  static const muted = Color(0xFF5D7177);
+  static const subtle = Color(0xFF8C9FA3);
+  static const canvas = Color(0xFFF4F7F6);
   static const surface = Color(0xFFFFFFFF);
-  static const surfaceSoft = Color(0xFFFBFDFF);
-  static const surfaceMuted = Color(0xFFEDF3FA);
+  static const surfaceSoft = Color(0xFFFAFCFB);
+  static const surfaceMuted = Color(0xFFECF2F0);
   static const surfaceSun = Color(0xFFFFFBF3);
-  static const surfaceOcean = Color(0xFFF3FBF8);
+  static const surfaceOcean = Color(0xFFF0F8F4);
   static const overlay = Color(0x99061210);
-  static const stroke = Color(0xFFE0E9F2);
-  static const strokeStrong = Color(0xFFC9D9E9);
+  static const stroke = Color(0xFFDFE9E5);
+  static const strokeStrong = Color(0xFFC9DBD4);
   static const success = Color(0xFF2D9B70);
-  static const warning = Color(0xFFB97918);
+  static const warning = Color(0xFF8D611D);
   static const danger = coral600;
 
   // Compatibilidade com telas existentes.
@@ -57,10 +57,10 @@ abstract final class AppColors {
   static const white = surface;
   static const sand = sand100;
 
-  static const primary = ocean600;
+  static const primary = ocean700;
   static const primaryDark = ocean800;
-  static const action = coral600;
-  static const actionSoft = coral100;
+  static const action = ocean700;
+  static const actionSoft = ocean100;
   static const electric = Color(0xFF19C9C4);
   static const midnight = ocean900;
   static const accent = coral600;
@@ -83,9 +83,9 @@ abstract final class AppSpacing {
 abstract final class AppRadius {
   static const xs = 10.0;
   static const sm = 14.0;
-  static const md = 18.0;
+  static const md = 16.0;
   static const lg = 22.0;
-  static const xl = 28.0;
+  static const xl = 26.0;
   static const pill = 999.0;
 }
 
@@ -95,7 +95,7 @@ abstract final class AppControl {
   static const inputHeight = 56.0;
   static const buttonHeight = 54.0;
   static const compactButtonHeight = 40.0;
-  static const navHeight = 72.0;
+  static const navHeight = 76.0;
   static const maxContentWidth = 1180.0;
   static const productCardMinWidth = 164.0;
 }
@@ -200,9 +200,9 @@ abstract final class AppFontWeight {
 abstract final class AppShadows {
   static final soft = [
     BoxShadow(
-      color: AppColors.ink.withValues(alpha: .055),
-      blurRadius: 22,
-      offset: const Offset(0, 8),
+      color: AppColors.ink.withValues(alpha: .035),
+      blurRadius: 18,
+      offset: const Offset(0, 6),
     ),
   ];
 
@@ -228,10 +228,10 @@ abstract final class AppTypography {
     final manrope = base.apply(fontFamily: 'Manrope');
     return manrope.copyWith(
       displaySmall: manrope.displaySmall?.copyWith(
-        fontSize: 34,
+        fontSize: 36,
         height: 1.04,
         fontWeight: AppFontWeight.display,
-        letterSpacing: -1.2,
+        letterSpacing: -1.0,
         color: AppColors.ink,
       ),
       headlineLarge: manrope.headlineLarge?.copyWith(
@@ -242,15 +242,16 @@ abstract final class AppTypography {
         color: AppColors.ink,
       ),
       headlineMedium: manrope.headlineMedium?.copyWith(
-        fontSize: 24,
-        height: 1.08,
+        fontSize: 26,
+        height: 1.15,
         fontWeight: AppFontWeight.display,
         letterSpacing: -.65,
         color: AppColors.ink,
       ),
+      headlineSmall: manrope.headlineSmall?.copyWith(fontSize: 22, height: 1.2, fontWeight: AppFontWeight.display, letterSpacing: -.5, color: AppColors.ink),
       titleLarge: manrope.titleLarge?.copyWith(
-        fontSize: 19,
-        height: 1.15,
+        fontSize: 20,
+        height: 1.2,
         fontWeight: AppFontWeight.display,
         letterSpacing: -.35,
         color: AppColors.ink,
@@ -322,6 +323,12 @@ abstract final class AppTheme {
     final textTheme = AppTypography.build(base.textTheme);
 
     return base.copyWith(
+      cardTheme: CardThemeData(color: AppColors.surface, surfaceTintColor: Colors.transparent, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg), side: const BorderSide(color: AppColors.stroke))),
+      listTileTheme: const ListTileThemeData(iconColor: AppColors.ocean700, contentPadding: EdgeInsets.symmetric(horizontal: 18, vertical: 6)),
+      dividerTheme: const DividerThemeData(color: AppColors.stroke, thickness: 1, space: 24),
+      textSelectionTheme: const TextSelectionThemeData(cursorColor: AppColors.ocean700, selectionHandleColor: AppColors.ocean700, selectionColor: AppColors.ocean100),
+      popupMenuTheme: PopupMenuThemeData(color: AppColors.surface, surfaceTintColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md))),
+      tooltipTheme: TooltipThemeData(decoration: BoxDecoration(color: AppColors.ocean900, borderRadius: BorderRadius.circular(10)), textStyle: const TextStyle(fontSize: 12, color: Colors.white)),
       textTheme: textTheme,
       primaryTextTheme: textTheme,
       splashFactory: InkRipple.splashFactory,
@@ -338,11 +345,11 @@ abstract final class AppTheme {
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: AppColors.canvas,
+        backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         foregroundColor: AppColors.ink,
         titleTextStyle: textTheme.titleLarge,
-        toolbarHeight: 68,
+        toolbarHeight: 64,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -474,3 +481,4 @@ abstract final class AppTheme {
     );
   }
 }
+
