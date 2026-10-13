@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# Temporary same-filesystem build cache backups
+/.next-cache-backup-*/
