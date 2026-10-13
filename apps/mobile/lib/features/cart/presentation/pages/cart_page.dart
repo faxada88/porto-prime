@@ -19,6 +19,16 @@ class _CartPageState extends State<CartPage> {
     setState(()=>_opening=true);
     try{await _checkout(context);}finally{if(mounted)setState(()=>_opening=false);}
   }
+  Future<void> _clearCart() async {
+    if(_opening||AppState.instance.loading||AppState.instance.cart.isEmpty)return;
+    final confirmed=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(
+      shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(24)),
+      icon:const Icon(AppIcons.cart,color:AppColors.ocean700,size:30),
+      title:const Text('Limpar seu carrinho?'),content:const Text('Todos os produtos serão removidos. Você pode montar um novo carrinho quando quiser.'),
+      actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('Manter produtos')),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:const Text('Limpar carrinho'))],
+    ));
+    if(confirmed==true&&mounted)AppState.instance.clearCart();
+  }
   @override
   Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(_,__){
     final app=AppState.instance;
@@ -27,17 +37,23 @@ class _CartPageState extends State<CartPage> {
     return SafeArea(child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:680),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
       Padding(padding:const EdgeInsets.fromLTRB(20,18,20,18),child:Row(children:[
         Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Seu carrinho',style:TextStyle(fontSize:26,fontWeight:FontWeight.w800,letterSpacing:-.8)),const SizedBox(height:4),Text('${app.cartCount} ${app.cartCount==1?'item':'itens'}',style:const TextStyle(fontSize:12,color:AppColors.muted))])),
-        TextButton(onPressed:AppNav.instance.home,child:const Text('Adicionar itens')),
+        IconButton(tooltip:'Adicionar produtos',onPressed:AppNav.instance.home,icon:const Icon(AppIcons.plus,color:AppColors.ocean700)),
+
       ])),
+      if(entries.isNotEmpty)Padding(padding:const EdgeInsets.fromLTRB(20,0,20,12),child:Row(children:[const Expanded(child:Text('Seus produtos',style:TextStyle(fontSize:13,fontWeight:FontWeight.w700,color:AppColors.muted))),TextButton.icon(onPressed:working?null:_clearCart,icon:const Icon(AppIcons.trash,size:14),label:const Text('Limpar carrinho',style:TextStyle(fontSize:12)))])),
       Expanded(child:entries.isEmpty?Padding(padding:const EdgeInsets.all(20),child:Center(child:PrimeEmptyState(icon:AppIcons.cart,title:'Seu carrinho está vazio',message:'Escolha o que você quer receber hoje.',actionLabel:'Ver produtos',onAction:()=>AppNav.instance.go(1)))):ListView.separated(
         physics:const BouncingScrollPhysics(),padding:const EdgeInsets.fromLTRB(20,0,20,20),itemCount:entries.length,separatorBuilder:(_,__)=>const SizedBox(height:10),itemBuilder:(_,index)=>_CartItem(id:entries[index].key,qty:entries[index].value),
       )),
-      if(entries.isNotEmpty)Container(padding:const EdgeInsets.fromLTRB(20,15,20,16),decoration:const BoxDecoration(color:Colors.white,border:Border(top:BorderSide(color:AppColors.stroke))),child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.stretch,children:[
-        Row(children:[const Expanded(child:Text('Subtotal dos produtos',style:TextStyle(fontSize:13,color:AppColors.muted))),Text(_brl(app.cartSubtotal),style:const TextStyle(fontSize:24,fontWeight:FontWeight.w800,color:AppColors.ocean900))]),const SizedBox(height:5),
-        const Text('Entrega e saldo Porto Prime no próximo passo.',style:TextStyle(fontSize:11,color:AppColors.muted)),
-        if(app.storeStatusKnown&&!app.storeOpen)Padding(padding:const EdgeInsets.only(top:9),child:Text(app.storeMessage,style:const TextStyle(fontSize:12,color:AppColors.coralStrong,height:1.4))),
-        const SizedBox(height:13),
-        SizedBox(height:54,child:FilledButton.icon(onPressed:working||!app.storeStatusKnown||!app.storeOpen?null:_startCheckout,icon:working?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):const Icon(AppIcons.arrowRight,size:18),label:Text(working?'Preparando…':!app.storeStatusKnown?'Verificando loja…':app.storeOpen?'Continuar para entrega':'Loja fechada'))),
+      if(entries.isNotEmpty)Container(padding:const EdgeInsets.fromLTRB(20,16,20,18),decoration:BoxDecoration(color:Colors.white,borderRadius:const BorderRadius.vertical(top:Radius.circular(26)),border:const Border(top:BorderSide(color:AppColors.stroke)),boxShadow:[BoxShadow(color:AppColors.ocean900.withValues(alpha:.05),blurRadius:24,offset:const Offset(0,-5))]),child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+        Row(crossAxisAlignment:CrossAxisAlignment.center,children:[
+          Container(width:42,height:42,decoration:BoxDecoration(color:AppColors.ocean50,borderRadius:BorderRadius.circular(13)),child:const Icon(AppIcons.cart,size:20,color:AppColors.ocean700)),const SizedBox(width:12),
+          const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Pronto para continuar?',style:TextStyle(fontSize:14,fontWeight:FontWeight.w800,color:AppColors.ocean900)),SizedBox(height:4),Text('Subtotal dos produtos',style:TextStyle(fontSize:11,color:AppColors.muted))])),
+          Text(_brl(app.cartSubtotal),style:const TextStyle(fontSize:22,fontWeight:FontWeight.w800,color:AppColors.ocean900)),
+        ]),
+        if(app.storeStatusKnown&&!app.storeOpen)Padding(padding:const EdgeInsets.only(top:10),child:Text(app.storeMessage,style:const TextStyle(fontSize:12,color:AppColors.coralStrong,height:1.4))),
+        const SizedBox(height:16),
+        SizedBox(height:56,child:FilledButton.icon(style:FilledButton.styleFrom(backgroundColor:AppColors.ocean800,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(17))),onPressed:working||!app.storeStatusKnown||!app.storeOpen?null:_startCheckout,icon:working?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):const Icon(AppIcons.arrowRight,size:18),label:Text(working?'Preparando…':!app.storeStatusKnown?'Verificando loja…':app.storeOpen?'Continuar para entrega':'Loja fechada'))),
+        const SizedBox(height:9),const Text('Confirme endereço, entrega e saldo no próximo passo.',textAlign:TextAlign.center,style:TextStyle(fontSize:11,color:AppColors.muted)),
       ])),
     ]))));
   });

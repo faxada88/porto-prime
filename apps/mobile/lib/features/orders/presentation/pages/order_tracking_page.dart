@@ -1,3 +1,4 @@
+import '../widgets/courier_search_notice.dart';
 import '../../../support/presentation/pages/delivery_chat_page.dart';
 import 'dart:async';
 import '../../../../core/widgets/order_item_availability_notice.dart';
@@ -112,6 +113,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 34),
               children: [
                 _Hero(order: current, status: status, id: widget.orderId),
+                if(status=='SEARCHING_COURIER')const Padding(padding:EdgeInsets.only(top:16),child:CourierSearchNotice()),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(settings:RouteSettings(name:'/delivery-chat/${widget.orderId}'),builder:(_)=>DeliveryChatPage(orderId:widget.orderId))),icon:const Icon(AppIcons.mail,size:18),label:const Text('Conversar sobre a entrega')),
                 const SizedBox(height:16),
