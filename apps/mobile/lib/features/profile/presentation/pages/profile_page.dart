@@ -1,4 +1,5 @@
 import '../../../support/presentation/pages/support_page.dart';
+import '../../../support/presentation/pages/public_support_page.dart';
 import '../../../partners/presentation/pages/partner_referral_card.dart';
 import '../../../partners/presentation/pages/partner_dashboard_page.dart';
 import '../../../wallet/presentation/pages/customer_prime_card_page.dart';
@@ -44,6 +45,7 @@ class _Guest extends StatelessWidget {
       _MenuSurface(children: [
         _MenuLine(icon: AppIcons.support_agent_rounded, title: 'Ajuda e suporte',
           subtitle: 'Fale com a equipe Porto Prime', onTap: () => _support(context)),
+        _MenuLine(icon: AppIcons.store, title: 'Parcerias e patrocínios', subtitle: 'Conte sua ideia para a Porto Prime', onTap: () => _publicSupport(context, topic: 'PARTNERSHIP')),
         _MenuLine(icon: AppIcons.shield_rounded, title: 'Privacidade e segurança',
           subtitle: 'Como protegemos sua conta e seus dados',
           onTap: () => _simpleMessage(context, 'Privacidade e segurança',
@@ -1411,6 +1413,9 @@ Future<void> _auth(BuildContext context) async {
             if (ctx.mounted) Navigator.pop(ctx);
           },
         ),
+        const SizedBox(height: 12),
+        TextButton.icon(onPressed:(){Navigator.pop(ctx);_publicSupport(context,topic:'ACCESS');},
+          icon:const Icon(AppIcons.help,size:17),label:const Text('Preciso de ajuda para entrar')),
         const SizedBox(height: 15),
         Container(
           padding: const EdgeInsets.all(13),
@@ -1968,6 +1973,8 @@ class _Account extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
+          _MenuSurface(children:[_MenuLine(icon:AppIcons.store,title:'Parcerias e patrocínios',subtitle:'Fale com nossa equipe comercial',last:true,onTap:()=>_publicSupport(context,topic:'PARTNERSHIP'))]),
+          const SizedBox(height: 18),
           SizedBox(
             height: 54,
             child: OutlinedButton.icon(
@@ -2075,9 +2082,13 @@ void _addresses(BuildContext context) {
   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddressBookPage()));
 }
 
+void _publicSupport(BuildContext context,{String topic='GENERAL'}) {
+  Navigator.of(context).push(MaterialPageRoute(builder:(_)=>PublicSupportPage(initialTopic:topic)));
+}
+
 void _support(BuildContext context) {
   if (!AppState.instance.loggedIn) {
-    _simpleMessage(context,'Ajuda e suporte','Entre na sua conta para abrir um atendimento e acompanhar as respostas da nossa equipe.');
+    _publicSupport(context);
     return;
   }
   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SupportPage()));

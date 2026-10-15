@@ -721,3 +721,38 @@ model OrderCancellation {
  completedAt DateTime?
  @@index([status,createdAt])
 }
+
+
+model PublicContact {
+ id String @id @default(cuid())
+ protocol String @unique
+ requestId String @unique
+ keyHash String
+ requestHash String
+ name String
+ email String
+ phone String
+ company String
+ persona String
+ topic String
+ status String @default("OPEN")
+ notes String?
+ messages PublicContactMessage[]
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([status, updatedAt])
+ @@index([topic, updatedAt])
+ @@index([email, createdAt])
+}
+model PublicContactMessage {
+ id String @id @default(cuid())
+ contactId String
+ contact PublicContact @relation(fields:[contactId], references:[id], onDelete:Cascade)
+ senderRole String
+ senderId String?
+ requestId String
+ text String
+ createdAt DateTime @default(now())
+ @@unique([contactId, senderRole, requestId])
+ @@index([contactId, createdAt, id])
+}
