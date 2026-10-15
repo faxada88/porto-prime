@@ -1,0 +1,349 @@
+[
+  {
+    "key": "barbecue",
+    "label": "Churrasco e carnes",
+    "glyph": "beef",
+    "terms": [
+      "churrasc",
+      "carne",
+      "acougue",
+      "espet",
+      "bovino",
+      "frango"
+    ],
+    "background": "FFF0E4",
+    "foreground": "98572A"
+  },
+  {
+    "key": "fitness",
+    "label": "Fitness e suplementos",
+    "glyph": "dumbbell",
+    "terms": [
+      "fitness",
+      "fit",
+      "suplement",
+      "protein",
+      "academia",
+      "ginast"
+    ],
+    "background": "EDE9FF",
+    "foreground": "6655A2"
+  },
+  {
+    "key": "fruit",
+    "label": "Frutas",
+    "glyph": "apple",
+    "terms": [
+      "fruta",
+      "hortifruti",
+      "acai"
+    ],
+    "background": "E6F4EA",
+    "foreground": "36734A"
+  },
+  {
+    "key": "vegetables",
+    "label": "Verduras e legumes",
+    "glyph": "carrot",
+    "terms": [
+      "verdur",
+      "legum",
+      "hortalic",
+      "salad"
+    ],
+    "background": "EAF5E2",
+    "foreground": "487334"
+  },
+  {
+    "key": "fish",
+    "label": "Peixes e frutos do mar",
+    "glyph": "fish",
+    "terms": [
+      "peixe",
+      "pescad",
+      "camarao",
+      "marisco",
+      "frutos do mar"
+    ],
+    "background": "E3F2F8",
+    "foreground": "2E708D"
+  },
+  {
+    "key": "bakery",
+    "label": "Padaria e pães",
+    "glyph": "croissant",
+    "terms": [
+      "padaria",
+      "pao",
+      "paes",
+      "panific",
+      "salgad"
+    ],
+    "background": "FFF1D8",
+    "foreground": "8D5E10"
+  },
+  {
+    "key": "coffee",
+    "label": "Café e chá",
+    "glyph": "coffee",
+    "terms": [
+      "cafe",
+      "caffe",
+      "cha"
+    ],
+    "background": "F4E9DF",
+    "foreground": "80543D"
+  },
+  {
+    "key": "dairy",
+    "label": "Leite e laticínios",
+    "glyph": "milk",
+    "terms": [
+      "leite",
+      "laticin",
+      "queijo",
+      "iogurte"
+    ],
+    "background": "E5F3FB",
+    "foreground": "356D8D"
+  },
+  {
+    "key": "sweets",
+    "label": "Doces e sobremesas",
+    "glyph": "cakeSlice",
+    "terms": [
+      "doce",
+      "sobremesa",
+      "bolo",
+      "chocolate",
+      "sorvet"
+    ],
+    "background": "F8E4EA",
+    "foreground": "8C4059"
+  },
+  {
+    "key": "pizza",
+    "label": "Pizzas",
+    "glyph": "pizza",
+    "terms": [
+      "pizza"
+    ],
+    "background": "FFF0E4",
+    "foreground": "98572A"
+  },
+  {
+    "key": "snacks",
+    "label": "Lanches e sanduíches",
+    "glyph": "sandwich",
+    "terms": [
+      "lanche",
+      "hamburg",
+      "sanduich",
+      "burger"
+    ],
+    "background": "FFF1D8",
+    "foreground": "8D5E10"
+  },
+  {
+    "key": "vegan",
+    "label": "Natural e vegano",
+    "glyph": "leaf",
+    "terms": [
+      "vegan",
+      "vegetarian",
+      "natural",
+      "organico"
+    ],
+    "background": "E6F4EA",
+    "foreground": "36734A"
+  },
+  {
+    "key": "pharmacy",
+    "label": "Farmácia e saúde",
+    "glyph": "pill",
+    "terms": [
+      "farmac",
+      "saude",
+      "medic",
+      "higiene"
+    ],
+    "background": "E3F2F8",
+    "foreground": "2E708D"
+  },
+  {
+    "key": "pets",
+    "label": "Pets",
+    "glyph": "pawPrint",
+    "terms": [
+      "pets",
+      "petshop",
+      "racao",
+      "animal",
+      "cachorro",
+      "gato"
+    ],
+    "background": "FFF0E4",
+    "foreground": "98572A"
+  },
+  {
+    "key": "cleaning",
+    "label": "Limpeza",
+    "glyph": "sprayCan",
+    "terms": [
+      "limpeza",
+      "deterg",
+      "lavander"
+    ],
+    "background": "E5F3FB",
+    "foreground": "356D8D"
+  },
+  {
+    "key": "beauty",
+    "label": "Beleza e cuidados",
+    "glyph": "flower2",
+    "terms": [
+      "beleza",
+      "cosmet",
+      "perfum",
+      "cuidado"
+    ],
+    "background": "F8E4EA",
+    "foreground": "8C4059"
+  },
+  {
+    "key": "baby",
+    "label": "Bebês e infantil",
+    "glyph": "baby",
+    "terms": [
+      "bebe",
+      "infant",
+      "fralda"
+    ],
+    "background": "EDE9FF",
+    "foreground": "6655A2"
+  },
+  {
+    "key": "beer",
+    "label": "Cervejas",
+    "glyph": "beer",
+    "terms": [
+      "cervej"
+    ],
+    "background": "FFF1C9",
+    "foreground": "8D5E10"
+  },
+  {
+    "key": "wine",
+    "label": "Vinhos",
+    "glyph": "wine",
+    "terms": [
+      "vinh"
+    ],
+    "background": "F8E4EA",
+    "foreground": "8C4059"
+  },
+  {
+    "key": "spirits",
+    "label": "Destilados",
+    "glyph": "martini",
+    "terms": [
+      "destil",
+      "deslit",
+      "whisk",
+      "vodk",
+      "gin",
+      "licor",
+      "cachac"
+    ],
+    "background": "FFE9DA",
+    "foreground": "98572A"
+  },
+  {
+    "key": "softDrink",
+    "label": "Refrigerantes e sucos",
+    "glyph": "cupSoda",
+    "terms": [
+      "refriger",
+      "suco",
+      "sem alcool"
+    ],
+    "background": "FFE9E2",
+    "foreground": "AA4E3E"
+  },
+  {
+    "key": "energy",
+    "label": "Energéticos",
+    "glyph": "zap",
+    "terms": [
+      "energ"
+    ],
+    "background": "ECE7FF",
+    "foreground": "6655A2"
+  },
+  {
+    "key": "water",
+    "label": "Águas",
+    "glyph": "droplet",
+    "terms": [
+      "agua"
+    ],
+    "background": "E3F2F8",
+    "foreground": "2E708D"
+  },
+  {
+    "key": "ice",
+    "label": "Gelo",
+    "glyph": "snowflake",
+    "terms": [
+      "gelo"
+    ],
+    "background": "E7F4FA",
+    "foreground": "317898"
+  },
+  {
+    "key": "convenience",
+    "label": "Conveniência e mercearia",
+    "glyph": "shoppingCart",
+    "terms": [
+      "conveni",
+      "snack",
+      "petisco",
+      "mercearia",
+      "biscoit"
+    ],
+    "background": "E6F4EA",
+    "foreground": "36734A"
+  },
+  {
+    "key": "combo",
+    "label": "Combos e kits",
+    "glyph": "packageOpen",
+    "terms": [
+      "combo",
+      "kit",
+      "pack"
+    ],
+    "background": "FFEED4",
+    "foreground": "95611C"
+  },
+  {
+    "key": "offers",
+    "label": "Ofertas",
+    "glyph": "badgePercent",
+    "terms": [
+      "oferta",
+      "promo",
+      "desconto"
+    ],
+    "background": "FFE7E1",
+    "foreground": "B64E3E"
+  },
+  {
+    "key": "general",
+    "label": "Categoria personalizada",
+    "glyph": "layoutGrid",
+    "terms": [],
+    "background": "EAF5F1",
+    "foreground": "0C655B"
+  }
+]

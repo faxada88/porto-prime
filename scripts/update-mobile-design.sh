@@ -7,7 +7,7 @@ cd "$project_root/apps/mobile"
 export CI=true BOT=true
 flutter pub get
 flutter analyze --no-fatal-infos --no-fatal-warnings
-flutter test test/frontend_visual_system_test.dart
+flutter test test/frontend_visual_system_test.dart test/category_icons_test.dart
 # Compile separately: a failed check does not replace the running app.
 flutter build web --release --output build/prime_refresh_next
 while read -r pid process_command; do

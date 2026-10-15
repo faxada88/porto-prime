@@ -412,8 +412,12 @@ class _CategoryGrid extends StatelessWidget {
           ),
           itemBuilder: (_, index) {
             final name = visible[index];
+            final category = AppState.instance.catalogCategories.firstWhere(
+              (item) => item['name'] == name, orElse: () => <String, dynamic>{});
             return PrimeCategoryTile(
               name: name,
+              iconKey: category['iconKey']?.toString(),
+              imageUrls: category['imageUrl'] == null ? const [] : [category['imageUrl'].toString()],
               compact: width < 390,
               onTap: () {
                 AppState.instance.selectCatalogCategory(name);

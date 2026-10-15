@@ -13,7 +13,7 @@ export class ProductsService {
   }
 
   categories() {
-    return this.prisma.category.findMany({ where: { active: true, archived: false }, select: { id: true, name: true, imageUrl: true, position: true, active: true, updatedAt: true }, orderBy: [{ position: 'asc' }, { name: 'asc' }] });
+    return this.prisma.category.findMany({ where: { active: true, archived: false }, select: { id: true, name: true, imageUrl: true, iconKey: true, position: true, active: true, updatedAt: true }, orderBy: [{ position: 'asc' }, { name: 'asc' }] });
   }
 
   findAll() {

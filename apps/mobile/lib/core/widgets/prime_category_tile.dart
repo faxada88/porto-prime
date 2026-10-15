@@ -13,6 +13,7 @@ class PrimeCategoryTile extends StatefulWidget {
     this.selected = false,
     this.compact = false,
     this.imageUrls = const [],
+    this.iconKey,
   });
 
   final String name;
@@ -20,6 +21,7 @@ class PrimeCategoryTile extends StatefulWidget {
   final bool selected;
   final bool compact;
   final List<String> imageUrls;
+  final String? iconKey;
 
   @override
   State<PrimeCategoryTile> createState() => _PrimeCategoryTileState();
@@ -32,11 +34,17 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
 
   @override
   Widget build(BuildContext context) {
-    final visual = AppIcons.categoryVisual(widget.name);
+    final visual = AppIcons.categoryVisual(widget.name, iconKey: widget.iconKey);
     final selected = widget.selected;
     final compact = widget.compact;
     final iconBox = compact ? 56.0 : 64.0;
 
+    final initials = widget.name.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty)
+        .take(2).map((part) => String.fromCharCode(part.runes.first)).join().toUpperCase();
+    Widget artwork() => visual.key == null
+      ? SizedBox(width: 42, height: 42, child: Center(child: Text(initials,
+          textScaler: TextScaler.noScaling, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: visual.foreground))))
+      : PrimeCategoryArtwork(icon: visual.icon, size: compact ? 37 : 42, color: visual.foreground);
     return Semantics(
       button: true,
       selected: selected,
@@ -144,11 +152,10 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                           ),
                           Transform.translate(
                             offset: visual.offset,
-                            child: PrimeCategoryArtwork(
-                              icon: visual.icon,
-                              size: compact ? 37 : 42,
-                              color: visual.foreground,
-                            ),
+                            child: widget.imageUrls.isNotEmpty && widget.imageUrls.first.isNotEmpty
+                              ? SizedBox.square(dimension: compact ? 37 : 42, child: Image.network(widget.imageUrls.first,
+                                  fit: BoxFit.contain, errorBuilder: (_, __, ___) => artwork()))
+                              : artwork(),
                           ),
                           if (selected)
                             Positioned(

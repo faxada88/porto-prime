@@ -198,126 +198,77 @@ abstract final class AppIcons {
   static const info_outline_rounded = info;
   static const delete_sweep_outlined = trash;
 
-  static CategoryIconSpec categoryVisual(String name) {
+  static final Map<String, CategoryIconSpec> _categorySpecs = {
+    'barbecue': const CategoryIconSpec(key: 'barbecue', icon: LucideIcons.beef, size: 27, background: Color(0xFFFFF0E4), foreground: Color(0xFF98572A)),
+    'fitness': const CategoryIconSpec(key: 'fitness', icon: LucideIcons.dumbbell, size: 27, background: Color(0xFFEDE9FF), foreground: Color(0xFF6655A2)),
+    'fruit': const CategoryIconSpec(key: 'fruit', icon: LucideIcons.apple, size: 27, background: Color(0xFFE6F4EA), foreground: Color(0xFF36734A)),
+    'vegetables': const CategoryIconSpec(key: 'vegetables', icon: LucideIcons.carrot, size: 27, background: Color(0xFFEAF5E2), foreground: Color(0xFF487334)),
+    'fish': const CategoryIconSpec(key: 'fish', icon: LucideIcons.fish, size: 27, background: Color(0xFFE3F2F8), foreground: Color(0xFF2E708D)),
+    'bakery': const CategoryIconSpec(key: 'bakery', icon: LucideIcons.croissant, size: 27, background: Color(0xFFFFF1D8), foreground: Color(0xFF8D5E10)),
+    'coffee': const CategoryIconSpec(key: 'coffee', icon: LucideIcons.coffee, size: 27, background: Color(0xFFF4E9DF), foreground: Color(0xFF80543D)),
+    'dairy': const CategoryIconSpec(key: 'dairy', icon: LucideIcons.milk, size: 27, background: Color(0xFFE5F3FB), foreground: Color(0xFF356D8D)),
+    'sweets': const CategoryIconSpec(key: 'sweets', icon: LucideIcons.cakeSlice, size: 27, background: Color(0xFFF8E4EA), foreground: Color(0xFF8C4059)),
+    'pizza': const CategoryIconSpec(key: 'pizza', icon: LucideIcons.pizza, size: 27, background: Color(0xFFFFF0E4), foreground: Color(0xFF98572A)),
+    'snacks': const CategoryIconSpec(key: 'snacks', icon: LucideIcons.sandwich, size: 27, background: Color(0xFFFFF1D8), foreground: Color(0xFF8D5E10)),
+    'vegan': const CategoryIconSpec(key: 'vegan', icon: LucideIcons.leaf, size: 27, background: Color(0xFFE6F4EA), foreground: Color(0xFF36734A)),
+    'pharmacy': const CategoryIconSpec(key: 'pharmacy', icon: LucideIcons.pill, size: 27, background: Color(0xFFE3F2F8), foreground: Color(0xFF2E708D)),
+    'pets': const CategoryIconSpec(key: 'pets', icon: LucideIcons.pawPrint, size: 27, background: Color(0xFFFFF0E4), foreground: Color(0xFF98572A)),
+    'cleaning': const CategoryIconSpec(key: 'cleaning', icon: LucideIcons.sprayCan, size: 27, background: Color(0xFFE5F3FB), foreground: Color(0xFF356D8D)),
+    'beauty': const CategoryIconSpec(key: 'beauty', icon: LucideIcons.flower2, size: 27, background: Color(0xFFF8E4EA), foreground: Color(0xFF8C4059)),
+    'baby': const CategoryIconSpec(key: 'baby', icon: LucideIcons.baby, size: 27, background: Color(0xFFEDE9FF), foreground: Color(0xFF6655A2)),
+    'beer': const CategoryIconSpec(key: 'beer', icon: LucideIcons.beer, size: 27, background: Color(0xFFFFF1C9), foreground: Color(0xFF8D5E10)),
+    'wine': const CategoryIconSpec(key: 'wine', icon: LucideIcons.wine, size: 27, background: Color(0xFFF8E4EA), foreground: Color(0xFF8C4059)),
+    'spirits': const CategoryIconSpec(key: 'spirits', icon: LucideIcons.martini, size: 27, background: Color(0xFFFFE9DA), foreground: Color(0xFF98572A)),
+    'softDrink': const CategoryIconSpec(key: 'softDrink', icon: LucideIcons.cupSoda, size: 27, background: Color(0xFFFFE9E2), foreground: Color(0xFFAA4E3E)),
+    'energy': const CategoryIconSpec(key: 'energy', icon: LucideIcons.zap, size: 27, background: Color(0xFFECE7FF), foreground: Color(0xFF6655A2)),
+    'water': const CategoryIconSpec(key: 'water', icon: LucideIcons.droplet, size: 27, background: Color(0xFFE3F2F8), foreground: Color(0xFF2E708D)),
+    'ice': const CategoryIconSpec(key: 'ice', icon: LucideIcons.snowflake, size: 27, background: Color(0xFFE7F4FA), foreground: Color(0xFF317898)),
+    'convenience': const CategoryIconSpec(key: 'convenience', icon: LucideIcons.shoppingCart, size: 27, background: Color(0xFFE6F4EA), foreground: Color(0xFF36734A)),
+    'combo': const CategoryIconSpec(key: 'combo', icon: LucideIcons.packageOpen, size: 27, background: Color(0xFFFFEED4), foreground: Color(0xFF95611C)),
+    'offers': const CategoryIconSpec(key: 'offers', icon: LucideIcons.badgePercent, size: 27, background: Color(0xFFFFE7E1), foreground: Color(0xFFB64E3E)),
+    'general': const CategoryIconSpec(key: 'general', icon: LucideIcons.layoutGrid, size: 27, background: Color(0xFFEAF5F1), foreground: Color(0xFF0C655B)),
+  };
+  static const _categoryTerms = <String, List<String>>{
+    'barbecue': ["churrasc", "carne", "acougue", "espet", "bovino", "frango"],
+    'fitness': ["fitness", "fit", "suplement", "protein", "academia", "ginast"],
+    'fruit': ["fruta", "hortifruti", "acai"],
+    'vegetables': ["verdur", "legum", "hortalic", "salad"],
+    'fish': ["peixe", "pescad", "camarao", "marisco", "frutos do mar"],
+    'bakery': ["padaria", "pao", "paes", "panific", "salgad"],
+    'coffee': ["cafe", "caffe", "cha"],
+    'dairy': ["leite", "laticin", "queijo", "iogurte"],
+    'sweets': ["doce", "sobremesa", "bolo", "chocolate", "sorvet"],
+    'pizza': ["pizza"],
+    'snacks': ["lanche", "hamburg", "sanduich", "burger"],
+    'vegan': ["vegan", "vegetarian", "natural", "organico"],
+    'pharmacy': ["farmac", "saude", "medic", "higiene"],
+    'pets': ["pets", "petshop", "racao", "animal", "cachorro", "gato"],
+    'cleaning': ["limpeza", "deterg", "lavander"],
+    'beauty': ["beleza", "cosmet", "perfum", "cuidado"],
+    'baby': ["bebe", "infant", "fralda"],
+    'beer': ["cervej"],
+    'wine': ["vinh"],
+    'spirits': ["destil", "deslit", "whisk", "vodk", "gin", "licor", "cachac"],
+    'softDrink': ["refriger", "suco", "sem alcool"],
+    'energy': ["energ"],
+    'water': ["agua"],
+    'ice': ["gelo"],
+    'convenience': ["conveni", "snack", "petisco", "mercearia", "biscoit"],
+    'combo': ["combo", "kit", "pack"],
+    'offers': ["oferta", "promo", "desconto"],
+  };
+  static CategoryIconSpec categoryVisual(String name, {String? iconKey}) {
+    final explicit = _categorySpecs[iconKey];
+    if (explicit != null) return explicit;
     final value = _normalizeCategory(name);
-
-    if (value == 'todos' || value == 'todas') {
-      return const CategoryIconSpec(
-        icon: all,
-        size: 25,
-        background: Color(0xFFEAF5F1),
-        foreground: Color(0xFF0C655B),
-      );
+    if (value == 'todos' || value == 'todas') return const CategoryIconSpec(key: 'all', icon: all, size: 25, background: Color(0xFFEAF5F1), foreground: Color(0xFF0C655B));
+    final words = value.split(RegExp(r'[^a-z0-9]+'));
+    for (final entry in _categoryTerms.entries) {
+      if (entry.value.any((term) => term.contains(' ') ? value.contains(term) : words.any((word) => term.length <= 3 ? word == term : word.startsWith(term)))) return _categorySpecs[entry.key]!;
     }
-    if (value.contains('cervej')) {
-      return const CategoryIconSpec(
-        icon: beer,
-        offset: Offset(.5, .3),
-        size: 27,
-        background: Color(0xFFFFF1C9),
-        foreground: Color(0xFF8D5E10),
-      );
-    }
-    if (value.contains('vinh')) {
-      return const CategoryIconSpec(
-        icon: wine,
-        offset: Offset(0, -.7),
-        size: 27,
-        background: Color(0xFFF8E4EA),
-        foreground: Color(0xFF8C4059),
-      );
-    }
-    if (value.contains('destil') || value.contains('deslit') ||
-        value.contains('whisk') ||
-        value.contains('vodk') ||
-        value.contains('gin') ||
-        value.contains('licor') ||
-        value.contains('cachac')) {
-      return const CategoryIconSpec(
-        icon: spirits,
-        offset: Offset(0, -.3),
-        size: 26,
-        background: Color(0xFFFFE9DA),
-        foreground: Color(0xFF98572A),
-      );
-    }
-    if (value.contains('refriger') ||
-        value.contains('suco') ||
-        value.contains('sem alcool')) {
-      return const CategoryIconSpec(
-        icon: softDrink,
-        size: 26,
-        background: Color(0xFFFFE9E2),
-        foreground: Color(0xFFAA4E3E),
-      );
-    }
-    if (value.contains('energ')) {
-      return const CategoryIconSpec(
-        icon: energy,
-        offset: Offset(.4, 0),
-        size: 25,
-        background: Color(0xFFECE7FF),
-        foreground: Color(0xFF6655A2),
-      );
-    }
-    if (value.contains('agua')) {
-      return const CategoryIconSpec(
-        icon: water,
-        offset: Offset(0, -.2),
-        size: 25,
-        background: Color(0xFFE3F2F8),
-        foreground: Color(0xFF2E708D),
-      );
-    }
-    if (value.contains('gelo')) {
-      return const CategoryIconSpec(
-        icon: ice,
-        offset: Offset(0, -.5),
-        size: 26,
-        background: Color(0xFFE7F4FA),
-        foreground: Color(0xFF317898),
-      );
-    }
-    if (value.contains('conveni') ||
-        value.contains('snack') ||
-        value.contains('petisco') ||
-        value.contains('mercearia')) {
-      return const CategoryIconSpec(
-        icon: convenience,
-        size: 25,
-        background: Color(0xFFE6F4EA),
-        foreground: Color(0xFF36734A),
-      );
-    }
-    if (value.contains('combo') ||
-        value.contains('kit') ||
-        value.contains('pack')) {
-      return const CategoryIconSpec(
-        icon: combo,
-        size: 26,
-        background: Color(0xFFFFEED4),
-        foreground: Color(0xFF95611C),
-      );
-    }
-    if (value.contains('oferta') ||
-        value.contains('promo') ||
-        value.contains('desconto')) {
-      return const CategoryIconSpec(
-        icon: offers,
-        size: 25,
-        background: Color(0xFFFFE7E1),
-        foreground: Color(0xFFB64E3E),
-      );
-    }
-
-    return const CategoryIconSpec(
-      icon: package,
-      size: 25,
-      background: Color(0xFFEAF5F1),
-      foreground: Color(0xFF0C655B),
-    );
+    // Unknown legacy names get a typographic mark in the tile, never a box.
+    return const CategoryIconSpec(icon: all, size: 25, background: Color(0xFFEAF5F1), foreground: Color(0xFF0C655B));
   }
-
   static IconData category(String name) => categoryVisual(name).icon;
 
   static String _normalizeCategory(String name) => name
@@ -338,7 +289,9 @@ abstract final class AppIcons {
 }
 
 class CategoryIconSpec {
+  final String? key;
   const CategoryIconSpec({
+    this.key,
     required this.icon,
     required this.size,
     required this.background,

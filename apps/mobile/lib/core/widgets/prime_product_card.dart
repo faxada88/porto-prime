@@ -119,10 +119,10 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                                         fit: BoxFit.contain,
                                         filterQuality: FilterQuality.medium,
                                         errorBuilder: (_, __, ___) =>
-                                            _FallbackProduct(icon: AppIcons.category(category)),
+                                            _FallbackProduct(icon: AppIcons.categoryVisual(category, iconKey: p['category']?['iconKey']?.toString()).icon),
                                       ),
                                     )
-                                  : _FallbackProduct(icon: AppIcons.category(category)),
+                                  : _FallbackProduct(icon: AppIcons.categoryVisual(category, iconKey: p['category']?['iconKey']?.toString()).icon),
                             ),
                             if (discount != null)
                               Positioned(

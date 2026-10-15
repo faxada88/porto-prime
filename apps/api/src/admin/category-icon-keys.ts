@@ -1,0 +1,1 @@
+export const CATEGORY_ICON_KEYS = new Set<string>(["barbecue", "fitness", "fruit", "vegetables", "fish", "bakery", "coffee", "dairy", "sweets", "pizza", "snacks", "vegan", "pharmacy", "pets", "cleaning", "beauty", "baby", "beer", "wine", "spirits", "softDrink", "energy", "water", "ice", "convenience", "combo", "offers", "general"]);

@@ -250,12 +250,18 @@ class _CategoryGrid extends StatelessWidget {
             crossAxisSpacing: AppSpacing.xs,
             mainAxisSpacing: AppSpacing.xs,
           ),
-          itemBuilder: (_, i) => PrimeCategoryTile(
-            name: categories[i],
-            selected: selected == categories[i],
-            compact: width < 390,
-            onTap: () => onSelect(categories[i]),
-          ),
+          itemBuilder: (_, i) {
+            final category = AppState.instance.catalogCategories.firstWhere(
+              (item) => item['name'] == categories[i], orElse: () => <String, dynamic>{});
+            return PrimeCategoryTile(
+              name: categories[i],
+              iconKey: category['iconKey']?.toString(),
+              imageUrls: category['imageUrl'] == null ? const [] : [category['imageUrl'].toString()],
+              selected: selected == categories[i],
+              compact: width < 390,
+              onTap: () => onSelect(categories[i]),
+            );
+          },
         ),
       );
     },

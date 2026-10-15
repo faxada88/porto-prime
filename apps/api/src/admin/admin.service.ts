@@ -1,3 +1,5 @@
+import { CATEGORY_ICON_KEYS } from './category-icon-keys.js';
+import { deleteCatalogCategory } from './catalog-category-delete.js';
 import {editCustomerProfile,editCustomerAddress} from './customer-profile.js';
 import {customerCard,adjustCustomerCard} from './customer-card.js';
 import {orderAdjustments} from '../availability/order-adjustments.js';
@@ -904,6 +906,10 @@ export class AdminService {
       const duplicate = await this.prisma.category.findFirst({ where: { ...(id ? { id: { not: id } } : {}), OR: [{ name: data.name }, { slug: data.slug }] } });
       if (duplicate) throw new BadRequestException('Categoria já cadastrada');
     }
+    if (body.iconKey !== undefined) {
+      if (typeof body.iconKey !== 'string' || !CATEGORY_ICON_KEYS.has(body.iconKey)) throw new BadRequestException('Selecione um ícone válido para a categoria');
+      data.iconKey = body.iconKey;
+    }
     if (body.imageUrl !== undefined) data.imageUrl = this.catalogImage(body.imageUrl);
     if (body.position !== undefined) {
       const position = Number(body.position);
@@ -931,6 +937,13 @@ export class AdminService {
     const data = await this.categoryFields(body, id);
     if (!Object.keys(data).length) throw new BadRequestException('Informe os campos que deseja atualizar');
     const result = await this.prisma.category.update({ where: { id }, data });
+    this.catalogChanged();
+    return result;
+  }
+
+  async deleteCategory(id: string, body: Record<string, any>, authorization?: string) {
+    await this.requireAdmin(authorization);
+    const result = await deleteCatalogCategory(this.prisma, id, body);
     this.catalogChanged();
     return result;
   }

@@ -232,6 +232,11 @@ export class AdminController {
     return this.adminService.updateCategory(id, body, authorization);
   }
 
+  @Delete('categories/:id')
+  deleteCategory(@Param('id') id: string, @Body() body: Record<string, any>, @Headers('authorization') authorization?: string) {
+    return this.adminService.deleteCategory(id, body || {}, authorization);
+  }
+
   @Patch('store')
   updateStore(@Body() body: Record<string, any>, @Headers('authorization') authorization?: string) {
     return this.adminService.updateStore(body, authorization);

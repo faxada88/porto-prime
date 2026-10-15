@@ -266,6 +266,7 @@ model Address {
 }
 
 model Category {
+  iconKey String?
   id   String @id @default(cuid())
   name String @unique
   slug String @unique
