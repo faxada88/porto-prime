@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:porto_prime/core/widgets/prime_registration_widgets.dart';
 import 'package:porto_prime/core/widgets/prime_account_widgets.dart';
 import 'package:porto_prime/core/widgets/prime_cart_widgets.dart';
 import 'package:porto_prime/core/widgets/prime_bottom_navigation.dart';
@@ -33,6 +34,10 @@ void main() {
      const SizedBox(height: 16), PrimeAccountWelcome(onLogin: () {}, onCreate: () {}),
      const SizedBox(height: 16), const PrimeAccountIdentity(name: 'Cliente Porto Prime', email: 'cliente@portoprime.com.br', roleLabel: 'CLIENTE'),
      const SizedBox(height: 16), PrimeAccountActionTile(icon: AppIcons.receipt, title: 'Já enviou sua candidatura?', subtitle: 'Consulte o status e responda pendências pelo CPF.', onTap: () {}, highlighted: true),
+     const SizedBox(height: 16), PrimeRegistrationChoiceIntro(onClose: () {}),
+     const SizedBox(height: 16), PrimeRegistrationRoleCard(title: 'Motoboy', subtitle: 'Envie sua candidatura e trabalhe com a Porto Prime.', icon: AppIcons.bike, background: AppColors.sand100, onTap: () {}),
+     const SizedBox(height: 16), PrimeRegistrationHeader(roleLabel: 'Motoboy', step: 0, total: 6, onBack: () {}),
+     const SizedBox(height: 16), PrimeRegistrationContinue(label: 'Enviar cadastro para análise', loading: false, onContinue: () {}),
      const SizedBox(height: 16), LayoutBuilder(builder: (context, box) => SizedBox(height: AppResponsive.categoryHeight(context), child: Row(children: [Expanded(child: PrimeCategoryTile(name: 'Conveniência', onTap: () {})), Expanded(child: PrimeCategoryTile(name: 'Cervejas', selected: true, onTap: () {}))]))),
     ]))))));
     await tester.pump();
@@ -130,6 +135,23 @@ void main() {
    await tester.pump();
   }
   expect([login, create, status], [1, 1, 1]);
+  expect(tester.takeException(), isNull);
+ });
+
+ testWidgets('Registration presentation delegates role, back and continue actions', (tester) async {
+  final events = <String>[];
+  await tester.pumpWidget(MaterialApp(theme: AppTheme.light, home: Scaffold(
+   body: SingleChildScrollView(child: Column(children: [
+    PrimeRegistrationHeader(roleLabel: 'Cliente', step: 1, total: 3, onBack: () => events.add('back')),
+    PrimeRegistrationRoleCard(title: 'Cliente', subtitle: 'Peça e acompanhe.', icon: AppIcons.cart,
+     background: AppColors.sand100, onTap: () => events.add('CUSTOMER')),
+    PrimeRegistrationContinue(label: 'Continuar', loading: false, onContinue: () => events.add('next')),
+   ])))));
+  await tester.tap(find.byTooltip('Voltar etapa'));
+  await tester.tap(find.text('Começar cadastro'));
+  await tester.ensureVisible(find.text('Continuar'));
+  await tester.tap(find.text('Continuar'));
+  expect(events, ['back', 'CUSTOMER', 'next']);
   expect(tester.takeException(), isNull);
  });
 

@@ -64,3 +64,9 @@ Referências técnicas primárias: https://docs.flutter.dev/perf/best-practices 
 - Atalhos de ajuda e da conta logada usam o mesmo componente visual, com ícones consistentes e descrição legível. Cartão da conta usa somente nome, email e papel já disponíveis.
 - Login, cadastro, candidatura, recuperação de senha, regras por papel e navegação foram preservados. Nenhuma nova dependência ou integração.
 - Verificação estática de sintaxe e comparação dos blocos funcionais concluídas. Novos componentes incluídos na matriz de tamanhos/fontes e teste de callbacks. Testes Flutter e build executados pelo atualizador no Codespaces, antes de substituir o app.
+
+## Criar minha conta — 15/10/2026
+- Seletor de perfis com cabeçalho Porto Prime, três cards consistentes e acesso secundário ao login. Cliente, Motoboy e Parceiro mantêm os mesmos callbacks e rotas; candidatura continua disponível.
+- Formulário com cabeçalho compacto, indicador de etapa acessível, largura máxima de 680 px e CTA sem altura rígida. Fonte ampliada pode quebrar linha; conteúdo continua rolável com teclado aberto. Transição respeita movimento reduzido.
+- Campos, máscaras, validadores, consultas CPF/CEP, foto, revisão, aceites, envio e regras de aprovação preservados. Comparação estática dos blocos funcionais concluída.
+- Componentes incluídos na matriz de larguras/fontes e teste de callbacks. Sintaxe validada localmente; execução Flutter e build ficam no atualizador do Codespaces antes de substituir o app atual.

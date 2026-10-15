@@ -7,6 +7,7 @@ import '../../../wallet/presentation/pages/partner_wallet_page.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/prime_brand.dart';
 import '../../../../core/widgets/prime_account_widgets.dart';
+import '../../../../core/widgets/prime_registration_widgets.dart';
 
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
@@ -582,48 +583,10 @@ Future<void> _accountMenu(BuildContext context) async {
     barrierColor: Colors.black.withValues(alpha: .48),
     builder: (ctx) => _PrimeSheet(
       children: [
-        const _SheetBrandHeader(
-          icon: AppIcons.person_rounded,
-          eyebrow: 'SUA PORTO PRIME',
-          title: 'Entre ou crie sua conta',
-          subtitle:
-              'Escolha o perfil ideal e continue com uma experiência feita para você.',
-        ),
+        PrimeRegistrationChoiceIntro(onClose: () => Navigator.pop(ctx)),
         const SizedBox(height: 18),
-        SizedBox(
-          width: double.infinity,
-          height: 56,
-          child: FilledButton.icon(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _auth(context);
-            },
-            icon: const Icon(AppIcons.login_rounded, size: 20),
-            label: const Text(
-              'Entrar na minha conta',
-              style: TextStyle(fontWeight: AppFontWeight.display),
-            ),
-          ),
-        ),
-        const SizedBox(height: 18),
-        const Row(
-          children: [
-            Expanded(child: Divider(color: AppColors.stroke)),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              child: Text(
-                'CRIAR UMA NOVA CONTA',
-                style: TextStyle(
-                  color: AppColors.muted,
-                  fontSize: AppFontSize.caption,
-                  fontWeight: AppFontWeight.display,
-                  letterSpacing: 1.1,
-                ),
-              ),
-            ),
-            Expanded(child: Divider(color: AppColors.stroke)),
-          ],
-        ),
+        const Text('CRIAR MINHA CONTA', style: TextStyle(fontSize: 10,
+          letterSpacing: 1.2, height: 1.5, fontWeight: FontWeight.w800, color: AppColors.ocean700)),
         const SizedBox(height: 14),
         _RoleCard(
           title: 'Cliente',
@@ -651,7 +614,7 @@ Future<void> _accountMenu(BuildContext context) async {
         const SizedBox(height: 10),
         _RoleCard(
           title: 'Parceiro',
-          subtitle: 'Cadastre seu negócio e participe da rede Porto Prime.',
+          subtitle: 'Divulgue a Porto Prime e acompanhe suas indicações.',
           icon: AppIcons.storefront_rounded,
           accent: AppColors.violet600,
           background: AppColors.lavender,
@@ -661,6 +624,23 @@ Future<void> _accountMenu(BuildContext context) async {
           },
         ),
         const SizedBox(height: 14),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            style: FilledButton.styleFrom(backgroundColor:AppColors.ocean900,
+              padding:const EdgeInsets.symmetric(horizontal:16,vertical:17)),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _auth(context);
+            },
+            icon: const Icon(AppIcons.login_rounded, size: 20),
+            label: const Text(
+              'Entrar na minha conta',
+              style: TextStyle(fontWeight: AppFontWeight.display),
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
         Material(
           color: AppColors.sand50,
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -739,64 +719,8 @@ class _RoleCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          child: Container(
-            padding: const EdgeInsets.all(13),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: AppColors.stroke),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: background,
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: Icon(icon, color: accent, size: 25),
-                ),
-                const SizedBox(width: 13),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: AppFontWeight.display,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          color: AppColors.muted,
-                          fontSize: AppFontSize.caption,
-                          height: 1.35,
-                          fontWeight: AppFontWeight.medium,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(
-                  AppIcons.chevron_right_rounded,
-                  color: AppColors.muted,
-                  size: 21,
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+  Widget build(BuildContext context) => PrimeRegistrationRoleCard(
+    title: title, subtitle: subtitle, icon: icon, background: background, onTap: onTap);
 }
 
 Future<void> _courierStatus(BuildContext context) async {

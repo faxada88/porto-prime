@@ -1,4 +1,4 @@
-import '../../../../core/widgets/prime_brand.dart';
+import '../../../../core/widgets/prime_registration_widgets.dart';
 import 'dart:async';
 import '../../../courier/presentation/pages/courier_photo_card.dart';
 
@@ -67,11 +67,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
         : courier
             ? AppColors.sand
             : AppColors.lavender;
-    final roleIcon = customer
-        ? AppIcons.shopping_bag_rounded
-        : courier
-            ? AppIcons.two_wheeler_rounded
-            : AppIcons.storefront_rounded;
     final stepIcons = courier
         ? const [
             AppIcons.person_rounded,
@@ -92,138 +87,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              margin: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-              padding: const EdgeInsets.fromLTRB(8, 8, 16, 14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                border: Border.all(color: AppColors.stroke),
-                boxShadow: AppShadows.soft,
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        tooltip: step == 0 ? 'Fechar' : 'Voltar',
-                        onPressed: () => step == 0
-                            ? Navigator.pop(context)
-                            : setState(() => step--),
-                        icon: Icon(
-                          step == 0
-                              ? AppIcons.close_rounded
-                              : AppIcons.arrow_back_rounded,
-                        ),
-                      ),
-                      const PrimeBrandMark(size: 43),
-                      const SizedBox(width: 11),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Conta de $title',
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: AppFontWeight.display,
-                                letterSpacing: -.4,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              'Etapa ${step + 1} de $total',
-                              style: const TextStyle(
-                                fontSize: AppFontSize.caption,
-                                color: AppColors.muted,
-                                fontWeight: AppFontWeight.strong,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: soft,
-                          borderRadius: BorderRadius.circular(AppRadius.xl),
-                        ),
-                        child: Text(
-                          customer
-                              ? 'CLIENTE'
-                              : courier
-                                  ? 'MOTOBOY'
-                                  : 'PARCEIRO',
-                          style: TextStyle(
-                            color: accent,
-                            fontSize: AppFontSize.caption,
-                            fontWeight: AppFontWeight.display,
-                            letterSpacing: .8,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 13),
-                  Row(
-                    children: List.generate(
-                      total,
-                      (index) => Expanded(
-                        child: Container(
-                          margin: EdgeInsets.only(
-                            left: index == 0 ? 5 : 3,
-                            right: index == total - 1 ? 5 : 3,
-                          ),
-                          child: Column(
-                            children: [
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 220),
-                                height: 5,
-                                decoration: BoxDecoration(
-                                  color: index <= step ? accent : AppColors.stroke,
-                                  borderRadius: BorderRadius.circular(AppRadius.md),
-                                ),
-                              ),
-                              const SizedBox(height: 7),
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 220),
-                                width: 29,
-                                height: 29,
-                                decoration: BoxDecoration(
-                                  color: index == step
-                                      ? soft
-                                      : index < step
-                                          ? AppColors.mint
-                                          : AppColors.canvas,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(
-                                  index < step
-                                      ? AppIcons.check_rounded
-                                      : stepIcons[index],
-                                  size: 15,
-                                  color: index <= step
-                                      ? (index < step
-                                          ? AppColors.oceanDeep
-                                          : accent)
-                                      : AppColors.muted,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            PrimeRegistrationHeader(roleLabel: title, step: step, total: total,
+              onBack: () => step == 0 ? Navigator.pop(context) : setState(() => step--)),
             Expanded(
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
+                duration: AppMotion.resolve(context, AppMotion.standard),
                 transitionBuilder: (child, animation) {
                   final curved = CurvedAnimation(
                     parent: animation,
@@ -244,7 +112,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   key: ValueKey(step),
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
-                  child: Form(
+                  child: Center(child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 680),
+                    child: Form(
                     key: form,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,8 +143,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         Text(
                           heading(),
                           style: const TextStyle(
-                            fontSize: 29,
-                            height: 1.02,
+                            fontSize: 28,
+                            height: 1.15,
                             fontWeight: AppFontWeight.display,
                             letterSpacing: -1,
                           ),
@@ -283,8 +153,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         Text(
                           sub(),
                           style: const TextStyle(
-                            fontSize: 11,
-                            height: 1.5,
+                            fontSize: 13,
+                            height: 1.6,
                             color: AppColors.muted,
                             fontWeight: AppFontWeight.medium,
                           ),
@@ -412,51 +282,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       ],
                     ),
                   ),
+                  )),
                 ),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
-              decoration: const BoxDecoration(
-                color: AppColors.canvas,
-              ),
-              child: SafeArea(
-                top: false,
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 58,
-                  child: FilledButton.icon(
-                    onPressed: AppState.instance.loading ? null : next,
-                    icon: AppState.instance.loading
-                        ? const SizedBox.shrink()
-                        : Icon(
-                            step == total - 1
-                                ? AppIcons.verified_user_rounded
-                                : AppIcons.arrow_forward_rounded,
-                            size: 20,
-                          ),
-                    label: AppState.instance.loading
-                        ? const SizedBox(
-                            width: 21,
-                            height: 21,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Text(
-                            step == total - 1
-                                ? (courier
-                                    ? 'Enviar cadastro para análise'
-                                    : 'Criar minha conta')
-                                : 'Continuar',
-                            style: const TextStyle(
-                              fontWeight: AppFontWeight.display,
-                            ),
-                          ),
-                  ),
-                ),
-              ),
+            PrimeRegistrationContinue(
+              label: step == total - 1 ? (courier ? 'Enviar cadastro para análise' : 'Criar minha conta') : 'Continuar',
+              loading: AppState.instance.loading,
+              onContinue: AppState.instance.loading ? null : next,
             ),
           ],
         ),
@@ -607,7 +440,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         hintText: courier && f.key == 'name' ? 'Preenchido após a consulta do CPF' : f.hint,
         errorMaxLines: 6,
         filled: true,
-        fillColor: AppColors.canvas,
+        fillColor: AppColors.surfaceSoft,
         prefixIcon: Padding(
           padding: const EdgeInsets.all(11),
           child: Container(
@@ -677,7 +510,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     final value=ctl(f.key).text;
     return Padding(padding:const EdgeInsets.only(bottom:13),child:InkWell(
       borderRadius:BorderRadius.circular(AppRadius.md),onTap:()=>openPicker(f,options),
-      child:InputDecorator(decoration:InputDecoration(labelText:f.label,filled:true,fillColor:AppColors.canvas,
+      child:InputDecorator(decoration:InputDecoration(labelText:f.label,filled:true,fillColor:AppColors.surfaceSoft,
         prefixIcon:Padding(
           padding:const EdgeInsets.all(11),
           child:Container(
@@ -706,7 +539,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           const SizedBox(height:18),
           Row(children:[Expanded(child:Text(f.label,style:const TextStyle(fontSize:21,fontWeight:AppFontWeight.display))),IconButton(onPressed:()=>Navigator.pop(ctx),icon:const Icon(AppIcons.close_rounded))]),
           TextField(controller:search,onChanged:(q)=>setSheet(()=>filtered=options.where((x)=>x.toLowerCase().contains(q.toLowerCase())).toList()),
-            decoration:InputDecoration(hintText:'Pesquisar',prefixIcon:const Icon(AppIcons.search_rounded),filled:true,fillColor:AppColors.canvas,border:OutlineInputBorder(borderRadius:BorderRadius.circular(AppRadius.md),borderSide:BorderSide.none))),
+            decoration:InputDecoration(hintText:'Pesquisar',prefixIcon:const Icon(AppIcons.search_rounded),filled:true,fillColor:AppColors.surfaceSoft,border:OutlineInputBorder(borderRadius:BorderRadius.circular(AppRadius.md),borderSide:BorderSide.none))),
           const SizedBox(height:10),
           Expanded(child:ListView.separated(itemCount:filtered.length,separatorBuilder:(_,_)=>const Divider(height:1,color:AppColors.stroke),
             itemBuilder:(ctx,i){final x=filtered[i],selected=ctl(f.key).text==x;return ListTile(title:Text(x,style:TextStyle(fontWeight:selected?AppFontWeight.display:AppFontWeight.strong)),trailing:selected?const Icon(AppIcons.check_circle_rounded,color:AppColors.success):null,onTap:()=>Navigator.pop(ctx,x));})),
