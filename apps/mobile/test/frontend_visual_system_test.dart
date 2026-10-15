@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:porto_prime/core/widgets/prime_cart_widgets.dart';
 import 'package:porto_prime/core/widgets/prime_bottom_navigation.dart';
 import 'package:porto_prime/core/widgets/prime_moment_card.dart';
 import 'package:porto_prime/core/widgets/prime_category_artwork.dart';
@@ -26,6 +27,8 @@ void main() {
      const SizedBox(height: 16), PrimeMomentCard(title: 'Pé na areia', subtitle: 'Bebidas e conveniência para curtir a praia.', scene: 0, onTap: () {}),
      const SizedBox(height: 16), PrimeMomentCard(title: 'Churrasco', subtitle: 'Bebidas e acompanhamentos.', scene: 1, onTap: () {}),
      const SizedBox(height: 16), PrimeMomentCard(title: 'Fim de tarde', subtitle: 'Explore vinhos e destilados.', scene: 2, onTap: () {}),
+     const SizedBox(height: 16), PrimeCartEmpty(onExplore: () {}),
+     const SizedBox(height: 16), PrimeCartSummary(subtotal: 'R\$ 1.250,00', working: false, storeKnown: true, storeOpen: true, storeMessage: '', onContinue: () {}),
      const SizedBox(height: 16), LayoutBuilder(builder: (context, box) => SizedBox(height: AppResponsive.categoryHeight(context), child: Row(children: [Expanded(child: PrimeCategoryTile(name: 'Conveniência', onTap: () {})), Expanded(child: PrimeCategoryTile(name: 'Cervejas', selected: true, onTap: () {}))]))),
     ]))))));
     await tester.pump();
@@ -75,6 +78,36 @@ void main() {
   await tester.pump();
   expect(taps, 1);
   expect(tester.takeException(), isNull);
+ });
+
+ testWidgets('Empty cart and summary delegate their existing actions', (tester) async {
+  var explored = 0;
+  var continued = 0;
+  await tester.pumpWidget(MaterialApp(theme: AppTheme.light, home: Scaffold(
+   body: SingleChildScrollView(child: Column(children: [
+    PrimeCartEmpty(onExplore: () => explored++),
+    PrimeCartSummary(subtotal: 'R\$ 150,00', working: false, storeKnown: true,
+     storeOpen: true, storeMessage: '', onContinue: () => continued++),
+   ])))));
+  await tester.ensureVisible(find.text('Explorar produtos'));
+  await tester.tap(find.text('Explorar produtos'));
+  await tester.ensureVisible(find.text('Continuar para entrega'));
+  await tester.tap(find.text('Continuar para entrega'));
+  expect(explored, 1);
+  expect(continued, 1);
+  expect(tester.takeException(), isNull);
+ });
+ testWidgets('Cart summary keeps store and loading checkout guards', (tester) async {
+  var continued = 0;
+  for (final flags in [[false, false, true], [false, true, false], [true, true, true]]) {
+   await tester.pumpWidget(MaterialApp(theme: AppTheme.light, home: Scaffold(
+    body: PrimeCartSummary(subtotal: 'R\$ 50,00', working: flags[0], storeKnown: flags[1],
+     storeOpen: flags[2], storeMessage: 'Voltamos em breve.', onContinue: () => continued++))));
+   expect(tester.widget<FilledButton>(find.byType(FilledButton)).onPressed, isNull);
+   expect(tester.takeException(), isNull);
+  }
+  expect(continued, 0);
+  await tester.pumpWidget(const SizedBox.shrink());
  });
 
 }

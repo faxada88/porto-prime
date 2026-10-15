@@ -50,3 +50,10 @@ Referências técnicas primárias: https://docs.flutter.dev/perf/best-practices 
 - Menu: componente de apresentação reutilizável com os mesmos índices 0–3, contador real do carrinho e semântica de seleção. Verde profundo, menta e dourado usam os tokens existentes. Nenhuma dependência nova, imagens remotas ou animação contínua.
 - Controle de movimento reduzido: setas usam jumpTo quando as animações estão desativadas. Estados de chat, pedidos, carrinho, pagamento e permissões não foram modificados.
 - Verificação local: sintaxe dos fontes/testes e comparação do ciclo de vida do AppShell e lógica dos cards. Flutter runtime não executado localmente. Atualizador executa análise, matriz de 320/390/768/1280 px × fontes 1/1,5/2, testes de destinos e CTA e build antes de substituir o app atual.
+
+## Carrinho — 15/10/2026
+- Estado vazio com ilustração vetorial original e CTA para o catálogo, sem imagens externas.
+- Carrinho cheio com cartões de produtos, imagem proporcional, remoção, quantidade e preço organizados; valores e ações continuam vindos do AppState.
+- Resumo em coluna lateral no desktop, fixo abaixo da lista em telas com espaço e dentro da rolagem em telas baixas ou com fonte ampliada. Botões sem altura rígida e resumo com quebra de linha para acomodar acessibilidade.
+- Checkout, login necessário, limpeza, condições de loja e callbacks mantidos. Nenhuma alteração de backend, contratos, totalização ou pagamento.
+- Validação estática de sintaxe e comparação dos handlers concluídas. Matriz de tamanhos/fontes ampliada com os componentes novos, testes de callbacks e estados bloqueados. Execução Flutter e build ficam a cargo do atualizador no Codespaces antes de substituir o bundle em execução.
