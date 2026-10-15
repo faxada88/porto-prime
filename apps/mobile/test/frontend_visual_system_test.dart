@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:porto_prime/core/widgets/prime_account_widgets.dart';
 import 'package:porto_prime/core/widgets/prime_cart_widgets.dart';
 import 'package:porto_prime/core/widgets/prime_bottom_navigation.dart';
 import 'package:porto_prime/core/widgets/prime_moment_card.dart';
@@ -29,6 +30,9 @@ void main() {
      const SizedBox(height: 16), PrimeMomentCard(title: 'Fim de tarde', subtitle: 'Explore vinhos e destilados.', scene: 2, onTap: () {}),
      const SizedBox(height: 16), PrimeCartEmpty(onExplore: () {}),
      const SizedBox(height: 16), PrimeCartSummary(subtotal: 'R\$ 1.250,00', working: false, storeKnown: true, storeOpen: true, storeMessage: '', onContinue: () {}),
+     const SizedBox(height: 16), PrimeAccountWelcome(onLogin: () {}, onCreate: () {}),
+     const SizedBox(height: 16), const PrimeAccountIdentity(name: 'Cliente Porto Prime', email: 'cliente@portoprime.com.br', roleLabel: 'CLIENTE'),
+     const SizedBox(height: 16), PrimeAccountActionTile(icon: AppIcons.receipt, title: 'Já enviou sua candidatura?', subtitle: 'Consulte o status e responda pendências pelo CPF.', onTap: () {}, highlighted: true),
      const SizedBox(height: 16), LayoutBuilder(builder: (context, box) => SizedBox(height: AppResponsive.categoryHeight(context), child: Row(children: [Expanded(child: PrimeCategoryTile(name: 'Conveniência', onTap: () {})), Expanded(child: PrimeCategoryTile(name: 'Cervejas', selected: true, onTap: () {}))]))),
     ]))))));
     await tester.pump();
@@ -108,6 +112,25 @@ void main() {
   }
   expect(continued, 0);
   await tester.pumpWidget(const SizedBox.shrink());
+ });
+
+ testWidgets('Account welcome and shortcuts delegate their supplied actions', (tester) async {
+  var login = 0;
+  var create = 0;
+  var status = 0;
+  await tester.pumpWidget(MaterialApp(theme: AppTheme.light, home: Scaffold(
+   body: SingleChildScrollView(child: Column(children: [
+    PrimeAccountWelcome(onLogin: () => login++, onCreate: () => create++),
+    PrimeAccountActionTile(icon: AppIcons.receipt, title: 'Consultar candidatura',
+     subtitle: 'Consulte seu cadastro.', onTap: () => status++),
+   ])))));
+  for (final label in ['Entrar na minha conta', 'Criar minha conta', 'Consultar candidatura']) {
+   await tester.ensureVisible(find.text(label));
+   await tester.tap(find.text(label));
+   await tester.pump();
+  }
+  expect([login, create, status], [1, 1, 1]);
+  expect(tester.takeException(), isNull);
  });
 
 }

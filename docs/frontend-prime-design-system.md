@@ -57,3 +57,10 @@ Referências técnicas primárias: https://docs.flutter.dev/perf/best-practices 
 - Resumo em coluna lateral no desktop, fixo abaixo da lista em telas com espaço e dentro da rolagem em telas baixas ou com fonte ampliada. Botões sem altura rígida e resumo com quebra de linha para acomodar acessibilidade.
 - Checkout, login necessário, limpeza, condições de loja e callbacks mantidos. Nenhuma alteração de backend, contratos, totalização ou pagamento.
 - Validação estática de sintaxe e comparação dos handlers concluídas. Matriz de tamanhos/fontes ampliada com os componentes novos, testes de callbacks e estados bloqueados. Execução Flutter e build ficam a cargo do atualizador no Codespaces antes de substituir o bundle em execução.
+
+## Seu espaço Prime — 15/10/2026
+- Entrada da conta com identidade própria, painel verde profundo, ilustração vetorial discreta e CTA dourado. Cadastro e consulta de candidatura continuam com suas ações originais.
+- Composição em duas colunas no desktop e coluna única no mobile ou com fontes ampliadas; botões e textos sem altura rígida.
+- Atalhos de ajuda e da conta logada usam o mesmo componente visual, com ícones consistentes e descrição legível. Cartão da conta usa somente nome, email e papel já disponíveis.
+- Login, cadastro, candidatura, recuperação de senha, regras por papel e navegação foram preservados. Nenhuma nova dependência ou integração.
+- Verificação estática de sintaxe e comparação dos blocos funcionais concluídas. Novos componentes incluídos na matriz de tamanhos/fontes e teste de callbacks. Testes Flutter e build executados pelo atualizador no Codespaces, antes de substituir o app.

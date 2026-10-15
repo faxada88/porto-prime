@@ -6,6 +6,7 @@ import '../../../addresses/presentation/pages/address_book_page.dart';
 import '../../../wallet/presentation/pages/partner_wallet_page.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/prime_brand.dart';
+import '../../../../core/widgets/prime_account_widgets.dart';
 
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
@@ -29,143 +30,63 @@ class _Guest extends StatelessWidget {
   const _Guest();
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-        bottom: false,
-        child: PrimePageViewport(child: ListView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 22, 20, 126),
-          children: [
-            const _ProfileHeader(),
-            const SizedBox(height: 24),
-            _GuestAccessHero(
-              onLogin: () => _auth(context),
-              onCreate: () => _accountMenu(context),
-            ),
-            const SizedBox(height: 14),
-            _ApplicationShortcut(
-              onTap: () => _courierStatus(context),
-            ),
-            const SizedBox(height: 24),
-            const _SectionLabel(
-              eyebrow: 'ESTAMOS POR AQUI',
-              title: 'Como podemos ajudar?',
-              subtitle: 'Suporte e informações para você pedir com tranquilidade.',
-            ),
-            const SizedBox(height: 12),
-            _MenuSurface(
-              children: [
-                _MenuLine(
-                  icon: AppIcons.support_agent_rounded,
-                  title: 'Ajuda e suporte',
-                  subtitle: 'Fale com a equipe Porto Prime',
-                  onTap: () => _support(context),
-                ),
-                _MenuLine(
-                  icon: AppIcons.shield_rounded,
-                  title: 'Privacidade e segurança',
-                  subtitle: 'Como protegemos sua conta e seus dados',
-                  onTap: () => _simpleMessage(
-                    context,
-                    'Privacidade e segurança',
-                    'Seus dados são usados somente nos fluxos necessários para sua conta, pedidos, pagamentos e entregas.',
-                  ),
-                  last: true,
-                ),
-              ],
-            ),
-          ],
-        )),
-      );
+  Widget build(BuildContext context) {
+    final welcome = _GuestAccessHero(
+      onLogin: () => _auth(context), onCreate: () => _accountMenu(context));
+    final help = Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      _ApplicationShortcut(onTap: () => _courierStatus(context)),
+      const SizedBox(height: 26),
+      const _SectionLabel(eyebrow: 'CONTE COM A PRIME', title: 'Como podemos ajudar?',
+        subtitle: 'Suporte e informações para você pedir com tranquilidade.'),
+      const SizedBox(height: 12),
+      _MenuSurface(children: [
+        _MenuLine(icon: AppIcons.support_agent_rounded, title: 'Ajuda e suporte',
+          subtitle: 'Fale com a equipe Porto Prime', onTap: () => _support(context)),
+        _MenuLine(icon: AppIcons.shield_rounded, title: 'Privacidade e segurança',
+          subtitle: 'Como protegemos sua conta e seus dados',
+          onTap: () => _simpleMessage(context, 'Privacidade e segurança',
+            'Seus dados são usados somente nos fluxos necessários para sua conta, pedidos, pagamentos e entregas.'),
+          last: true),
+      ]),
+    ]);
+    return SafeArea(bottom: false, child: PrimePageViewport(child: ListView(
+      physics: const BouncingScrollPhysics(), padding: const EdgeInsets.fromLTRB(20,22,20,126),
+      children: [
+        const _ProfileHeader(), const SizedBox(height: 24),
+        LayoutBuilder(builder: (context, box) {
+          if (box.maxWidth >= 860 && MediaQuery.textScalerOf(context).scale(14) <= 18) {
+            return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(flex: 3, child: welcome), const SizedBox(width: 24),
+              Expanded(flex: 2, child: help),
+            ]);
+          }
+          return Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [welcome, const SizedBox(height: 18), help]);
+        }),
+      ],
+    )));
+  }
 }
 
 class _GuestAccessHero extends StatelessWidget {
   const _GuestAccessHero({required this.onLogin, required this.onCreate});
-
   final VoidCallback onLogin;
   final VoidCallback onCreate;
-
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          border: Border.all(color: AppColors.stroke),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: AppColors.surfaceOcean,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(AppIcons.person_rounded,
-                  color: AppColors.primaryDark, size: 28),
-            ),
-            const SizedBox(height: 20),
-            Text('Tudo seu, em um só lugar.',
-                style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 10),
-            const Text(
-              'Entre para acompanhar seus pedidos e cuidar da sua conta. Ainda não tem cadastro? Comece por aqui.',
-              style: TextStyle(
-                color: AppColors.muted,
-                fontSize: AppFontSize.body,
-                height: 1.6,
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: onLogin,
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(0, 54),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                ),
-                child: const Text('Entrar na minha conta'),
-              ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: onCreate,
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(0, 54),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                ),
-                child: const Text('Criar uma conta'),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Divider(height: 1, color: AppColors.stroke),
-            const SizedBox(height: 18),
-            const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(AppIcons.shield_rounded, size: 18, color: AppColors.primary),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text('Seus dados protegidos. Seu próximo pedido mais perto.',
-                      style: TextStyle(color: AppColors.muted,
-                          fontSize: AppFontSize.caption, height: 1.5)),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
+  Widget build(BuildContext context) => PrimeAccountWelcome(onLogin: onLogin, onCreate: onCreate);
 }
 
 class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader();
   @override
-  Widget build(BuildContext context) => const PrimeEditorialHeader(
-    title: 'Seu espaço Prime', subtitle: 'Pedidos, saldo e sua conta. Tudo organizado para você.', icon: AppIcons.user,
-  );
+  Widget build(BuildContext context) => const Column(
+    crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('SINTA-SE EM CASA', style: TextStyle(fontSize: 10, height: 1.5,
+        letterSpacing: 1.4, fontWeight: FontWeight.w800, color: AppColors.ocean700)),
+      SizedBox(height: 8),
+      Text('Seu espaço Prime', style: TextStyle(fontSize: 30, height: 1.12,
+        letterSpacing: -.9, fontWeight: FontWeight.w800, color: AppColors.ocean900)),
+    ]);
 }
 
 class _GuestHero extends StatelessWidget {
@@ -547,62 +468,14 @@ class _AccessCard extends StatelessWidget {
 class _ApplicationShortcut extends StatelessWidget {
   const _ApplicationShortcut({required this.onTap});
   final VoidCallback onTap;
-
   @override
-  Widget build(BuildContext context) => Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          child: Ink(
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceSoft,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(color: AppColors.stroke),
-            ),
-            child: const Row(
-              children: [
-                _MiniIconBox(
-                  icon: AppIcons.manage_search_rounded,
-                  background: Colors.white,
-                  foreground: AppColors.primaryDark,
-                ),
-                SizedBox(width: 13),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Já enviou sua candidatura?',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: AppFontWeight.display,
-                        ),
-                      ),
-                      SizedBox(height: 3),
-                      Text(
-                        'Consulte o status e responda pendências pelo CPF.',
-                        style: TextStyle(
-                          color: AppColors.muted,
-                          fontSize: AppFontSize.caption,
-                          height: 1.35,
-                          fontWeight: AppFontWeight.medium,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  AppIcons.arrow_forward_rounded,
-                  color: AppColors.primaryDark,
-                  size: 20,
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+  Widget build(BuildContext context) => Container(
+    decoration: BoxDecoration(borderRadius: BorderRadius.circular(22),
+      border: Border.all(color: AppColors.sun200)),
+    child: PrimeAccountActionTile(icon: AppIcons.receipt,
+      title: 'Já enviou sua candidatura?',
+      subtitle: 'Consulte o status e responda pendências pelo CPF.',
+      highlighted: true, onTap: onTap));
 }
 
 class _MiniIconBox extends StatelessWidget {
@@ -660,50 +533,10 @@ class _MenuLine extends StatelessWidget {
   final bool last;
 
   @override
-  Widget build(BuildContext context) => Column(
-        children: [
-          ListTile(
-            onTap: onTap,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-            leading: _MiniIconBox(
-              icon: icon,
-              background: AppColors.mint,
-              foreground: AppColors.oceanDeep,
-            ),
-            title: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: AppFontWeight.display,
-              ),
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 3),
-              child: Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: AppFontSize.caption,
-                  color: AppColors.muted,
-                  fontWeight: AppFontWeight.medium,
-                ),
-              ),
-            ),
-            trailing: const Icon(
-              AppIcons.chevron_right_rounded,
-              color: AppColors.muted,
-              size: 20,
-            ),
-          ),
-          if (!last)
-            const Divider(
-              height: 1,
-              indent: 72,
-              endIndent: 15,
-              color: AppColors.stroke,
-            ),
-        ],
-      );
+  Widget build(BuildContext context) => Column(children: [
+    PrimeAccountActionTile(icon: icon, title: title, subtitle: subtitle, onTap: onTap),
+    if (!last) const Divider(height: 1, indent: 72, endIndent: 18, color: AppColors.stroke),
+  ]);
 }
 
 class _BahiaSignature extends StatelessWidget {
@@ -2054,7 +1887,7 @@ class _Account extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     const Text(
-                      'Tudo o que importa, sem bagunça.',
+                      'Seus atalhos. Suas escolhas. Seu espaço.',
                       style: TextStyle(
                         color: AppColors.muted,
                         fontSize: 11,
@@ -2245,130 +2078,7 @@ class _AccountHero extends StatelessWidget {
             ? 'PARCEIRO'
             : 'CLIENTE';
 
-    return Container(
-      padding: const EdgeInsets.all(21),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.ocean900, AppColors.ocean700],
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.oceanDeep.withValues(alpha: .20),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 62,
-                height: 62,
-                decoration: BoxDecoration(
-                  color: AppColors.sun500,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  name.isEmpty ? 'P' : name.substring(0, 1).toUpperCase(),
-                  style: const TextStyle(
-                    color: AppColors.oceanDeep,
-                    fontSize: 25,
-                    fontWeight: AppFontWeight.display,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: AppFontWeight.display,
-                        letterSpacing: -.3,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      email,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white60,
-                        fontSize: AppFontSize.caption,
-                        fontWeight: AppFontWeight.medium,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Align(alignment: Alignment.centerRight, child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: .10),
-                  borderRadius: BorderRadius.circular(AppRadius.xl),
-                ),
-                child: Text(
-                  roleLabel,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: AppFontSize.caption,
-                    fontWeight: AppFontWeight.display,
-                    letterSpacing: .8,
-                  ),
-                ),
-              )),
-          const SizedBox(height: 17),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .08),
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            child: const Row(
-              children: [
-                Icon(
-                  AppIcons.verified_user_rounded,
-                  color: AppColors.sun500,
-                  size: 18,
-                ),
-                SizedBox(width: 9),
-                Expanded(
-                  child: Text(
-                    'Conta Porto Prime • Porto Seguro, Bahia',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: AppFontSize.caption,
-                      fontWeight: AppFontWeight.strong,
-                    ),
-                  ),
-                ),
-                Icon(
-                  AppIcons.shield_rounded,
-                  color: Colors.white54,
-                  size: 17,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    return PrimeAccountIdentity(name: name, email: email, roleLabel: roleLabel);
   }
 }
 
