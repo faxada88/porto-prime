@@ -3,6 +3,7 @@ import '../../features/support/presentation/pages/delivery_chat_page.dart';
 import 'package:flutter/material.dart';
 import 'customer_demand_notice.dart';
 import 'active_order_shortcut.dart';
+import 'prime_bottom_navigation.dart';
 
 import '../../features/cart/presentation/pages/cart_page.dart';
 import '../../features/categories/presentation/pages/categories_page.dart';
@@ -11,8 +12,6 @@ import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../navigation/app_nav.dart';
 import '../state/app_state.dart';
-import '../theme/app_icons.dart';
-import '../theme/app_theme.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -96,152 +95,13 @@ class _AppShellState extends State<AppShell> {
           Positioned.fill(child:Padding(padding:EdgeInsets.only(bottom:liveOrder == null ? 0 : 98),child:IndexedStack(index:index,children:pages))),
           if(liveOrder != null) Positioned(left:14,right:14,bottom:12,child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:520),child:ActiveOrderShortcut(order:liveOrder)))),
         ]))]),
-        bottomNavigationBar: SafeArea(
-          minimum: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-          child: Container(
-            height: AppControl.navHeight,
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-              border: Border.all(color: AppColors.stroke),
-              boxShadow: AppShadows.floating,
-            ),
-            child: Row(
-              children: [
-                _item(
-                  value: 0,
-                  icon: AppIcons.home,
-                  label: 'Início',
-                  current: index,
-                ),
-                _item(
-                  value: 1,
-                  icon: AppIcons.search,
-                  label: 'Buscar',
-                  current: index,
-                ),
-                _item(
-                  value: 2,
-                  icon: AppIcons.bag,
-                  label: 'Carrinho',
-                  current: index,
-                  badgeCount: state.cartCount,
-                ),
-                _item(
-                  value: 3,
-                  icon: AppIcons.user,
-                  label: 'Conta',
-                  current: index,
-                ),
-              ],
-            ),
-          ),
+        bottomNavigationBar: PrimeBottomNavigation(
+          index: index,
+          cartCount: state.cartCount,
+          onSelect: (value) => AppNav.instance.go(value),
         ),
       );
     },
   );
 
-  Widget _item({
-    required int value,
-    required IconData icon,
-    required String label,
-    required int current,
-    int badgeCount = 0,
-  }) {
-    final selected = current == value;
-
-    return Expanded(
-      child: Semantics(
-        button: true,
-        selected: selected,
-        label: label,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          onTap: () => AppNav.instance.go(value),
-          child: AnimatedContainer(
-            duration: AppMotion.resolve(context, AppMotion.standard),
-            curve: AppMotion.curve,
-            margin: const EdgeInsets.symmetric(horizontal: 2),
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(
-                color: Colors.transparent,
-              ),
-            ),
-            child: Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.center,
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    AnimatedContainer(
-                      duration: AppMotion.resolve(context, AppMotion.standard),
-                      curve: AppMotion.curve,
-                      width: 42,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? AppColors.ocean900
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        icon,
-                        size: AppIconSize.md,
-                        color: selected ? AppColors.sun500 : AppColors.muted,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      label,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: selected ? AppColors.ocean700 : AppColors.muted,
-                        fontSize: AppFontSize.caption,
-                        letterSpacing: .05,
-                        fontWeight: selected
-                            ? FontWeight.w800
-                            : FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                if (badgeCount > 0)
-                  Positioned(
-                    top: 3,
-                    right: 8,
-                    child: Container(
-                      constraints: const BoxConstraints(
-                        minWidth: 18,
-                        minHeight: 18,
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: AppColors.coral600,
-                        borderRadius: BorderRadius.circular(AppRadius.pill),
-                        border: Border.all(color: AppColors.surface, width: 2),
-                      ),
-                      child: Text(
-                        badgeCount > 9 ? '9+' : badgeCount.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          height: 1,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
-

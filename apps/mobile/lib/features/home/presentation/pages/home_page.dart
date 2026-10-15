@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/prime_brand.dart';
+import '../../../../core/widgets/prime_moment_card.dart';
 
 import '../../../../core/navigation/app_nav.dart';
 import '../../../../core/state/app_state.dart';
@@ -157,9 +158,11 @@ class HomePage extends StatelessWidget {
                         AppSpacing.lg,
                         10,
                       ),
-                      child: const PrimeSectionHeader(
+                      child: PrimeSectionHeader(
                         title: 'Escolha e adicione',
-                        subtitle: 'Seus produtos, a um toque do carrinho.',
+                        subtitle: 'Explore, adicione e siga para o carrinho.',
+                        actionLabel: 'Ver catálogo',
+                        onAction: () => AppNav.instance.go(1),
                       ),
                     ),
                   ),
@@ -186,6 +189,7 @@ class HomePage extends StatelessWidget {
                       ),
                       child: const PrimeSectionHeader(
                         title: 'Para o seu momento',
+                        subtitle: 'Encontre a combinação para o seu dia.',
                       ),
                     ),
                   ),
@@ -423,143 +427,108 @@ class _CategoryGrid extends StatelessWidget {
   );
 }
 
-class _HorizontalProducts extends StatelessWidget {
+class _HorizontalProducts extends StatefulWidget {
   const _HorizontalProducts({required this.products, required this.loading});
-
   final List<dynamic> products;
   final bool loading;
+  @override
+  State<_HorizontalProducts> createState() => _HorizontalProductsState();
+}
+
+class _HorizontalProductsState extends State<_HorizontalProducts> {
+  final _scroll = ScrollController();
+  @override
+  void dispose() { _scroll.dispose(); super.dispose(); }
+
+  void _move(double amount) {
+    if (!_scroll.hasClients) return;
+    final destination = (_scroll.offset + amount).clamp(0.0, _scroll.position.maxScrollExtent).toDouble();
+    final duration = AppMotion.resolve(context, AppMotion.standard);
+    if (duration == Duration.zero) { _scroll.jumpTo(destination); }
+    else { _scroll.animateTo(destination, duration: duration, curve: AppMotion.curve); }
+  }
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: AppResponsive.productHeight(context, 184),
-    child: loading
-        ? ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            scrollDirection: Axis.horizontal,
-            itemCount: 4,
-            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
-            itemBuilder: (_, __) => const SizedBox(
-              width: 184,
-              child: Column(
-                children: [
-                  PrimeSkeleton(height: 170, radius: AppRadius.lg),
-                  SizedBox(height: 10),
-                  PrimeSkeleton(height: 16),
-                  SizedBox(height: 7),
-                  PrimeSkeleton(height: 14, width: 110),
-                ],
-              ),
-            ),
-          )
-        : ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            scrollDirection: Axis.horizontal,
-            itemCount: products.length,
-            separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
-            itemBuilder: (_, i) => SizedBox(
-              width: 184,
-              child: PrimeProductCard(product: products[i]),
-            ),
-          ),
-  );
+  Widget build(BuildContext context) => Center(child: ConstrainedBox(
+    constraints: const BoxConstraints(maxWidth: AppControl.maxContentWidth),
+    child: LayoutBuilder(builder: (context, box) {
+      final cardWidth = ((box.maxWidth - 52) / 2.05).clamp(164.0, 218.0).toDouble();
+      final height = AppResponsive.productHeight(context, cardWidth);
+      final count = widget.loading ? 4 : widget.products.length;
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        SizedBox(height: height, child: ListView.separated(
+          controller: _scroll,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 4),
+          scrollDirection: Axis.horizontal,
+          itemCount: count,
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
+          itemBuilder: (_, i) => SizedBox(width: cardWidth,
+            child: widget.loading ? const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              PrimeSkeleton(height: 170, radius: AppRadius.lg), SizedBox(height: 10),
+              PrimeSkeleton(height: 16), SizedBox(height: 7), PrimeSkeleton(height: 14, width: 110),
+            ]) : PrimeProductCard(product: widget.products[i])),
+        )),
+        if (!widget.loading && count > 0)
+          AnimatedBuilder(animation: _scroll, builder: (context, _) {
+            final attached = _scroll.hasClients && _scroll.position.hasContentDimensions;
+            final extent = attached ? _scroll.position.maxScrollExtent : 0.0;
+            final offset = attached ? _scroll.offset.clamp(0.0, extent).toDouble() : 0.0;
+            // Also works before the first layout, when ScrollPosition has no metrics.
+            final estimatedExtent = (count * (cardWidth + 12) + 28 - box.maxWidth).clamp(0.0, double.infinity);
+            final canNext = attached ? offset < extent - 1 : estimatedExtent > 0;
+            return Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+              child: Row(children: [
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('$count opções para explorar', style: const TextStyle(fontSize: 11,
+                    color: AppColors.muted, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 7),
+                  SizedBox(width: 100, child: LinearProgressIndicator(
+                    value: extent > 0 ? ((offset + box.maxWidth) / (extent + box.maxWidth)).clamp(0.0, 1.0).toDouble() : canNext ? .25 : 1,
+                    minHeight: 3, borderRadius: BorderRadius.circular(8),
+                    backgroundColor: AppColors.stroke, color: AppColors.ocean700)),
+                ])),
+                IconButton(tooltip: 'Produtos anteriores',
+                  onPressed: offset > 1 ? () => _move(-(cardWidth + 12)) : null,
+                  style: IconButton.styleFrom(backgroundColor: AppColors.surface, foregroundColor: AppColors.ocean900),
+                  icon: const Icon(AppIcons.arrowLeft, size: 19)),
+                const SizedBox(width: 6),
+                IconButton(tooltip: 'Próximos produtos',
+                  onPressed: canNext ? () => _move(cardWidth + 12) : null,
+                  style: IconButton.styleFrom(backgroundColor: AppColors.ocean900, foregroundColor: AppColors.sun500),
+                  icon: const Icon(AppIcons.arrowRight, size: 19)),
+              ]));
+          }),
+      ]);
+    }),
+  ));
 }
 
 class _Moments extends StatelessWidget {
   const _Moments();
-
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 110,
-    child: ListView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      children: [
-        _Moment(
-          title: 'Pé na areia',
-          subtitle: 'Geladas para a praia',
-          icon: AppIcons.waves,
-          color: AppColors.sand100,
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        _Moment(
-          title: 'Churrasco',
-          subtitle: 'Combos sem erro',
-          icon: AppIcons.packageOpen,
-          color: AppColors.coral100,
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        _Moment(
-          title: 'Fim de tarde',
-          subtitle: 'Vinhos & destilados',
-          icon: AppIcons.wine,
-          color: AppColors.ocean100,
-        ),
-      ],
-    ),
-  );
-}
-
-class _Moment extends StatelessWidget {
-  const _Moment({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.color,
-  });
-
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Material(
-    color: color,
-    borderRadius: BorderRadius.circular(AppRadius.lg),
-    child: InkWell(
-      onTap: () => AppNav.instance.go(1),
-      borderRadius: BorderRadius.circular(AppRadius.lg),
-      child: SizedBox(
-        width: 184,
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: .78),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                child: Icon(icon, size: 21, color: AppColors.ink),
-              ),
-              const SizedBox(width: 11),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.labelLarge
-                          ?.copyWith(fontWeight: AppFontWeight.display),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      maxLines: 2,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
+  Widget build(BuildContext context) => Center(child: ConstrainedBox(
+    constraints: const BoxConstraints(maxWidth: AppControl.maxContentWidth),
+    child: Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: LayoutBuilder(builder: (context, box) {
+        final wide = box.maxWidth >= 850;
+        Widget card(int scene, String title, String subtitle) => PrimeMomentCard(
+          scene: scene, title: title, subtitle: subtitle,
+          onTap: () => AppNav.instance.go(1));
+        final cards = [card(0, 'Pé na areia', 'Bebidas e conveniência para curtir a praia.'),
+          card(1, 'Churrasco', 'Encontre bebidas e acompanhamentos.'),
+          card(2, 'Fim de tarde', 'Explore vinhos e destilados sem pressa.')];
+        if (wide) return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          for (var i = 0; i < cards.length; i++) ...[
+            if (i > 0) const SizedBox(width: 12), Expanded(child: cards[i]),
+          ],
+        ]);
+        return Column(children: [
+          for (var i = 0; i < cards.length; i++) ...[
+            if (i > 0) const SizedBox(height: 10), cards[i],
+          ],
+        ]);
+      })),
+  ));
 }
 
 class _PrimePromise extends StatelessWidget {

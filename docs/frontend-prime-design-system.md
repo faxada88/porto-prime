@@ -42,3 +42,11 @@ Referências técnicas primárias: https://docs.flutter.dev/perf/best-practices 
 - Cabeçalhos compartilhados mais compactos; navegação ativa em verde profundo com ícone dourado; carrinho com subtotal e próximo passo mais claros.
 - Ações de estado, navegação e chamadas à API comparadas com a versão anterior e preservadas. Backend, banco, autenticação, checkout e despacho não fazem parte desta alteração.
 - Sintaxe Dart verificada estaticamente. Testes Flutter e build são executados pelo atualizador no Codespaces antes de substituir o bundle em execução; não foram executados localmente nesta etapa.
+
+## Descoberta e navegação — 15/10/2026
+- Escopo: Home («Escolha e adicione» e «Para o seu momento»), menu inferior e apresentação do botão Adicionar.
+- Produtos: largura adaptativa de 164–218 px, gesto horizontal, setas com estados habilitado/desabilitado, progresso de navegação, limite de largura no desktop. Skeletons e origem dos produtos preservados.
+- Momentos: cenas vetoriais originais (praia, churrasco e pôr do sol), tipografia legível e CTA explícito; três colunas no desktop e cards empilhados no mobile, sem opções ocultas. Todos mantêm a ação existente de abrir o catálogo.
+- Menu: componente de apresentação reutilizável com os mesmos índices 0–3, contador real do carrinho e semântica de seleção. Verde profundo, menta e dourado usam os tokens existentes. Nenhuma dependência nova, imagens remotas ou animação contínua.
+- Controle de movimento reduzido: setas usam jumpTo quando as animações estão desativadas. Estados de chat, pedidos, carrinho, pagamento e permissões não foram modificados.
+- Verificação local: sintaxe dos fontes/testes e comparação do ciclo de vida do AppShell e lógica dos cards. Flutter runtime não executado localmente. Atualizador executa análise, matriz de 320/390/768/1280 px × fontes 1/1,5/2, testes de destinos e CTA e build antes de substituir o app atual.
