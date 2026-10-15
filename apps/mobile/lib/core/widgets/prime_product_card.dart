@@ -119,10 +119,10 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                                         fit: BoxFit.contain,
                                         filterQuality: FilterQuality.medium,
                                         errorBuilder: (_, __, ___) =>
-                                            _FallbackProduct(icon: AppIcons.categoryVisual(category, iconKey: p['category']?['iconKey']?.toString()).icon),
+                                            _FallbackProduct(icon: AppIcons.categoryVisual(category, iconKey: p['category']?['iconKey']?.toString()).icon, exact: p['category']?['iconKey'] != null),
                                       ),
                                     )
-                                  : _FallbackProduct(icon: AppIcons.categoryVisual(category, iconKey: p['category']?['iconKey']?.toString()).icon),
+                                  : _FallbackProduct(icon: AppIcons.categoryVisual(category, iconKey: p['category']?['iconKey']?.toString()).icon, exact: p['category']?['iconKey'] != null),
                             ),
                             if (discount != null)
                               Positioned(
@@ -466,8 +466,9 @@ class _QtyButton extends StatelessWidget {
 }
 
 class _FallbackProduct extends StatelessWidget {
-  const _FallbackProduct({required this.icon});
+  const _FallbackProduct({required this.icon, this.exact = false});
   final IconData icon;
+  final bool exact;
 
   @override
   Widget build(BuildContext context) => Center(
@@ -478,7 +479,7 @@ class _FallbackProduct extends StatelessWidget {
         color: AppColors.ocean50,
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
-      child: PrimeCategoryArtwork(icon: icon, color: AppColors.ocean700, size: 42),
+      child: exact ? Icon(icon, color: AppColors.ocean700, size: 32) : PrimeCategoryArtwork(icon: icon, color: AppColors.ocean700, size: 42),
     ),
   );
 }

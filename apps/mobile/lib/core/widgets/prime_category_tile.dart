@@ -44,7 +44,10 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
     Widget artwork() => visual.key == null
       ? SizedBox(width: 42, height: 42, child: Center(child: Text(initials,
           textScaler: TextScaler.noScaling, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: visual.foreground))))
-      : PrimeCategoryArtwork(icon: visual.icon, size: compact ? 37 : 42, color: visual.foreground);
+      : widget.iconKey != null && widget.iconKey!.isNotEmpty
+        ? SizedBox.square(dimension: compact ? 37 : 42, child: Icon(visual.icon,
+            size: compact ? 29 : 32, color: visual.foreground))
+        : PrimeCategoryArtwork(icon: visual.icon, size: compact ? 37 : 42, color: visual.foreground);
     return Semantics(
       button: true,
       selected: selected,
@@ -152,7 +155,7 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                           ),
                           Transform.translate(
                             offset: visual.offset,
-                            child: widget.imageUrls.isNotEmpty && widget.imageUrls.first.isNotEmpty
+                            child: (widget.iconKey == null || widget.iconKey!.isEmpty) && widget.imageUrls.isNotEmpty && widget.imageUrls.first.isNotEmpty
                               ? SizedBox.square(dimension: compact ? 37 : 42, child: Image.network(widget.imageUrls.first,
                                   fit: BoxFit.contain, errorBuilder: (_, __, ___) => artwork()))
                               : artwork(),
