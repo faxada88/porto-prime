@@ -2,9 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/state/app_state.dart';
-import '../../../../core/theme/app_icons.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../core/widgets/courier_portrait.dart';
+import '../../../../core/widgets/prime_identity_widgets.dart';
 import '../../../../core/widgets/prime_ui.dart';
 class CourierPhotoCard extends StatefulWidget{
   const CourierPhotoCard({super.key,this.initialPhoto,this.onSelected});
@@ -15,7 +13,12 @@ class CourierPhotoCard extends StatefulWidget{
 class _CourierPhotoCardState extends State<CourierPhotoCard>{
   bool saving=false;
   Future<void> choose() async {
-    final source=await showModalBottomSheet<ImageSource>(context:context,builder:(c)=>SafeArea(child:Column(mainAxisSize:MainAxisSize.min,children:[const SizedBox(height:14),const Text('Sua foto de perfil',style:TextStyle(fontSize:18,fontWeight:FontWeight.w800)),ListTile(leading:const Icon(AppIcons.user),title:const Text('Tirar uma selfie'),onTap:()=>Navigator.pop(c,ImageSource.camera)),ListTile(leading:const Icon(AppIcons.grid_view_rounded),title:const Text('Escolher da galeria'),onTap:()=>Navigator.pop(c,ImageSource.gallery)),const SizedBox(height:10)])));
+    final source=await showModalBottomSheet<ImageSource>(context:context,
+      isScrollControlled:true,backgroundColor:Colors.transparent,
+      builder:(c)=>PrimePhotoSource(
+        onCamera:()=>Navigator.pop(c,ImageSource.camera),
+        onGallery:()=>Navigator.pop(c,ImageSource.gallery),
+        onClose:()=>Navigator.pop(c)));
     if(source==null||!mounted)return;
     setState(()=>saving=true);
     try{
@@ -28,7 +31,9 @@ class _CourierPhotoCardState extends State<CourierPhotoCard>{
       if(!jpeg&&!png)throw Exception('Escolha uma foto JPEG ou PNG.');
       final photo='data:image/${jpeg?'jpeg':'png'};base64,${base64Encode(bytes)}';
       if(!mounted)return;
-      final confirmed=await showDialog<bool>(context:context,builder:(c)=>AlertDialog(title:const Text('Usar esta foto?'),content:Column(mainAxisSize:MainAxisSize.min,children:[CourierPortrait(photo:photo,size:150),const SizedBox(height:16),const Text('Use uma foto sua, com o rosto visível. O cliente verá esta imagem na entrega.',textAlign:TextAlign.center)]),actions:[TextButton(onPressed:()=>Navigator.pop(c,false),child:const Text('Escolher outra')),FilledButton(onPressed:()=>Navigator.pop(c,true),child:const Text('Salvar foto'))]));
+      final confirmed=await showDialog<bool>(context:context,
+        builder:(c)=>PrimePhotoReview(photo:photo,
+          onRetake:()=>Navigator.pop(c,false),onUse:()=>Navigator.pop(c,true)));
       if(confirmed!=true)return;
       if(widget.onSelected!=null){widget.onSelected!(photo);}else{
         await AppState.instance.api.request('PATCH','/couriers/profile/photo',body:{'photo':photo});
@@ -38,6 +43,9 @@ class _CourierPhotoCardState extends State<CourierPhotoCard>{
     }catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(PrimeMessages.friendly(e))));}
     finally{if(mounted)setState(()=>saving=false);}
   }
-  @override Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(_,__){final photo=widget.onSelected!=null?widget.initialPhoto:AppState.instance.courierProfile['profilePhoto']?.toString();return Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:Colors.white,border:Border.all(color:photo==null?AppColors.sun200:AppColors.stroke),borderRadius:BorderRadius.circular(AppRadius.lg)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Row(children:[CourierPortrait(photo:photo),const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(photo==null?'Adicione sua foto':'Seu rosto, sua entrega',style:const TextStyle(fontSize:16,fontWeight:FontWeight.w800)),const SizedBox(height:5),Text(photo==null?(widget.onSelected!=null?'Obrigatória para concluir seu cadastro.':'Adicione sua foto para aparecer ao cliente.'):'Esta é a foto mostrada ao cliente.',style:const TextStyle(fontSize:12,color:AppColors.muted,height:1.4))]))]),const SizedBox(height:14),const Text('Escolha uma selfie ou foto da galeria com seu rosto visível.',style:TextStyle(fontSize:12,color:AppColors.muted)),const SizedBox(height:14),SizedBox(width:double.infinity,child:FilledButton.icon(onPressed:saving?null:choose,icon:saving?const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2)):const Icon(AppIcons.user,size:18),label:Text(saving?'Preparando foto…':photo==null?'Adicionar minha foto':'Alterar foto')))]));});
+  @override
+  Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(_,__){
+    final photo=widget.onSelected!=null?widget.initialPhoto:AppState.instance.courierProfile['profilePhoto']?.toString();
+    return PrimePhotoProfileCard(photo:photo,registration:widget.onSelected!=null,saving:saving,onChoose:choose);
+  });
 }
-

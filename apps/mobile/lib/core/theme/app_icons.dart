@@ -3,6 +3,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 abstract final class AppIcons {
   // Navegação e ações
+  static const camera = LucideIcons.camera;
+  static const image = LucideIcons.image;
   static const home = LucideIcons.home;
   static const search = LucideIcons.search;
   static const bag = LucideIcons.shoppingCart;

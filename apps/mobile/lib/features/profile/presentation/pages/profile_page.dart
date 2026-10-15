@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/widgets/prime_brand.dart';
 import '../../../../core/widgets/prime_account_widgets.dart';
 import '../../../../core/widgets/prime_registration_widgets.dart';
+import '../../../../core/widgets/prime_identity_widgets.dart';
 
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
@@ -1370,15 +1371,9 @@ Future<void> _auth(BuildContext context) async {
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withValues(alpha: .52),
-    builder: (ctx) => _PrimeSheet(
+    builder: (ctx) => PrimeIdentitySheet(
       children: [
-        const _SheetBrandHeader(
-          icon: AppIcons.lock_person_rounded,
-          eyebrow: 'ACESSO SEGURO',
-          title: 'Bem-vindo de volta',
-          subtitle:
-              'Entre com os dados da sua conta para continuar na Porto Prime.',
-        ),
+        PrimeLoginIntro(onClose:()=>Navigator.pop(ctx)),
         const SizedBox(height: 20),
         _PremiumField(
           controller: email,
@@ -1499,14 +1494,14 @@ class _PremiumFieldState extends State<_PremiumField> {
             fontWeight: FontWeight.w500,
           ),
           filled: true,
-          fillColor: AppColors.canvas,
+          fillColor: AppColors.surfaceSoft,
           prefixIcon: Padding(
             padding: const EdgeInsets.all(10),
             child: Container(
               width: 41,
               height: 41,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.ocean50,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
                 border: Border.all(color: AppColors.stroke),
               ),
@@ -1575,8 +1570,9 @@ class _LoginSubmit extends StatelessWidget {
             ],
             SizedBox(
               width: double.infinity,
-              height: 56,
               child: FilledButton.icon(
+                style: FilledButton.styleFrom(backgroundColor:AppColors.ocean900,
+                  padding:const EdgeInsets.symmetric(horizontal:18,vertical:17)),
                 onPressed: AppState.instance.loading
                     ? null
                     : () async {

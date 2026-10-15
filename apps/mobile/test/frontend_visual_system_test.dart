@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:porto_prime/core/widgets/prime_identity_widgets.dart';
 import 'package:porto_prime/core/widgets/prime_registration_widgets.dart';
 import 'package:porto_prime/core/widgets/prime_account_widgets.dart';
 import 'package:porto_prime/core/widgets/prime_cart_widgets.dart';
@@ -38,6 +39,8 @@ void main() {
      const SizedBox(height: 16), PrimeRegistrationRoleCard(title: 'Motoboy', subtitle: 'Envie sua candidatura e trabalhe com a Porto Prime.', icon: AppIcons.bike, background: AppColors.sand100, onTap: () {}),
      const SizedBox(height: 16), PrimeRegistrationHeader(roleLabel: 'Motoboy', step: 0, total: 6, onBack: () {}),
      const SizedBox(height: 16), PrimeRegistrationContinue(label: 'Enviar cadastro para análise', loading: false, onContinue: () {}),
+     const SizedBox(height: 16), PrimeLoginIntro(onClose: () {}),
+     const SizedBox(height: 16), PrimePhotoProfileCard(photo: null, registration: true, saving: false, onChoose: () {}),
      const SizedBox(height: 16), LayoutBuilder(builder: (context, box) => SizedBox(height: AppResponsive.categoryHeight(context), child: Row(children: [Expanded(child: PrimeCategoryTile(name: 'Conveniência', onTap: () {})), Expanded(child: PrimeCategoryTile(name: 'Cervejas', selected: true, onTap: () {}))]))),
     ]))))));
     await tester.pump();
