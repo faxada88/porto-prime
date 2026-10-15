@@ -17,6 +17,8 @@ class _PrimeMomentCardState extends State<PrimeMomentCard> {
   @override
   Widget build(BuildContext context) {
     final dark = widget.scene == 2;
+    // Give enlarged text the full card width instead of reserving artwork space.
+    final largeText = MediaQuery.textScalerOf(context).scale(12) > 15;
     final background = switch (widget.scene) {
       0 => AppColors.sand100, 1 => AppColors.ocean100, _ => AppColors.ocean900,
     };
@@ -29,7 +31,7 @@ class _PrimeMomentCardState extends State<PrimeMomentCard> {
           child: Material(color: background, borderRadius: BorderRadius.circular(24),
             clipBehavior: Clip.antiAlias, child: InkWell(onTap: widget.onTap,
               child: Stack(children: [
-                Positioned(top: 0, right: 0, bottom: 0, width: 130,
+                if (!largeText) Positioned(top: 0, right: 0, bottom: 0, width: 130,
                   child: IgnorePointer(child: CustomPaint(painter: _MomentScene(widget.scene)))),
                 Padding(padding: const EdgeInsets.all(20),
                   child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -43,14 +45,14 @@ class _PrimeMomentCardState extends State<PrimeMomentCard> {
                           color: dark ? AppColors.ocean100 : AppColors.inkSoft)),
                         const SizedBox(height: 18),
                         Row(mainAxisSize: MainAxisSize.min, children: [
-                          Text('Explorar', style: TextStyle(fontSize: 12,
+                          Flexible(child: Text('Explorar', style: TextStyle(fontSize: 12,
                             fontWeight: FontWeight.w800,
-                            color: dark ? AppColors.sun500 : AppColors.ocean900)),
+                            color: dark ? AppColors.sun500 : AppColors.ocean900))),
                           const SizedBox(width: 8), Icon(AppIcons.arrowUpRight,
                             size: 17, color: dark ? AppColors.sun500 : AppColors.ocean900),
                         ]),
                       ])),
-                    const SizedBox(width: 82),
+                    if (!largeText) const SizedBox(width: 82),
                   ])),
               ])),
           ),
