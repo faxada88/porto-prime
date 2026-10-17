@@ -34,3 +34,14 @@ subprojects {
         }
     }
 }
+
+// TapAndPay is a restricted SDK for provisioning issued cards, not checkout.
+// The Stripe plugin declares it transitively through an optional compileOnly SDK;
+// AGP release lint otherwise tries to resolve it from public Maven repositories.
+subprojects {
+    if (name == "stripe_android") {
+        configurations.configureEach {
+            exclude(group = "com.google.android.gms", module = "play-services-tapandpay")
+        }
+    }
+}
