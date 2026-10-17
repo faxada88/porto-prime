@@ -744,7 +744,9 @@ class AppState extends ChangeNotifier {
     if(!storeOpen)throw Exception(storeMessage);
     loading=true;error=null;notifyListeners();
     try{
-      final origin=Uri.base.origin;
+      // Native apps have a file URI, not a browser origin. These compatibility
+      // URLs are validated by the API; native payment uses PaymentSheet.
+      final origin=kIsWeb?Uri.base.origin:Uri.parse(api.baseUrl).origin;
       return Map<String,dynamic>.from(await api.request('POST','/payments/checkout',body:{
         'orderId':orderId,
         'successUrl':'$origin/checkout-return?checkout=success&orderId=$orderId',
