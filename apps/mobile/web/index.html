@@ -145,9 +145,10 @@
 
       try {
         await window.portoPrimeLoadStripe();
-        const stripe = window.Stripe(publishableKey);
+        const stripe = window.Stripe(publishableKey, { locale: 'pt-BR' });
         const elements = stripe.elements({
           clientSecret: clientSecret,
+          locale: 'pt-BR',
           appearance: {
             theme: 'stripe',
             variables: {
@@ -171,7 +172,8 @@
         });
 
         const paymentElement = elements.create('payment', {
-          layout: { type: 'tabs', defaultCollapsed: false }
+          layout: { type: 'tabs', defaultCollapsed: false },
+          defaultValues: { billingDetails: { address: { country: 'BR' } } }
         });
         paymentElement.mount('#' + containerId + '-payment');
 

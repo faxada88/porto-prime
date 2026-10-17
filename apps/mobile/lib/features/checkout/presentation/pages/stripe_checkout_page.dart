@@ -74,6 +74,11 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
           paymentSheetParameters: SetupPaymentSheetParameters(
             paymentIntentClientSecret: widget.clientSecret,
             merchantDisplayName: 'Porto Prime',
+            primaryButtonLabel: 'Pagar',
+            billingDetails: const BillingDetails(address: Address(
+              country: 'BR', city: null, line1: null, line2: null,
+              postalCode: null, state: null,
+            )),
             style: ThemeMode.light,
             appearance: const PaymentSheetAppearance(),
           ),

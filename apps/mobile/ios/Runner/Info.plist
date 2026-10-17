@@ -5,7 +5,9 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<string>pt_BR</string>
+	<key>CFBundleLocalizations</key>
+	<array><string>pt-BR</string></array>
 	<key>CFBundleDisplayName</key>
 	<string>Porto Prime</string>
 	<key>CFBundleExecutable</key>
