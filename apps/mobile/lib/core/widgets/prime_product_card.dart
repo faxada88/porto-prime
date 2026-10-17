@@ -1,3 +1,4 @@
+import 'prime_reference_home.dart';
 import 'package:flutter/material.dart';
 
 import '../state/app_state.dart';
@@ -6,8 +7,9 @@ import '../theme/app_theme.dart';
 import 'prime_category_artwork.dart';
 
 class PrimeProductCard extends StatefulWidget {
-  const PrimeProductCard({super.key, required this.product, this.onOpen});
+  const PrimeProductCard({super.key, required this.product, this.onOpen, this.referenceStyle = false});
 
+  final bool referenceStyle;
   final dynamic product;
   final VoidCallback? onOpen;
 
@@ -38,6 +40,17 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
     final discount = oldPrice != null && oldPrice > price && oldPrice > 0
         ? (((oldPrice - price) / oldPrice) * 100).round()
         : null;
+
+    if(widget.referenceStyle) {
+      final fallback=_FallbackProduct(icon:AppIcons.categoryVisual(category,iconKey:p['category']?['iconKey']?.toString()).icon,exact:p['category']?['iconKey']!=null);
+      return ReferenceProductSurface(name:(p['name']??'Produto').toString(),description:description,
+        price:_money(price),oldPrice:oldPrice!=null&&oldPrice>price?_money(oldPrice):null,
+        discount:discount,available:available,onOpen:widget.onOpen,fullWidthControl:qty>0,
+        image:image.isNotEmpty?Image.network(image,fit:BoxFit.contain,cacheWidth:512,errorBuilder:(_,__,___)=>fallback):fallback,
+        control:!available?const SizedBox(height:44):qty==0
+          ?_AddButton(onTap:()=>state.addProduct(id),productName:(p['name']??'produto').toString(),compact:false,cartIcon:true)
+          :_QuantityControl(qty:qty,onMinus:()=>state.changeQty(id,-1),onPlus:()=>state.changeQty(id,1)));
+    }
 
     return Semantics(
       button: widget.onOpen != null,
@@ -339,11 +352,13 @@ class _AddButton extends StatelessWidget {
     required this.onTap,
     required this.productName,
     required this.compact,
+    this.cartIcon=false,
   });
 
   final VoidCallback onTap;
   final String productName;
   final bool compact;
+  final bool cartIcon;
 
   @override
   Widget build(BuildContext context) => Semantics(
@@ -362,9 +377,9 @@ class _AddButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(AppIcons.plus, color: AppColors.sun500, size: 18),
-                const SizedBox(width: 5),
-                const Flexible(
+                Icon(cartIcon?AppIcons.cart:AppIcons.plus, color: cartIcon?Colors.white:AppColors.sun500, size: 18),
+                if(!cartIcon) const SizedBox(width: 5),
+                if(!cartIcon) const Flexible(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
