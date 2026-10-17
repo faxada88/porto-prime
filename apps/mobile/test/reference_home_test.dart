@@ -6,6 +6,11 @@ import 'package:porto_prime/core/widgets/prime_bottom_navigation.dart';
 import 'package:porto_prime/core/widgets/prime_product_card.dart';
 import 'package:porto_prime/core/state/app_state.dart';
 
+// Locate the configured action widget rather than a merged accessibility node.
+Finder action(String label) => find.byWidgetPredicate(
+ (widget) => widget is Semantics && widget.properties.label == label,
+);
+
 void main() {
  for(final width in [320.0,390.0,768.0]) {
   for(final scale in [1.0,1.5,2.0]) {
@@ -30,33 +35,31 @@ void main() {
   }
  }
  testWidgets('Header and search keep their existing destinations', (tester) async {
-  final semantics=tester.ensureSemantics();addTearDown(semantics.dispose);
   final calls=<String>[];
   await tester.pumpWidget(MaterialApp(home:Scaffold(body:Column(children:[
    ReferenceHomeHeader(address:'Porto Seguro',region:'BA',cartCount:0,onAddress:()=>calls.add('address'),onCart:()=>calls.add('cart'),onProfile:()=>calls.add('profile')),
    ReferenceHomeSearch(onTap:()=>calls.add('search')),
   ]))));
   await tester.tap(find.text('ENTREGAR EM'));
-  await tester.tap(find.bySemanticsLabel('Abrir carrinho'));
-  await tester.tap(find.bySemanticsLabel('Abrir perfil'));
+  await tester.tap(action('Abrir carrinho'));
+  await tester.tap(action('Abrir perfil'));
   await tester.tap(find.text('O que você quer pedir hoje?'));
   expect(calls,['address','cart','profile','search']);
  });
  testWidgets('Reference product keeps original cart quantity handlers', (tester) async {
-  final semantics=tester.ensureSemantics();addTearDown(semantics.dispose);
   final state=AppState.instance;
   final known=state.storeStatusKnown,open=state.storeOpen;
   final cart=Map<String,int>.from(state.cart);
   state.storeStatusKnown=true;state.storeOpen=true;state.cart.clear();
   addTearDown((){state.storeStatusKnown=known;state.storeOpen=open;state.cart..clear()..addAll(cart);});
-  await tester.pumpWidget(MaterialApp(theme:AppTheme.light,home:Scaffold(body:Center(child:SizedBox(width:160,height:340,child:AnimatedBuilder(animation:state,builder:(context,_)=>const PrimeProductCard(referenceStyle:true,product:{'id':'reference-test','name':'Produto de teste','price':'42.00','active':true,'stock':10,'category':{'name':'Cervejas','iconKey':'beer'}})))))));
-  await tester.tap(find.bySemanticsLabel('Adicionar Produto de teste'));
+  await tester.pumpWidget(MaterialApp(theme:AppTheme.light,home:Scaffold(body:Center(child:SizedBox(width:160,height:340,child:AnimatedBuilder(animation:state,builder:(context,_)=>PrimeProductCard(referenceStyle:true,product:{'id':'reference-test','name':'Produto de teste','price':'42.00','active':true,'stock':10,'category':{'name':'Cervejas','iconKey':'beer'}})))))));
+  await tester.tap(action('Adicionar Produto de teste'));
   await tester.pump();
   expect(state.cart['reference-test'],1);
-  await tester.tap(find.bySemanticsLabel('Aumentar quantidade'));
+  await tester.tap(action('Aumentar quantidade'));
   await tester.pump();
   expect(state.cart['reference-test'],2);
-  await tester.tap(find.bySemanticsLabel('Diminuir quantidade'));
+  await tester.tap(action('Diminuir quantidade'));
   await tester.pump();
   expect(state.cart['reference-test'],1);
  });
