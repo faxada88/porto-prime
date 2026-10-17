@@ -82,5 +82,11 @@
 	<string>Usamos a câmera para adicionar sua foto de perfil de motoboy.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Selecione sua foto para que o cliente reconheça você na entrega.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Compartilhe sua localização durante a rota para o cliente acompanhar a entrega.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Acompanhe a entrega mesmo ao alternar de aplicativo durante uma rota ativa.</string>
+	<key>UIBackgroundModes</key>
+	<array><string>location</string></array>
 </dict>
 </plist>

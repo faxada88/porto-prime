@@ -1,3 +1,5 @@
+import '../widgets/live_delivery_map.dart';
+import '../../../../core/tracking/courier_route_tracker.dart';
 import '../widgets/customer_cancellation_panel.dart';
 import '../widgets/courier_search_notice.dart';
 import '../../../support/presentation/pages/delivery_chat_page.dart';
@@ -117,6 +119,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                 const SizedBox(height: 16),
                 OutlinedButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(settings:RouteSettings(name:'/delivery-chat/${widget.orderId}'),builder:(_)=>DeliveryChatPage(orderId:widget.orderId))),icon:const Icon(AppIcons.mail,size:18),label:const Text('Conversar sobre a entrega')),
                 const SizedBox(height:16),
+                if(liveRouteMode(current)!=null)LiveDeliveryMap(orderId:widget.orderId),
                 CustomerCancellationPanel(order:current),
                 const SizedBox(height:16),
                 OrderItemAvailabilityNotice(order:current),

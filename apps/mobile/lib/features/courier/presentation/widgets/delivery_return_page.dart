@@ -1,3 +1,4 @@
+import '../../../../core/tracking/courier_tracking_notice.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
@@ -37,6 +38,7 @@ class _DeliveryReturnPageState extends State<DeliveryReturnPage> {
       backgroundColor: AppColors.canvas,
       appBar: AppBar(automaticallyImplyLeading: false, title: const Text('Retorno à loja'), actions: [IconButton(tooltip: 'Atualizar retorno', onPressed: busy ? null : () => AppState.instance.refreshCourier(), icon: const Icon(AppIcons.refresh))]),
       body: SafeArea(bottom: false, child: RefreshIndicator(onRefresh: () => AppState.instance.refreshCourier(), child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 640), child: ListView(physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.fromLTRB(20, 8, 20, 24), children: [
+        const CourierTrackingNotice(),
         Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [AppColors.ocean900, AppColors.ocean700]), borderRadius: BorderRadius.circular(AppRadius.xl), boxShadow: AppShadows.elevated), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .12), borderRadius: BorderRadius.circular(20)), child: const Text('OPERAÇÃO DE RETORNO', style: TextStyle(color: Colors.white, fontSize: 10, letterSpacing: 1, fontWeight: FontWeight.w800))), const Spacer(), const Icon(AppIcons.route, color: Colors.white, size: 28)]),
           const SizedBox(height: 24), Text(title, style: const TextStyle(color: Colors.white, fontSize: 28, height: 1.15, fontWeight: FontWeight.w800, letterSpacing: -.6)),

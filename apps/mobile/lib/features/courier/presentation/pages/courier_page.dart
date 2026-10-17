@@ -1,3 +1,5 @@
+import '../../../../core/tracking/courier_route_tracker.dart';
+import '../../../../core/tracking/courier_tracking_notice.dart';
 import '../../../../core/widgets/prime_brand.dart';
 import '../widgets/delivery_return_page.dart';
 import '../../../support/presentation/pages/delivery_chat_page.dart';
@@ -674,6 +676,7 @@ class _CourierPageState extends State<CourierPage> {
                       presence: state.courierPresenceStatus,
                     ),
                     if (current != null) ...[
+                      if(liveRouteMode(current)!=null) const CourierTrackingNotice(),
                       const SizedBox(height: 22),
                       const _SectionTitle(
                         eyebrow: 'MISSÃO ATUAL',

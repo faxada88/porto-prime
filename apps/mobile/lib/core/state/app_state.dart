@@ -1,3 +1,5 @@
+import 'dart:async';
+import '../tracking/courier_route_tracker.dart';
 import 'partner_referral.dart';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
@@ -162,6 +164,7 @@ class AppState extends ChangeNotifier {
       return;
     }
     if (event == 'session.revoked') {
+      unawaited(CourierRouteTracker.instance.stop());
       Future<void>(() async {
         realtime.disconnect();
         await api.clearSession();
@@ -188,13 +191,14 @@ class AppState extends ChangeNotifier {
     }
 
     if (!loggedIn) return;
+    if(event=='delivery.location.updated'){DeliveryLocationFeed.instance.receive(payload);return;}
 
     if(event=='order.deleted' && payload is Map){
       final id=payload['orderId']?.toString();
       if(id!=null)removedOrderIds.add(id);
       orders.removeWhere((o)=>o['id'].toString()==id);
       if(activeOrder?['id'].toString()==id)activeOrder=null;
-      if(courierDelivery?['id'].toString()==id)courierDelivery=null;
+      if(courierDelivery?['id'].toString()==id){courierDelivery=null;unawaited(CourierRouteTracker.instance.stop());}
       courierHistory.removeWhere((o)=>o['id'].toString()==id);
       courierOffers.removeWhere((o)=>o['orderId']?.toString()==id);
       notifyListeners();
@@ -471,6 +475,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> logout() async {
     try{await api.request('POST','/auth/logout');}catch(_){}
+    await CourierRouteTracker.instance.stop();
     realtime.disconnect();
     await api.clearSession();
     user=null;customerCreditBalance=0;customerCreditCard={};useCustomerCredit=false;customerCreditRequested=0;
@@ -565,6 +570,7 @@ class AppState extends ChangeNotifier {
     courierDelivery=current==null
         ?null
         :Map<String,dynamic>.from(current as Map);
+    unawaited(CourierRouteTracker.instance.sync(courierDelivery));
     courierOffers=List<dynamic>.from(results[2] as List);
     walletSummary=Map<String,dynamic>.from(results[3] as Map);
     courierHistory=List<dynamic>.from(results[4] as List);
@@ -671,6 +677,8 @@ class AppState extends ChangeNotifier {
         },
       ),
     );
+    // Tracking starts only after the existing status request succeeds.
+    unawaited(CourierRouteTracker.instance.sync(courierDelivery,requestPermission:status=='OUT_FOR_DELIVERY'));
     if(status=='DELIVERED'){
       courierPresenceStatus='AVAILABLE';
       await loadWallet();

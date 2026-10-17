@@ -53,6 +53,7 @@ class RealtimeClient {
       'support.updated',
       'delivery.chat.updated',
       'session.revoked',
+      'delivery.location.updated',
       'order.created',
       'order.updated',
       'order.deleted',
