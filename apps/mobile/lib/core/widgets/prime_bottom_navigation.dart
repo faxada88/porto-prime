@@ -17,7 +17,7 @@ class PrimeBottomNavigation extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
         decoration: BoxDecoration(gradient: const LinearGradient(begin:Alignment.topLeft,end:Alignment.bottomRight,colors:[Color(0xFF003B3E),Color(0xFF002D31)]),
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: BorderRadius.circular(26),
           border: Border.all(color: AppColors.ocean800),
           boxShadow: AppShadows.floating),
         child: Row(children: [
@@ -43,13 +43,13 @@ class PrimeBottomNavigation extends StatelessWidget {
           duration: AppMotion.resolve(context, AppMotion.standard),
           curve: AppMotion.curve,
           margin: const EdgeInsets.symmetric(horizontal: 3),
-          padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 7),
           decoration: BoxDecoration(color: selected ? highlight : Colors.transparent,
             borderRadius: BorderRadius.circular(20)),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            SizedBox(height: 28, child: Stack(clipBehavior: Clip.none,
+            SizedBox(height: 25, child: Stack(clipBehavior: Clip.none,
               alignment: Alignment.center, children: [
-                Icon(icon, size: selected ? 27 : 25,
+                Icon(icon, size: selected ? 24 : 23,
                   color: selected ? AppColors.ocean900 : Colors.white),
                 if (value == 2 && cartCount > 0) Positioned(top: -5, right: -14,
                   child: Container(constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
@@ -64,8 +64,8 @@ class PrimeBottomNavigation extends StatelessWidget {
                         fontWeight: FontWeight.w800, color: Colors.white)))),
               ])),
             const SizedBox(height: 5),
-            SizedBox(height: 20, child: FittedBox(fit: BoxFit.scaleDown,
-              child: Text(label, style: TextStyle(fontSize: 12,
+            SizedBox(height: 17, child: FittedBox(fit: BoxFit.scaleDown,
+              child: Text(label, style: TextStyle(fontSize: 11,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
                 color: selected ? AppColors.ocean900 : Colors.white)))),
           ]),

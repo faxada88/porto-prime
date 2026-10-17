@@ -29,13 +29,13 @@ class HomePage extends StatelessWidget {
    _section(ReferenceHomeHeader(address:address,region:region,cartCount:state.cartCount,onAddress:()=>AppNav.instance.go(3),onCart:()=>AppNav.instance.go(2),onProfile:()=>AppNav.instance.go(3)),padding:const EdgeInsets.fromLTRB(18,12,18,0)),
    _section(ReferenceHomeSearch(onTap:()=>AppNav.instance.go(1)),padding:const EdgeInsets.fromLTRB(18,16,18,0)),
    _section(_ReferenceCategories(categories:categories),padding:const EdgeInsets.fromLTRB(18,12,18,0)),
-   _section(ReferenceCoastHero(onTap:()=>AppNav.instance.go(1)),padding:const EdgeInsets.fromLTRB(14,14,14,0)),
-   _section(PrimeSectionHeader(title:'Em destaque',subtitle:'Os seus próximos favoritos estão aqui.',actionLabel:'Ver tudo',onAction:()=>AppNav.instance.go(1)),padding:const EdgeInsets.fromLTRB(18,22,18,10)),
+   _section(ReferenceCoastHero(onTap:()=>AppNav.instance.go(1)),padding:const EdgeInsets.fromLTRB(18,14,18,0)),
+   _section(PrimeSectionHeader(title:'Em destaque',actionLabel:'Ver tudo',onAction:()=>AppNav.instance.go(1)),padding:const EdgeInsets.fromLTRB(18,22,18,10)),
    SliverToBoxAdapter(child:_HorizontalProducts(products:featured,loading:products.isEmpty)),
    _section(const PrimeSectionHeader(title:'Para o seu momento',subtitle:'Encontre a combinação para o seu dia.'),padding:const EdgeInsets.fromLTRB(18,26,18,10)),
    const SliverToBoxAdapter(child:_Moments()),
-   _section(const PrimeSectionHeader(title:'Continue explorando'),padding:const EdgeInsets.fromLTRB(18,26,18,10)),
-   SliverToBoxAdapter(child:_HorizontalProducts(products:recommended,loading:products.isEmpty)),
+   if(products.length>8) _section(const PrimeSectionHeader(title:'Continue explorando'),padding:const EdgeInsets.fromLTRB(18,26,18,10)),
+   if(products.length>8) SliverToBoxAdapter(child:_HorizontalProducts(products:recommended,loading:products.isEmpty)),
    _section(_PrimePromise(onTap:()=>AppNav.instance.go(1)),padding:const EdgeInsets.fromLTRB(18,26,18,140)),
   ]));
  })));
@@ -44,7 +44,7 @@ class _ReferenceCategories extends StatelessWidget {
  const _ReferenceCategories({required this.categories});final List<String> categories;
  @override Widget build(BuildContext context)=>LayoutBuilder(builder:(context,box){
   final labelHeight=MediaQuery.textScalerOf(context).scale(10.5)*2.4;
-  final height=94+labelHeight;
+  final height=66+labelHeight;
   Widget tile(int index){final name=categories[index];final category=AppState.instance.catalogCategories.firstWhere((item)=>item['name']==name,orElse:()=> <String,dynamic>{});return ReferenceCategoryTile(name:name,iconKey:category['iconKey']?.toString(),selected:AppState.instance.catalogCategory==name,onTap:(){AppState.instance.selectCatalogCategory(name);AppNav.instance.go(1);});}
   if(categories.isEmpty)return const SizedBox.shrink();
   if(box.maxWidth>=700)return GridView.builder(shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),padding:EdgeInsets.zero,itemCount:categories.length,gridDelegate:SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:5,mainAxisExtent:height,crossAxisSpacing:10,mainAxisSpacing:10),itemBuilder:(_,i)=>tile(i));
@@ -77,8 +77,8 @@ class _HorizontalProductsState extends State<_HorizontalProducts> {
   Widget build(BuildContext context) => Center(child: ConstrainedBox(
     constraints: const BoxConstraints(maxWidth: AppControl.maxContentWidth),
     child: LayoutBuilder(builder: (context, box) {
-      final cardWidth = ((box.maxWidth - 36) / 2.8).clamp(132.0, 210.0).toDouble();
-      final height = cardWidth + 154 + (MediaQuery.textScalerOf(context).scale(14)-14).clamp(0,32).toDouble()*10;
+      final cardWidth = ((box.maxWidth - 48) / 2).clamp(148.0, 210.0).toDouble();
+      final height = cardWidth + 100 + (MediaQuery.textScalerOf(context).scale(14)-14).clamp(0,32).toDouble()*10;
       final count = widget.loading ? 4 : widget.products.length;
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         SizedBox(height: height, child: ListView.separated(

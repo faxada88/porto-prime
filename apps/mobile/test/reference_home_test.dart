@@ -64,4 +64,13 @@ void main() {
   expect(state.cart['reference-test'],1);
  });
 
+ testWidgets('Compact Home banner has no overlapping photo and opens catalogue', (tester) async {
+  var opened=0;
+  await tester.pumpWidget(MaterialApp(home:Scaffold(body:Padding(padding:const EdgeInsets.all(18),child:ReferenceCoastHero(onTap:()=>opened++)))));
+  expect(find.descendant(of:find.byType(ReferenceCoastHero),matching:find.byType(Image)),findsNothing);
+  await tester.tap(find.text('Explorar catálogo'));
+  expect(opened,1);
+  expect(tester.takeException(),isNull);
+ });
+
 }

@@ -34,21 +34,18 @@ class ReferenceHomeSearch extends StatelessWidget {
 }
 class ReferenceCoastHero extends StatelessWidget {
  const ReferenceCoastHero({super.key,required this.onTap});final VoidCallback onTap;
- @override Widget build(BuildContext context)=>LayoutBuilder(builder:(context,box){
-  final wide=box.maxWidth>=600;
-  final large=MediaQuery.textScalerOf(context).scale(14)>20;
-  final textWidth=large?box.maxWidth-40:box.maxWidth*(wide ? 0.60 : 0.69);
-  return Semantics(container:true,child:ClipRRect(borderRadius:BorderRadius.circular(24),child:Stack(children:[
-   Positioned.fill(child:Image.asset(ReferenceHomeTokens.heroAsset,fit:BoxFit.cover,alignment:Alignment.centerRight,excludeFromSemantics:true,cacheWidth:1400)),
-   const Positioned.fill(child:DecoratedBox(decoration:BoxDecoration(gradient:LinearGradient(colors:[Color(0xF000292D),Color(0xC400292D),Color(0x0500292D)],stops:[0,.54,1])))),
-   Padding(padding:EdgeInsets.fromLTRB(20,wide?32:22,20,24),child:SizedBox(width:textWidth,child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-    const Text('BEBIDAS • SNACKS • GELO • E MUITO MAIS',style:TextStyle(fontSize:8,fontWeight:FontWeight.w700,color:ReferenceHomeTokens.gold,letterSpacing:1.5,height:1.6)),const SizedBox(height:12),
-    Text.rich(const TextSpan(children:[TextSpan(text:'O melhor de Porto.\n',style:TextStyle(color:Colors.white)),TextSpan(text:'Na sua porta.',style:TextStyle(color:ReferenceHomeTokens.gold))]),style:TextStyle(fontFamily:'DMSerifDisplay',fontSize:wide?43:28,height:1.05,letterSpacing:-.5)),
-    const SizedBox(height:12),const Text('Mais variedade, mais qualidade\ne conveniência em Porto Seguro.',style:TextStyle(color:Colors.white,fontSize:11,height:1.5)),const SizedBox(height:18),
-    FilledButton(onPressed:onTap,style:FilledButton.styleFrom(backgroundColor:ReferenceHomeTokens.gold,foregroundColor:AppColors.ocean900,padding:const EdgeInsets.symmetric(horizontal:16,vertical:13),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(28))),child:const Row(mainAxisSize:MainAxisSize.min,children:[Flexible(child:Text('Explorar catálogo',style:TextStyle(fontSize:12,fontWeight:FontWeight.w800))),SizedBox(width:8),Icon(AppIcons.arrowRight,size:18)])),
-   ]))),
-  ])));
- });
+ @override Widget build(BuildContext context)=>Container(
+  width:double.infinity,
+  padding:const EdgeInsets.all(20),
+  decoration:BoxDecoration(color:ReferenceHomeTokens.green,borderRadius:BorderRadius.circular(22)),
+  child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+   const Text('PORTO PRIME',style:TextStyle(color:ReferenceHomeTokens.gold,fontSize:10,fontWeight:FontWeight.w800,letterSpacing:1.6)),
+   const SizedBox(height:8),
+   const Text('Seu momento.\nA gente entrega.',style:TextStyle(color:Colors.white,fontSize:25,fontWeight:FontWeight.w700,height:1.15,letterSpacing:-.7)),
+   const SizedBox(height:14),
+   TextButton(onPressed:onTap,style:TextButton.styleFrom(foregroundColor:ReferenceHomeTokens.gold,padding:const EdgeInsets.symmetric(horizontal:0,vertical:8),minimumSize:const Size(0,44),tapTargetSize:MaterialTapTargetSize.padded),child:const Row(mainAxisSize:MainAxisSize.min,children:[Flexible(child:Text('Explorar catálogo',style:TextStyle(fontSize:13,fontWeight:FontWeight.w700))),SizedBox(width:10),Icon(AppIcons.arrowRight,size:18)])),
+  ]),
+ );
 }
 
 /// Curated source rectangles preserve the alpha of one optimized photographic
@@ -77,7 +74,7 @@ class _CategoryPhotoPainter extends CustomPainter {
 class ReferenceCategoryTile extends StatelessWidget {
  const ReferenceCategoryTile({super.key,required this.name,required this.onTap,this.iconKey,this.selected=false});
  final String name;final String? iconKey;final bool selected;final VoidCallback onTap;
- @override Widget build(BuildContext context){final visual=AppIcons.categoryVisual(name,iconKey:iconKey);return Semantics(button:true,selected:selected,label:'Categoria $name',child:Material(color:selected?const Color(0xFFFFF3D7):Colors.white,borderRadius:BorderRadius.circular(20),child:InkWell(onTap:onTap,borderRadius:BorderRadius.circular(20),child:AnimatedContainer(duration:AppMotion.resolve(context,AppMotion.fast),padding:const EdgeInsets.fromLTRB(6,8,6,8),decoration:BoxDecoration(borderRadius:BorderRadius.circular(20),border:Border.all(color:selected?ReferenceHomeTokens.gold:const Color(0xFFE9EFEC),width:selected?1.5:1),boxShadow:selected?const [BoxShadow(color:Color(0x22F5C866),blurRadius:12,offset:Offset(0,4))]:null),child:Column(children:[Expanded(child:ReferenceCategoryPicture(iconKey:visual.key,fallback:Icon(visual.icon,size:34,color:visual.foreground))),const SizedBox(height:5),Text(name,maxLines:2,overflow:TextOverflow.ellipsis,textAlign:TextAlign.center,style:TextStyle(fontSize:10.5,height:1.15,fontWeight:selected?FontWeight.w800:FontWeight.w600,color:AppColors.ink))])))));}
+ @override Widget build(BuildContext context){final visual=AppIcons.categoryVisual(name,iconKey:iconKey);return Semantics(button:true,selected:selected,label:'Categoria $name',child:Material(color:selected?const Color(0xFFFFF3D7):Colors.white,borderRadius:BorderRadius.circular(20),child:InkWell(onTap:onTap,borderRadius:BorderRadius.circular(20),child:AnimatedContainer(duration:AppMotion.resolve(context,AppMotion.fast),padding:const EdgeInsets.fromLTRB(6,8,6,8),decoration:BoxDecoration(borderRadius:BorderRadius.circular(20),border:Border.all(color:selected?ReferenceHomeTokens.gold:const Color(0xFFE9EFEC),width:selected?1.5:1),boxShadow:selected?const [BoxShadow(color:Color(0x22F5C866),blurRadius:12,offset:Offset(0,4))]:null),child:Column(children:[Expanded(child:Center(child:Container(width:46,height:46,decoration:BoxDecoration(color:visual.background,borderRadius:BorderRadius.circular(15)),child:Icon(visual.icon,size:26,color:visual.foreground)))),const SizedBox(height:5),Text(name,maxLines:2,overflow:TextOverflow.ellipsis,textAlign:TextAlign.center,style:TextStyle(fontSize:10.5,height:1.15,fontWeight:selected?FontWeight.w800:FontWeight.w600,color:AppColors.ink))])))));}
 }
 
 class ReferenceProductSurface extends StatelessWidget {
