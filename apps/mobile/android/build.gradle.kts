@@ -22,3 +22,15 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
+
+// The Stripe Android plugin must compile Java and Kotlin to the same bytecode target.
+// Keep this override scoped to Stripe; other Flutter plugins retain their own targets.
+subprojects {
+    if (name == "stripe_android") {
+        afterEvaluate {
+            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile>().configureEach {
+                compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+            }
+        }
+    }
+}
