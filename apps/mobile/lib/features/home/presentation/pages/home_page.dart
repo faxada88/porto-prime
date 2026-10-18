@@ -39,9 +39,9 @@ class HomePage extends StatelessWidget {
       _section(ReferenceHomeHeader(address:address,region:region,cartCount:state.cartCount,
        onAddress:()=>AppNav.instance.go(3),onCart:()=>AppNav.instance.go(2),onProfile:()=>AppNav.instance.go(3)),top:12),
       _section(ReferenceHomeSearch(onTap:()=>AppNav.instance.go(1))),
-      _section(ReferenceCoastHero(onTap:()=>AppNav.instance.go(1))),
-      if(categories.isNotEmpty)_section(_HomeCategories(categories:categories),top:18),
-      _section(PrimeSectionHeader(title:'Nosso catálogo',actionLabel:'Ver tudo',onAction:()=>AppNav.instance.go(1)),top:24,bottom:12),
+      if(categories.isNotEmpty)_section(_HomeCategories(categories:categories),top:12),
+      _section(ReferenceCoastHero(onTap:()=>AppNav.instance.go(1)),top:14),
+      _section(PrimeSectionHeader(title:'Escolha seus favoritos',actionLabel:'Ver tudo',onAction:()=>AppNav.instance.go(1)),top:24,bottom:12),
       SliverLayoutBuilder(builder:(context,viewport){
        final width=viewport.crossAxisExtent;
        final content=width.clamp(0.0,AppControl.maxContentWidth).toDouble();
@@ -66,14 +66,13 @@ class _HomeCategories extends StatelessWidget {
  const _HomeCategories({required this.categories});
  final List<dynamic> categories;
  @override Widget build(BuildContext context)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-  const Text('Categorias',style:TextStyle(fontSize:13,fontWeight:FontWeight.w700,color:AppColors.muted)),
-  const SizedBox(height:10),
-  SizedBox(height:76+MediaQuery.textScalerOf(context).scale(10.5)*2.4,child:ListView.separated(
+
+  SizedBox(height:64+MediaQuery.textScalerOf(context).scale(10.5)*2.4,child:ListView.separated(
    scrollDirection:Axis.horizontal,itemCount:categories.length,
    separatorBuilder:(_,__)=>const SizedBox(width:10),
    itemBuilder:(context,index){
     final category=categories[index],name=(category['name']??'').toString().trim();
-    return SizedBox(width:88,child:ReferenceCategoryTile(name:name,iconKey:category['iconKey']?.toString(),
+    return SizedBox(width:82,child:ReferenceCategoryTile(name:name,iconKey:category['iconKey']?.toString(),
      selected:AppState.instance.catalogCategory==name,onTap:(){
       AppState.instance.selectCatalogCategory(name);AppNav.instance.go(1);
      }));

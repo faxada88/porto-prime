@@ -80,7 +80,7 @@ void main() {
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
   await tester.pumpWidget(MaterialApp(theme:AppTheme.light,home:const Scaffold(body:HomePage())));
-  expect(find.text('Nosso catálogo'),findsOneWidget);
+  expect(find.text('Escolha seus favoritos'),findsOneWidget);
   expect(find.text('Para o seu momento'),findsNothing);
   expect(find.text('Continue explorando'),findsNothing);
   expect(find.byType(SliverGrid),findsOneWidget);

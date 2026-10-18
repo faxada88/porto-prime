@@ -11,15 +11,14 @@ class PrimeBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SafeArea(
-    minimum: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+    minimum: const EdgeInsets.fromLTRB(0, 0, 0, 0),
     child: Center(heightFactor: 1, child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 620),
+      constraints: const BoxConstraints(maxWidth: 900),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
-        decoration: BoxDecoration(gradient: const LinearGradient(begin:Alignment.topLeft,end:Alignment.bottomRight,colors:[Color(0xFF003B3E),Color(0xFF002D31)]),
-          borderRadius: BorderRadius.circular(26),
-          border: Border.all(color: AppColors.ocean800),
-          boxShadow: AppShadows.floating),
+        decoration: BoxDecoration(color:Colors.white,
+          border:const Border(top:BorderSide(color:Color(0xFFEDEEEF))),
+          boxShadow:const [BoxShadow(color:Color(0x08000000),blurRadius:14,offset:Offset(0,-4))]),
         child: Row(children: [
           _destination(context, 0, 'Início', AppIcons.home),
           _destination(context, 1, 'Buscar', AppIcons.search),
@@ -32,7 +31,7 @@ class PrimeBottomNavigation extends StatelessWidget {
 
   Widget _destination(BuildContext context, int value, String label, IconData icon) {
     final selected = index == value;
-    final highlight = const Color(0xFFDEF7ED);
+    final highlight = const Color(0xFFEAF5F0);
     return Expanded(child: Semantics(button: true, selected: selected,
       label: value == 2 && cartCount > 0 ? '$label, $cartCount itens' : label,
       excludeSemantics: true, onTap: () => onSelect(value),
@@ -50,13 +49,13 @@ class PrimeBottomNavigation extends StatelessWidget {
             SizedBox(height: 25, child: Stack(clipBehavior: Clip.none,
               alignment: Alignment.center, children: [
                 Icon(icon, size: selected ? 24 : 23,
-                  color: selected ? AppColors.ocean900 : Colors.white),
+                  color: selected ? AppColors.ocean900 : AppColors.muted),
                 if (value == 2 && cartCount > 0) Positioned(top: -5, right: -14,
                   child: Container(constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(color: AppColors.coral600,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.ocean900, width: 1.5)),
+                      border: Border.all(color: Colors.white, width: 1.5)),
                     alignment: Alignment.center,
                     child: Text(cartCount > 99 ? '99+' : '$cartCount',
                       textScaler: TextScaler.noScaling,
@@ -67,7 +66,7 @@ class PrimeBottomNavigation extends StatelessWidget {
             SizedBox(height: 17, child: FittedBox(fit: BoxFit.scaleDown,
               child: Text(label, style: TextStyle(fontSize: 11,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                color: selected ? AppColors.ocean900 : Colors.white)))),
+                color: selected ? AppColors.ocean900 : AppColors.muted)))),
           ]),
         ),
       )),
