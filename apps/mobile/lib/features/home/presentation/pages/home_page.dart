@@ -36,6 +36,7 @@ class HomePage extends StatelessWidget {
          const Text('Loja fechada no momento',style:TextStyle(fontWeight:FontWeight.w800,color:AppColors.warning)),
          const SizedBox(height:6),Text(state.storeMessage.replaceAll('Sua sacola','Seu carrinho').replaceAll('sua sacola','seu carrinho'),style:const TextStyle(color:AppColors.warning,height:1.5)),
         ]))),
+      if(state.user?['name']!=null)_section(Text('${DateTime.now().hour<12?'Bom dia':DateTime.now().hour<18?'Boa tarde':'Boa noite'}, ${state.user!['name'].toString().trim().split(' ').first}',style:const TextStyle(fontSize:13,color:AppColors.muted)),top:14),
       _section(ReferenceHomeHeader(address:address,region:region,cartCount:state.cartCount,
        onAddress:()=>AppNav.instance.go(3),onCart:()=>AppNav.instance.go(2),onProfile:()=>AppNav.instance.go(3)),top:12),
       _section(ReferenceHomeSearch(onTap:()=>AppNav.instance.go(1))),

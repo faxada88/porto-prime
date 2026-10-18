@@ -69,7 +69,7 @@ void main() {
   var opened=0;
   await tester.pumpWidget(MaterialApp(home:Scaffold(body:Padding(padding:const EdgeInsets.all(18),child:ReferenceCoastHero(onTap:()=>opened++)))));
   expect(find.descendant(of:find.byType(ReferenceCoastHero),matching:find.byType(Image)),findsNothing);
-  await tester.tap(find.text('Explorar catálogo'));
+  await tester.tap(find.text('Explorar catálogo').hitTestable().first);
   expect(opened,1);
   expect(tester.takeException(),isNull);
  });

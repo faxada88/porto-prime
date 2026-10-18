@@ -1,4 +1,5 @@
-import 'dart:ui' as ui;
+import 'prime_home_carousel.dart';
+import 'prime_category_3d.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
@@ -15,7 +16,7 @@ class ReferenceHomeHeader extends StatelessWidget {
  const ReferenceHomeHeader({super.key,required this.address,required this.region,required this.cartCount,required this.onAddress,required this.onCart,required this.onProfile});
  final String address,region;final int cartCount;final VoidCallback onAddress,onCart,onProfile;
  @override Widget build(BuildContext context)=>Row(children:[
-  Expanded(child:InkWell(onTap:onAddress,borderRadius:BorderRadius.circular(16),child:Padding(padding:const EdgeInsets.symmetric(vertical:4),child:Row(children:[ClipRRect(borderRadius:BorderRadius.circular(13),child:Image.asset('assets/reference_home/porto-prime-icon.png',width:43,height:43,excludeFromSemantics:true)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('ENTREGAR EM',style:TextStyle(color:AppColors.ocean700,fontSize:10,letterSpacing:.8,fontWeight:FontWeight.w800)),const SizedBox(height:4),Row(children:[const Icon(AppIcons.mapPin,size:15,color:AppColors.ink),const SizedBox(width:4),Expanded(child:Text(address,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:12,fontWeight:FontWeight.w700))),const Icon(AppIcons.chevronDown,size:14)]),if(region.isNotEmpty)Padding(padding:const EdgeInsets.only(left:19,top:3),child:Text(region,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,color:AppColors.muted)))]))])))),
+  Expanded(child:InkWell(onTap:onAddress,borderRadius:BorderRadius.circular(16),child:Padding(padding:const EdgeInsets.symmetric(vertical:4),child:Row(children:[ClipRRect(borderRadius:BorderRadius.circular(13),child:Image.asset('assets/reference_home/porto-prime-icon.png',width:43,height:43,excludeFromSemantics:true)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('ENTREGAR EM',style:TextStyle(color:AppColors.ocean700,fontSize:10,letterSpacing:.8,fontWeight:FontWeight.w800)),const SizedBox(height:4),Row(children:[const Icon(AppIcons.mapPin,size:15,color:AppColors.ink),const SizedBox(width:4),Expanded(child:Text(address,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:14,fontWeight:FontWeight.w700))),const Icon(AppIcons.chevronDown,size:14)]),if(region.isNotEmpty)Padding(padding:const EdgeInsets.only(left:19,top:3),child:Text(region,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,color:AppColors.muted)))]))])))),
   const SizedBox(width:8),_HeaderAction(icon:AppIcons.cart,label:'Abrir carrinho',count:cartCount,onTap:onCart),const SizedBox(width:7),_HeaderAction(icon:AppIcons.user,label:'Abrir perfil',dark:true,onTap:onProfile),
  ]);
 }
@@ -33,50 +34,13 @@ class ReferenceHomeSearch extends StatelessWidget {
 }
 class ReferenceCoastHero extends StatelessWidget {
  const ReferenceCoastHero({super.key,required this.onTap});final VoidCallback onTap;
- @override Widget build(BuildContext context)=>Material(
-  color:const Color(0xFFFFF4D8),borderRadius:BorderRadius.circular(18),
-  child:InkWell(onTap:onTap,borderRadius:BorderRadius.circular(18),
-   child:Padding(padding:const EdgeInsets.fromLTRB(18,16,14,16),child:Row(children:[
-    Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-     const Text('PORTO PRIME • DELIVERY',style:TextStyle(color:ReferenceHomeTokens.green,fontSize:9,fontWeight:FontWeight.w800,letterSpacing:1)),
-     const SizedBox(height:7),
-     const Text('O que falta para\no seu momento?',style:TextStyle(color:AppColors.ink,fontSize:21,fontWeight:FontWeight.w800,height:1.15,letterSpacing:-.5)),
-     const SizedBox(height:10),
-     Row(children:[const Flexible(child:Text('Explorar catálogo',style:TextStyle(color:ReferenceHomeTokens.green,fontSize:12,fontWeight:FontWeight.w800))),const SizedBox(width:7),const Icon(AppIcons.arrowRight,size:17,color:ReferenceHomeTokens.green)]),
-    ])),
-    const SizedBox(width:12),
-    Container(width:52,height:62,decoration:BoxDecoration(color:ReferenceHomeTokens.green,borderRadius:BorderRadius.circular(18)),child:const Icon(AppIcons.cart,color:ReferenceHomeTokens.gold,size:29)),
-   ]))),
- );
+ @override Widget build(BuildContext context)=>PrimeHomeCarousel(onExplore:onTap);
 }
 
-/// Curated source rectangles preserve the alpha of one optimized photographic
-/// atlas. Unknown or explicitly different keys keep the existing vector icon.
-class ReferenceCategoryPicture extends StatefulWidget {
- const ReferenceCategoryPicture({super.key,required this.iconKey,required this.fallback});
- final String? iconKey;final Widget fallback;
- static const rects=<String,Rect>{
-  'beer':Rect.fromLTRB(.002,.12,.192,.90),'softDrink':Rect.fromLTRB(.192,.15,.331,.89),
-  'ice':Rect.fromLTRB(.331,.35,.502,.90),'convenience':Rect.fromLTRB(.502,.28,.706,.90),
-  'spirits':Rect.fromLTRB(.714,.04,.862,.90),'wine':Rect.fromLTRB(.874,.01,1,.90),
- };
- @override State<ReferenceCategoryPicture> createState()=>_ReferenceCategoryPictureState();
-}
-class _ReferenceCategoryPictureState extends State<ReferenceCategoryPicture> {
- ImageStream? _stream;ImageInfo? _info;ImageStreamListener? _listener;
- @override void didChangeDependencies(){super.didChangeDependencies();if(_stream!=null)return;_stream=const AssetImage(ReferenceHomeTokens.categoryAsset).resolve(createLocalImageConfiguration(context));_listener=ImageStreamListener((image,synchronous){if(mounted)setState((){_info?.dispose();_info=image;});},onError:(Object error,StackTrace? stack){});_stream!.addListener(_listener!);}
- @override void dispose(){if(_listener!=null)_stream?.removeListener(_listener!);_info?.dispose();super.dispose();}
- @override Widget build(BuildContext context){final rect=ReferenceCategoryPicture.rects[widget.iconKey];return _info==null||rect==null?widget.fallback:ExcludeSemantics(child:CustomPaint(painter:_CategoryPhotoPainter(_info!.image,rect),size:const Size(72,72)));}
-}
-class _CategoryPhotoPainter extends CustomPainter {
- const _CategoryPhotoPainter(this.image,this.region);final ui.Image image;final Rect region;
- @override void paint(Canvas canvas,Size size){final src=Rect.fromLTRB(region.left*image.width,region.top*image.height,region.right*image.width,region.bottom*image.height);final fit=applyBoxFit(BoxFit.contain,src.size,size);final dst=Alignment.center.inscribe(fit.destination,Offset.zero&size);canvas.drawImageRect(image,src,dst,Paint()..filterQuality=FilterQuality.medium);}
- @override bool shouldRepaint(covariant _CategoryPhotoPainter old)=>old.image!=image||old.region!=region;
-}
 class ReferenceCategoryTile extends StatelessWidget {
  const ReferenceCategoryTile({super.key,required this.name,required this.onTap,this.iconKey,this.selected=false});
  final String name;final String? iconKey;final bool selected;final VoidCallback onTap;
- @override Widget build(BuildContext context){final visual=AppIcons.categoryVisual(name,iconKey:iconKey);return Semantics(button:true,selected:selected,label:'Categoria $name',child:Material(color:Colors.white,borderRadius:BorderRadius.circular(20),child:InkWell(onTap:onTap,borderRadius:BorderRadius.circular(20),child:AnimatedContainer(duration:AppMotion.resolve(context,AppMotion.fast),padding:const EdgeInsets.fromLTRB(6,8,6,8),decoration:BoxDecoration(borderRadius:BorderRadius.circular(20),border:Border.all(color:selected?ReferenceHomeTokens.green:Colors.transparent,width:1)),child:Column(children:[Expanded(child:Center(child:Container(width:46,height:46,decoration:BoxDecoration(color:visual.background,borderRadius:BorderRadius.circular(15)),child:Icon(visual.icon,size:26,color:visual.foreground)))),const SizedBox(height:5),Text(name,maxLines:2,overflow:TextOverflow.ellipsis,textAlign:TextAlign.center,style:TextStyle(fontSize:10.5,height:1.15,fontWeight:selected?FontWeight.w800:FontWeight.w600,color:AppColors.ink))])))));}
+ @override Widget build(BuildContext context){final visual=AppIcons.categoryVisual(name,iconKey:iconKey);return Semantics(button:true,selected:selected,label:'Categoria $name',child:Material(color:Colors.white,borderRadius:BorderRadius.circular(20),child:InkWell(onTap:onTap,borderRadius:BorderRadius.circular(20),child:AnimatedContainer(duration:AppMotion.resolve(context,AppMotion.fast),padding:const EdgeInsets.fromLTRB(6,8,6,8),decoration:BoxDecoration(borderRadius:BorderRadius.circular(20),border:Border.all(color:selected?ReferenceHomeTokens.green:Colors.transparent,width:1)),child:Column(children:[Expanded(child:Center(child:Container(width:56,height:56,decoration:BoxDecoration(color:visual.background,borderRadius:BorderRadius.circular(15)),child:PrimeCategory3D(iconKey:visual.key,fallback:Icon(visual.icon,size:26,color:visual.foreground))))),const SizedBox(height:5),Text(name,maxLines:2,overflow:TextOverflow.ellipsis,textAlign:TextAlign.center,style:TextStyle(fontSize:10.5,height:1.15,fontWeight:selected?FontWeight.w800:FontWeight.w600,color:AppColors.ink))])))));}
 }
 
 class ReferenceProductSurface extends StatelessWidget {
