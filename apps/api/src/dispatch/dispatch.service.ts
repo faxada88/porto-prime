@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
   OnModuleDestroy,
   OnModuleInit,
@@ -23,6 +24,7 @@ type DispatchConfig = {
 export class DispatchService implements OnModuleInit, OnModuleDestroy {
   private timer?: NodeJS.Timeout;
   private running = false;
+  private readonly logger = new Logger(DispatchService.name);
 
   constructor(
     private readonly prisma: PrismaService,
@@ -110,9 +112,16 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
         take: 30,
       });
 
-      for (const order of orders) {
-        await this.dispatchOrder(order.id);
+      // Bounded parallelism: one slow order must not hold the entire queue.
+      for (let index = 0; index < orders.length; index += 4) {
+        const results = await Promise.allSettled(orders.slice(index, index + 4)
+          .map((order: any) => this.dispatchOrder(order.id)));
+        for (const result of results) {
+          if (result.status === 'rejected') this.logger.error('Falha no despacho; nova tentativa no próximo ciclo', result.reason);
+        }
       }
+    } catch (error) {
+      this.logger.error('Ciclo de despacho interrompido; será retomado', error);
     } finally {
       this.running = false;
     }
@@ -231,6 +240,8 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
           select: { status: true },
         },
       },
+      // Rotate the candidate window too, so fleets over 100 are not excluded.
+      orderBy: [{ lastOfferAt: { sort: 'asc', nulls: 'first' } }, { id: 'asc' }],
       take: 100,
     });
 
@@ -420,7 +431,8 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
           expiresAt,
         });
         return safePayload;
-      } catch {
+      } catch (error) {
+        if (!(error instanceof ConflictException)) this.logger.error('Falha ao criar oferta de entrega', error);
         continue;
       }
     }
@@ -501,6 +513,13 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
 
     const result = await (this.prisma as any).$transaction(
       async (tx: any) => {
+        // A retried HTTP request must acknowledge the original acceptance.
+        const existing = await tx.order.findUnique({
+          where: { id: orderId },
+          include: { items: true, address: true, customer: { select: { name: true, phone: true } } },
+        });
+        if (existing && !existing.adminDeletedAt && existing.courierId === courierId &&
+            !['DELIVERED', 'CANCELED'].includes(existing.status)) return existing;
         const offer = await tx.deliveryOffer.findFirst({
           where: {
             orderId,
@@ -529,7 +548,13 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
             where: { id: orderId, activeOfferId: offer.id },
             data: { activeOfferId: null },
           });
-          throw new ConflictException('O tempo desta oferta terminou');
+          await tx.courierProfile.updateMany({
+            where: { id: courierId, presenceStatus: 'OFFERED', isOnline: true },
+            data: { presenceStatus: 'AVAILABLE', availableSince: now },
+          });
+          await tx.dispatchEvent.create({ data: { orderId, courierId, offerId: offer.id, type: 'OFFER_EXPIRED' } });
+          // Return a sentinel so cleanup commits before the HTTP conflict.
+          return { expiredOfferId: offer.id };
         }
 
         const accepted = await tx.deliveryOffer.updateMany({
@@ -649,6 +674,11 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
       },
     );
 
+    if (result?.expiredOfferId) {
+      this.realtime.emitToUser(userId, 'delivery.offer.closed', { orderId, offerId: result.expiredOfferId, reason: 'EXPIRED' });
+      this.scheduleRedispatch(orderId);
+      throw new ConflictException('O tempo desta oferta terminou. Aguarde a próxima oferta.');
+    }
     this.realtime.emitOrderUpdated(result);
     this.realtime.emitToUser(userId, 'delivery.accepted', {
       orderId,
@@ -723,12 +753,13 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
           },
         });
 
-        return { success: true };
+        return { success: true, offerId: offer.id };
       },
     );
 
     this.realtime.emitToUser(userId, 'delivery.offer.closed', {
       orderId,
+      offerId: result.offerId,
       reason: 'DECLINED',
     });
     this.realtime.emitToRole('ADMIN', 'dispatch.offer.closed', {
@@ -824,6 +855,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
         'delivery.offer.closed',
         {
           orderId: offer.orderId,
+          offerId: offer.id,
           reason: 'EXPIRED',
         },
       );

@@ -5,6 +5,7 @@ import '../widgets/delivery_return_page.dart';
 import '../../../support/presentation/pages/delivery_chat_page.dart';
 import '../../../support/presentation/pages/support_page.dart';
 import 'dart:async';
+import '../widgets/incoming_delivery_offer_sheet.dart';
 import 'courier_operations_dashboard.dart';
 import 'courier_demand_notice.dart';
 import 'courier_photo_card.dart';
@@ -28,10 +29,12 @@ class CourierPage extends StatefulWidget {
 class _CourierPageState extends State<CourierPage> {
   Timer? _heartbeatTimer;
   Timer? _refreshTimer;
+  int _refreshTicks=0;
   bool _navBusy = false;
   final _operationsScroll = ScrollController();
   String? _lastPresentedOfferId;
   bool _offerModalOpen = false;
+  bool _deliverySheetActive=false;
   String? _soundingOfferId;
 
   void _syncOfferSound() {
@@ -47,9 +50,9 @@ class _CourierPageState extends State<CourierPage> {
     AppState.instance.addListener(_syncOfferSound);
     Future<void>(() async {
       try {
-        await AppState.instance.refreshCourier();
-        await AppState.instance.loadWallet();
         await AppState.instance.heartbeatCourier();
+        await AppState.instance.refreshCourierOperations();
+        unawaited(AppState.instance.refreshCourier().catchError((_) {}));
       } catch (_) {}
     });
     _heartbeatTimer = Timer.periodic(
@@ -61,10 +64,13 @@ class _CourierPageState extends State<CourierPage> {
       },
     );
     _refreshTimer = Timer.periodic(
-      const Duration(seconds: 30),
+      const Duration(seconds: 5),
       (_) async {
+        final state=AppState.instance;
+        // Socket is the primary path; polling only recovers missed events.
+        if(state.realtime.connected && ++_refreshTicks%3!=0)return;
         try {
-          await AppState.instance.refreshCourier();
+          await state.refreshCourierOperations();
         } catch (_) {}
       },
     );
@@ -101,12 +107,12 @@ class _CourierPageState extends State<CourierPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      await _showDeliverySheet(
-        context,
-        order: offer,
-        incoming: true,
-      );
-      _offerModalOpen = false;
+      try {
+        await _showDeliverySheet(context,order:offer,incoming:true);
+      } finally {
+        if(mounted)setState(()=>_offerModalOpen=false);
+        else _offerModalOpen=false;
+      }
     });
   }
 
@@ -115,6 +121,8 @@ class _CourierPageState extends State<CourierPage> {
     required Map<String, dynamic> order,
     required bool incoming,
   }) async {
+    if(_deliverySheetActive)return;
+    _deliverySheetActive=true;
     if(incoming){
       _soundingOfferId=(order['offerId']??order['orderId']).toString();
       final expiry=DateTime.tryParse(order['expiresAt']?.toString()??'');
@@ -128,42 +136,17 @@ class _CourierPageState extends State<CourierPage> {
       barrierColor: Colors.black.withValues(alpha: .58),
       isDismissible: !incoming,
       enableDrag: !incoming,
-      builder: (sheetContext) => _DeliveryDetailsSheet(
+      builder: (sheetContext) => incoming ? IncomingDeliveryOfferSheet(
+        order:order,
+        updates:AppState.instance,
+        isAvailable:()=>AppState.instance.courierOffers.any((offer)=>offer['offerId']?.toString()==order['offerId']?.toString()),
+        onAccept:()=>AppState.instance.acceptDelivery(order['orderId'].toString()),
+        onReject:()=>AppState.instance.rejectDelivery(order['orderId'].toString()),
+      ) : _DeliveryDetailsSheet(
         order: order,
         incoming: incoming,
-        onAccept: incoming
-            ? () async {
-                try {
-                  await AppState.instance.acceptDelivery(
-                    (incoming ? order['orderId'] : order['id']).toString(),
-                  );
-                  if (sheetContext.mounted) {
-                    Navigator.pop(sheetContext);
-                  }
-                } catch (e) {
-                  if (sheetContext.mounted) {
-                    ScaffoldMessenger.of(sheetContext).showSnackBar(
-                      SnackBar(
-                        content: Text(PrimeMessages.friendly(e)),
-                      ),
-                    );
-                  }
-                }
-              }
-            : null,
-        onReject: incoming
-            ? () async {
-                try {
-                  await AppState.instance.rejectDelivery(
-                    order['orderId'].toString(),
-                  );
-                } finally {
-                  if (sheetContext.mounted) {
-                    Navigator.pop(sheetContext);
-                  }
-                }
-              }
-            : null,
+        onAccept: null,
+        onReject: null,
         onAdvance: incoming
             ? null
             : (status) async {
@@ -196,6 +179,7 @@ class _CourierPageState extends State<CourierPage> {
       ),
     );
     } finally {
+      _deliverySheetActive=false;
       if(incoming){stopDeliveryOfferSound();_soundingOfferId=null;}
     }
   }

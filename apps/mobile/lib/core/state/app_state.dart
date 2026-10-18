@@ -45,6 +45,9 @@ class AppState extends ChangeNotifier {
   Map<String,dynamic>? activeOrder;
   Map<String,dynamic>? courierDelivery;
   List<dynamic> courierOffers=[];
+  int _courierOperationsEpoch=0;
+  Future<void>? _courierOperationsFuture;
+  Future<void>? _deliveryAction;
   bool courierOnline=false;
   bool courierHighDemand=false;
   double courierDemandBonus=0;
@@ -174,6 +177,7 @@ class AppState extends ChangeNotifier {
         activeOrder=null;
         courierDelivery=null;
         courierOffers=[];
+        _courierOperationsEpoch++;
         courierOnline=false;
         courierHighDemand=false;
         _courierDemandRevision=-1;
@@ -218,17 +222,26 @@ class AppState extends ChangeNotifier {
       return;
     }
 
-    if (isCourier &&
-        (event == 'delivery.offer' ||
-            event == 'delivery.offer.closed' ||
-            event == 'delivery.accepted' ||
-            event == 'order.deleted' || event == 'order.updated' ||
-            event == 'courier.presence')) {
-      Future<void>(() async {
-        try {
-          await refreshCourier();
-        } catch (_) {}
-      });
+    if (isCourier && event == 'delivery.offer' && payload is Map) {
+      final offer=Map<String,dynamic>.from(payload);
+      final expiry=DateTime.tryParse(offer['expiresAt']?.toString()??'');
+      if(offer['offerId']!=null && expiry!=null && expiry.isAfter(DateTime.now()) && courierDelivery==null){
+        _courierOperationsEpoch++;
+        courierOffers=[offer];
+        notifyListeners();
+      }
+      // The authenticated socket already contains the complete safe offer.
+      return;
+    }
+    if (isCourier && event == 'delivery.offer.closed' && payload is Map) {
+      _courierOperationsEpoch++;
+      final orderId=payload['orderId']?.toString(),offerId=payload['offerId']?.toString();
+      courierOffers.removeWhere((offer)=>offerId!=null?offer['offerId']?.toString()==offerId:offer['orderId']?.toString()==orderId);
+      notifyListeners();
+      return;
+    }
+    if (isCourier && (event == 'session.ready' || event == 'delivery.accepted' || event == 'order.deleted' || event == 'order.updated' || event == 'courier.presence')) {
+      unawaited(refreshCourierOperations().catchError((_) {}));
       return;
     }
 
@@ -484,6 +497,7 @@ class AppState extends ChangeNotifier {
     activeOrder=null;
     courierDelivery=null;
     courierOffers=[];
+    _courierOperationsEpoch++;
     courierHighDemand=false;
     _courierDemandRevision=-1;
     courierOnline=false;
@@ -548,34 +562,45 @@ class AppState extends ChangeNotifier {
     return future;
   }
 
-  Future<void> _refreshCourierOnce() async {
+  /// Only delivery-critical data. Wallet/history/profile never block an offer.
+  Future<void> refreshCourierOperations() {
+    final running=_courierOperationsFuture;
+    if(running!=null)return running;
+    final future=_loadCourierOperationsOnce();
+    _courierOperationsFuture=future;
+    void clear(){if(identical(_courierOperationsFuture,future))_courierOperationsFuture=null;}
+    future.then<void>((_)=>clear(),onError:(Object _,StackTrace __)=>clear());
+    return future;
+  }
+  Future<void> _loadCourierOperationsOnce() async {
     if(!isCourier)return;
-    // Independent notice: an unavailable signal never blocks deliveries or login.
-    loadCourierDemand().catchError((_) {});
-
+    final accountId=user?['id'];
+    final epoch=++_courierOperationsEpoch;
     final results=await Future.wait([
       api.request('GET','/orders/courier/presence'),
       api.request('GET','/orders/courier/current'),
       api.request('GET','/orders/courier/available'),
-      api.request('GET','/wallet/summary'),
-      api.request('GET','/orders/courier/history'),
-      api.request('GET','/couriers/application/me'),
     ]);
-
+    if(!isCourier || user?['id']!=accountId || epoch!=_courierOperationsEpoch)return;
     final presence=Map<String,dynamic>.from(results[0] as Map);
     courierPresenceStatus=(presence['presenceStatus']??'OFFLINE').toString();
     courierOnline=presence['isOnline']==true;
-
-    final current=results[1];
-    courierDelivery=current==null
-        ?null
-        :Map<String,dynamic>.from(current as Map);
-    unawaited(CourierRouteTracker.instance.sync(courierDelivery));
+    courierDelivery=results[1]==null?null:Map<String,dynamic>.from(results[1] as Map);
     courierOffers=List<dynamic>.from(results[2] as List);
-    walletSummary=Map<String,dynamic>.from(results[3] as Map);
-    courierHistory=List<dynamic>.from(results[4] as List);
-    courierProfile=Map<String,dynamic>.from(results[5] as Map);
+    unawaited(CourierRouteTracker.instance.sync(courierDelivery));
     notifyListeners();
+  }
+
+  Future<void> _refreshCourierOnce() async {
+    if(!isCourier)return;
+    final accountId=user?['id'];
+    unawaited(loadCourierDemand().catchError((_) {}));
+    await refreshCourierOperations();
+    await Future.wait<void>([
+      api.request('GET','/wallet/summary').then<void>((data){if(isCourier&&user?['id']==accountId){walletSummary=Map<String,dynamic>.from(data as Map);notifyListeners();}}).catchError((_) {}),
+      api.request('GET','/orders/courier/history').then<void>((data){if(isCourier&&user?['id']==accountId){courierHistory=List<dynamic>.from(data as List);notifyListeners();}}).catchError((_) {}),
+      api.request('GET','/couriers/application/me').then<void>((data){if(isCourier&&user?['id']==accountId){courierProfile=Map<String,dynamic>.from(data as Map);notifyListeners();}}).catchError((_) {}),
+    ]);
   }
 
   void _applyCourierDemand(Map<String,dynamic> data) {
@@ -650,16 +675,39 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> acceptDelivery(String id) async {
-    courierDelivery=Map<String,dynamic>.from(
-      await api.request('PATCH','/orders/$id/courier/accept'),
-    );
-    courierPresenceStatus='DELIVERING';
-    await refreshCourier();
+    if(_deliveryAction!=null)return _deliveryAction!;
+    final action=_acceptDeliveryOnce(id);
+    _deliveryAction=action;
+    try{await action;}finally{if(identical(_deliveryAction,action))_deliveryAction=null;}
   }
-
+  Future<void> _acceptDeliveryOnce(String id) async {
+    final accountId=user?['id'];
+    _courierOperationsEpoch++;
+    dynamic result;
+    try {
+      result=await api.request('PATCH','/orders/$id/courier/accept');
+    } catch (_) {
+      // A lost response must not report failure if the socket confirmed it.
+      if(isCourier&&user?['id']==accountId&&courierDelivery?['id']?.toString()==id)return;
+      unawaited(refreshCourierOperations().catchError((_) {}));
+      rethrow;
+    }
+    if(!isCourier || user?['id']!=accountId)return;
+    _courierOperationsEpoch++;
+    courierDelivery=Map<String,dynamic>.from(result as Map);
+    courierOffers.removeWhere((offer)=>offer['orderId']?.toString()==id);
+    courierPresenceStatus='DELIVERING';
+    notifyListeners();
+    unawaited(CourierRouteTracker.instance.sync(courierDelivery));
+    unawaited(refreshCourierOperations().catchError((_) {}));
+  }
   Future<void> rejectDelivery(String id) async {
+    _courierOperationsEpoch++;
     await api.request('PATCH','/orders/$id/courier/reject');
-    await refreshCourier();
+    _courierOperationsEpoch++;
+    courierOffers.removeWhere((offer)=>offer['orderId']?.toString()==id);
+    notifyListeners();
+    unawaited(refreshCourierOperations().catchError((_) {}));
   }
 
   Future<void> advanceDelivery(
