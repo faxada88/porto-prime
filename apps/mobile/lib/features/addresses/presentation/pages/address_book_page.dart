@@ -125,8 +125,9 @@ class _AddressBookState extends State<AddressBookPage> {
 }
 
 class AddressEditorPage extends StatefulWidget {
-  const AddressEditorPage({super.key,this.address});
+  const AddressEditorPage({super.key,this.address,this.initialPlace});
   final Map<String,dynamic>? address;
+  final Map<String,dynamic>? initialPlace;
   @override
   State<AddressEditorPage> createState()=>_AddressEditorState();
 }
@@ -154,6 +155,7 @@ class _AddressEditorState extends State<AddressEditorPage> {
     epoch=app.deliveryPricingEpoch;
     app.addListener(_pricingChanged);
     _schedule();
+    if(widget.initialPlace!=null)_selectPlace(widget.initialPlace!);
   }
   void _pricingChanged(){if(mounted && epoch!=app.deliveryPricingEpoch){epoch=app.deliveryPricingEpoch;_schedule();}}
   @override

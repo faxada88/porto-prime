@@ -1,3 +1,4 @@
+import '../../../addresses/presentation/widgets/delivery_address_sheet.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/prime_reference_home.dart';
 import '../../../../core/navigation/app_nav.dart';
@@ -38,7 +39,7 @@ class HomePage extends StatelessWidget {
         ]))),
       if(state.user?['name']!=null)_section(Text('${DateTime.now().hour<12?'Bom dia':DateTime.now().hour<18?'Boa tarde':'Boa noite'}, ${state.user!['name'].toString().trim().split(' ').first}',style:const TextStyle(fontSize:13,color:AppColors.muted)),top:14),
       _section(ReferenceHomeHeader(address:address,region:region,cartCount:state.cartCount,
-       onAddress:()=>AppNav.instance.go(3),onCart:()=>AppNav.instance.go(2),onProfile:()=>AppNav.instance.go(3)),top:12),
+       onAddress:(){if(state.isCustomer){showDeliveryAddressSheet(context);}else{AppNav.instance.go(3);}},onCart:()=>AppNav.instance.go(2),onProfile:()=>AppNav.instance.go(3)),top:12),
       _section(ReferenceHomeSearch(onTap:()=>AppNav.instance.go(1))),
       if(categories.isNotEmpty)_section(_HomeCategories(categories:categories),top:12),
       _section(ReferenceCoastHero(onTap:()=>AppNav.instance.go(1)),top:14),
