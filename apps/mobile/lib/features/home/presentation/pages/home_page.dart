@@ -65,17 +65,29 @@ class HomePage extends StatelessWidget {
 class _HomeCategories extends StatelessWidget {
  const _HomeCategories({required this.categories});
  final List<dynamic> categories;
- @override Widget build(BuildContext context)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-
-  SizedBox(height:64+MediaQuery.textScalerOf(context).scale(10.5)*2.4,child:ListView.separated(
-   scrollDirection:Axis.horizontal,itemCount:categories.length,
-   separatorBuilder:(_,__)=>const SizedBox(width:10),
-   itemBuilder:(context,index){
-    final category=categories[index],name=(category['name']??'').toString().trim();
-    return SizedBox(width:82,child:ReferenceCategoryTile(name:name,iconKey:category['iconKey']?.toString(),
-     selected:AppState.instance.catalogCategory==name,onTap:(){
-      AppState.instance.selectCatalogCategory(name);AppNav.instance.go(1);
-     }));
-   })),
- ]);
+ @override Widget build(BuildContext context){
+  final visible=categories.take(8).toList();
+  final height=68+MediaQuery.textScalerOf(context).scale(10.5)*2.4;
+  return Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+   Row(children:[
+    const Expanded(child:Text('Categorias',style:TextStyle(fontSize:16,fontWeight:FontWeight.w800,color:AppColors.ink))),
+    TextButton(onPressed:(){
+     AppState.instance.selectCatalogCategory('Todos');AppNav.instance.go(1);
+    },child:const Text('Ver todas')),
+   ]),
+   const SizedBox(height:4),
+   GridView.builder(
+    padding:EdgeInsets.zero,shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),
+    itemCount:visible.length,
+    gridDelegate:SliverGridDelegateWithFixedCrossAxisCount(
+     crossAxisCount:4,crossAxisSpacing:6,mainAxisSpacing:10,mainAxisExtent:height),
+    itemBuilder:(context,index){
+     final category=visible[index],name=(category['name']??'').toString().trim();
+     return ReferenceCategoryTile(name:name,iconKey:category['iconKey']?.toString(),
+      selected:AppState.instance.catalogCategory==name,onTap:(){
+       AppState.instance.selectCatalogCategory(name);AppNav.instance.go(1);
+      });
+    }),
+  ]);
+ }
 }
