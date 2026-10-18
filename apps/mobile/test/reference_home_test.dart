@@ -5,6 +5,7 @@ import 'package:porto_prime/core/widgets/prime_reference_home.dart';
 import 'package:porto_prime/core/widgets/prime_bottom_navigation.dart';
 import 'package:porto_prime/core/widgets/prime_product_card.dart';
 import 'package:porto_prime/core/state/app_state.dart';
+import 'package:porto_prime/features/home/presentation/pages/home_page.dart';
 
 // Locate the configured action widget rather than a merged accessibility node.
 Finder action(String label) => find.byWidgetPredicate(
@@ -71,6 +72,20 @@ void main() {
   await tester.tap(find.text('Explorar catálogo'));
   expect(opened,1);
   expect(tester.takeException(),isNull);
+ });
+
+ testWidgets('Home has a single catalogue without repeated editorial sections', (tester) async {
+  tester.view.devicePixelRatio=1;
+  tester.view.physicalSize=const Size(320,1000);
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  await tester.pumpWidget(MaterialApp(theme:AppTheme.light,home:const Scaffold(body:HomePage())));
+  expect(find.text('Nosso catálogo'),findsOneWidget);
+  expect(find.text('Para o seu momento'),findsNothing);
+  expect(find.text('Continue explorando'),findsNothing);
+  expect(find.byType(SliverGrid),findsOneWidget);
+  expect(tester.takeException(),isNull);
+  await tester.pumpWidget(const SizedBox.shrink());
  });
 
 }
