@@ -56,45 +56,35 @@ class PrimeCartSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(color: AppColors.surface,
-      borderRadius: BorderRadius.circular(26), border: Border.all(color: AppColors.stroke),
-      boxShadow: AppShadows.soft),
+    padding: const EdgeInsets.fromLTRB(2, 14, 2, 4),
+    decoration: const BoxDecoration(
+      border: Border(top: BorderSide(color: AppColors.stroke))),
     child: Column(mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('Tudo pronto por aqui?', style: TextStyle(fontSize: 17,
-          fontWeight: FontWeight.w800, letterSpacing: -.3, color: AppColors.ocean900)),
-        const SizedBox(height: 16),
-        Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 16, runSpacing: 8, children: [
-            const Text('Subtotal dos produtos', style: TextStyle(fontSize: 12, color: AppColors.muted)),
-            Text(subtotal, style: const TextStyle(fontSize: 26, height: 1.2,
-              letterSpacing: -.7, fontWeight: FontWeight.w800, color: AppColors.ocean900)),
-          ]),
+        if (storeKnown && !storeOpen) Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text(storeMessage, style: const TextStyle(
+            fontSize: 12, height: 1.5, color: AppColors.coral600))),
+        Semantics(value: 'Subtotal dos produtos: $subtotal',
+          child: FilledButton(
+            onPressed: working || !storeKnown || !storeOpen ? null : onContinue,
+            style: FilledButton.styleFrom(backgroundColor: AppColors.ocean900,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Flexible(child: Text(working ? 'Preparando…' : !storeKnown ? 'Verificando loja…'
+                : storeOpen ? 'Continuar para entrega' : 'Loja fechada',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800))),
+              const SizedBox(width: 12),
+              if (working) const SizedBox(width: 18, height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              else const Icon(AppIcons.arrowRight, size: 20),
+            ]))),
         const SizedBox(height: 10),
-        const Text('A entrega será calculada após confirmar o endereço.',
-          style: TextStyle(fontSize: 12, height: 1.5, color: AppColors.muted)),
-        if (storeKnown && !storeOpen) Container(
-          margin: const EdgeInsets.only(top: 14), padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: AppColors.coral100, borderRadius: BorderRadius.circular(14)),
-          child: Text(storeMessage, style: const TextStyle(fontSize: 12,
-            height: 1.5, color: AppColors.coral600))),
-        const SizedBox(height: 18),
-        FilledButton(onPressed: working || !storeKnown || !storeOpen ? null : onContinue,
-          style: FilledButton.styleFrom(backgroundColor: AppColors.ocean900,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
-          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Flexible(child: Text(working ? 'Preparando…' : !storeKnown ? 'Verificando loja…'
-              : storeOpen ? 'Continuar para entrega' : 'Loja fechada', textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800))),
-            const SizedBox(width: 12),
-            if (working) const SizedBox(width: 18, height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-            else const Icon(AppIcons.arrowRight, size: 20),
-          ])),
-        const SizedBox(height: 14),
-        const _CartNote(icon: AppIcons.lock, label: 'Você revisa tudo antes de pagar'),
+        const Text('Frete e total no próximo passo.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 11, height: 1.4, color: AppColors.muted)),
       ]),
   );
 }
