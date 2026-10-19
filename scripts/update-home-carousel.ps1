@@ -21,8 +21,8 @@ if($packageManager -notmatch '^package:'){throw 'Android ainda nao esta pronto p
 Push-Location (Join-Path $projectRoot 'apps\mobile')
 try{
  Invoke-Checked -Command flutter -Arguments @('pub','get')
- Invoke-Checked -Command flutter -Arguments @('analyze','--no-fatal-infos','--no-fatal-warnings','lib/core/widgets/prime_home_carousel.dart','lib/core/widgets/prime_category_3d.dart','lib/core/widgets/prime_reference_home.dart','lib/features/home/presentation/pages/home_page.dart','test/home_carousel_test.dart','test/reference_home_test.dart')
- Invoke-Checked -Command flutter -Arguments @('test','test/home_carousel_test.dart','test/reference_home_test.dart','test/category_icons_test.dart')
+ Invoke-Checked -Command flutter -Arguments @('analyze','--no-fatal-infos','--no-fatal-warnings','lib/core/widgets/prime_brand_banner.dart','lib/core/widgets/prime_category_3d.dart','lib/core/widgets/prime_reference_home.dart','lib/features/home/presentation/pages/home_page.dart','test/prime_brand_banner_test.dart','test/reference_home_test.dart')
+ Invoke-Checked -Command flutter -Arguments @('test','test/prime_brand_banner_test.dart','test/reference_home_test.dart','test/category_icons_test.dart')
  Invoke-Checked -Command flutter -Arguments @('build','apk','--release','--dart-define=API_URL=http://10.0.2.2:3000/api')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'install','-r','build\app\outputs\flutter-apk\app-release.apk')
  $sdkRoot=if($env:ANDROID_SDK_ROOT){$env:ANDROID_SDK_ROOT}elseif($env:ANDROID_HOME){$env:ANDROID_HOME}else{Join-Path $env:LOCALAPPDATA 'Android\Sdk'}

@@ -1,12 +1,12 @@
-import 'prime_home_carousel.dart';
+import 'prime_brand_banner.dart';
 import 'prime_category_3d.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 
 abstract final class ReferenceHomeTokens {
- static const green=Color(0xFF003B3E);
- static const gold=Color(0xFFF5C866);
+ static const green=Color(0xFF17130F);
+ static const gold=Color(0xFFF1C46B);
  static const canvas=Color(0xFFFFFFFF);
  static const shadow=[BoxShadow(color:Color(0x05003B3E),blurRadius:22,offset:Offset(0,7))];
  static const heroAsset='assets/reference_home/coast-banner.webp';
@@ -16,7 +16,7 @@ class ReferenceHomeHeader extends StatelessWidget {
  const ReferenceHomeHeader({super.key,required this.address,required this.region,required this.cartCount,required this.onAddress,required this.onCart,required this.onProfile});
  final String address,region;final int cartCount;final VoidCallback onAddress,onCart,onProfile;
  @override Widget build(BuildContext context)=>Row(children:[
-  Expanded(child:InkWell(onTap:onAddress,borderRadius:BorderRadius.circular(16),child:Padding(padding:const EdgeInsets.symmetric(vertical:4),child:Row(children:[ClipRRect(borderRadius:BorderRadius.circular(13),child:Image.asset('assets/reference_home/porto-prime-icon.png',width:43,height:43,excludeFromSemantics:true)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('ENTREGAR EM',style:TextStyle(color:AppColors.ocean700,fontSize:10,letterSpacing:.8,fontWeight:FontWeight.w800)),const SizedBox(height:4),Row(children:[const Icon(AppIcons.mapPin,size:15,color:AppColors.ink),const SizedBox(width:4),Expanded(child:Text(address,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:14,fontWeight:FontWeight.w700))),const Icon(AppIcons.chevronDown,size:14)]),if(region.isNotEmpty)Padding(padding:const EdgeInsets.only(left:19,top:3),child:Text(region,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,color:AppColors.muted)))]))])))),
+  Expanded(child:InkWell(onTap:onAddress,borderRadius:BorderRadius.circular(16),child:Padding(padding:const EdgeInsets.symmetric(vertical:4),child:Row(children:[ClipRRect(borderRadius:BorderRadius.circular(13),child:Image.asset('assets/reference_home/porto-prime-gold-mark.webp',width:43,height:43,excludeFromSemantics:true)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('ENTREGAR EM',style:TextStyle(color:AppColors.ocean700,fontSize:10,letterSpacing:.8,fontWeight:FontWeight.w800)),const SizedBox(height:4),Row(children:[const Icon(AppIcons.mapPin,size:15,color:AppColors.ink),const SizedBox(width:4),Expanded(child:Text(address,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:14,fontWeight:FontWeight.w700))),const Icon(AppIcons.chevronDown,size:14)]),if(region.isNotEmpty)Padding(padding:const EdgeInsets.only(left:19,top:3),child:Text(region,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,color:AppColors.muted)))]))])))),
   const SizedBox(width:8),_HeaderAction(icon:AppIcons.cart,label:'Abrir carrinho',count:cartCount,onTap:onCart),const SizedBox(width:7),_HeaderAction(icon:AppIcons.user,label:'Abrir perfil',dark:true,onTap:onProfile),
  ]);
 }
@@ -30,11 +30,11 @@ class _HeaderAction extends StatelessWidget {
 }
 class ReferenceHomeSearch extends StatelessWidget {
  const ReferenceHomeSearch({super.key,required this.onTap});final VoidCallback onTap;
- @override Widget build(BuildContext context)=>Material(color:const Color(0xFFF4F5F6),borderRadius:BorderRadius.circular(14),child:InkWell(onTap:onTap,borderRadius:BorderRadius.circular(20),child:Container(padding:const EdgeInsets.symmetric(horizontal:14,vertical:16),decoration:BoxDecoration(borderRadius:BorderRadius.circular(20),border:Border.all(color:const Color(0xFFF0F1F2))),child:Row(children:[const Icon(AppIcons.search,size:24,color:AppColors.ink),const SizedBox(width:12),const Expanded(child:Text('O que você quer pedir hoje?',style:TextStyle(fontSize:13,color:AppColors.muted))),const SizedBox(width:4)]))));
+ @override Widget build(BuildContext context)=>Material(color:const Color(0xFFF5F1E9),borderRadius:BorderRadius.circular(14),child:InkWell(onTap:onTap,borderRadius:BorderRadius.circular(20),child:Container(padding:const EdgeInsets.symmetric(horizontal:14,vertical:16),decoration:BoxDecoration(borderRadius:BorderRadius.circular(20),border:Border.all(color:const Color(0xFFECE4D7))),child:Row(children:[const Icon(AppIcons.search,size:24,color:AppColors.ink),const SizedBox(width:12),const Expanded(child:Text('O que você quer pedir hoje?',style:TextStyle(fontSize:13,color:AppColors.muted))),const SizedBox(width:4)]))));
 }
 class ReferenceCoastHero extends StatelessWidget {
  const ReferenceCoastHero({super.key,required this.onTap});final VoidCallback onTap;
- @override Widget build(BuildContext context)=>PrimeHomeCarousel(onExplore:onTap);
+ @override Widget build(BuildContext context)=>PrimeBrandBanner(onExplore:onTap);
 }
 
 class ReferenceCategoryTile extends StatelessWidget {
@@ -46,7 +46,7 @@ class ReferenceCategoryTile extends StatelessWidget {
 class ReferenceProductSurface extends StatelessWidget {
  const ReferenceProductSurface({super.key,required this.name,required this.description,required this.price,required this.image,required this.control,required this.available,this.oldPrice,this.discount,this.onOpen,this.fullWidthControl=false});
  final String name,description,price;final String? oldPrice;final int? discount;final Widget image,control;final bool available;final bool fullWidthControl;final VoidCallback? onOpen;
- @override Widget build(BuildContext context)=>Semantics(button:onOpen!=null,label:name,child:Material(color:Colors.white,borderRadius:BorderRadius.circular(22),child:InkWell(onTap:onOpen,borderRadius:BorderRadius.circular(22),child:Container(decoration:BoxDecoration(borderRadius:BorderRadius.circular(22),border:Border.all(color:const Color(0xFFEBF0ED)),boxShadow:ReferenceHomeTokens.shadow),padding:const EdgeInsets.all(10),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+ @override Widget build(BuildContext context)=>Semantics(button:onOpen!=null,label:name,child:Material(color:Colors.white,borderRadius:BorderRadius.circular(22),child:InkWell(onTap:onOpen,borderRadius:BorderRadius.circular(22),child:Container(decoration:BoxDecoration(borderRadius:BorderRadius.circular(22),border:Border.all(color:const Color(0xFFECE4D7)),boxShadow:ReferenceHomeTokens.shadow),padding:const EdgeInsets.all(10),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
   Expanded(child:Stack(fit:StackFit.expand,children:[ClipRRect(borderRadius:BorderRadius.circular(16),child:image),if(discount!=null)Positioned(left:0,top:0,child:Container(padding:const EdgeInsets.symmetric(horizontal:7,vertical:4),decoration:BoxDecoration(color:AppColors.coral600,borderRadius:BorderRadius.circular(9)),child:Text('−$discount%',textScaler:TextScaler.noScaling,style:const TextStyle(color:Colors.white,fontSize:10,fontWeight:FontWeight.w800)))),if(!available)const Center(child:Chip(label:Text('Indisponível',style:TextStyle(fontSize:10))))])),
   const SizedBox(height:9),Text(name,maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:13,height:1.18,fontWeight:FontWeight.w800,color:AppColors.ink)),
   if(description.isNotEmpty)...[const SizedBox(height:4),Text(description,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10.5,color:AppColors.muted))],
