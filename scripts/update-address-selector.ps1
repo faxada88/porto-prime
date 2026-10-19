@@ -22,7 +22,7 @@ Push-Location (Join-Path $projectRoot 'apps\mobile')
 try{
  Invoke-Checked -Command flutter -Arguments @('pub','get')
  Invoke-Checked -Command flutter -Arguments @('analyze','--no-fatal-infos','--no-fatal-warnings','lib/features/addresses/presentation/widgets/delivery_address_sheet.dart','lib/features/addresses/presentation/pages/address_book_page.dart','lib/features/home/presentation/pages/home_page.dart','test/delivery_address_card_test.dart')
- Invoke-Checked -Command flutter -Arguments @('test','test/delivery_address_card_test.dart','test/reference_home_test.dart')
+ Invoke-Checked -Command flutter -Arguments @('test','test/delivery_address_card_test.dart','test/reference_home_test.dart','test/home_carousel_test.dart')
  Invoke-Checked -Command flutter -Arguments @('build','apk','--release','--dart-define=API_URL=http://10.0.2.2:3000/api')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'install','-r','build\app\outputs\flutter-apk\app-release.apk')
  $sdkRoot=if($env:ANDROID_SDK_ROOT){$env:ANDROID_SDK_ROOT}elseif($env:ANDROID_HOME){$env:ANDROID_HOME}else{Join-Path $env:LOCALAPPDATA 'Android\Sdk'}
