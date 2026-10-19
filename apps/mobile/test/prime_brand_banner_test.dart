@@ -20,6 +20,7 @@ void main(){
     final image=tester.widget<Image>(find.byType(Image));
     expect((image.image as AssetImage).assetName,PrimeBrandBanner.asset);
     expect(image.fit,BoxFit.contain);
+    expect(tester.getSize(find.byType(AspectRatio)).width,closeTo(width-36>560?560:width-36,.001));
     expect(tester.getSize(find.byType(AspectRatio)).aspectRatio,closeTo(2/3,.001));
     await tester.ensureVisible(find.text('Explorar catálogo'));
     await tester.tap(find.text('Explorar catálogo'));
