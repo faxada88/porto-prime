@@ -1,4 +1,4 @@
-param([string]$DeviceId='')
+param([string]$DeviceId='', [string]$AppleMerchantId=$env:STRIPE_APPLE_MERCHANT_ID)
 $ErrorActionPreference='Stop'
 $projectRoot=Split-Path -Parent $PSScriptRoot
 $apiRoot=Join-Path $projectRoot 'apps\api'
@@ -32,9 +32,11 @@ try{
 Push-Location $mobileRoot
 try{
  Invoke-Checked -Command flutter -Arguments @('pub','get')
- Invoke-Checked -Command flutter -Arguments @('analyze','--no-fatal-infos','--no-fatal-warnings','lib/features/checkout/presentation/pages/stripe_checkout_page.dart','lib/features/checkout/presentation/pages/stripe_web_element_web.dart','lib/features/checkout/presentation/widgets/prime_payment_experience.dart','test/payment_experience_test.dart')
- Invoke-Checked -Command flutter -Arguments @('test','test/payment_experience_test.dart','test/reference_home_test.dart','test/prime_brand_banner_test.dart')
- Invoke-Checked -Command flutter -Arguments @('build','apk','--release','--dart-define=API_URL=http://10.0.2.2:3000/api')
+ Invoke-Checked -Command flutter -Arguments @('analyze','--no-fatal-infos','--no-fatal-warnings','lib/features/checkout/presentation/widgets/native_payment_modals.dart','lib/features/checkout/presentation/pages/stripe_checkout_page.dart','lib/features/checkout/presentation/pages/stripe_web_element_web.dart','lib/features/checkout/presentation/widgets/prime_payment_experience.dart','test/payment_experience_test.dart')
+ Invoke-Checked -Command flutter -Arguments @('test','test/native_payment_modals_test.dart','test/payment_experience_test.dart','test/reference_home_test.dart','test/prime_brand_banner_test.dart')
+ $buildArgs=@('build','apk','--release','--dart-define=API_URL=http://10.0.2.2:3000/api')
+ if($AppleMerchantId){$buildArgs+=("--dart-define=STRIPE_APPLE_MERCHANT_ID="+$AppleMerchantId)}
+ Invoke-Checked -Command flutter -Arguments $buildArgs
  $escapedApi=$apiRoot.Replace("'","''")
  $startApi="Set-Location -LiteralPath '$escapedApi'; npm run start:dev"
  $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($startApi))
@@ -46,6 +48,7 @@ try{
  }
  if(!$ready){throw 'Verifique o terminal do Nest. APK compilado, mas ainda nao instalado.'}
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'install','-r','build\app\outputs\flutter-apk\app-release.apk')
+ Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','am','force-stop','com.portoprime.porto_prime')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','monkey','-p','com.portoprime.porto_prime','-c','android.intent.category.LAUNCHER','1')
- Write-Host 'Checkout atualizado. Pix, cartoes, boleto e carteiras elegiveis sao exibidos pelo Stripe. Conclua no navegador e retorne ao app. Banco, rotas, Admin e Stripe devem continuar ligados.'
+ Write-Host 'Checkout atualizado. Pix, cartoes, boleto e carteiras elegiveis sao exibidos pelo Stripe. Pagamento dentro do app: modal Stripe para cartoes/carteiras/boleto e modal Pix com Copia e Cola. Banco, rotas, Admin e Stripe devem continuar ligados.'
 }finally{Pop-Location}

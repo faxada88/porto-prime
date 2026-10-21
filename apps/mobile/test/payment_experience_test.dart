@@ -20,11 +20,11 @@ void main(){
   expect(find.byType(TextField),findsNothing);
   expect(tester.takeException(),isNull);
  });
- testWidgets('Pending browser checkout reopens existing payment through its callback',(tester)async{
+ testWidgets('Pending checkout reopens payment options through its callback',(tester)async{
   var opened=0;
   await tester.pumpWidget(MaterialApp(theme:AppTheme.light,home:review(submitted:true,reopen:()=>opened++)));
-  await tester.scrollUntilVisible(find.text('Reabrir pagamento seguro'),250,scrollable:find.byType(Scrollable).first);
-  await tester.tap(find.text('Reabrir pagamento seguro'));
+  await tester.scrollUntilVisible(find.text('Abrir formas de pagamento'),250,scrollable:find.byType(Scrollable).first);
+  await tester.tap(find.text('Abrir formas de pagamento'));
   expect(opened,1);
  });
 

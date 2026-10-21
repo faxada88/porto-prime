@@ -17,6 +17,16 @@ export class PaymentsController {
     return this.payments.createCheckout(body, authorization);
   }
 
+  @Post('native-options')
+  nativeOptions(@Body() body:ReconcilePaymentDto,@Headers('authorization') authorization?:string){
+    return this.payments.nativeOptions(body.orderId,authorization);
+  }
+
+  @Post('pix')
+  nativePix(@Body() body:ReconcilePaymentDto,@Headers('authorization') authorization?:string){
+    return this.payments.nativePix(body.orderId,authorization);
+  }
+
   @Post('secure-checkout')
   secureCheckout(@Body() body:ReconcilePaymentDto,@Req() req:Request,@Headers('authorization') authorization?:string){
     return this.payments.secureCheckout(body.orderId,req.protocol+'://'+req.get('host'),authorization);

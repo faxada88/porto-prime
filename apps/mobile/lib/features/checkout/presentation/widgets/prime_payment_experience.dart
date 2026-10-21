@@ -43,7 +43,7 @@ class PrimePaymentExperience extends StatelessWidget {
       if((summary['items'] as List?)?.isNotEmpty==true)ExpansionTile(tilePadding:EdgeInsets.zero,childrenPadding:const EdgeInsets.only(bottom:6),shape:const Border(),collapsedShape:const Border(),title:const Text('Ver produtos do pedido',style:TextStyle(fontSize:12,fontWeight:FontWeight.w700)),children:[for(final item in summary['items'])_PaymentLine(label:'${item['quantity']}× ${item['productName']}',value:checkoutMoney(item['total']))]),
      ])),const SizedBox(height:16),
      _PaymentSurface(child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
-      Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Container(padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:AppColors.ocean50,borderRadius:BorderRadius.circular(12)),child:Icon(creditOnly?AppIcons.creditCard:AppIcons.lock,color:AppColors.ocean700,size:21)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(creditOnly?'Seu saldo está pronto':'Escolha como pagar',style:const TextStyle(fontSize:16,fontWeight:FontWeight.w800)),const SizedBox(height:5),Text(creditOnly?'Confirme a compra usando seu cartão Porto Prime.':web?'Informe seus dados no formulário seguro abaixo.':'Abra o ambiente seguro para escolher Pix, cartão, boleto ou uma carteira compatível. Depois, retorne ao app.',style:const TextStyle(fontSize:12,height:1.6,color:AppColors.muted))]))]),
+      Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Container(padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:AppColors.ocean50,borderRadius:BorderRadius.circular(12)),child:Icon(creditOnly?AppIcons.creditCard:AppIcons.lock,color:AppColors.ocean700,size:21)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(creditOnly?'Seu saldo está pronto':'Escolha como pagar',style:const TextStyle(fontSize:16,fontWeight:FontWeight.w800)),const SizedBox(height:5),Text(creditOnly?'Confirme a compra usando seu cartão Porto Prime.':web?'Informe seus dados no formulário seguro abaixo.':'Escolha Pix, cartão, boleto ou uma carteira compatível no modal de pagamento. Tudo dentro do aplicativo.',style:const TextStyle(fontSize:12,height:1.6,color:AppColors.muted))]))]),
       const SizedBox(height:18),
       if(!creditOnly&&!submitted)...[const _PaymentMethodsGuide(),const SizedBox(height:18)],
       if(submitted)_PaymentProcessing(busy:paying)
@@ -54,7 +54,7 @@ class PrimePaymentExperience extends StatelessWidget {
      ])),
      if(error!=null)...[const SizedBox(height:14),PrimeErrorBanner(message:error!)],
      if(submitted&&!paying&&error!=null)Padding(padding:const EdgeInsets.only(top:12),child:FilledButton.icon(onPressed:onVerify,icon:const Icon(AppIcons.refresh,size:18),label:const Text('Verificar meu pedido'))),
-     if(submitted&&!paying&&onReopen!=null)TextButton.icon(onPressed:onReopen,icon:const Icon(AppIcons.lock,size:18),label:const Text('Reabrir pagamento seguro')),
+     if(submitted&&!paying&&onReopen!=null)TextButton.icon(onPressed:onReopen,icon:const Icon(AppIcons.lock,size:18),label:const Text('Abrir formas de pagamento')),
      if(!ready&&!submitted&&error!=null)TextButton.icon(onPressed:onRetry,icon:const Icon(AppIcons.refresh,size:18),label:const Text('Carregar pagamento novamente')),
      const SizedBox(height:20),const Text('Após a confirmação, você poderá acompanhar cada etapa do pedido pelo aplicativo.',textAlign:TextAlign.center,style:TextStyle(fontSize:11,height:1.6,color:AppColors.muted)),
     ])))),
@@ -86,7 +86,7 @@ class _PaymentLine extends StatelessWidget {
 }
 class _PaymentProcessing extends StatelessWidget {
  const _PaymentProcessing({required this.busy});final bool busy;
- @override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(color:AppColors.ocean50,borderRadius:BorderRadius.circular(14)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Aguardando confirmação',style:TextStyle(fontWeight:FontWeight.w800,fontSize:16)),const SizedBox(height:8),const Text('Conclua o pagamento no ambiente seguro e volte ao app. Pix e boleto só liberam o pedido após a confirmação. Não pague novamente se já concluiu.',style:TextStyle(fontSize:12,height:1.6,color:AppColors.muted)),if(busy)const Padding(padding:EdgeInsets.only(top:16),child:LinearProgressIndicator())]));
+ @override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(color:AppColors.ocean50,borderRadius:BorderRadius.circular(14)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Aguardando confirmação',style:TextStyle(fontWeight:FontWeight.w800,fontSize:16)),const SizedBox(height:8),const Text('Conclua o pagamento na opção escolhida. Pix e boleto só liberam o pedido após a confirmação. Não pague novamente se já concluiu.',style:TextStyle(fontSize:12,height:1.6,color:AppColors.muted)),if(busy)const Padding(padding:EdgeInsets.only(top:16),child:LinearProgressIndicator())]));
 }
 
 class _PaymentMethodsGuide extends StatelessWidget {

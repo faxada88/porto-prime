@@ -116,6 +116,70 @@ export class PaymentsService {
     };
   }
 
+  private async nativePaymentOrder(orderId:string,authorization?:string) {
+    const user=await this.auth.authenticate(authorization);
+    if(user.role!==UserRole.CUSTOMER)throw new ForbiddenException('Acesso exclusivo de cliente');
+    const order=await this.prisma.order.findFirst({where:{id:orderId,customerId:user.id,adminDeletedAt:null}});
+    if(!order||!order.stripePaymentIntentId||order.status===OrderStatus.CANCELED||['REFUNDED','PARTIALLY_REFUNDED'].includes(order.paymentStatus))throw new BadRequestException('Este pedido não aceita pagamentos.');
+    const intent=await retrieveStripeIntent(order.stripePaymentIntentId);
+    isVerifiedPayment(intent,order);
+    return {user,order,intent};
+  }
+
+  async nativeOptions(orderId:string,authorization?:string){
+    const {order,intent}=await this.nativePaymentOrder(orderId,authorization);
+    if(intent.status==='succeeded')return {paid:await this.completePayment(intent),status:intent.status,methods:[]};
+    return {paid:false,status:intent.status,methods:intent.payment_method_types??['card'],
+      pendingPix:!!intent.next_action?.pix_display_qr_code};
+  }
+
+  async nativePix(orderId:string,authorization?:string){
+    const {user,order,intent}=await this.nativePaymentOrder(orderId,authorization);
+    if(intent.status==='succeeded')return {paid:await this.completePayment(intent),status:intent.status};
+    const current=intent.next_action?.pix_display_qr_code;
+    if(current?.data&&(!current.expires_at||current.expires_at>Date.now()/1000))return this.pixResponse(intent);
+    if(intent.status==='processing')return {paid:false,status:'processing'};
+    if(intent.status!=='requires_payment_method')throw new BadRequestException('Há um pagamento em andamento. Verifique o status antes de trocar a forma de pagamento.');
+    if(!intent.payment_method_types?.includes('pix'))throw new BadRequestException('Pix não está disponível para este pagamento no Stripe. Escolha outra forma ou refaça o checkout.');
+    if(order.status!==OrderStatus.PENDING)throw new BadRequestException('Este pedido já foi encaminhado.');
+    const store=await this.prisma.deliveryPricingConfig.findUnique({where:{id:'default'},select:{storeOpen:true,storeMessage:true}});
+    if(store?.storeOpen===false)throw new BadRequestException(store.storeMessage||'A loja está fechada');
+    const secret=process.env.STRIPE_SECRET_KEY;
+    if(!secret)throw new ServiceUnavailableException('Stripe não configurado');
+    const profile=await this.prisma.customerProfile.findUnique({where:{userId:user.id},select:{onboardingData:true}});
+    const saved=profile?.onboardingData as Record<string,unknown>|null;
+    const taxId=String(saved?.cpf??saved?.document??'').replace(/\D/g,'');
+    const params=new URLSearchParams({
+      'payment_method_data[type]':'pix',
+      'payment_method_data[billing_details][name]':user.name,
+      'payment_method_data[billing_details][email]':user.email,
+      'payment_method_data[billing_details][address][country]':'BR',
+      'return_url':'portoprime://stripe-redirect',
+    });
+    if(taxId.length===11||taxId.length===14)params.set('payment_method_data[billing_details][tax_id]',taxId);
+    const previous=typeof intent.payment_method==='string'?intent.payment_method:intent.payment_method?.id;
+    const attempt=previous??intent.last_payment_error?.payment_method?.id??'initial';
+    let response:Response;
+    try{response=await fetch('https://api.stripe.com/v1/payment_intents/'+encodeURIComponent(intent.id)+'/confirm',{
+      method:'POST',headers:{Authorization:'Bearer '+secret,'Content-Type':'application/x-www-form-urlencoded',
+      'Idempotency-Key':'porto-pix:'+order.id+':'+intent.id+':'+attempt},
+      body:params,signal:AbortSignal.timeout(15000),redirect:'error',
+    });}catch{throw new ServiceUnavailableException('Não foi possível gerar o Pix agora. Tente novamente; o mesmo pagamento será recuperado.');}
+    const payload=await response.json() as StripeIntent&{error?:{message?:string}};
+    if(!response.ok)throw new BadRequestException(payload.error?.message??'Não foi possível gerar o Pix.');
+    isVerifiedPayment(payload,order);
+    if(payload.status==='succeeded')return {paid:await this.completePayment(payload),status:payload.status};
+    return this.pixResponse(payload);
+  }
+
+  private pixResponse(intent:StripeIntent){
+    const pix=intent.next_action?.pix_display_qr_code;
+    if(!pix?.data)throw new ServiceUnavailableException('O Stripe ainda não retornou o código Pix. Verifique novamente.');
+    let imageUrl:string|null=null;
+    try{const url=new URL(pix.image_url_png??'');if(url.protocol==='https:'&&url.hostname.endsWith('.stripe.com'))imageUrl=url.toString();}catch{}
+    return {paid:false,status:intent.status,pix:{data:pix.data,imageUrl,expiresAt:pix.expires_at??null}};
+  }
+
   async secureCheckout(orderId: string, origin: string, authorization?: string) {
     const user = await this.auth.authenticate(authorization);
     if (user.role !== UserRole.CUSTOMER) throw new ForbiddenException('Acesso exclusivo de cliente');

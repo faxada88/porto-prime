@@ -7,7 +7,10 @@ export type StripeIntent = {
   id: string;
   status: string;
   client_secret?: string;
-  payment_method?: string | { type?: string };
+  payment_method?: string | { id?:string; type?: string };
+  payment_method_types?: string[];
+  next_action?: { type?: string; pix_display_qr_code?: {data?:string;image_url_png?:string;expires_at?:number} };
+  last_payment_error?: {payment_method?: {id?:string}};
   currency: string;
   amount: number;
   amount_received: number;

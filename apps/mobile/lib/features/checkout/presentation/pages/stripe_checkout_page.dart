@@ -1,6 +1,6 @@
 import '../widgets/prime_payment_experience.dart';
 import 'dart:async';
-import 'package:url_launcher/url_launcher.dart';
+import '../widgets/native_payment_modals.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +34,7 @@ class StripeCheckoutPage extends StatefulWidget {
 }
 
 class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBindingObserver {
-  bool _browserOpened=false;
+  bool _nativePaymentStarted=false,_nativeModalOpen=false;
   bool ready = false;
   bool paying = false;
   String? error;
@@ -69,10 +69,12 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
         return;
       }
       if(widget.creditOnly){setState(()=>ready=true);return;}
-      if(kIsWeb){Stripe.publishableKey = widget.publishableKey;await Stripe.instance.applySettings();}
+      Stripe.publishableKey=widget.publishableKey;
+      const merchant=String.fromEnvironment('STRIPE_APPLE_MERCHANT_ID');
+      if(!kIsWeb&&merchant.isNotEmpty)Stripe.merchantIdentifier=merchant;
+      await Stripe.instance.applySettings();
 
-      // All enabled methods use the official Payment Element; native apps open
-      // a signed page in the browser so Pix and boleto are available as well.
+      // Native payments remain in Flutter/Stripe modals. Web keeps Elements.
       if (mounted) setState(() => ready = true);
     } catch (e) {
       if (mounted) setState(() => error = _message(e));
@@ -138,7 +140,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state){
-    if(state==AppLifecycleState.resumed&&_browserOpened&&!_finishingPayment)_startPaymentCheck();
+    if(state==AppLifecycleState.resumed&&_nativePaymentStarted&&!_nativeModalOpen&&!_finishingPayment)_startPaymentCheck();
   }
 
   String _message(Object e) {
@@ -147,6 +149,52 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
           'Não foi possível iniciar o pagamento.';
     }
     return PrimeMessages.friendly(e);
+  }
+
+  Future<bool> _showNativePayment() async {
+    _nativeModalOpen=true;
+    try{
+      final options=Map<String,dynamic>.from(await AppState.instance.api.request(
+        'POST','/payments/native-options',body:{'orderId':widget.orderId}));
+      if(!mounted)return false;
+      if(options['paid']==true||options['status']=='processing')return true;
+      final methods=Set<String>.from((options['methods'] as List? ?? const []).map((e)=>e.toString()));
+      String? choice;
+      if(options['pendingPix']==true){choice='pix';}
+      else{
+        choice=await showModalBottomSheet<String>(
+          context:context,isScrollControlled:true,backgroundColor:AppColors.surface,
+          shape:const RoundedRectangleBorder(borderRadius:BorderRadius.vertical(top:Radius.circular(28))),
+          builder:(sheetContext)=>ConstrainedBox(constraints:BoxConstraints(maxHeight:MediaQuery.sizeOf(sheetContext).height*.88),
+            child:NativePaymentChoices(methods:methods,onSelect:(method)=>Navigator.pop(sheetContext,method))));
+      }
+      if(choice==null||!mounted)return false;
+      _nativePaymentStarted=true;
+      if(choice=='pix'){
+        final paid=await showModalBottomSheet<bool>(
+          context:context,isScrollControlled:true,backgroundColor:AppColors.surface,
+          shape:const RoundedRectangleBorder(borderRadius:BorderRadius.vertical(top:Radius.circular(28))),
+          builder:(sheetContext)=>ConstrainedBox(constraints:BoxConstraints(maxHeight:MediaQuery.sizeOf(sheetContext).height*.9),
+            child:NativePixModal(
+              load:()async=>Map<String,dynamic>.from(await AppState.instance.api.request('POST','/payments/pix',body:{'orderId':widget.orderId})),
+              verify:()=>AppState.instance.refreshPayment(widget.orderId),
+            )));
+        return paid==true;
+      }
+      const merchant=String.fromEnvironment('STRIPE_APPLE_MERCHANT_ID');
+      await Stripe.instance.initPaymentSheet(paymentSheetParameters:SetupPaymentSheetParameters(
+        paymentIntentClientSecret:widget.clientSecret,merchantDisplayName:'Porto Prime',
+        billingDetails:const BillingDetails(address:Address(country:'BR',city:null,line1:null,line2:null,postalCode:null,state:null)),
+        style:ThemeMode.light,appearance:const PaymentSheetAppearance(),
+        allowsDelayedPaymentMethods:true,
+        paymentMethodOrder:choice=='boleto'?const ['boleto','card','link']:const ['card','link','boleto'],
+        googlePay:defaultTargetPlatform==TargetPlatform.android?PaymentSheetGooglePay(
+          merchantCountryCode:'BR',currencyCode:'BRL',testEnv:widget.publishableKey.startsWith('pk_test_')):null,
+        applePay:defaultTargetPlatform==TargetPlatform.iOS&&merchant.isNotEmpty?const PaymentSheetApplePay(merchantCountryCode:'BR'):null,
+      ));
+      await Stripe.instance.presentPaymentSheet();
+      return true;
+    }finally{_nativeModalOpen=false;}
   }
 
   Future<void> _pay() async {
@@ -163,14 +211,9 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
         // On web the official Stripe.js Payment Element owns confirmation.
         // The server verifies Stripe before the order is treated as paid.
       } else {
-        final result=Map<String,dynamic>.from(await AppState.instance.api.request(
-          'POST','/payments/secure-checkout',body:{'orderId':widget.orderId}));
-        if(result['paid']==true){if(mounted)await _finishPaidPayment();return;}
-        final url=Uri.tryParse((result['url']??'').toString());
-        if(url==null||!['http','https'].contains(url.scheme)||url.path!='/api/payments/secure')throw Exception('Não foi possível abrir o pagamento seguro.');
-        _browserOpened=true;
-        final opened=await launchUrl(url,mode:LaunchMode.externalApplication);
-        if(!opened){_browserOpened=false;throw Exception('Não foi possível abrir o navegador. Tente novamente.');}
+        final submitted=await _showNativePayment();
+        if(!mounted)return;
+        if(!submitted){setState(()=>paying=false);return;}
       }
 
       if (mounted) _startPaymentCheck();
