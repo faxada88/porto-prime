@@ -21,8 +21,9 @@ if($packageManager -notmatch '^package:'){throw 'Android ainda nao esta pronto p
 # This container generates bundled interface dictionaries only. It receives no customer data.
 Invoke-Checked -Command docker -Arguments @('info','--format','{{.ServerVersion}}')
 $translatorName='porto-prime-ui-translator'
-& docker container inspect $translatorName *> $null
-if($LASTEXITCODE -eq 0){
+$existingContainers=@(& docker container ls --all --format '{{.Names}}')
+if($LASTEXITCODE -ne 0){throw 'Nao foi possivel listar os containers. Confirme que o Docker Desktop esta aberto.'}
+if($existingContainers -contains $translatorName){
  Invoke-Checked -Command docker -Arguments @('start',$translatorName)
 }else{
  Invoke-Checked -Command docker -Arguments @('run','-d','--name',$translatorName,'-p','127.0.0.1:5040:5000','-e','LT_LOAD_ONLY=pt,en,es','-v','porto-prime-ui-translation-models:/home/libretranslate/.local:rw','libretranslate/libretranslate:latest')
