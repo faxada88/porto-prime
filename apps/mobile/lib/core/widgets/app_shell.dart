@@ -90,15 +90,14 @@ class _AppShellState extends State<AppShell> {
       if (state.isCourier) return const CourierPage();
 
       final index = AppNav.instance.index.value;
-      final liveOrder = index == 2 ? null : customerLiveOrder(state);
 
       return Scaffold(
         // The cart has a fixed checkout action; reserve the navigation height.
         extendBody: false,
-        body: Column(children:[if(state.publicHighDemand) const CustomerDemandNotice(),Expanded(child:Stack(children:[
-          Positioned.fill(child:Padding(padding:EdgeInsets.only(bottom:liveOrder == null ? 0 : 98),child:IndexedStack(index:index,children:pages))),
-          if(liveOrder != null) Positioned(left:14,right:14,bottom:12,child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:520),child:ActiveOrderShortcut(order:liveOrder)))),
-        ]))]),
+        body: Column(children:[
+          if(state.publicHighDemand) const CustomerDemandNotice(),
+          Expanded(child:IndexedStack(index:index,children:pages)),
+        ]),
         bottomNavigationBar: PrimeBottomNavigation(
           index: index,
           cartCount: state.cartCount,

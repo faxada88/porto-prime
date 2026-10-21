@@ -1,3 +1,4 @@
+import '../../../../core/widgets/product_showcase.dart';
 import '../../../categories/presentation/pages/categories_page.dart';
 import '../../../categories/presentation/pages/all_categories_page.dart';
 import '../../../../core/state/customer_activity.dart';
@@ -8,7 +9,6 @@ import '../../../../core/widgets/prime_reference_home.dart';
 import '../../../../core/navigation/app_nav.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/widgets/prime_product_card.dart';
 import '../../../../core/widgets/prime_ui.dart';
 
 /// One catalogue and one visual rhythm. Existing state and actions are retained.
@@ -48,22 +48,8 @@ class HomePage extends StatelessWidget {
       if(categories.isNotEmpty)_section(_HomeCategories(categories:categories),top:12),
       _section(ReferenceCoastHero(onTap:()=>openProductCatalogue(context)),top:14),
       _section(Row(children:[const Expanded(child:Text('Produtos',style:TextStyle(fontSize:20,fontWeight:FontWeight.w800,color:AppColors.ink))),TextButton(onPressed:()=>openProductCatalogue(context),child:const Text('Ver tudo'))]),top:24,bottom:12),
-      SliverLayoutBuilder(builder:(context,viewport){
-       final width=viewport.crossAxisExtent;
-       final content=width.clamp(0.0,AppControl.maxContentWidth).toDouble();
-       final horizontal=(width-content)/2+18;
-       final columns=content>=950?4:content>=620?3:2;
-       final cardWidth=(content-36-(columns-1)*12)/columns;
-       final extra=(MediaQuery.textScalerOf(context).scale(14)-14).clamp(0,32).toDouble();
-       return SliverPadding(padding:EdgeInsets.symmetric(horizontal:horizontal),sliver:SliverGrid(
-        gridDelegate:SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:columns,crossAxisSpacing:12,mainAxisSpacing:14,mainAxisExtent:cardWidth+112+extra*10),
-        delegate:SliverChildBuilderDelegate((context,index)=>products.isEmpty
-         ? const PrimeSkeleton(height:260,radius:22)
-         : PrimeProductCard(product:products[index],referenceStyle:true),
-         childCount:products.isEmpty?4:products.length),
-       ));
-      }),
-      const SliverToBoxAdapter(child:SizedBox(height:130)),
+      _section(ProductShowcase(products:products),top:0),
+      const SliverToBoxAdapter(child:SizedBox(height:28)),
      ]));
    })));
 }

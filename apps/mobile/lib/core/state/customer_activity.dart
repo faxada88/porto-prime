@@ -56,7 +56,7 @@ class CustomerActivity extends ChangeNotifier {
    // Never announce an unpaid checkout as a confirmed order.
    if(!['PAID','PARTIALLY_REFUNDED','REFUNDED'].contains(o['paymentStatus'])&&status!='CANCELED')continue;
    _add({'id':'$key:$version','kind':'order','orderId':orderId,'title':title,
-    'detail':'Toque para acompanhar os detalhes.', 'date':o['updatedAt']??o['createdAt']??DateTime.now().toIso8601String()});
+    'detail':title, 'date':o['updatedAt']??o['createdAt']??DateTime.now().toIso8601String()});
   }
   for(final raw in (app.customerCreditCard['entries'] as List? ?? [])){
    if(raw is! Map)continue;
@@ -72,6 +72,7 @@ class CustomerActivity extends ChangeNotifier {
   notifyListeners();await _save();
  }
  void _add(Map<String,dynamic> entry){if(!entries.any((e)=>e['id']==entry['id']))entries.add({...entry,'read':false});}
+ Future<void> openEntry(String id)async{entries=entries.map((e)=>e['id']==id?{...e,'read':true}:e).toList();notifyListeners();await _save();}
  Future<void> markRead()async{entries=entries.map((e)=>{...e,'read':true}).toList();notifyListeners();await _save();}
  Future<void> _save()async{
   final id=_owner;if(id==null)return;

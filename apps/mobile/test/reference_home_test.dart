@@ -1,3 +1,4 @@
+import 'package:porto_prime/core/widgets/product_showcase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porto_prime/core/theme/app_theme.dart';
@@ -84,7 +85,7 @@ void main() {
   expect(find.text('Produtos'),findsOneWidget);
   expect(find.text('Para o seu momento'),findsNothing);
   expect(find.text('Continue explorando'),findsNothing);
-  expect(find.byType(SliverGrid),findsOneWidget);
+  expect(find.byType(ProductShowcase),findsOneWidget);
   expect(tester.takeException(),isNull);
   await tester.pumpWidget(const SizedBox.shrink());
  });
