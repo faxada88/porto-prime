@@ -113,7 +113,7 @@ class PaymentMethodPicker extends StatelessWidget {
   final active=selected==value;
   return Padding(padding:const EdgeInsets.only(bottom:10),child:Semantics(
    button:true,selected:active,label:title,child:Material(color:active?AppColors.ocean50:AppColors.surface,borderRadius:BorderRadius.circular(18),
-    child:InkWell(onTap:onSelect==null?null:()=>onSelect!(value),borderRadius:BorderRadius.circular(18),
+    child:InkWell(key:ValueKey('payment-method-$value'),onTap:onSelect==null?null:()=>onSelect!(value),borderRadius:BorderRadius.circular(18),
      child:Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(borderRadius:BorderRadius.circular(18),
       border:Border.all(color:active?AppColors.ocean700:AppColors.stroke,width:active?1.5:1)),
       child:Row(children:[

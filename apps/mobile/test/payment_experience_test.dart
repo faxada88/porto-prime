@@ -35,8 +35,12 @@ void main(){
  testWidgets('Pix selection is on page and action is explicit',(tester)async{
   String selected='card';
   await tester.pumpWidget(MaterialApp(theme:AppTheme.light,home:StatefulBuilder(builder:(context,setState)=>review(selected:selected,select:(value)=>setState(()=>selected=value)))));
-  await tester.scrollUntilVisible(find.text('Pix'),150,scrollable:find.byType(Scrollable).first);
-  await tester.tap(find.text('Pix'));await tester.pump();
+  final pixOption=find.byKey(const ValueKey('payment-method-pix'));
+  await tester.scrollUntilVisible(pixOption,150,scrollable:find.byType(Scrollable).first);
+  await Scrollable.ensureVisible(tester.element(pixOption),alignment:0.5);
+  await tester.pumpAndSettle();
+  expect(pixOption.hitTestable(),findsOneWidget);
+  await tester.tap(pixOption);await tester.pumpAndSettle();
   expect(selected,'pix');expect(find.text('Gerar Pix'),findsOneWidget);
   expect(find.byType(BottomSheet),findsNothing);
   expect(find.text('Boleto'),findsNothing);
