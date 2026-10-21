@@ -63,8 +63,9 @@ export class PaymentsService {
     }
 
     if (order.stripePaymentIntentId) {
-      const existing = await retrieveStripeIntent(order.stripePaymentIntentId);
+      let existing = await retrieveStripeIntent(order.stripePaymentIntentId);
       isVerifiedPayment(existing, order);
+      existing=await this.excludeBoleto(existing,order);
       if (existing.status !== 'canceled') {
         if (!existing.client_secret) throw new ServiceUnavailableException('Não foi possível recuperar o pagamento. Tente novamente mais tarde.');
         if (existing.status === 'succeeded') await this.completePayment(existing);
@@ -76,6 +77,7 @@ export class PaymentsService {
     params.set('amount', String(Math.round(Number(order.total) * 100)));
     params.set('currency', 'brl');
     params.set('automatic_payment_methods[enabled]', 'true');
+    params.set('excluded_payment_method_types[0]', 'boleto');
     params.set('metadata[orderId]', order.id);
     params.set('metadata[customerId]', user.id);
     params.set('description', 'Pedido Porto Prime ' + order.id);
@@ -116,6 +118,26 @@ export class PaymentsService {
     };
   }
 
+  private async excludeBoleto(intent:StripeIntent,order:{id:string;customerId:string;stripePaymentIntentId:string|null;total:unknown}):Promise<StripeIntent>{
+    // Already-issued or processing payments remain intact for reconciliation.
+    if(intent.status!=='requires_payment_method'||!intent.payment_method_types?.includes('boleto'))return intent;
+    const secret=process.env.STRIPE_SECRET_KEY;
+    if(!secret)throw new ServiceUnavailableException('Stripe não configurado');
+    const params=new URLSearchParams();
+    const exclusions=[...new Set([...(intent.excluded_payment_method_types??[]),'boleto'])];
+    exclusions.forEach((type,index)=>params.set('excluded_payment_method_types['+index+']',type));
+    let response:Response;
+    try{response=await fetch('https://api.stripe.com/v1/payment_intents/'+encodeURIComponent(intent.id),{
+      method:'POST',headers:{Authorization:'Bearer '+secret,'Content-Type':'application/x-www-form-urlencoded'},
+      body:params,signal:AbortSignal.timeout(10000),redirect:'error',
+    });}catch{throw new ServiceUnavailableException('Não foi possível carregar as formas de pagamento. Tente novamente.');}
+    const updated=await response.json() as StripeIntent&{error?:{message?:string}};
+    if(!response.ok)throw new BadRequestException(updated.error?.message??'Não foi possível atualizar as formas de pagamento.');
+    isVerifiedPayment(updated,order);
+    if(updated.payment_method_types?.includes('boleto'))throw new ServiceUnavailableException('O Stripe ainda não atualizou as formas de pagamento. Tente novamente.');
+    return updated;
+  }
+
   private async nativePaymentOrder(orderId:string,authorization?:string) {
     const user=await this.auth.authenticate(authorization);
     if(user.role!==UserRole.CUSTOMER)throw new ForbiddenException('Acesso exclusivo de cliente');
@@ -127,9 +149,10 @@ export class PaymentsService {
   }
 
   async nativeOptions(orderId:string,authorization?:string){
-    const {order,intent}=await this.nativePaymentOrder(orderId,authorization);
+    const {order,intent:current}=await this.nativePaymentOrder(orderId,authorization);
+    const intent=await this.excludeBoleto(current,order);
     if(intent.status==='succeeded')return {paid:await this.completePayment(intent),status:intent.status,methods:[]};
-    return {paid:false,status:intent.status,methods:intent.payment_method_types??['card'],
+    return {paid:false,status:intent.status,methods:(intent.payment_method_types??['card']).filter(type=>type!=='boleto'),
       pendingPix:!!intent.next_action?.pix_display_qr_code};
   }
 
@@ -206,8 +229,9 @@ export class PaymentsService {
     if (!order?.stripePaymentIntentId) throw new UnauthorizedException('Link de pagamento indisponível');
     verifyCheckout(order.id, order.stripePaymentIntentId, expires, token);
     if (order.status === OrderStatus.CANCELED || ['REFUNDED','PARTIALLY_REFUNDED'].includes(order.paymentStatus)) throw new BadRequestException('Este pedido não aceita pagamentos.');
-    const intent = await retrieveStripeIntent(order.stripePaymentIntentId);
+    let intent = await retrieveStripeIntent(order.stripePaymentIntentId);
     isVerifiedPayment(intent, order);
+    intent=await this.excludeBoleto(intent,order);
     if (!intent.client_secret || !process.env.STRIPE_PUBLISHABLE_KEY) throw new ServiceUnavailableException('Pagamento indisponível');
     const nonce = randomBytes(18).toString('base64');
     return {nonce,html:secureCheckoutPage({

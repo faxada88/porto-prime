@@ -14,7 +14,7 @@ void main(){
     await tester.pumpWidget(MaterialApp(theme:AppTheme.light,builder:(context,child)=>MediaQuery(data:MediaQuery.of(context).copyWith(textScaler:TextScaler.linear(scale)),child:child!),home:Scaffold(body:NativePaymentChoices(methods:const {'pix','card','link','boleto'},onSelect:(value)=>choice=value))));
     await tester.tap(find.text('Pix'));
     expect(choice,'pix');
-    expect(find.text('Cartão'),findsOneWidget);expect(find.text('Boleto'),findsOneWidget);
+    expect(find.text('Cartão'),findsOneWidget);expect(find.text('Boleto'),findsNothing);
     expect(tester.takeException(),isNull);
    });
   }

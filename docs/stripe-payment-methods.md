@@ -20,3 +20,9 @@ Local checks cover signed-link integrity/expiry, ownership query, preserved inte
 
 ## Native correction validation
 Tests exercise in-app method selection, text scaling, Pix copying, server-only confirmation, existing QR reuse, idempotent confirmation, ownership and unpaid guards. There is no launchUrl/externalApplication/secure-checkout navigation in the native checkout. Selecting a wallet can require that wallet's own authentication; card and Pix do not require a Google account.
+
+
+## Simplified checkout, boleto removed
+The payment review now contains one total, a collapsible item/fee/credit summary, the saved delivery address and an on-page picker with Pix or Card/wallets. Its single bottom action opens the chosen modal directly; there is no extra selection sheet or decorative payment-method chips.
+New intents exclude boleto server-side. Existing intents still awaiting a payment method are updated to exclude boleto before reuse, including native-options and the fallback web page. Existing issued/processing/paid boleto payments are preserved for reconciliation and financial history, never canceled as a UI side effect.
+Native PaymentSheet disallows delayed payment methods and only orders card/link. Pix keeps its native QR/copy modal. Success is still verified server-side before any order release.

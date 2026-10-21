@@ -32,10 +32,10 @@ footer{text-align:center;color:#70675c;font-size:12px;padding-top:20px}.success{
 <div class="card"><div class="eyebrow">TOTAL A PAGAR</div><div class="total" id="total"></div><p class="muted">O saldo Porto Prime escolhido já foi descontado deste valor.</p></div>
 <div id="test" class="note" hidden>Ambiente de teste. Nenhuma cobrança real será realizada.</div>
 <section class="card" id="form"><h2>Como você prefere pagar?</h2>
-<p class="muted">Pix em primeiro lugar. Cartões, boleto e carteiras compatíveis aparecem abaixo conforme a disponibilidade do Stripe.</p>
+<p class="muted">Pix em primeiro lugar. Cartões e carteiras compatíveis aparecem abaixo conforme a disponibilidade do Stripe.</p>
 <div id="express"></div><div id="payment" style="margin-top:18px"></div>
 <div id="error" role="alert" hidden></div><button id="pay" disabled style="margin-top:20px">Carregando pagamento…</button>
-<p class="muted" style="margin-top:14px">Boleto não confirma na hora. Seu pedido só será liberado após a confirmação do pagamento.</p></section>
+<p class="muted" style="margin-top:14px">Seu pedido só será liberado após a confirmação do pagamento.</p></section>
 <section id="pending" role="status" aria-live="polite" hidden><h2 id="status-title">Aguardando pagamento</h2><p id="status-text"></p>
 <div id="pix" hidden><img id="qr" alt="Código QR Pix"><textarea id="pix-code" readonly aria-label="Código Pix Copia e Cola"></textarea><button id="copy" class="secondary">Copiar código Pix</button><p id="expires" class="muted"></p></div>
 <a id="voucher" class="button" target="_blank" rel="noopener noreferrer" hidden style="margin-top:16px">Abrir boleto</a>
@@ -113,7 +113,7 @@ window.addEventListener('DOMContentLoaded',async function(){
    fontFamily:'system-ui, sans-serif',borderRadius:'12px',spacingUnit:'4px'
   }}});
   express=elements.create('expressCheckout');express.mount('#express');express.on('confirm',confirm);
-  payment=elements.create('payment',{layout:'accordion',paymentMethodOrder:['pix','card','link','boleto'],
+  payment=elements.create('payment',{layout:'accordion',paymentMethodOrder:['pix','card','link'],
    wallets:{applePay:'never',googlePay:'never'},
    defaultValues:{billingDetails:{name:config.name,email:config.email,address:{country:'BR'}}}});
   payment.mount('#payment');

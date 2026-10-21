@@ -20,7 +20,7 @@ class NativePaymentChoices extends StatelessWidget {
    if(methods.contains('pix'))_choice('pix','Pix','QR Code e Copia e Cola, sem login no Google.',Icons.qr_code_2_rounded,true),
    if(methods.contains('card'))_choice('card','Cartão','Crédito ou débito no formulário seguro do Stripe.',Icons.credit_card_rounded,false),
    if(methods.contains('card')||methods.contains('link'))_choice('wallet','Carteiras digitais','Google Pay, Apple Pay e Link, quando compatíveis.',Icons.account_balance_wallet_outlined,false),
-   if(methods.contains('boleto'))_choice('boleto','Boleto','O pedido aguarda a confirmação do pagamento.',Icons.receipt_long_outlined,false),
+
    const SizedBox(height:10),
    const Text('Carteiras são opcionais. Você pode pagar com cartão ou Pix sem entrar em uma conta Google.',textAlign:TextAlign.center,style:TextStyle(fontSize:11,height:1.5,color:AppColors.muted)),
   ]),

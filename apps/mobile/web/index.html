@@ -183,7 +183,7 @@
 
         const paymentElement = elements.create('payment', {
           layout: { type: 'accordion', defaultCollapsed: false },
-          paymentMethodOrder: ['pix', 'card', 'link', 'boleto'],
+          paymentMethodOrder: ['pix', 'card', 'link'],
           defaultValues: { billingDetails: { address: { country: 'BR' } } }
         });
         paymentElement.mount('#' + containerId + '-payment');

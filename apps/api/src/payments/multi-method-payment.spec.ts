@@ -6,7 +6,7 @@ vi.mock('./stripe-payment-verifier.js',()=>({retrieveStripeIntent:vi.fn(),isVeri
 import {PaymentsService} from './payments.service.js';
 import {retrieveStripeIntent,isVerifiedPayment} from './stripe-payment-verifier.js';
 
-afterEach(()=>{vi.unstubAllEnvs();vi.clearAllMocks();});
+afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();vi.clearAllMocks();});
 function fixture(){
  vi.stubEnv('STRIPE_SECRET_KEY','sk_test_fixture');vi.stubEnv('STRIPE_PUBLISHABLE_KEY','pk_test_fixture');
  const order:any={id:'order_1',customerId:'user_1',stripePaymentIntentId:'pi_1',status:'PENDING',paymentStatus:'PENDING',total:25};
@@ -25,6 +25,20 @@ describe('Unified payment flow',()=>{
   expect(f.db.order.findFirst).toHaveBeenCalledWith({where:{id:'order_1',customerId:'user_1',adminDeletedAt:null}});
   expect(f.db.order.updateMany).not.toHaveBeenCalled();
   expect(f.rt.emitOrderUpdated).not.toHaveBeenCalled();
+ });
+ it('removes boleto from an existing unconfirmed Stripe intent without changing its amount',async()=>{
+  const f=fixture();
+  vi.mocked(retrieveStripeIntent).mockResolvedValue({id:'pi_1',status:'requires_payment_method',payment_method_types:['card','pix','boleto']} as any);
+  const request=vi.fn(async()=>new Response(JSON.stringify({id:'pi_1',status:'requires_payment_method',payment_method_types:['card','pix']})));
+  vi.stubGlobal('fetch',request);
+  const options=await f.service.nativeOptions('order_1');
+  expect(options.methods).toEqual(['card','pix']);
+  const [url,init]=request.mock.calls[0] as unknown as [string,RequestInit];
+  expect(url).toBe('https://api.stripe.com/v1/payment_intents/pi_1');
+  const params=init.body as URLSearchParams;
+  expect(params.get('excluded_payment_method_types[0]')).toBe('boleto');
+  expect(params.has('amount')).toBe(false);
+  expect(f.db.order.updateMany).not.toHaveBeenCalled();
  });
  it('rejects a missing, canceled or closed-store order',async()=>{
   const f=fixture();

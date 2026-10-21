@@ -35,6 +35,8 @@ class StripeCheckoutPage extends StatefulWidget {
 
 class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBindingObserver {
   bool _nativePaymentStarted=false,_nativeModalOpen=false;
+  Set<String> _methods={};
+  String _selectedMethod='pix';
   bool ready = false;
   bool paying = false;
   String? error;
@@ -75,6 +77,14 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
       await Stripe.instance.applySettings();
 
       // Native payments remain in Flutter/Stripe modals. Web keeps Elements.
+      if(!kIsWeb){
+        final options=Map<String,dynamic>.from(await AppState.instance.api.request('POST','/payments/native-options',body:{'orderId':widget.orderId}));
+        if(!mounted)return;
+        if(options['paid']==true){await _finishPaidPayment();return;}
+        _methods=Set<String>.from((options['methods'] as List? ?? const []).map((e)=>e.toString()))..remove('boleto');
+        if(_methods.isEmpty)throw Exception('Nenhuma forma de pagamento disponível. Tente novamente.');
+        _selectedMethod=_methods.contains('pix')?'pix':'card';
+      }
       if (mounted) setState(() => ready = true);
     } catch (e) {
       if (mounted) setState(() => error = _message(e));
@@ -114,7 +124,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
         _webPaymentPoll?.cancel();
         setState(() {
           paying = false;
-          error = 'O pagamento ainda não foi confirmado. Se gerou Pix ou boleto, conclua o pagamento e verifique novamente. Não pague duas vezes.';
+          error = 'O pagamento ainda não foi confirmado. Se gerou Pix, conclua o pagamento e verifique novamente. Não pague duas vezes.';
         });
       }
     } catch (_) {
@@ -159,16 +169,9 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
       if(!mounted)return false;
       if(options['paid']==true||options['status']=='processing')return true;
       final methods=Set<String>.from((options['methods'] as List? ?? const []).map((e)=>e.toString()));
-      String? choice;
-      if(options['pendingPix']==true){choice='pix';}
-      else{
-        choice=await showModalBottomSheet<String>(
-          context:context,isScrollControlled:true,backgroundColor:AppColors.surface,
-          shape:const RoundedRectangleBorder(borderRadius:BorderRadius.vertical(top:Radius.circular(28))),
-          builder:(sheetContext)=>ConstrainedBox(constraints:BoxConstraints(maxHeight:MediaQuery.sizeOf(sheetContext).height*.88),
-            child:NativePaymentChoices(methods:methods,onSelect:(method)=>Navigator.pop(sheetContext,method))));
-      }
-      if(choice==null||!mounted)return false;
+      final choice=options['pendingPix']==true?'pix':_selectedMethod;
+      if(choice=='pix'&&!methods.contains('pix'))throw Exception('Pix indisponível. Selecione cartão e carteiras.');
+      if(choice!='pix'&&!methods.contains('card')&&!methods.contains('link'))throw Exception('Cartão indisponível. Selecione Pix.');
       _nativePaymentStarted=true;
       if(choice=='pix'){
         final paid=await showModalBottomSheet<bool>(
@@ -185,9 +188,9 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
       await Stripe.instance.initPaymentSheet(paymentSheetParameters:SetupPaymentSheetParameters(
         paymentIntentClientSecret:widget.clientSecret,merchantDisplayName:'Porto Prime',
         billingDetails:const BillingDetails(address:Address(country:'BR',city:null,line1:null,line2:null,postalCode:null,state:null)),
-        style:ThemeMode.light,appearance:const PaymentSheetAppearance(),
-        allowsDelayedPaymentMethods:true,
-        paymentMethodOrder:choice=='boleto'?const ['boleto','card','link']:const ['card','link','boleto'],
+        style:ThemeMode.light,appearance:const PaymentSheetAppearance(colors:PaymentSheetAppearanceColors(primary:AppColors.ocean700)),
+        allowsDelayedPaymentMethods:false,
+        paymentMethodOrder:const ['card','link'],
         googlePay:defaultTargetPlatform==TargetPlatform.android?PaymentSheetGooglePay(
           merchantCountryCode:'BR',currencyCode:'BRL',testEnv:widget.publishableKey.startsWith('pk_test_')):null,
         applePay:defaultTargetPlatform==TargetPlatform.iOS&&merchant.isNotEmpty?const PaymentSheetApplePay(merchantCountryCode:'BR'):null,
@@ -470,6 +473,8 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
     onPopInvokedWithResult:(didPop,result){if(!didPop)_leave();},
     child:PrimePaymentExperience(
       summary:widget.summary??<String,dynamic>{},creditOnly:widget.creditOnly,
+      methods:_methods,selectedMethod:_selectedMethod,
+      onSelectMethod:(method){if(!paying)setState(()=>_selectedMethod=method);},
       web:kIsWeb,ready:ready,paying:paying,submitted:_paymentSubmitted,
       testMode:widget.publishableKey.startsWith('pk_test_'),error:error,
       onBack:()=>_leave(),onHome:()=>_leave(home:true),onPay:_pay,

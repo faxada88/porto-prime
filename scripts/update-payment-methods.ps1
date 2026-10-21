@@ -50,5 +50,5 @@ try{
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'install','-r','build\app\outputs\flutter-apk\app-release.apk')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','am','force-stop','com.portoprime.porto_prime')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','monkey','-p','com.portoprime.porto_prime','-c','android.intent.category.LAUNCHER','1')
- Write-Host 'Checkout atualizado. Pix, cartoes, boleto e carteiras elegiveis sao exibidos pelo Stripe. Pagamento dentro do app: modal Stripe para cartoes/carteiras/boleto e modal Pix com Copia e Cola. Banco, rotas, Admin e Stripe devem continuar ligados.'
+ Write-Host 'Checkout atualizado. Pix, cartoes e carteiras elegiveis sao exibidos pelo Stripe. Pagamento dentro do app: modal Stripe para cartoes/carteiras e modal Pix com Copia e Cola. Banco, rotas, Admin e Stripe devem continuar ligados.'
 }finally{Pop-Location}

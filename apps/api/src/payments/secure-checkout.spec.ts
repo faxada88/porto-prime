@@ -38,7 +38,7 @@ describe('Signed checkout capability',()=>{
  });
  it('uses dynamic Stripe Elements with Pix priority and no custom card fields',()=>{
   const html=secureCheckoutPage({publishableKey:'pk_test_fixture',clientSecret:'pi_secret',amount:20,testMode:true,name:'Cliente',email:'a@b.test',nonce:'test-nonce'});
-  expect(html).toContain("paymentMethodOrder:['pix','card','link','boleto']");
+  expect(html).toContain("paymentMethodOrder:['pix','card','link']");
   expect(html).toContain("elements.create('expressCheckout')");
   expect(html).toContain("stripe.confirmPayment");
   expect(html).toContain("pix_display_qr_code");
