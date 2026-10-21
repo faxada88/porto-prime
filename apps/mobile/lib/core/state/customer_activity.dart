@@ -16,7 +16,11 @@ class CustomerActivity extends ChangeNotifier {
  String _key(String id)=>'customer-activity-v1-$id';
  Future<void> _changed()async{
   final app=AppState.instance;
-  final id=app.isCustomer?app.user?['id']?.toString():null;
+  String? id;
+  if (app.isCustomer) {
+    final customer = app.user;
+    id = customer == null ? null : customer['id']?.toString();
+  }
   if(id!=_owner){
    _owner=id;entries=[];_seen={};_loading=id!=null;notifyListeners();
    if(id==null)return;
