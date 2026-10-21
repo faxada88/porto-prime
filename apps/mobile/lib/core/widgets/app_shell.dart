@@ -90,7 +90,7 @@ class _AppShellState extends State<AppShell> {
 
       return Scaffold(
         // The cart has a fixed checkout action; reserve the navigation height.
-        extendBody: index != 2 && liveOrder == null,
+        extendBody: false,
         body: Column(children:[if(state.publicHighDemand) const CustomerDemandNotice(),Expanded(child:Stack(children:[
           Positioned.fill(child:Padding(padding:EdgeInsets.only(bottom:liveOrder == null ? 0 : 98),child:IndexedStack(index:index,children:pages))),
           if(liveOrder != null) Positioned(left:14,right:14,bottom:12,child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:520),child:ActiveOrderShortcut(order:liveOrder)))),

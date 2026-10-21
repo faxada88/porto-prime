@@ -10,29 +10,42 @@ class PrimeBottomNavigation extends StatelessWidget {
   final ValueChanged<int> onSelect;
 
   @override
-  Widget build(BuildContext context) => ColoredBox(color:Colors.white,child:SafeArea(
-    top:false,
-    minimum: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-    child: Center(heightFactor: 1, child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 900),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(color:Colors.white,
-          border:const Border(top:BorderSide(color:Color(0xFFE1EAED))),
-          boxShadow:const [BoxShadow(color:Color(0x08000000),blurRadius:14,offset:Offset(0,-4))]),
-        child: Row(children: [
-          _destination(context, 0, 'Início', AppIcons.home),
-          _destination(context, 1, 'Buscar', AppIcons.search),
-          _destination(context, 2, 'Carrinho', AppIcons.cart),
-          _destination(context, 3, 'Conta', AppIcons.user),
-        ]),
-      ),
-    )),
-  ));
+  Widget build(BuildContext context) => SafeArea(
+    top: false,
+    minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 0),
+      child: Center(heightFactor: 1, child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: AppColors.stroke),
+            boxShadow: const [
+              BoxShadow(color: Color(0x14233E48), blurRadius: 28, offset: Offset(0, 10)),
+              BoxShadow(color: Color(0x06000000), blurRadius: 6, offset: Offset(0, 2)),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(30),
+            child: Material(color: AppColors.surface, child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Row(children: [
+                _destination(context, 0, 'Início', AppIcons.home),
+                _destination(context, 1, 'Buscar', AppIcons.search),
+                _destination(context, 2, 'Carrinho', AppIcons.cart),
+                _destination(context, 3, 'Conta', AppIcons.user),
+              ]),
+            )),
+          ),
+        ),
+      )),
+    ),
+  );
 
   Widget _destination(BuildContext context, int value, String label, IconData icon) {
     final selected = index == value;
-    final highlight = AppColors.ocean100;
     return Expanded(child: Semantics(button: true, selected: selected,
       label: value == 2 && cartCount > 0 ? '$label, $cartCount itens' : label,
       excludeSemantics: true, onTap: () => onSelect(value),
@@ -44,14 +57,14 @@ class PrimeBottomNavigation extends StatelessWidget {
           curve: AppMotion.curve,
           margin: const EdgeInsets.symmetric(horizontal: 3),
           padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 7),
-          decoration: BoxDecoration(color: Colors.transparent,
+          decoration: BoxDecoration(color: selected ? AppColors.ocean50 : Colors.transparent,
             borderRadius: BorderRadius.circular(20)),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             AnimatedContainer(duration: AppMotion.resolve(context, AppMotion.standard),
-              width: 58, height: 32, decoration: BoxDecoration(color:selected?highlight:Colors.transparent,borderRadius:BorderRadius.circular(14)), child: Stack(clipBehavior: Clip.none,
+              width: 58, height: 32, decoration: BoxDecoration(color:selected?AppColors.ocean700:Colors.transparent,borderRadius:BorderRadius.circular(14)), child: Stack(clipBehavior: Clip.none,
               alignment: Alignment.center, children: [
                 Icon(icon, size: selected ? 24 : 23,
-                  color: selected ? AppColors.ocean700 : AppColors.muted),
+                  color: selected ? Colors.white : AppColors.muted),
                 if (value == 2 && cartCount > 0) Positioned(top: -5, right: 2,
                   child: Container(constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                     padding: const EdgeInsets.symmetric(horizontal: 4),
