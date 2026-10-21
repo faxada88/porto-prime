@@ -1,8 +1,9 @@
 param([string]$DeviceId = '')
 $ErrorActionPreference='Stop'
 $projectRoot=Split-Path -Parent $PSScriptRoot
-# A previous language update normally creates these bundled assets already.
-if(!(Test-Path (Join-Path $projectRoot 'apps\mobile\assets\localization\en.json')) -or !(Test-Path (Join-Path $projectRoot 'apps\mobile\assets\localization\es.json'))){
+# Partial dictionaries are cached during generation; existence alone is not completion.
+& node (Join-Path $PSScriptRoot 'prepare-app-languages.mjs') --check
+if($LASTEXITCODE -ne 0){
  & (Join-Path $PSScriptRoot 'update-app-languages.ps1') -DeviceId $DeviceId
  return
 }

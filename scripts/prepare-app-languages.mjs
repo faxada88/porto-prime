@@ -1,9 +1,23 @@
+import { isCompleteTranslation, translateKeepingPlaceholders } from './translation-placeholders.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 const directory = fileURLToPath(new URL('../apps/mobile/assets/localization/', import.meta.url));
 const source = JSON.parse(await readFile(directory + 'source.json', 'utf8'));
 const hash = createHash('sha256').update(JSON.stringify(source)).digest('hex');
+if (process.argv.includes('--check')) {
+  let complete = false;
+  try {
+    const version = JSON.parse(await readFile(directory + 'version.json', 'utf8'));
+    complete = version.sourceSha256 === hash;
+    for (const language of ['es', 'en']) {
+      const dictionary = JSON.parse(await readFile(directory + language + '.json', 'utf8'));
+      complete = complete && source.every(phrase => isCompleteTranslation(phrase, dictionary[phrase]));
+    }
+  } catch { complete = false; }
+  console.log(complete ? 'Arquivos de idioma completos.' : 'Arquivos de idioma precisam ser concluidos. Retomando o cache salvo.');
+  process.exit(complete ? 0 : 2);
+}
 const base = process.env.PORTO_TRANSLATOR_URL || 'http://127.0.0.1:5040';
 const overrides = {
   'Idioma': ['Idioma', 'Language'], 'Início': ['Inicio', 'Home'], 'Pedidos': ['Pedidos', 'Orders'],
@@ -19,24 +33,19 @@ for (const [index, language] of ['es', 'en'].entries()) {
   let completed = 0;
   for (const phrase of source) {
     if (overrides[phrase]) { output[phrase] = overrides[phrase][index]; continue; }
-    if (typeof cache[phrase] === 'string' && cache[phrase].length) { output[phrase] = cache[phrase]; continue; }
-    const protectedText = phrase.replace(/\{(\d+)\}/g, (_, id) => `ZXQ${id}QXZ`);
+    if (isCompleteTranslation(phrase, cache[phrase])) { output[phrase] = cache[phrase]; continue; }
     let translated;
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        const response = await fetch(base + '/translate', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ q: protectedText, source: 'pt', target: language, format: 'text' }),
-          signal: AbortSignal.timeout(180000),
+        translated = await translateKeepingPlaceholders(phrase, async query => {
+          const response = await fetch(base + '/translate', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ q: query, source: 'pt', target: language, format: 'text' }),
+            signal: AbortSignal.timeout(180000),
+          });
+          if (!response.ok) throw new Error(`Translator HTTP ${response.status}`);
+          return (await response.json()).translatedText;
         });
-        if (!response.ok) throw new Error(`Translator HTTP ${response.status}`);
-        const result = await response.json();
-        translated = result.translatedText;
-        if (typeof translated !== 'string' || !translated.trim()) throw new Error('Empty translation');
-        translated = translated.replace(/ZXQ\s*(\d+)\s*QXZ/gi, (_, id) => `{${id}}`);
-        const expected = [...phrase.matchAll(/\{\d+\}/g)].map(x => x[0]).sort();
-        const actual = [...translated.matchAll(/\{\d+\}/g)].map(x => x[0]).sort();
-        if (JSON.stringify(expected) !== JSON.stringify(actual)) throw new Error('Translation changed a dynamic placeholder');
         break;
       } catch (error) { if (attempt === 2) throw new Error(`${language}: ${phrase}: ${error.message}`); }
     }
