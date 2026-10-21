@@ -7,29 +7,12 @@ class PrimeRegistrationChoiceIntro extends StatelessWidget {
   const PrimeRegistrationChoiceIntro({super.key, required this.onClose});
   final VoidCallback onClose;
   @override
-  Widget build(BuildContext context) => Container(
-    decoration: BoxDecoration(color: AppColors.ocean900,
-      borderRadius: BorderRadius.circular(26)), clipBehavior: Clip.antiAlias,
-    child: Stack(children: [
-      const Positioned.fill(child: Opacity(opacity: .2, child: PrimeCoastArtwork())),
-      Padding(padding: const EdgeInsets.all(22), child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [const PrimeBrandMark(size: 34), const SizedBox(width: 10),
-            const Expanded(child: Text('VOCÊ NA PORTO PRIME', style: TextStyle(
-              fontSize: 10, height: 1.4, fontWeight: FontWeight.w800,
-              letterSpacing: 1.1, color: AppColors.ocean300))),
-            IconButton(tooltip: 'Fechar', onPressed: onClose,
-              icon: const Icon(AppIcons.close, size: 20, color: Colors.white)),
-          ]),
-          const SizedBox(height: 20),
-          const Text('Seu próximo passo\ncomeça aqui.', style: TextStyle(fontSize: 28,
-            height: 1.15, fontWeight: FontWeight.w800, letterSpacing: -.8, color: Colors.white)),
-          const SizedBox(height: 12),
-          const Text('Escolha como fazer parte: comprar, entregar ou indicar.',
-            style: TextStyle(fontSize: 13, height: 1.6, color: AppColors.ocean100)),
-        ])),
-    ]),
-  );
+  Widget build(BuildContext context)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+    Row(children:[const Expanded(child:Text('Vamos começar',style:TextStyle(fontSize:27,height:1.2,fontWeight:FontWeight.w800,letterSpacing:-.7,color:AppColors.ink))),
+      IconButton(tooltip:'Fechar',onPressed:onClose,icon:const Icon(AppIcons.close,size:21,color:AppColors.ink))]),
+    const SizedBox(height:10),
+    const Text('Escolha como você quer usar a Porto Prime.',style:TextStyle(fontSize:14,height:1.6,color:AppColors.inkSoft)),
+  ]);
 }
 
 class PrimeRegistrationRoleCard extends StatelessWidget {
@@ -45,7 +28,7 @@ class PrimeRegistrationRoleCard extends StatelessWidget {
     borderRadius: BorderRadius.circular(22), clipBehavior: Clip.antiAlias,
     child: InkWell(onTap: onTap, child: Container(
       padding: const EdgeInsets.all(18), decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22), border: Border.all(color: AppColors.stroke)),
+        borderRadius: BorderRadius.circular(22), border: Border.all(color: AppColors.strokeStrong,width:1.3)),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(width: 46, height: 46, decoration: BoxDecoration(color: background,
           borderRadius: BorderRadius.circular(16)),

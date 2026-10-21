@@ -40,8 +40,7 @@ class _Guest extends StatelessWidget {
     final help = Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       _ApplicationShortcut(onTap: () => _courierStatus(context)),
       const SizedBox(height: 26),
-      const _SectionLabel(eyebrow: 'CONTE COM A PRIME', title: 'Como podemos ajudar?',
-        subtitle: 'Suporte e informações para você pedir com tranquilidade.'),
+      const _SectionLabel(eyebrow: 'ESTAMOS POR PERTO', title: 'Precisa de ajuda?'),
       const SizedBox(height: 12),
       _MenuSurface(children: [
         _MenuLine(icon: AppIcons.support_agent_rounded, title: 'Ajuda e suporte',
@@ -57,7 +56,7 @@ class _Guest extends StatelessWidget {
     return SafeArea(bottom: false, child: PrimePageViewport(child: ListView(
       physics: const BouncingScrollPhysics(), padding: const EdgeInsets.fromLTRB(20,22,20,126),
       children: [
-        const _ProfileHeader(), const SizedBox(height: 24),
+        const _ProfileHeader(), const SizedBox(height: 18),
         LayoutBuilder(builder: (context, box) {
           if (box.maxWidth >= 860 && MediaQuery.textScalerOf(context).scale(14) <= 18) {
             return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -84,14 +83,8 @@ class _GuestAccessHero extends StatelessWidget {
 class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader();
   @override
-  Widget build(BuildContext context) => const Column(
-    crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('SINTA-SE EM CASA', style: TextStyle(fontSize: 10, height: 1.5,
-        letterSpacing: 1.4, fontWeight: FontWeight.w800, color: AppColors.ocean700)),
-      SizedBox(height: 8),
-      Text('Seu espaço Prime', style: TextStyle(fontSize: 30, height: 1.12,
-        letterSpacing: -.9, fontWeight: FontWeight.w800, color: AppColors.ocean900)),
-    ]);
+  Widget build(BuildContext context)=>const Text('Sua conta',style:TextStyle(
+    fontSize:25,height:1.2,letterSpacing:-.7,fontWeight:FontWeight.w800,color:AppColors.ink));
 }
 
 class _GuestHero extends StatelessWidget {

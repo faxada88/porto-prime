@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
-import 'prime_brand.dart';
 
 /// Account presentation only. Authentication and routing stay with ProfilePage.
 class PrimeAccountWelcome extends StatelessWidget {
@@ -9,60 +8,48 @@ class PrimeAccountWelcome extends StatelessWidget {
   final VoidCallback onLogin, onCreate;
 
   @override
-  Widget build(BuildContext context) => Container(
-    decoration: BoxDecoration(color: AppColors.surface,
-      borderRadius: BorderRadius.circular(30), border: Border.all(color: AppColors.stroke),
-      boxShadow: AppShadows.soft),
-    clipBehavior: Clip.antiAlias,
-    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      ColoredBox(color: AppColors.ocean900, child: Stack(children: [
-        const Positioned.fill(child: ExcludeSemantics(child: IgnorePointer(
-          child: CustomPaint(painter: _AccountArtwork())))),
-        Padding(padding: const EdgeInsets.all(24), child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Row(children: [PrimeBrandMark(size: 38), SizedBox(width: 12),
-              Expanded(child: Text('SUA CONEXÃO COM PORTO',
-                style: TextStyle(color: AppColors.ocean300, fontSize: 10,
-                  height: 1.5, fontWeight: FontWeight.w800, letterSpacing: 1.2)))]),
-            const SizedBox(height: 26),
-            const Text('Tudo seu,\nem um só lugar.', style: TextStyle(
-              fontSize: 32, height: 1.12, letterSpacing: -1,
-              color: Colors.white, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 14),
-            const Text('Seus pedidos, seus endereços e sua conta.\nSempre perto de você.',
-              style: TextStyle(color: AppColors.ocean100, fontSize: 13, height: 1.6)),
-          ])),
-      ])),
-      Padding(padding: const EdgeInsets.all(22), child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          FilledButton(onPressed: onLogin,
-            style: FilledButton.styleFrom(backgroundColor: AppColors.sun500,
-              foregroundColor: AppColors.ocean900,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
-            child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(AppIcons.user, size: 19), SizedBox(width: 11),
-              Flexible(child: Text('Entrar na minha conta', textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800))),
-              SizedBox(width: 11), Icon(AppIcons.arrowRight, size: 18),
-            ])),
-          const SizedBox(height: 10),
-          OutlinedButton(onPressed: onCreate,
-            style: OutlinedButton.styleFrom(foregroundColor: AppColors.ocean900,
-              side: const BorderSide(color: AppColors.strokeStrong),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
-            child: const Text('Criar minha conta', textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800))),
-          const SizedBox(height: 17),
-          const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(AppIcons.lock, size: 14, color: AppColors.ocean700), SizedBox(width: 8),
-            Flexible(child: Text('Seu acesso seguro à Porto Prime', textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 10, height: 1.5, color: AppColors.muted))),
-          ]),
-        ])),
+  Widget build(BuildContext context)=>Container(
+    padding:const EdgeInsets.all(24),
+    decoration:BoxDecoration(color:AppColors.surface,borderRadius:BorderRadius.circular(28),
+      border:Border.all(color:AppColors.strokeStrong,width:1.4)),
+    child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+      Row(children:[
+        Container(width:46,height:46,decoration:BoxDecoration(color:AppColors.ocean50,borderRadius:BorderRadius.circular(16)),
+          child:const Icon(AppIcons.user,size:24,color:AppColors.ink)),
+        const SizedBox(width:12),const Expanded(child:Text('PORTO PRIME',style:TextStyle(fontSize:11,letterSpacing:1.4,fontWeight:FontWeight.w800,color:AppColors.inkSoft))),
+      ]),
+      const SizedBox(height:24),
+      const Text('Seu próximo pedido\ncomeça com você.',style:TextStyle(fontSize:30,height:1.14,letterSpacing:-1,fontWeight:FontWeight.w800,color:AppColors.ink)),
+      const SizedBox(height:12),
+      const Text('Crie sua conta para pedir, acompanhar a entrega e usar seu saldo Porto Prime.',
+        style:TextStyle(fontSize:14,height:1.65,color:AppColors.inkSoft)),
+      const SizedBox(height:22),
+      Wrap(spacing:14,runSpacing:12,children:[
+        _benefit(AppIcons.receipt_long_rounded,'Seus pedidos'),
+        _benefit(AppIcons.location_on_rounded,'Seus endereços'),
+        _benefit(AppIcons.wallet,'Seu saldo'),
+      ]),
+      const SizedBox(height:26),
+      FilledButton(onPressed:onCreate,style:FilledButton.styleFrom(
+        backgroundColor:AppColors.ink,foregroundColor:Colors.white,
+        padding:const EdgeInsets.symmetric(horizontal:18,vertical:18),
+        shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(16))),
+        child:const Row(children:[Expanded(child:Text('Criar minha conta',textAlign:TextAlign.center,style:TextStyle(fontSize:14,fontWeight:FontWeight.w800))),SizedBox(width:10),Icon(AppIcons.arrowRight,size:19)])),
+      const SizedBox(height:12),
+      OutlinedButton(onPressed:onLogin,style:OutlinedButton.styleFrom(
+        foregroundColor:AppColors.ink,side:const BorderSide(color:AppColors.inkSoft,width:1.3),
+        padding:const EdgeInsets.symmetric(horizontal:18,vertical:18),
+        shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(16))),
+        child:const Text('Entrar na minha conta',textAlign:TextAlign.center,style:TextStyle(fontSize:14,fontWeight:FontWeight.w700))),
+      const SizedBox(height:18),
+      const Row(mainAxisAlignment:MainAxisAlignment.center,children:[Icon(AppIcons.lock,size:14,color:AppColors.inkSoft),SizedBox(width:7),
+        Flexible(child:Text('Uma conta. Tudo organizado.',textAlign:TextAlign.center,style:TextStyle(fontSize:11,height:1.5,color:AppColors.inkSoft)))]),
     ]),
   );
+  Widget _benefit(IconData icon,String label)=>Row(mainAxisSize:MainAxisSize.min,children:[
+    Icon(icon,size:17,color:AppColors.ocean700),const SizedBox(width:6),
+    Text(label,style:const TextStyle(fontSize:11,fontWeight:FontWeight.w600,color:AppColors.inkSoft)),
+  ]);
 }
 
 class PrimeAccountActionTile extends StatelessWidget {
@@ -133,26 +120,4 @@ class PrimeAccountIdentity extends StatelessWidget {
         height: 1.5, color: AppColors.ocean300, fontWeight: FontWeight.w600)),
     ]),
   );
-}
-
-class _AccountArtwork extends CustomPainter {
-  const _AccountArtwork();
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.save();
-    canvas.translate(size.width - 135, 34);
-    final wash=Paint()..color=AppColors.ocean500.withValues(alpha:.09);
-    canvas.drawCircle(const Offset(95,70),92,wash);
-    final line=Paint()..color=AppColors.ocean300.withValues(alpha:.10)
-      ..style=PaintingStyle.stroke..strokeWidth=1.4;
-    canvas.drawCircle(const Offset(95,70),70,line);
-    canvas.drawCircle(const Offset(95,70),103,line);
-    canvas.drawCircle(const Offset(83,51),18,line);
-    canvas.drawPath(Path()..moveTo(48,107)..cubicTo(48,62,118,62,118,107),line);
-    canvas.drawCircle(const Offset(30,32),6,Paint()..color=AppColors.sun500.withValues(alpha:.16));
-    canvas.drawCircle(const Offset(110,140),9,Paint()..color=AppColors.ocean300.withValues(alpha:.10));
-    canvas.restore();
-  }
-  @override
-  bool shouldRepaint(covariant _AccountArtwork old) => false;
 }
