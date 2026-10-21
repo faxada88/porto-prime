@@ -10,13 +10,14 @@ Future<void> openProductCatalogue(BuildContext context,{String category='Todos'}
  AppState.instance.selectCatalogCategory(category);
  await Navigator.of(context).push<void>(MaterialPageRoute(builder:(_)=>Scaffold(
   backgroundColor:AppColors.canvas,
-  appBar:AppBar(title:const Text('Produtos')),
-  body:const CategoriesPage(),
+  appBar:AppBar(title:Text(category=='Todos'?'Produtos':category)),
+  body:CategoriesPage(categoryName:category=='Todos'?null:category),
  )));
 }
 
 class CategoriesPage extends StatefulWidget {
-  const CategoriesPage({super.key});
+  const CategoriesPage({super.key,this.categoryName});
+  final String? categoryName;
 
   @override
   State<CategoriesPage> createState() => _CategoriesPageState();
@@ -41,7 +42,8 @@ class _CategoriesPageState extends State<CategoriesPage> {
         final products = state.products;
         final categories = _categories(state.catalogCategories);
         final query = search.text.trim().toLowerCase();
-        final selected = state.catalogCategory;
+        final selected = widget.categoryName??state.catalogCategory;
+        final scoped=widget.categoryName!=null;
 
         final filtered = products.where((product) {
           final name = (product['name'] ?? '').toString().toLowerCase();
@@ -73,9 +75,9 @@ class _CategoriesPageState extends State<CategoriesPage> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                      child: const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-                        Text('Buscar',style:TextStyle(fontSize:28,fontWeight:FontWeight.w800,letterSpacing:-.8,color:AppColors.ink)),
-                        SizedBox(height:7),Text('Encontre o que você precisa.',style:TextStyle(fontSize:13,height:1.5,color:AppColors.muted)),
+                      child: Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                        Text(scoped?'Explore $selected':'Buscar',style:TextStyle(fontSize:28,fontWeight:FontWeight.w800,letterSpacing:-.8,color:AppColors.ink)),
+                        SizedBox(height:7),Text(scoped?'Escolha seus produtos e adicione ao carrinho.':'Encontre o que você precisa.',style:TextStyle(fontSize:13,height:1.5,color:AppColors.muted)),
                       ]),
                     ),
                   ),
@@ -94,7 +96,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                         textInputAction:TextInputAction.search,
                         onSubmitted:(_)=>FocusScope.of(context).unfocus(),
                         decoration:InputDecoration(
-                          hintText:'Produto ou categoria',prefixIcon:const Icon(AppIcons.search,size:21),
+                          hintText:scoped?'Buscar em $selected':'Produto ou categoria',prefixIcon:const Icon(AppIcons.search,size:21),
                           suffixIcon:search.text.isEmpty?null:IconButton(tooltip:'Limpar busca',
                             icon:const Icon(Icons.close_rounded,size:20),onPressed:(){search.clear();setState((){});}),
                           filled:true,fillColor:AppColors.surface,
@@ -107,6 +109,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                   ),
                 ),
               ),
+              if(!scoped)
               SliverToBoxAdapter(
                 child: Center(
                   child: ConstrainedBox(
@@ -134,21 +137,21 @@ class _CategoriesPageState extends State<CategoriesPage> {
                       padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
                       child: Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
                         Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-                          Text(query.isEmpty?(selected=='Todos'?'Produtos':selected):'Resultados da busca',
+                          Text(query.isEmpty?(scoped||selected=='Todos'?'Produtos':selected):'Resultados da busca',
                             style:const TextStyle(fontSize:20,height:1.3,fontWeight:FontWeight.w800,color:AppColors.ink)),
                           const SizedBox(height:5),
                           Text('${filtered.length} ${filtered.length==1?'produto':'produtos'}',
                             style:const TextStyle(fontSize:12,color:AppColors.muted)),
                         ])),
-                        if(query.isNotEmpty||selected!='Todos')TextButton(onPressed:(){
-                          search.clear();state.selectCatalogCategory('Todos');setState((){});
-                        },child:const Text('Limpar filtros')),
+                        if(query.isNotEmpty||(!scoped&&selected!='Todos'))TextButton(onPressed:(){
+                          search.clear();if(!scoped)state.selectCatalogCategory('Todos');setState((){});
+                        },child:Text(scoped?'Limpar busca':'Limpar filtros')),
                       ]),
                     ),
                   ),
                 ),
               ),
-              if (state.products.isEmpty)
+              if (state.products.isEmpty&&!scoped)
                 const SliverToBoxAdapter(
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20),
@@ -166,11 +169,11 @@ class _CategoriesPageState extends State<CategoriesPage> {
                           icon: AppIcons.search,
                           title: 'Nada por aqui',
                           message:
-                              'Tente outro termo ou escolha uma categoria diferente.',
-                          actionLabel: 'Limpar filtros',
+                              scoped?'Nenhum produto encontrado nesta categoria. Tente outro termo ou volte para explorar outras categorias.':'Tente outro termo ou escolha uma categoria diferente.',
+                          actionLabel: scoped?'Limpar busca':'Limpar filtros',
                           onAction: () {
                             search.clear();
-                            state.selectCatalogCategory('Todos');
+                            if(!scoped)state.selectCatalogCategory('Todos');
                             setState(() {});
                           },
                         ),
