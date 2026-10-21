@@ -866,13 +866,13 @@ Future<void> _courierStatus(BuildContext context) async {
         return _PrimeSheet(
           maxHeightFactor: .93,
           children: [
-            const _SheetBrandHeader(
-              icon: AppIcons.manage_search_rounded,
-              eyebrow: 'CENTRAL DO MOTOBOY',
-              title: 'Acompanhe sua candidatura',
-              subtitle:
-                  'Consulte a análise pelo CPF e resolva qualquer solicitação enviada pela equipe Porto Prime.',
-            ),
+            Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
+              const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                Text('Sua candidatura',style:TextStyle(fontSize:26,height:1.2,fontWeight:FontWeight.w800,letterSpacing:-.7,color:AppColors.ink)),
+                SizedBox(height:8),Text('Resultado da análise e solicitações da equipe.',style:TextStyle(fontSize:13,height:1.5,color:AppColors.inkSoft)),
+              ])),
+              IconButton(tooltip:'Fechar acompanhamento',onPressed:()=>Navigator.pop(sheetContext),icon:const Icon(AppIcons.close,size:22,color:AppColors.ink)),
+            ]),
             const SizedBox(height: 18),
             _PremiumField(
               controller: cpf,
@@ -890,63 +890,21 @@ Future<void> _courierStatus(BuildContext context) async {
                 foreground: AppColors.coralStrong,
               ),
             ],
-            if (application == null) ...[
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  color: AppColors.canvas,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(color: AppColors.stroke),
-                ),
-                child: const Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      AppIcons.privacy_tip_rounded,
-                      color: AppColors.oceanDeep,
-                      size: 20,
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'A consulta é protegida pelo CPF informado na candidatura. Nenhum login é necessário nesta etapa.',
-                        style: TextStyle(
-                          color: AppColors.muted,
-                          fontSize: AppFontSize.caption,
-                          height: 1.45,
-                          fontWeight: AppFontWeight.medium,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            if(application==null)const Padding(padding:EdgeInsets.only(top:2,bottom:8),
+              child:Text('Use o CPF informado no cadastro.',style:TextStyle(fontSize:12,color:AppColors.inkSoft))),
             if (application != null) ...[
               const SizedBox(height: 7),
               _ApplicationOverview(application: application!),
               const SizedBox(height: 18),
-              Row(
-                children: [
-                  const Expanded(
-                    child: _SectionLabel(
-                      eyebrow: 'ACOMPANHAMENTO',
-                      title: 'Pendências da análise',
-                    ),
-                  ),
-                  _SmallCounter(value: requirements.length),
-                ],
-              ),
-              const SizedBox(height: 11),
-              if (requirements.isEmpty)
-                const _InlineNotice(
-                  icon: AppIcons.verified_rounded,
-                  text:
-                      'Nenhuma pendência em aberto. Sua candidatura segue em análise normalmente.',
-                  background: AppColors.mint,
-                  foreground: AppColors.oceanDeep,
-                )
+              if(requirements.isNotEmpty)...[
+                Row(children:[const Expanded(child:Text('Solicitações da equipe',style:TextStyle(fontSize:18,fontWeight:FontWeight.w800,color:AppColors.ink))),_SmallCounter(value:requirements.length)]),
+                const SizedBox(height:12),
+              ],
+              if(requirements.isEmpty)
+                const Padding(padding:EdgeInsets.symmetric(vertical:6),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                  Icon(AppIcons.check_circle_rounded,size:18,color:AppColors.ocean700),SizedBox(width:8),
+                  Expanded(child:Text('Nenhuma solicitação para responder.',style:TextStyle(fontSize:13,height:1.5,color:AppColors.inkSoft))),
+                ]))
               else
                 ...requirements.map(
                   (requirement) => _RequirementCard(
@@ -958,8 +916,8 @@ Future<void> _courierStatus(BuildContext context) async {
             const SizedBox(height: 18),
             SizedBox(
               width: double.infinity,
-              height: 56,
               child: FilledButton.icon(
+                style:FilledButton.styleFrom(backgroundColor:AppColors.ink,foregroundColor:Colors.white,minimumSize:const Size(48,54),padding:const EdgeInsets.symmetric(horizontal:18,vertical:16)),
                 onPressed: loading ? null : search,
                 icon: loading
                     ? const SizedBox.shrink()
@@ -1005,89 +963,20 @@ class _ApplicationOverview extends StatelessWidget {
     final raw = access == 'BLOCKED' ? 'REJECTED' : access == 'SUSPENDED' ? 'SUSPENDED' : access == 'PENDING' ? 'PENDING' : (application['approvalStatus'] ?? 'PENDING').toString();
     final config = _statusConfig(raw);
     return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [config.background, Colors.white],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: config.foreground.withValues(alpha: .15)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 53,
-                height: 53,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                child: Icon(
-                  config.icon,
-                  color: config.foreground,
-                  size: 25,
-                ),
-              ),
-              const SizedBox(width: 13),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      (application['name'] ?? 'Candidatura').toString(),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: AppFontWeight.display,
-                        letterSpacing: -.25,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      (application['document'] ?? 'CPF confirmado').toString(),
-                      style: const TextStyle(
-                        color: AppColors.muted,
-                        fontSize: AppFontSize.caption,
-                        fontWeight: AppFontWeight.medium,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              _StatusPill(status: raw),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(13),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .78),
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            child: Row(
-              children: [
-                Icon(config.icon, color: config.foreground, size: 18),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Text(
-                    config.message,
-                    style: const TextStyle(
-                      fontSize: AppFontSize.caption,
-                      height: 1.4,
-                      fontWeight: AppFontWeight.strong,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      padding:const EdgeInsets.all(20),
+      decoration:BoxDecoration(color:AppColors.surface,borderRadius:BorderRadius.circular(22),border:Border.all(color:AppColors.strokeStrong,width:1.3)),
+      child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Wrap(crossAxisAlignment:WrapCrossAlignment.center,spacing:10,runSpacing:10,children:[
+          Container(width:38,height:38,decoration:BoxDecoration(color:config.background,borderRadius:BorderRadius.circular(12)),child:Icon(config.icon,color:config.foreground,size:22)),
+          _StatusPill(status:raw),
+        ]),
+        const SizedBox(height:18),
+        Text((application['name']??'Candidatura').toString(),style:const TextStyle(fontSize:21,height:1.3,fontWeight:FontWeight.w800,letterSpacing:-.4,color:AppColors.ink)),
+        const SizedBox(height:6),
+        Text((application['document']??'CPF confirmado').toString(),style:const TextStyle(fontSize:12,height:1.5,color:AppColors.inkSoft)),
+        const Padding(padding:EdgeInsets.symmetric(vertical:16),child:Divider(height:1,color:AppColors.stroke)),
+        Text(config.message,style:const TextStyle(fontSize:13,height:1.65,color:AppColors.inkSoft)),
+      ]),
     );
   }
 }
