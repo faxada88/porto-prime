@@ -1,5 +1,6 @@
 import '../../../../core/localization/prime_localization.dart';
 import 'dart:async';
+import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -96,9 +97,9 @@ class _MotoPainter extends CustomPainter {
   canvas.save();canvas.scale(size.width/32,size.height/32);
   final p=Paint()..color=Colors.white..style=PaintingStyle.stroke..strokeWidth=2.2..strokeCap=StrokeCap.round..strokeJoin=StrokeJoin.round;
   canvas.drawCircle(const Offset(7,23),5,p);canvas.drawCircle(const Offset(25,23),5,p);
-  canvas.drawPath(Path()..moveTo(7,23)..lineTo(13,15)..lineTo(20,23)..lineTo(7,23)..moveTo(20,23)..lineTo(25,23)..lineTo(21,10)..lineTo(17,10)..moveTo(10,14)..lineTo(15,14)..moveTo(22,13)..lineTo(27,13),p);
+  canvas.drawPath(ui.Path()..moveTo(7,23)..lineTo(13,15)..lineTo(20,23)..lineTo(7,23)..moveTo(20,23)..lineTo(25,23)..lineTo(21,10)..lineTo(17,10)..moveTo(10,14)..lineTo(15,14)..moveTo(22,13)..lineTo(27,13),p);
   canvas.drawCircle(const Offset(14,6),2.6,Paint()..color=Colors.white);
-  canvas.drawPath(Path()..moveTo(14,10)..lineTo(12,14)..lineTo(18,17)..lineTo(17,21)..moveTo(14,10)..lineTo(18,13)..lineTo(22,13),p);
+  canvas.drawPath(ui.Path()..moveTo(14,10)..lineTo(12,14)..lineTo(18,17)..lineTo(17,21)..moveTo(14,10)..lineTo(18,13)..lineTo(22,13),p);
   canvas.restore();
  }
  @override bool shouldRepaint(covariant _MotoPainter oldDelegate)=>false;
