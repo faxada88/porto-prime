@@ -296,6 +296,7 @@ model Product {
   active      Boolean @default(true)
   archived    Boolean @default(false)
   stock       Int     @default(0)
+  featuredHome Boolean @default(false)
 
   category   Category    @relation(fields: [categoryId], references: [id])
   orderItems OrderItem[]

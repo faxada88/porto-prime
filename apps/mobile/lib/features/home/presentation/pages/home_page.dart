@@ -24,7 +24,7 @@ class HomePage extends StatelessWidget {
    animation:AppState.instance,
    builder:(context,_){
     final state=AppState.instance;
-    final products=state.products;
+    final products=state.products.where((p)=>p['featuredHome']==true&&p['active']!=false&&p['archived']!=true&&(int.tryParse('${p["stock"]}')??0)>0).toList();
     final categories=state.catalogCategories.where((item)=>(item['name']??'').toString().trim().isNotEmpty).toList();
     String address='Porto Seguro',region='Bahia';
     if(state.isCustomer&&state.addresses.isNotEmpty){
@@ -47,8 +47,10 @@ class HomePage extends StatelessWidget {
       _section(ReferenceHomeSearch(onTap:()=>openProductCatalogue(context))),
       if(categories.isNotEmpty)_section(_HomeCategories(categories:categories),top:12),
       _section(ReferenceCoastHero(onTap:()=>openProductCatalogue(context)),top:14),
-      _section(Row(children:[const Expanded(child:Text('Produtos',style:TextStyle(fontSize:20,fontWeight:FontWeight.w800,color:AppColors.ink))),TextButton(onPressed:()=>openProductCatalogue(context),child:const Text('Ver tudo'))]),top:24,bottom:12),
-      _section(ProductShowcase(products:products),top:0),
+      if(products.isNotEmpty)...[
+       _section(const Text('Em destaque',style:TextStyle(fontSize:20,fontWeight:FontWeight.w800,color:AppColors.ink)),top:24,bottom:12),
+       _section(ProductShowcase(products:products),top:0),
+      ],
       const SliverToBoxAdapter(child:SizedBox(height:28)),
      ]));
    })));

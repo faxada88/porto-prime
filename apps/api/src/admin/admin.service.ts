@@ -864,7 +864,7 @@ export class AdminService {
         data[key] = value;
       }
     }
-    for (const key of ['active', 'archived']) if (body[key] !== undefined) {
+    for (const key of ['active', 'archived', 'featuredHome']) if (body[key] !== undefined) {
       if (typeof body[key] !== 'boolean') throw new BadRequestException('Disponibilidade inválida');
       data[key] = body[key];
     }

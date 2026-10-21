@@ -82,10 +82,10 @@ void main() {
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
   await tester.pumpWidget(MaterialApp(theme:AppTheme.light,home:const Scaffold(body:HomePage())));
-  expect(find.text('Produtos'),findsOneWidget);
+  expect(find.text('Ver tudo'),findsNothing);
   expect(find.text('Para o seu momento'),findsNothing);
   expect(find.text('Continue explorando'),findsNothing);
-  expect(find.byType(ProductShowcase),findsOneWidget);
+  expect(find.byType(ProductShowcase),findsNothing);
   expect(tester.takeException(),isNull);
   await tester.pumpWidget(const SizedBox.shrink());
  });

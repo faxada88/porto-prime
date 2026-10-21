@@ -19,14 +19,14 @@ class _ShowcaseState extends State<ProductShowcase> with WidgetsBindingObserver{
   timer=Timer.periodic(const Duration(seconds:6),(_){
    if(!mounted||!foreground||dragging||widget.products.length<2||!controller.hasClients||AppNav.instance.index.value!=0||ModalRoute.of(context)?.isCurrent==false||MediaQuery.disableAnimationsOf(context)||DateTime.now().difference(touched).inSeconds<10)return;
    if(controller.position.isScrollingNotifier.value)return;
-   final next=(page+1)%widget.products.take(8).length;
+   final next=(page+1)%widget.products.length;
    controller.animateToPage(next,duration:const Duration(milliseconds:550),curve:Curves.easeInOutCubic);
   });
  }
  @override void didChangeAppLifecycleState(AppLifecycleState state){foreground=state==AppLifecycleState.resumed;}
  @override void dispose(){timer?.cancel();controller.dispose();WidgetsBinding.instance.removeObserver(this);super.dispose();}
  @override Widget build(BuildContext context)=>LayoutBuilder(builder:(context,box){
-  final count=widget.products.take(8).length;
+  final count=widget.products.length;
   final cardWidth=box.maxWidth*.76-12;
   final extra=(MediaQuery.textScalerOf(context).scale(14)-14).clamp(0,32).toDouble();
   return Column(children:[
