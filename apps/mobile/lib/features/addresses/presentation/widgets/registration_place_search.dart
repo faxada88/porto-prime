@@ -28,7 +28,7 @@ class _RegistrationPlaceSearchState extends State<RegistrationPlaceSearch>{
   TextField(controller:controller,onChanged:search,decoration:InputDecoration(
    labelText:'Onde vamos entregar?',hintText:'Hotel, pousada, rua ou estabelecimento',prefixIcon:const Icon(Icons.search_rounded),
    suffixIcon:loading?const Padding(padding:EdgeInsets.all(16),child:SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2))):null)),
-  const SizedBox(height:8),const Text('Busque em Porto Seguro e selecione um local para preencher o endereço.',style:TextStyle(fontSize:12,height:1.5,color:AppColors.inkSoft)),
+  const SizedBox(height:8),const Text('Digite a rua, hotel ou estabelecimento e escolha seu endereço nas sugestões.',style:TextStyle(fontSize:12,height:1.5,color:AppColors.inkSoft)),
   if(error!=null)Padding(padding:const EdgeInsets.only(top:8),child:Text(error!,style:const TextStyle(fontSize:12,color:AppColors.muted))),
   for(final place in results)ListTile(contentPadding:EdgeInsets.zero,
    leading:Icon(place['kind']=='HOTEL'?Icons.hotel_outlined:place['kind']=='STREET'?Icons.place_outlined:Icons.storefront_outlined,color:AppColors.ocean700),

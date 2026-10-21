@@ -259,7 +259,7 @@ class _AddressEditorState extends State<AddressEditorPage> {
   ]));
   @override
   Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:Text(widget.address==null?'Novo endereço':'Editar endereço')),body:SafeArea(child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:680),child:Form(key:formKey,child:ListView(padding:const EdgeInsets.all(22),children:[
-    const Text('Seu endereço. Nossa rota.',style:TextStyle(fontSize:26,fontWeight:FontWeight.w800)),const SizedBox(height:8),const Text('Busque a rua, hotel ou estabelecimento e selecione uma opção. Calculamos sua entrega sem abrir mapas.',style:TextStyle(color:AppColors.muted,height:1.5)),const SizedBox(height:26),
+    const Text('Seu endereço. Nossa rota.',style:TextStyle(fontSize:26,fontWeight:FontWeight.w800)),const SizedBox(height:8),const Text('Digite a rua, hotel ou estabelecimento e escolha seu endereço nas sugestões.',style:TextStyle(color:AppColors.muted,height:1.5)),const SizedBox(height:26),
     placeSearch,field('postalCode','CEP',numeric:true),
     if(postalLoading)const Padding(padding:EdgeInsets.only(bottom:14),child:Text('Buscando endereço do CEP…',style:TextStyle(color:AppColors.muted))),
     if(postalHint!=null)Padding(padding:const EdgeInsets.only(bottom:14),child:Text(postalHint!,style:const TextStyle(color:AppColors.muted,fontSize:12))),
