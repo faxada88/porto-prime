@@ -15,6 +15,93 @@ class AppLanguage extends ChangeNotifier {
   final Map<String, List<_Phrase>> _templates = {};
   SharedPreferences? _preferences;
 
+  static const Map<String, Map<String, String>> _curated = {
+  "BEM-VINDO(A) AO PORTO PRIME": {
+    "es": "TE DAMOS LA BIENVENIDA A PORTO PRIME",
+    "en": "WELCOME TO PORTO PRIME"
+  },
+  "Seu próximo\npedido começa\ncom você.": {
+    "es": "Tu próximo\npedido empieza\ncontigo.",
+    "en": "Your next\norder starts\nwith you."
+  },
+  "Crie sua conta para pedir, acompanhar a entrega e usar todos os benefícios do Porto Prime.": {
+    "es": "Crea tu cuenta para hacer pedidos, seguir la entrega y disfrutar de todos los beneficios de Porto Prime.",
+    "en": "Create your account to order, track your delivery and enjoy all Porto Prime benefits."
+  },
+  "Seus pedidos": {
+    "es": "Tus pedidos",
+    "en": "Your orders"
+  },
+  "Acompanhe tudo em tempo real": {
+    "es": "Sigue todo en tiempo real",
+    "en": "Track everything in real time"
+  },
+  "Seus endereços": {
+    "es": "Tus direcciones",
+    "en": "Your addresses"
+  },
+  "Gerencie seus endereços": {
+    "es": "Gestiona tus direcciones",
+    "en": "Manage your addresses"
+  },
+  "Seu saldo": {
+    "es": "Tu saldo",
+    "en": "Your balance"
+  },
+  "Cupons, créditos e benefícios": {
+    "es": "Cupones, créditos y beneficios",
+    "en": "Coupons, credit and benefits"
+  },
+  "Criar minha conta": {
+    "es": "Crear mi cuenta",
+    "en": "Create my account"
+  },
+  "Entrar na minha conta": {
+    "es": "Entrar en mi cuenta",
+    "en": "Sign in to my account"
+  },
+  "Uma conta. Tudo organizado e seguro.": {
+    "es": "Una cuenta. Todo organizado y seguro.",
+    "en": "One account. Everything organized and secure."
+  },
+  "ESTAMOS POR PERTO": {
+    "es": "ESTAMOS CERCA DE TI",
+    "en": "WE’RE HERE FOR YOU"
+  },
+  "Precisa de ajuda?": {
+    "es": "¿Necesitas ayuda?",
+    "en": "Need help?"
+  },
+  "Ajuda e suporte": {
+    "es": "Ayuda y soporte",
+    "en": "Help and support"
+  },
+  "Fale com a equipe Porto Prime": {
+    "es": "Habla con el equipo de Porto Prime",
+    "en": "Talk to the Porto Prime team"
+  },
+  "Parcerias e patrocínios": {
+    "es": "Alianzas y patrocinios",
+    "en": "Partnerships and sponsorships"
+  },
+  "Conte sua ideia para a Porto Prime": {
+    "es": "Cuéntale tu idea a Porto Prime",
+    "en": "Share your idea with Porto Prime"
+  },
+  "Privacidade e segurança": {
+    "es": "Privacidad y seguridad",
+    "en": "Privacy and security"
+  },
+  "Cuidamos dos seus dados com carinho": {
+    "es": "Cuidamos tus datos con atención",
+    "en": "We handle your data with care"
+  },
+  "Muito mais que um destino.": {
+    "es": "Mucho más que un destino.",
+    "en": "Much more than a destination."
+  }
+};
+
   Future<void> initialize() async {
     _preferences = await SharedPreferences.getInstance();
     for (final code in ['es', 'en']) {
@@ -43,7 +130,7 @@ class AppLanguage extends ChangeNotifier {
   String translate(String value) {
     final code = locale.languageCode;
     if (code == 'pt' || value.isEmpty) return value;
-    final exact = _messages[code]?[value];
+    final exact = _curated[value]?[code] ?? _messages[code]?[value];
     if (exact != null) return exact;
     for (final phrase in _templates[code] ?? <_Phrase>[]) {
       final match = phrase.pattern.firstMatch(value);

@@ -1,3 +1,4 @@
+import '../../../../core/widgets/tropical_account_welcome.dart';
 import '../../../../core/localization/prime_localization.dart';
 import '../../../../core/widgets/customer_account_workspace.dart';
 import '../../../support/presentation/pages/support_page.dart';
@@ -36,37 +37,14 @@ class _Guest extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final welcome = _GuestAccessHero(
-      onLogin: () => _auth(context), onCreate: () => _accountMenu(context));
-    final help = Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      const _SectionLabel(eyebrow: 'ESTAMOS POR PERTO', title: 'Precisa de ajuda?'),
-      const SizedBox(height: 12),
-      _MenuSurface(children: [
-        _MenuLine(icon: AppIcons.support_agent_rounded, title: 'Ajuda e suporte',
-          subtitle: 'Fale com a equipe Porto Prime', onTap: () => _support(context)),
-        _MenuLine(icon: AppIcons.store, title: 'Parcerias e patrocínios', subtitle: 'Conte sua ideia para a Porto Prime', onTap: () => _publicSupport(context, topic: 'PARTNERSHIP')),
-        _MenuLine(icon: AppIcons.shield_rounded, title: 'Privacidade e segurança',
-          subtitle: 'Como protegemos sua conta e seus dados',
-          onTap: () => _simpleMessage(context, 'Privacidade e segurança',
-            'Seus dados são usados somente nos fluxos necessários para sua conta, pedidos, pagamentos e entregas.'),
-          last: true),
-      ]),
-    ]);
-    return SafeArea(bottom: false, child: PrimePageViewport(child: ListView(
-      physics: const BouncingScrollPhysics(), padding: const EdgeInsets.fromLTRB(20,22,20,126),
-      children: [
-        LayoutBuilder(builder: (context, box) {
-          if (box.maxWidth >= 860 && MediaQuery.textScalerOf(context).scale(14) <= 18) {
-            return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Expanded(flex: 3, child: welcome), const SizedBox(width: 24),
-              Expanded(flex: 2, child: help),
-            ]);
-          }
-          return Column(crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [welcome, const SizedBox(height: 18), help]);
-        }),
-      ],
-    )));
+    return TropicalAccountWelcome(
+      onCreate: () => _accountMenu(context),
+      onLogin: () => _auth(context),
+      onSupport: () => _support(context),
+      onPartnership: () => _publicSupport(context, topic: 'PARTNERSHIP'),
+      onPrivacy: () => _simpleMessage(context, 'Privacidade e segurança',
+        'Seus dados são usados somente nos fluxos necessários para sua conta, pedidos, pagamentos e entregas.'),
+    );
   }
 }
 
