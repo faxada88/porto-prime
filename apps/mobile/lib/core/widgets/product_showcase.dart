@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'catalogue_cart_shortcut.dart';
 import '../localization/prime_localization.dart';
 import '../navigation/app_nav.dart';
 import '../state/app_state.dart';
@@ -25,7 +26,7 @@ class _ShowcaseState extends State<ProductShowcase> with WidgetsBindingObserver 
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     timer = Timer.periodic(const Duration(seconds: 6), (_) {
-      if (!mounted || paused || !foreground || dragging || widget.products.length < 2 ||
+      if (!mounted || paused || !foreground || dragging || widget.products.length < 5 ||
           !controller.hasClients || AppNav.instance.index.value != 0 ||
           ModalRoute.of(context)?.isCurrent == false || MediaQuery.disableAnimationsOf(context) ||
           MediaQuery.accessibleNavigationOf(context) || DateTime.now().difference(touched).inSeconds < 10 ||
@@ -35,14 +36,14 @@ class _ShowcaseState extends State<ProductShowcase> with WidgetsBindingObserver 
   }
   void move(int direction) {
     if (!controller.hasClients || widget.products.isEmpty) return;
-    final next = (page + direction) % widget.products.length;
+    final next = (page + direction) % ((widget.products.length + 3) ~/ 4);
     controller.animateToPage(next, duration: Duration(milliseconds: MediaQuery.disableAnimationsOf(context) ? 1 : 480),
       curve: Curves.easeInOutCubic);
   }
   @override
   void didUpdateWidget(covariant ProductShowcase oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (page >= widget.products.length) {
+    if (page >= (widget.products.length + 3) ~/ 4) {
       page = 0;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && controller.hasClients) controller.jumpToPage(0);
@@ -58,52 +59,65 @@ class _ShowcaseState extends State<ProductShowcase> with WidgetsBindingObserver 
   @override
   Widget build(BuildContext context) {
     if (widget.products.isEmpty) return const SizedBox.shrink();
-    return AnimatedBuilder(
-      animation: Listenable.merge([AppState.instance, AppLanguage.instance]),
+    return AnimatedBuilder(animation: Listenable.merge([AppState.instance, AppLanguage.instance]),
       builder: (context, _) => LayoutBuilder(builder: (context, box) {
-        final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
-        final stacked = scale > 1.3 || box.maxWidth < 300;
-        final height = stacked ? 260 + scale * 150 : 270 + (scale - 1) * 180;
+        final scale = MediaQuery.textScalerOf(context).scale(12) / 12;
+        final count = (widget.products.length + 3) ~/ 4;
+        final width = (box.maxWidth - 24) / 4;
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          SizedBox(height: height, child: Listener(
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(width: 40, height: 40, decoration: const BoxDecoration(color: AppColors.ocean50, shape: BoxShape.circle),
+              child: const Icon(AppIcons.cart, color: AppColors.ocean800, size: 23)),
+            const SizedBox(width: 10),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const PrimeText('Vale levar junto', style: TextStyle(fontSize: 19, height: 1.2, fontWeight: FontWeight.w800, color: AppColors.ink)),
+              const SizedBox(height: 4),
+              const PrimeText('Produtos que combinam com o seu pedido', style: TextStyle(fontSize: 11, height: 1.4, color: AppColors.muted)),
+            ])),
+            const SizedBox(width: 4),
+            TextButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ShowcaseProductsPage())),
+              style: TextButton.styleFrom(backgroundColor: AppColors.ocean50, foregroundColor: AppColors.ocean800,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
+              child: const PrimeText('Ver todos', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700))),
+          ]),
+          const SizedBox(height: 18),
+          SizedBox(height: width * 1.2 + 184 * scale, child: Listener(
             onPointerDown: (_) { dragging = true; touched = DateTime.now(); },
             onPointerUp: (_) { dragging = false; touched = DateTime.now(); },
             onPointerCancel: (_) { dragging = false; touched = DateTime.now(); },
-            child: PageView.builder(
-              controller: controller, itemCount: widget.products.length,
+            child: PageView.builder(controller: controller, itemCount: count,
               onPageChanged: (value) => setState(() => page = value),
-              itemBuilder: (context, index) => _ShowcaseProduct(product: widget.products[index], stacked: stacked),
+              itemBuilder: (_, group) => Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                for (var column = 0; column < 4; column++) ...[
+                  if (column > 0) const SizedBox(width: 8),
+                  Expanded(child: group * 4 + column < widget.products.length ?
+                    ShowcaseProductTile(product: widget.products[group * 4 + column]) : const SizedBox.shrink()),
+                ],
+              ]),
             ),
           )),
-          if (widget.products.length > 1) Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Row(children: [
+          if (count > 1) Padding(padding: const EdgeInsets.only(top: 8), child: Row(
+            mainAxisAlignment: MainAxisAlignment.center, children: [
               IconButton(tooltip: translateLabel(paused ? 'Continuar apresentação' : 'Pausar apresentação'),
                 onPressed: () => setState(() { paused = !paused; touched = DateTime.now(); }),
-                icon: Icon(paused ? Icons.play_arrow_rounded : Icons.pause_rounded, size: 20, color: AppColors.ocean700)),
-              Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: ClipRRect(borderRadius: BorderRadius.circular(4), child: LinearProgressIndicator(
-                  value: (page + 1) / widget.products.length, minHeight: 3,
-                  color: AppColors.ocean700, backgroundColor: AppColors.ocean100)))),
-              Text('${page + 1} / ${widget.products.length}',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted)),
-              const SizedBox(width: 8),
-              IconButton(tooltip: translateLabel('Produto anterior'), onPressed: () { touched = DateTime.now(); move(-1); },
-                icon: const Icon(Icons.arrow_back_rounded, size: 20)),
+                icon: Icon(paused ? Icons.play_arrow_rounded : Icons.pause_rounded, size: 18, color: AppColors.muted)),
+              for (var i = 0; i < count; i++) AnimatedContainer(
+                duration: const Duration(milliseconds: 220), margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: page == i ? 28 : 6, height: 6,
+                decoration: BoxDecoration(color: page == i ? AppColors.ocean800 : AppColors.strokeStrong, borderRadius: BorderRadius.circular(6))),
               IconButton(tooltip: translateLabel('Próximo produto'), onPressed: () { touched = DateTime.now(); move(1); },
-                icon: const Icon(Icons.arrow_forward_rounded, size: 20)),
-            ]),
-          ),
+                icon: const Icon(Icons.chevron_right_rounded, color: AppColors.ocean800)),
+            ],
+          )),
         ]);
       }),
     );
   }
 }
 
-class _ShowcaseProduct extends StatelessWidget {
-  const _ShowcaseProduct({required this.product, required this.stacked});
+class ShowcaseProductTile extends StatelessWidget {
+  const ShowcaseProductTile({super.key, required this.product});
   final dynamic product;
-  final bool stacked;
   @override
   Widget build(BuildContext context) {
     final state = AppState.instance;
@@ -117,66 +131,104 @@ class _ShowcaseProduct extends StatelessWidget {
     final available = state.storeStatusKnown && state.storeOpen && product['active'] != false &&
       (int.tryParse('${product['stock']}') ?? 0) > 0;
     final visual = AppIcons.categoryVisual(category, iconKey: product['category']?['iconKey']?.toString());
-    final fallback = Center(child: Icon(visual.icon, size: 58, color: visual.foreground));
-    final artwork = Container(
-      decoration: BoxDecoration(color: visual.background, borderRadius: BorderRadius.circular(22)),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(fit: StackFit.expand, children: [
-        Positioned(right: -30, bottom: -30, child: Container(width: 130, height: 130,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: .45)))),
-        Padding(padding: const EdgeInsets.all(12), child: url.isEmpty ? fallback :
-          Image.network(url, fit: BoxFit.contain, cacheWidth: 640, errorBuilder: (_, __, ___) => fallback)),
-      ]),
-    );
-    final details = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      if (category.isNotEmpty) PrimeText(category, maxLines: 1, overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.ocean700)),
-      const SizedBox(height: 8),
-      PrimeText(name, maxLines: 2, overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontSize: 19, height: 1.15, letterSpacing: -.4, fontWeight: FontWeight.w800, color: AppColors.ink)),
-      if (description.isNotEmpty) ...[
-        const SizedBox(height: 8),
-        PrimeText(description, maxLines: 2, overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 11, height: 1.35, color: AppColors.muted)),
-      ],
-      const Spacer(),
-      FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft,
-        child: Text('R\$ ${price.toStringAsFixed(2).replaceAll('.', ',')}',
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink))),
-      const SizedBox(height: 12),
-      if (!available) const PrimeText('Indisponível', style: TextStyle(color: AppColors.muted))
-      else if (qty == 0) SizedBox(width: double.infinity, height: 46, child: FilledButton(
-        style: FilledButton.styleFrom(backgroundColor: AppColors.ocean800, foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 10), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
-        onPressed: () => state.addProduct(id),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Icon(Icons.add_rounded, size: 19), const SizedBox(width: 5),
-          Flexible(child: PrimeText('Adicionar', maxLines: 1, overflow: TextOverflow.ellipsis)),
+    return LayoutBuilder(builder: (context, box) {
+      final compact = box.maxWidth < 120;
+      final fallback = Center(child: Icon(visual.icon, size: compact ? 30 : 52, color: visual.foreground));
+      return Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.stroke.withValues(alpha: .6))),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          AspectRatio(aspectRatio: .84, child: ColoredBox(color: visual.background,
+            child: url.isEmpty ? fallback : Image.network(url, fit: BoxFit.cover, cacheWidth: 480,
+              errorBuilder: (_, __, ___) => fallback))),
+          Expanded(child: Padding(padding: EdgeInsets.all(compact ? 7 : 12), child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, children: [
+              PrimeText(category, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: compact ? 8 : 11, color: AppColors.muted)),
+              const SizedBox(height: 5),
+              PrimeText(name, maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: compact ? 10.5 : 15, height: 1.2, fontWeight: FontWeight.w700, color: AppColors.ink)),
+              if (description.isNotEmpty) ...[
+                const SizedBox(height: 5),
+                PrimeText(description, maxLines: 2, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: compact ? 8.5 : 11, height: 1.3, color: AppColors.muted)),
+              ],
+              const Spacer(),
+              FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft,
+                child: Text('R\$ ${price.toStringAsFixed(2).replaceAll('.', ',')}',
+                  style: TextStyle(fontSize: compact ? 11 : 17, fontWeight: FontWeight.w800, color: AppColors.ink))),
+              const SizedBox(height: 8),
+              if (qty == 0) Align(alignment: Alignment.centerRight, child: SizedBox(
+                width: 44, height: 44, child: IconButton.filled(
+                  tooltip: translateLabel('Adicionar $name'),
+                  style: IconButton.styleFrom(backgroundColor: AppColors.ocean800, foregroundColor: Colors.white,
+                    disabledBackgroundColor: AppColors.ocean50),
+                  onPressed: available ? () => state.addProduct(id) : null,
+                  icon: const Icon(Icons.add_rounded, size: 23))))
+              else Column(children: [
+                Text('$qty', style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.ocean800)),
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Expanded(child: IconButton(tooltip: translateLabel('Diminuir quantidade'), padding: EdgeInsets.zero,
+                    onPressed: () => state.changeQty(id, -1), icon: const Icon(Icons.remove_rounded, size: 19))),
+                  Expanded(child: IconButton(tooltip: translateLabel('Aumentar quantidade'), padding: EdgeInsets.zero,
+                    onPressed: available && state.canIncreaseQuantity(id) ? () => state.changeQty(id, 1) : null,
+                    icon: const Icon(Icons.add_rounded, size: 19))),
+                ]),
+              ]),
+            ],
+          ))),
         ]),
-      ))
-      else Container(
-        decoration: BoxDecoration(color: AppColors.ocean50, border: Border.all(color: AppColors.strokeStrong),
-          borderRadius: BorderRadius.circular(15)),
-        child: Row(children: [
-          Expanded(child: IconButton(tooltip: translateLabel('Diminuir quantidade'),
-            onPressed: () => state.changeQty(id, -1), icon: const Icon(Icons.remove_rounded, size: 20))),
-          Text('$qty', style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.ink)),
-          Expanded(child: IconButton(tooltip: translateLabel('Aumentar quantidade'),
-            onPressed: state.canIncreaseQuantity(id) ? () => state.changeQty(id, 1) : null,
-            icon: const Icon(Icons.add_rounded, size: 20))),
-        ]),
-      ),
-    ]);
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.strokeStrong),
-        boxShadow: const [BoxShadow(color: Color(0x070F343A), blurRadius: 16, offset: Offset(0, 5))]),
-      child: stacked ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        SizedBox(height: 150, child: artwork), const SizedBox(height: 16), Expanded(child: details),
-      ]) : Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Expanded(flex: 5, child: artwork), const SizedBox(width: 16), Expanded(flex: 6, child: details),
-      ]),
-    );
+      );
+    });
   }
+}
+
+class ShowcaseProductsPage extends StatefulWidget {
+  const ShowcaseProductsPage({super.key});
+  @override
+  State<ShowcaseProductsPage> createState() => _ShowcaseProductsPageState();
+}
+class _ShowcaseProductsPageState extends State<ShowcaseProductsPage> {
+  String query = '';
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: Listenable.merge([AppState.instance, AppLanguage.instance]),
+    builder: (context, _) {
+      final products = AppState.instance.products.where((p) => p['featuredHome'] == true &&
+        p['active'] != false && p['archived'] != true && (int.tryParse('${p['stock']}') ?? 0) > 0 &&
+        '${p['name']} ${p['description'] ?? ''}'.toLowerCase().contains(query)).toList();
+      return Scaffold(backgroundColor: AppColors.ocean50,
+        appBar: AppBar(title: const PrimeText('Vale levar junto'), backgroundColor: Colors.white),
+        body: SafeArea(top: false, child: Column(children: [
+          Expanded(child: CustomScrollView(slivers: [
+            SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const PrimeText('Complete o seu pedido', style: TextStyle(fontSize: 28, height: 1.15,
+                  fontWeight: FontWeight.w800, letterSpacing: -.7, color: AppColors.ink)),
+                const SizedBox(height: 8),
+                const PrimeText('Produtos que combinam com o seu pedido', style: TextStyle(color: AppColors.muted, height: 1.5)),
+                const SizedBox(height: 20),
+                TextField(onChanged: (value) => setState(() => query = value.trim().toLowerCase()),
+                  decoration: PrimeInputDecoration(hintText: 'Buscar produtos', prefixIcon: const Icon(AppIcons.search),
+                    filled: true, fillColor: Colors.white,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: const BorderSide(color: AppColors.stroke)))),
+              ]))),
+            if (products.isEmpty) const SliverFillRemaining(hasScrollBody: false,
+              child: Center(child: PrimeText('Nenhum produto encontrado.')))
+            else SliverPadding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+              sliver: SliverLayoutBuilder(builder: (context, constraints) {
+                final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+                final columns = scale > 1.6 ? 1 : constraints.crossAxisExtent >= 750 ? 4 : constraints.crossAxisExtent >= 520 ? 3 : 2;
+                final width = (constraints.crossAxisExtent - (columns - 1) * 12) / columns;
+                return SliverGrid(
+                  delegate: SliverChildBuilderDelegate((_, i) => ShowcaseProductTile(product: products[i]), childCount: products.length),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: columns,
+                    crossAxisSpacing: 12, mainAxisSpacing: 16, mainAxisExtent: width / .84 + 220 * scale));
+              })),
+          ])),
+          const CatalogueCartShortcut(),
+        ])),
+      );
+    });
 }

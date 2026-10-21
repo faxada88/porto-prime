@@ -49,8 +49,7 @@ class HomePage extends StatelessWidget {
       if(categories.isNotEmpty)_section(_HomeCategories(categories:categories),top:12),
       _section(const ReferenceCoastHero(),top:14),
       if(products.isNotEmpty)...[
-       _section(const PrimeText('Vale levar junto',style:TextStyle(fontSize:20,fontWeight:FontWeight.w800,color:AppColors.ink)),top:24,bottom:12),
-       _section(ProductShowcase(products:products),top:0),
+       _section(ProductShowcase(products:products),top:24),
       ],
       const SliverToBoxAdapter(child:SizedBox(height:28)),
      ]));

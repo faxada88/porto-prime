@@ -17,6 +17,10 @@ class AppLanguage extends ChangeNotifier {
   SharedPreferences? _preferences;
 
   static const Map<String, Map<String, String>> _curated = {
+'Produtos que combinam com o seu pedido': {'es': 'Productos que combinan con tu pedido', 'en': 'Great additions to your order'},
+'Complete o seu pedido': {'es': 'Completa tu pedido', 'en': 'Complete your order'},
+'Buscar produtos': {'es': 'Buscar productos', 'en': 'Search products'},
+'Nenhum produto encontrado.': {'es': 'No se encontraron productos.', 'en': 'No products found.'},
 'Vale levar junto': {'es': 'Añade algo más', 'en': 'Add a little extra'},
 'Continuar apresentação': {'es': 'Reanudar presentación', 'en': 'Resume slideshow'},
 'Pausar apresentação': {'es': 'Pausar presentación', 'en': 'Pause slideshow'},
