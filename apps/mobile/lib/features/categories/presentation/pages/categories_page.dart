@@ -1,3 +1,4 @@
+import '../../../../core/widgets/catalogue_cart_shortcut.dart';
 import '../../../../core/localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -61,7 +62,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
           return categoryMatches && searchMatches;
         }).toList();
 
-        return RefreshIndicator(
+        return Column(children: [Expanded(child: RefreshIndicator(
           onRefresh: state.loadProducts,
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(
@@ -77,7 +78,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                       child: Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-                        PrimeText(scoped?'Explore $selected':'Buscar',style:TextStyle(fontSize:28,fontWeight:FontWeight.w800,letterSpacing:-.8,color:AppColors.ink)),
+                        PrimeText(scoped?'Explore ${AppLanguage.instance.translate(selected)}':'Buscar',style:TextStyle(fontSize:28,fontWeight:FontWeight.w800,letterSpacing:-.8,color:AppColors.ink)),
                         SizedBox(height:7),PrimeText(scoped?'Escolha seus produtos e adicione ao carrinho.':'Encontre o que você precisa.',style:TextStyle(fontSize:13,height:1.5,color:AppColors.muted)),
                       ]),
                     ),
@@ -97,7 +98,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                         textInputAction:TextInputAction.search,
                         onSubmitted:(_)=>FocusScope.of(context).unfocus(),
                         decoration:PrimeInputDecoration(
-                          hintText:scoped?'Buscar em $selected':'Produto ou categoria',prefixIcon:const Icon(AppIcons.search,size:21),
+                          hintText:scoped?'Buscar em ${AppLanguage.instance.translate(selected)}':'Produto ou categoria',prefixIcon:const Icon(AppIcons.search,size:21),
                           suffixIcon:search.text.isEmpty?null:IconButton(tooltip: translateLabel('Limpar busca'),
                             icon:const Icon(Icons.close_rounded,size:20),onPressed:(){search.clear();setState((){});}),
                           filled:true,fillColor:AppColors.surface,
@@ -141,7 +142,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                           PrimeText(query.isEmpty?(scoped||selected=='Todos'?'Produtos':selected):'Resultados da busca',
                             style:const TextStyle(fontSize:20,height:1.3,fontWeight:FontWeight.w800,color:AppColors.ink)),
                           const SizedBox(height:5),
-                          PrimeText('${filtered.length} ${filtered.length==1?'produto':'produtos'}',
+                          PrimeText('${filtered.length} ${AppLanguage.instance.translate(filtered.length==1?'produto':'produtos')}',
                             style:const TextStyle(fontSize:12,color:AppColors.muted)),
                         ])),
                         if(query.isNotEmpty||(!scoped&&selected!='Todos'))TextButton(onPressed:(){
@@ -206,7 +207,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 ),
             ],
           ),
-        );
+        )), const CatalogueCartShortcut()]);
       },
     ),
   );
