@@ -38,8 +38,6 @@ class _Guest extends StatelessWidget {
     final welcome = _GuestAccessHero(
       onLogin: () => _auth(context), onCreate: () => _accountMenu(context));
     final help = Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      _ApplicationShortcut(onTap: () => _courierStatus(context)),
-      const SizedBox(height: 26),
       const _SectionLabel(eyebrow: 'ESTAMOS POR PERTO', title: 'Precisa de ajuda?'),
       const SizedBox(height: 12),
       _MenuSurface(children: [
@@ -56,7 +54,6 @@ class _Guest extends StatelessWidget {
     return SafeArea(bottom: false, child: PrimePageViewport(child: ListView(
       physics: const BouncingScrollPhysics(), padding: const EdgeInsets.fromLTRB(20,22,20,126),
       children: [
-        const _ProfileHeader(), const SizedBox(height: 18),
         LayoutBuilder(builder: (context, box) {
           if (box.maxWidth >= 860 && MediaQuery.textScalerOf(context).scale(14) <= 18) {
             return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -78,13 +75,6 @@ class _GuestAccessHero extends StatelessWidget {
   final VoidCallback onCreate;
   @override
   Widget build(BuildContext context) => PrimeAccountWelcome(onLogin: onLogin, onCreate: onCreate);
-}
-
-class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader();
-  @override
-  Widget build(BuildContext context)=>const Text('Sua conta',style:TextStyle(
-    fontSize:25,height:1.2,letterSpacing:-.7,fontWeight:FontWeight.w800,color:AppColors.ink));
 }
 
 class _GuestHero extends StatelessWidget {

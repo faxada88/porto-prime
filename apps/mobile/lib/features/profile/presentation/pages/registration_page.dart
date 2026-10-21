@@ -37,7 +37,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     [const _F('email','E-mail',AppIcons.mail_outline_rounded,keyboard:TextInputType.emailAddress),const _F('password','Crie uma senha',AppIcons.lock_outline_rounded,secret:true,hint:'Mínimo de 8 caracteres'),if(courier)const _F('pixKey','Chave PIX para recebimentos',AppIcons.account_balance_wallet_outlined,required:false),if(!customer&&!courier)const _F('pixKeyType','Tipo de chave PIX',AppIcons.account_balance_wallet_outlined,required:false),if(!customer&&!courier)const _F('pixKey','Chave PIX (opcional)',AppIcons.wallet,required:false),if(!customer&&!courier)const _F('contactRole','Seu cargo / função',AppIcons.work_outline_rounded,required:false)],
   ];
   List<List<_F>> get courierGroups=>[
-    [const _F('cpf','CPF',AppIcons.badge_outlined,keyboard:TextInputType.number,format:_Format.cpf),const _F('birthDate','Data de nascimento',AppIcons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date),const _F('name','Nome na Receita Federal',AppIcons.person_outline_rounded)],
+    [const _F('cpf','CPF',AppIcons.badge_outlined,keyboard:TextInputType.number,format:_Format.cpf),const _F('birthDate','Data de nascimento',AppIcons.cake_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date),const _F('name','Nome completo',AppIcons.person_outline_rounded)],
     [const _F('phone','Celular / WhatsApp',AppIcons.phone_outlined,keyboard:TextInputType.phone,format:_Format.phone),const _F('cep','CEP',AppIcons.local_post_office_outlined,keyboard:TextInputType.number,format:_Format.cep),const _F('street','Rua / avenida',AppIcons.route_outlined),const _F('number','Número',AppIcons.numbers_outlined),const _F('neighborhood','Bairro',AppIcons.map_outlined),const _F('city','Cidade',AppIcons.location_city_outlined),const _F('state','UF',AppIcons.map_outlined)],
     [const _F('cnh','Número de registro da CNH',AppIcons.credit_card_outlined),const _F('cnhCategory','Categoria da CNH',AppIcons.fact_check_outlined),const _F('cnhExpiry','Validade da CNH',AppIcons.event_available_outlined,hint:'DD/MM/AAAA',keyboard:TextInputType.number,format:_Format.date)],
     [const _F('vehicleType','Tipo de veículo',AppIcons.commute_rounded),const _F('vehicleBrand','Marca',AppIcons.two_wheeler_outlined),const _F('vehicleModel','Modelo',AppIcons.two_wheeler_outlined),const _F('vehicleYear','Ano',AppIcons.calendar_today_outlined,keyboard:TextInputType.number),const _F('vehiclePlate','Placa',AppIcons.pin_outlined,format:_Format.plate)],
@@ -172,7 +172,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             children: [
                               ...groups[step].map(field),
                               if (courier && step == 0) _cpfVerificationStatus(),
-                              if(courier && step==0) ...[CourierPhotoCard(initialPhoto:profilePhoto,onSelected:(photo)=>setState(()=>profilePhoto=photo)),const SizedBox(height:16)],
+                              if(courier && step==0 && _cpfApproved) ...[CourierPhotoCard(initialPhoto:profilePhoto,onSelected:(photo){if(mounted&&_cpfApproved)setState(()=>profilePhoto=photo);}),const SizedBox(height:16)],
                               if (courier &&
                                   step == 3 &&
                                   ctl('vehicleBrand').text == 'Outra marca')
@@ -437,7 +437,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       },
       decoration: InputDecoration(
         labelText: f.label,
-        hintText: courier && f.key == 'name' ? 'Preenchido após a consulta do CPF' : f.hint,
+        hintText: courier && f.key == 'name' ? 'Nome completo' : f.hint,
         errorMaxLines: 6,
         filled: true,
         fillColor: AppColors.surfaceSoft,
@@ -598,24 +598,27 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   String get _cpfIdentity => '${ctl('cpf').text.replaceAll(RegExp(r'\D'), '')}:${ctl('birthDate').text.replaceAll(RegExp(r'\D'), '')}';
 
+  bool get _cpfApproved=>verifiedCpfIdentity==_cpfIdentity&&cpfSituation=='REGULAR'&&checking['cpfLookup']!=true;
+
   Widget _cpfVerificationStatus() {
     final waiting = checking['cpfLookup'] == true;
     final error = remoteError['cpfLookup'];
-    final regular = verifiedCpfIdentity == _cpfIdentity && cpfSituation == 'REGULAR';
+    final regular = _cpfApproved;
+    if(!waiting&&!regular&&(error?.isNotEmpty!=true))return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(
-          waiting ? 'Consultando a Receita Federal…'
-              : cpfSituation != null ? 'Situação cadastral: $cpfSituation'
-              : 'Informe CPF e data de nascimento para consultar a Receita Federal.',
+          waiting ? 'Validando seus dados…'
+              : regular ? 'Dados validados. Agora adicione sua foto.'
+              : error??'Confira os dados informados.',
           style: TextStyle(color: regular ? AppColors.success : AppColors.muted, height: 1.5),
         ),
         if (!waiting && (error?.isNotEmpty ?? false))
           TextButton.icon(
             onPressed: _queueCpfLookup,
             icon: const Icon(AppIcons.manage_search_rounded, size: 18),
-            label: const Text('Consultar novamente'),
+            label: const Text('Tentar novamente'),
           ),
       ]),
     );
@@ -631,6 +634,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     final ready = cpf.length == 11 && birthDate.replaceAll(RegExp(r'\D'), '').length == 8;
     setState(() {
       verifiedCpfIdentity = null;
+      profilePhoto = null;
       cpfSituation = null;
       ctl('name').clear();
       checking['cpfLookup'] = ready;
@@ -650,7 +654,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           ctl('name').text = (result['name'] ?? '').toString();
           verifiedCpfIdentity = regular ? identity : null;
           remoteError['cpfLookup'] = regular ? ''
-              : 'CPF com situação cadastral $situation. Entre em contato com a Receita Federal para regularizar seu CPF antes de continuar.';
+              : 'Não foi possível validar este CPF. Confira seus dados antes de continuar.';
           remoteError['cpf'] = regular ? '' : null;
         });
         form.currentState?.validate();
@@ -660,7 +664,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           checking['cpfLookup'] = false;
           final message = e.toString().replaceFirst('Exception: ', '');
           remoteError['cpfLookup'] = message.startsWith('Confira ') || message.startsWith('Informe ') || message.startsWith('CPF ') || message.startsWith('Este CPF ') || message.startsWith('Muitas consultas.') || message.startsWith('Consulta temporariamente')
-              ? message : 'Não foi possível consultar a Receita Federal agora. Tente novamente mais tarde.';
+              ? message : 'Não foi possível validar seus dados agora. Tente novamente mais tarde.';
         });
         form.currentState?.validate();
       }
@@ -796,15 +800,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   Future<void> next() async {
-    if(courier && profilePhoto==null){
-      await _showInfo('Foto obrigatória','Tire uma selfie ou escolha uma foto sua na galeria para continuar o cadastro.',AppIcons.person_rounded);
+    if(courier&&!_cpfApproved){
+      await _showInfo('Valide seus dados',checking['cpfLookup']==true
+        ?'Aguarde a validação dos seus dados.'
+        :(remoteError['cpfLookup']?.isNotEmpty==true?remoteError['cpfLookup']!:'Confira o CPF e a data de nascimento para continuar.'),AppIcons.shield_outlined);
       return;
     }
-    if (courier && (verifiedCpfIdentity != _cpfIdentity || cpfSituation != 'REGULAR')) {
-      await _showInfo('Verificação do CPF',
-        checking['cpfLookup'] == true ? 'Aguarde a consulta à Receita Federal.'
-            : remoteError['cpfLookup'] ?? 'Informe CPF e data de nascimento e conclua a consulta antes de continuar.',
-        AppIcons.shield_outlined);
+    if(courier&&profilePhoto==null){
+      await _showInfo('Adicione sua foto','Seus dados foram validados. Adicione uma foto sua para continuar.',AppIcons.person_rounded);
       return;
     }
     if (!(form.currentState?.validate() ?? false)) return;
