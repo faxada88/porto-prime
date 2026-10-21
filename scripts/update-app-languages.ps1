@@ -21,19 +21,35 @@ if($packageManager -notmatch '^package:'){throw 'Android ainda nao esta pronto p
 # This container generates bundled interface dictionaries only. It receives no customer data.
 Invoke-Checked -Command docker -Arguments @('info','--format','{{.ServerVersion}}')
 $translatorName='porto-prime-ui-translator'
+$translatorImage='libretranslate/libretranslate:latest'
 $existingContainers=@(& docker container ls --all --format '{{.Names}}')
 if($LASTEXITCODE -ne 0){throw 'Nao foi possivel listar os containers. Confirme que o Docker Desktop esta aberto.'}
 if($existingContainers -contains $translatorName){
- Invoke-Checked -Command docker -Arguments @('start',$translatorName)
-}else{
- Invoke-Checked -Command docker -Arguments @('run','-d','--name',$translatorName,'-p','127.0.0.1:5040:5000','-e','LT_LOAD_ONLY=pt,en,es','-v','porto-prime-ui-translation-models:/home/libretranslate/.local:rw','libretranslate/libretranslate:latest')
+ # Recreate only this script's disposable container; preserve the model volume.
+ $existingImage=((& docker inspect --format '{{.Config.Image}}' $translatorName) -join '').Trim()
+ if($LASTEXITCODE -ne 0){throw 'Nao foi possivel verificar o container de traducao.'}
+ if($existingImage -ne $translatorImage){throw 'O nome do tradutor pertence a outra imagem. Nenhum container foi removido.'}
+ $wasRunning=((& docker inspect --format '{{.State.Running}}' $translatorName) -join '').Trim()
+ if($LASTEXITCODE -ne 0){throw 'Nao foi possivel consultar o estado do tradutor.'}
+ if($wasRunning -eq 'true'){Invoke-Checked -Command docker -Arguments @('stop',$translatorName)}
+ Invoke-Checked -Command docker -Arguments @('rm',$translatorName)
 }
+# Let Docker allocate a local port instead of binding Windows-reserved port 5040.
+Invoke-Checked -Command docker -Arguments @('run','-d','--name',$translatorName,'--label','com.portoprime.role=ui-translator','-p','127.0.0.1::5000','-e','LT_LOAD_ONLY=pt,en,es','-v','porto-prime-ui-translation-models:/home/libretranslate/.local:rw',$translatorImage)
+$publishedPorts=@(& docker port $translatorName '5000/tcp')
+if($LASTEXITCODE -ne 0){throw 'Nao foi possivel descobrir a porta local do tradutor.'}
+$mapping=@($publishedPorts | Where-Object {$_ -match '^127\.0\.0\.1:\d+$'})
+if($mapping.Count -ne 1){throw 'O Docker nao informou uma porta local valida para o tradutor.'}
+$translatorUrl='http://'+$mapping[0].Trim()
+$previousTranslatorUrl=$env:PORTO_TRANSLATOR_URL
+$env:PORTO_TRANSLATOR_URL=$translatorUrl
+Write-Host "Tradutor local: $translatorUrl"
 Write-Host 'Preparando os idiomas da interface. Na primeira vez o Docker baixa os modelos; acompanhe em docker logs porto-prime-ui-translator.'
 try {
  $deadline=(Get-Date).AddMinutes(35)
  $ready=$false
  while((Get-Date) -lt $deadline){
-  try{$languages=Invoke-RestMethod 'http://127.0.0.1:5040/languages' -TimeoutSec 8; if(@($languages|Where-Object {$_.code -eq 'pt'}).Count -gt 0){$ready=$true;break}}catch{}
+  try{$languages=Invoke-RestMethod ($translatorUrl+'/languages') -TimeoutSec 8; if(@($languages|Where-Object {$_.code -eq 'pt'}).Count -gt 0){$ready=$true;break}}catch{}
   $running=& docker inspect --format '{{.State.Running}}' $translatorName
   if($running -ne 'true'){throw 'Tradutor parou. Consulte docker logs porto-prime-ui-translator.'}
   Start-Sleep -Seconds 5
@@ -41,6 +57,7 @@ try {
  if(!$ready){throw 'Modelos de idioma ainda indisponiveis. Consulte docker logs porto-prime-ui-translator.'}
  Invoke-Checked -Command node -Arguments @((Join-Path $PSScriptRoot 'prepare-app-languages.mjs'))
 } finally {
+ $env:PORTO_TRANSLATOR_URL=$previousTranslatorUrl
  & docker stop $translatorName | Out-Null
 }
 Push-Location (Join-Path $projectRoot 'apps\mobile')
