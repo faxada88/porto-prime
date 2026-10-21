@@ -5,8 +5,8 @@ import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
 
 abstract final class ReferenceHomeTokens {
- static const green=Color(0xFF17130F);
- static const gold=Color(0xFFF1C46B);
+ static const green=AppColors.ocean800;
+ static const gold=AppColors.ocean100;
  static const canvas=Color(0xFFFFFFFF);
  static const shadow=[BoxShadow(color:Color(0x05003B3E),blurRadius:22,offset:Offset(0,7))];
  static const heroAsset='assets/reference_home/coast-banner.webp';
@@ -17,14 +17,14 @@ class ReferenceHomeHeader extends StatelessWidget {
  final String address,region;final int cartCount;final VoidCallback onAddress,onCart,onProfile;
  @override Widget build(BuildContext context)=>Row(children:[
   Expanded(child:InkWell(onTap:onAddress,borderRadius:BorderRadius.circular(16),child:Padding(padding:const EdgeInsets.symmetric(vertical:4),child:Row(children:[ClipRRect(borderRadius:BorderRadius.circular(13),child:Image.asset('assets/reference_home/porto-prime-gold-mark.webp',width:43,height:43,excludeFromSemantics:true)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('ENTREGAR EM',style:TextStyle(color:AppColors.ocean700,fontSize:10,letterSpacing:.8,fontWeight:FontWeight.w800)),const SizedBox(height:4),Row(children:[const Icon(AppIcons.mapPin,size:15,color:AppColors.ink),const SizedBox(width:4),Expanded(child:Text(address,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:14,fontWeight:FontWeight.w700))),const Icon(AppIcons.chevronDown,size:14)]),if(region.isNotEmpty)Padding(padding:const EdgeInsets.only(left:19,top:3),child:Text(region,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,color:AppColors.muted)))]))])))),
-  const SizedBox(width:8),_HeaderAction(icon:AppIcons.cart,label:'Abrir carrinho',count:cartCount,onTap:onCart),const SizedBox(width:7),_HeaderAction(icon:AppIcons.user,label:'Abrir perfil',dark:true,onTap:onProfile),
+  const SizedBox(width:8),_HeaderAction(icon:AppIcons.user,label:'Abrir perfil',dark:true,onTap:onProfile),
  ]);
 }
 class _HeaderAction extends StatelessWidget {
  const _HeaderAction({required this.icon,required this.label,required this.onTap,this.count=0,this.dark=false});
  final IconData icon;final String label;final VoidCallback onTap;final int count;final bool dark;
  @override Widget build(BuildContext context)=>Semantics(button:true,label:count>0?'$label, $count itens':label,child:Stack(clipBehavior:Clip.none,children:[
-  Material(color:dark?ReferenceHomeTokens.green:Colors.white,borderRadius:BorderRadius.circular(17),elevation:dark?0:1,shadowColor:const Color(0x18003B3E),child:InkWell(onTap:onTap,borderRadius:BorderRadius.circular(17),child:SizedBox(width:44,height:46,child:Icon(icon,color:dark?Colors.white:AppColors.ink,size:24)))),
+  Material(color:dark?AppColors.ocean100:Colors.white,borderRadius:BorderRadius.circular(17),elevation:dark?0:1,shadowColor:const Color(0x18003B3E),child:InkWell(onTap:onTap,borderRadius:BorderRadius.circular(17),child:SizedBox(width:44,height:46,child:Icon(icon,color:dark?AppColors.ocean700:AppColors.ink,size:24)))),
   if(count>0)Positioned(top:-4,right:-3,child:Container(constraints:const BoxConstraints(minWidth:18,minHeight:18),padding:const EdgeInsets.symmetric(horizontal:4),alignment:Alignment.center,decoration:BoxDecoration(color:AppColors.coral600,shape:BoxShape.circle,border:Border.all(color:Colors.white,width:1.4)),child:Text(count>99?'99+':'$count',textScaler:TextScaler.noScaling,style:const TextStyle(fontSize:9,fontWeight:FontWeight.w700,color:Colors.white)))),
  ]));
 }

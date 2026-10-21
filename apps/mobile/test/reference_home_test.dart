@@ -42,10 +42,10 @@ void main() {
    ReferenceHomeSearch(onTap:()=>calls.add('search')),
   ]))));
   await tester.tap(find.text('ENTREGAR EM'));
-  await tester.tap(action('Abrir carrinho'));
+  expect(find.bySemanticsLabel('Abrir carrinho'),findsNothing);
   await tester.tap(action('Abrir perfil'));
   await tester.tap(find.text('O que você quer pedir hoje?'));
-  expect(calls,['address','cart','profile','search']);
+  expect(calls,['address','profile','search']);
  });
  testWidgets('Reference product keeps original cart quantity handlers', (tester) async {
   final state=AppState.instance;

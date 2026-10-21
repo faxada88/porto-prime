@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  // Porto Prime — charcoal, champagne gold and warm readable surfaces.
+  // Porto Prime — airy white, pearl surfaces and restrained coastal teal.
   // Legacy token names preserve all existing widget contracts.
-  static const ocean900 = Color(0xFF17130F);
-  static const ocean800 = Color(0xFF2A2117);
-  static const ocean700 = Color(0xFF715019);
-  static const ocean600 = Color(0xFF866021);
-  static const ocean500 = Color(0xFFA2762A);
-  static const ocean300 = Color(0xFFDFC28C);
-  static const ocean100 = Color(0xFFF7EACD);
-  static const ocean50 = Color(0xFFFDF7EC);
+  static const ocean900 = Color(0xFF142E35);
+  static const ocean800 = Color(0xFF1C4149);
+  static const ocean700 = Color(0xFF236572);
+  static const ocean600 = Color(0xFF2D7883);
+  static const ocean500 = Color(0xFF47909A);
+  static const ocean300 = Color(0xFFAED6DA);
+  static const ocean100 = Color(0xFFE5F2F3);
+  static const ocean50 = Color(0xFFF2F9FA);
 
-  static const sun500 = Color(0xFFF1C46B);
-  static const sun200 = Color(0xFFF8E6BC);
-  static const sand100 = Color(0xFFFBF0DC);
-  static const sand50 = Color(0xFFFFFBF3);
+  static const sun500 = Color(0xFFC6E5E8);
+  static const sun200 = Color(0xFFE3F2F3);
+  static const sand100 = Color(0xFFEDF5F6);
+  static const sand50 = Color(0xFFF7FAFB);
 
   static const coral600 = Color(0xFFB9412D);
   static const coral100 = Color(0xFFFCEDE7);
@@ -24,19 +24,19 @@ abstract final class AppColors {
   static const sky100 = Color(0xFFE5F3FB);
   static const sky700 = Color(0xFF356D8D);
 
-  static const ink = Color(0xFF211C16);
-  static const inkSoft = Color(0xFF51483D);
-  static const muted = Color(0xFF70675C);
-  static const subtle = Color(0xFF958C80);
-  static const canvas = Color(0xFFFAF8F3);
+  static const ink = Color(0xFF1D3037);
+  static const inkSoft = Color(0xFF455C65);
+  static const muted = Color(0xFF60747C);
+  static const subtle = Color(0xFF82949B);
+  static const canvas = Color(0xFFF7FAFB);
   static const surface = Color(0xFFFFFFFF);
-  static const surfaceSoft = Color(0xFFFDFBF7);
-  static const surfaceMuted = Color(0xFFF2ECE2);
-  static const surfaceSun = Color(0xFFFFFBF3);
-  static const surfaceOcean = Color(0xFFFBF4E5);
+  static const surfaceSoft = Color(0xFFFAFCFD);
+  static const surfaceMuted = Color(0xFFEDF3F5);
+  static const surfaceSun = Color(0xFFF7FAFB);
+  static const surfaceOcean = Color(0xFFEFF8F9);
   static const overlay = Color(0x99061210);
-  static const stroke = Color(0xFFE8DFD1);
-  static const strokeStrong = Color(0xFFD4C2A3);
+  static const stroke = Color(0xFFE1EAED);
+  static const strokeStrong = Color(0xFFC5D9DE);
   static const success = Color(0xFF2D9B70);
   static const warning = Color(0xFF8D611D);
   static const danger = coral600;
@@ -52,7 +52,7 @@ abstract final class AppColors {
   static const peach = coral100;
   static const cream = sand50;
   static const mint = ocean100;
-  static const mintStrong = Color(0xFFEFDCB4);
+  static const mintStrong = Color(0xFFCDE7E9);
   static const lavender = lavender100;
   static const sky = sky100;
   static const white = surface;
@@ -62,7 +62,7 @@ abstract final class AppColors {
   static const primaryDark = ocean800;
   static const action = ocean700;
   static const actionSoft = ocean100;
-  static const electric = Color(0xFFE3B552);
+  static const electric = Color(0xFF90CCD1);
   static const midnight = ocean900;
   static const accent = coral600;
 }
