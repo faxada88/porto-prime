@@ -365,7 +365,7 @@ class _AddButton extends StatelessWidget {
     button: true,
     label: 'Adicionar ' + productName,
     child: Material(
-      color: AppColors.ocean900,
+      color: cartIcon ? AppColors.ocean100 : AppColors.ocean900,
       borderRadius: BorderRadius.circular(AppRadius.md),
       child: InkWell(
         onTap: onTap,
@@ -377,7 +377,7 @@ class _AddButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(cartIcon?AppIcons.cart:AppIcons.plus, color: cartIcon?Colors.white:AppColors.sun500, size: 18),
+                Icon(AppIcons.plus, color: cartIcon?AppColors.ocean700:AppColors.sun500, size: 18),
                 if(!cartIcon) const SizedBox(width: 5),
                 if(!cartIcon) const Flexible(
                   child: FittedBox(

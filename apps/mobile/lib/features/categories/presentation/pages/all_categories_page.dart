@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/state/app_state.dart';
-import '../../../../core/navigation/app_nav.dart';
+import 'categories_page.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/prime_reference_home.dart';
 class AllCategoriesPage extends StatefulWidget{
@@ -22,7 +22,7 @@ class _AllCategoriesState extends State<AllCategoriesPage>{
       mainAxisExtent:80+MediaQuery.textScalerOf(context).scale(12)*3),
       delegate:SliverChildBuilderDelegate((context,i){final c=categories[i];return ReferenceCategoryTile(
        name:'${c['name']}',iconKey:c['iconKey']?.toString(),selected:false,onTap:(){
-        AppState.instance.selectCatalogCategory('${c['name']}');AppNav.instance.go(1);Navigator.of(context).pop();
+        openProductCatalogue(context,category:'${c['name']}');
        });},childCount:categories.length));
     })),
    ]));

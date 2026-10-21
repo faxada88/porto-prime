@@ -6,6 +6,15 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/prime_product_card.dart';
 import '../../../../core/widgets/prime_ui.dart';
 
+Future<void> openProductCatalogue(BuildContext context,{String category='Todos'})async{
+ AppState.instance.selectCatalogCategory(category);
+ await Navigator.of(context).push<void>(MaterialPageRoute(builder:(_)=>Scaffold(
+  backgroundColor:AppColors.canvas,
+  appBar:AppBar(title:const Text('Produtos')),
+  body:const CategoriesPage(),
+ )));
+}
+
 class CategoriesPage extends StatefulWidget {
   const CategoriesPage({super.key});
 
@@ -178,17 +187,14 @@ class _CategoriesPageState extends State<CategoriesPage> {
                       final columns = AppResponsive.productColumns(width);
                       return SliverGrid(
                         delegate: SliverChildBuilderDelegate(
-                          (_, i) => PrimeProductCard(product: filtered[i]),
+                          (_, i) => PrimeProductCard(product: filtered[i],referenceStyle:true),
                           childCount: filtered.length,
                         ),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: columns,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
-                          mainAxisExtent: AppResponsive.productHeight(
-                            context,
-                            (width - (columns - 1) * 12) / columns,
-                          ),
+                          mainAxisExtent: (width-(columns-1)*12)/columns+112+(MediaQuery.textScalerOf(context).scale(14)-14).clamp(0,32)*10,
                         ),
                       );
                     },
