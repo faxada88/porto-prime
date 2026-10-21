@@ -9,7 +9,6 @@ import 'active_order_shortcut.dart';
 import 'prime_bottom_navigation.dart';
 
 import '../../features/cart/presentation/pages/cart_page.dart';
-import '../../features/categories/presentation/pages/categories_page.dart';
 import '../../features/courier/presentation/pages/courier_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
@@ -26,7 +25,7 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   static const pages = [
     HomePage(),
-    CategoriesPage(),
+    OrdersPage(),
     CartPage(),
     ProfilePage(),
   ];

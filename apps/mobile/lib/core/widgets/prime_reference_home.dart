@@ -35,8 +35,8 @@ class ReferenceHomeSearch extends StatelessWidget {
  @override Widget build(BuildContext context)=>Material(color:const Color(0xFFF5F1E9),borderRadius:BorderRadius.circular(14),child:InkWell(onTap:onTap,borderRadius:BorderRadius.circular(20),child:Container(padding:const EdgeInsets.symmetric(horizontal:14,vertical:16),decoration:BoxDecoration(borderRadius:BorderRadius.circular(20),border:Border.all(color:AppColors.stroke)),child:Row(children:[const Icon(AppIcons.search,size:24,color:AppColors.ink),const SizedBox(width:12),const Expanded(child:PrimeText('O que você quer pedir hoje?',style:TextStyle(fontSize:13,color:AppColors.muted))),const SizedBox(width:4)]))));
 }
 class ReferenceCoastHero extends StatelessWidget {
- const ReferenceCoastHero({super.key,required this.onTap});final VoidCallback onTap;
- @override Widget build(BuildContext context)=>PrimeBrandBanner(onExplore:onTap);
+ const ReferenceCoastHero({super.key,this.onTap});final VoidCallback? onTap;
+ @override Widget build(BuildContext context)=>const PrimeBrandBanner();
 }
 
 class ReferenceCategoryTile extends StatelessWidget {

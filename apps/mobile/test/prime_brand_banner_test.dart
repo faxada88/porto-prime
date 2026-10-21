@@ -6,7 +6,7 @@ import 'package:porto_prime/core/widgets/prime_brand_banner.dart';
 void main(){
  for(final width in [320.0,390.0,768.0]){
   for(final scale in [1.0,1.5,2.0]){
-   testWidgets('Brand artwork fits $width / $scale and keeps catalogue action',(tester)async{
+   testWidgets('Brand artwork fits $width / $scale without catalogue action',(tester)async{
     tester.view.devicePixelRatio=1;
     tester.view.physicalSize=Size(width,1200);
     addTearDown(tester.view.resetPhysicalSize);
@@ -22,9 +22,8 @@ void main(){
     expect(image.fit,BoxFit.contain);
     expect(tester.getSize(find.byType(AspectRatio)).width,closeTo(width-36>560?560:width-36,.001));
     expect(tester.getSize(find.byType(AspectRatio)).aspectRatio,closeTo(2/3,.001));
-    await tester.ensureVisible(find.text('Explorar catálogo'));
-    await tester.tap(find.text('Explorar catálogo'));
-    expect(opened,1);
+    expect(find.text('Explorar catálogo'), findsNothing);
+    expect(opened,0);
     expect(tester.takeException(),isNull);
    });
   }

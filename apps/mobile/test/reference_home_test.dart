@@ -68,13 +68,12 @@ void main() {
   expect(state.cart['reference-test'],1);
  });
 
- testWidgets('Single brand artwork is visible and opens catalogue', (tester) async {
+ testWidgets('Single brand artwork has no redundant catalogue action', (tester) async {
   var opened=0;
   await tester.pumpWidget(MaterialApp(home:Scaffold(body:SingleChildScrollView(child:Padding(padding:const EdgeInsets.all(18),child:ReferenceCoastHero(onTap:()=>opened++))))));
   expect(find.descendant(of:find.byType(ReferenceCoastHero),matching:find.byType(Image)),findsOneWidget);
-  await tester.ensureVisible(find.text('Explorar catálogo'));
-  await tester.tap(find.text('Explorar catálogo').hitTestable().first);
-  expect(opened,1);
+  expect(find.text('Explorar catálogo'), findsNothing);
+  expect(opened,0);
   expect(tester.takeException(),isNull);
  });
 

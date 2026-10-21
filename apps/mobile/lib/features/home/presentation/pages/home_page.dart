@@ -45,9 +45,9 @@ class HomePage extends StatelessWidget {
       _section(AnimatedBuilder(animation:CustomerActivity.instance,builder:(context,_)=>ReferenceHomeHeader(address:address,region:region,cartCount:state.cartCount,
        greeting:'${DateTime.now().hour<12?'Bom dia':DateTime.now().hour<18?'Boa tarde':'Boa noite'}${state.user?['name']==null?'':', ${state.user!['name'].toString().trim().split(' ').first}'}',notificationCount:CustomerActivity.instance.unread,
        onAddress:(){if(state.isCustomer){showDeliveryAddressSheet(context);}else{AppNav.instance.go(3);}},onCart:()=>AppNav.instance.go(2),onProfile:(){if(!state.isCustomer){AppNav.instance.go(3);return;}Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const CustomerActivityPage()));})),top:12),
-      _section(ReferenceHomeSearch(onTap:()=>openProductCatalogue(context))),
+      _section(ReferenceHomeSearch(onTap:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const AllCategoriesPage())))),
       if(categories.isNotEmpty)_section(_HomeCategories(categories:categories),top:12),
-      _section(ReferenceCoastHero(onTap:()=>openProductCatalogue(context)),top:14),
+      _section(const ReferenceCoastHero(),top:14),
       if(products.isNotEmpty)...[
        _section(const PrimeText('Em destaque',style:TextStyle(fontSize:20,fontWeight:FontWeight.w800,color:AppColors.ink)),top:24,bottom:12),
        _section(ProductShowcase(products:products),top:0),
