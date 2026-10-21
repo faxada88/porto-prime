@@ -28,6 +28,10 @@ import {
   ResetPasswordDto,
 } from './dto/reset-password.dto.js';
 
+type PostalCodeResult =
+  | {valid:true;cep:string;street:string;neighborhood:string;city:string;state:string}
+  | {valid:false;reason:'INVALID_FORMAT'|'OUTSIDE_SERVICE_AREA'|'NOT_FOUND'|'LOOKUP_UNAVAILABLE'};
+
 @Injectable()
 export class AuthService {
   constructor(private readonly prisma: PrismaService, private readonly cpfHub: CpfHubService) {}
@@ -191,8 +195,8 @@ export class AuthService {
     return verified;
   }
 
-  private readonly postalCache=new Map<string,{expires:number;value:Record<string,any>}>();
-  async postalCode(raw: string) {
+  private readonly postalCache=new Map<string,{expires:number;value:Extract<PostalCodeResult,{valid:true}>}>();
+  async postalCode(raw: string):Promise<PostalCodeResult> {
     const cep = this.digits(raw);
 
     if (cep.length !== 8) {
@@ -246,7 +250,7 @@ export class AuthService {
           };
         }
 
-        const verified = {
+        const verified:Extract<PostalCodeResult,{valid:true}> = {
           valid: true,
           cep,
           street: String(
