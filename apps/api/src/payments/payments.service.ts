@@ -103,7 +103,7 @@ export class PaymentsService {
     }
 
     await this.prisma.order.update({
-      where: { id: order.id, status: OrderStatus.PENDING, paymentStatus: { in: [PaymentStatus.PENDING, PaymentStatus.FAILED] }, stripePaymentIntentId: order.stripePaymentIntentId },
+      where: { id: order.id, status: OrderStatus.PENDING, paymentStatus: { in: [PaymentStatus.PENDING, PaymentStatus.FAILED] }, AND: [{ stripePaymentIntentId: order.stripePaymentIntentId }] },
       data: {
         paymentMethod: PaymentMethod.CARD,
         stripePaymentIntentId: payload.id,
