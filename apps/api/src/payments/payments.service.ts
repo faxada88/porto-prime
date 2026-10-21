@@ -1,3 +1,4 @@
+import { lockCustomerCredit } from '../availability/customer-credit.js';
 import { randomBytes } from 'node:crypto';
 import { checkoutLink, verifyCheckout } from './secure-checkout.js';
 import { secureCheckoutPage } from './secure-checkout-page.js';
@@ -102,7 +103,7 @@ export class PaymentsService {
     }
 
     await this.prisma.order.update({
-      where: { id: order.id },
+      where: { id: order.id, status: OrderStatus.PENDING, paymentStatus: { in: [PaymentStatus.PENDING, PaymentStatus.FAILED] }, stripePaymentIntentId: order.stripePaymentIntentId },
       data: {
         paymentMethod: PaymentMethod.CARD,
         stripePaymentIntentId: payload.id,
@@ -242,6 +243,66 @@ export class PaymentsService {
     })};
   }
 
+
+  async abandonCheckout(orderId: string, authorization?: string) {
+    const user = await this.auth.authenticate(authorization);
+    if (user.role !== UserRole.CUSTOMER) throw new ForbiddenException('Acesso exclusivo de cliente');
+    const order = await this.prisma.order.findFirst({where:{id:orderId,customerId:user.id,adminDeletedAt:null}});
+    if (!order) throw new BadRequestException('Pedido não encontrado');
+    if (order.paymentStatus === PaymentStatus.PAID) return {paid:true,abandoned:false};
+    if (order.status === OrderStatus.CANCELED) return {paid:false,abandoned:true};
+    if (order.status !== OrderStatus.PENDING || !['PENDING','FAILED'].includes(order.paymentStatus)) {
+      return {paid:false,abandoned:false,status:'processing'};
+    }
+    if (order.stripePaymentIntentId) {
+      let intent = await retrieveStripeIntent(order.stripePaymentIntentId);
+      if (isVerifiedPayment(intent, order)) return {paid:await this.completePayment(intent),abandoned:false};
+      if (!['requires_payment_method','requires_confirmation','requires_action','canceled'].includes(intent.status)) {
+        return {paid:false,abandoned:false,status:intent.status};
+      }
+      if (intent.status !== 'canceled') {
+        const secret = process.env.STRIPE_SECRET_KEY;
+        if (!secret) throw new ServiceUnavailableException('Stripe não configurado');
+        const response = await fetch('https://api.stripe.com/v1/payment_intents/'+encodeURIComponent(intent.id)+'/cancel',{
+          method:'POST',headers:{Authorization:'Bearer '+secret,'Content-Type':'application/x-www-form-urlencoded',
+            'Idempotency-Key':'checkout:'+order.id+':abandon:'+intent.id},
+          body:new URLSearchParams({cancellation_reason:'abandoned'}),signal:AbortSignal.timeout(10000),redirect:'error',
+        });
+        intent = response.ok ? await response.json() as StripeIntent : await retrieveStripeIntent(intent.id);
+        if (isVerifiedPayment(intent, order)) return {paid:await this.completePayment(intent),abandoned:false};
+        if (intent.status !== 'canceled') return {paid:false,abandoned:false,status:intent.status};
+      }
+    }
+    const result = await this.prisma.$transaction(async tx => {
+      await tx.$queryRawUnsafe('SELECT "id" FROM "Order" WHERE "id"=$1 FOR UPDATE',order.id);
+      const current = await tx.order.findFirst({where:{id:order.id,customerId:user.id,adminDeletedAt:null}});
+      if (!current) return {paid:false,abandoned:false};
+      if (current.paymentStatus === PaymentStatus.PAID) return {paid:true,abandoned:false};
+      if (current.status === OrderStatus.CANCELED) return {paid:false,abandoned:true};
+      if (current.status !== OrderStatus.PENDING || !['PENDING','FAILED'].includes(current.paymentStatus)
+        || current.stripePaymentIntentId !== order.stripePaymentIntentId) return {paid:false,abandoned:false,status:'processing'};
+      if (Number(current.storeCreditUsed) > 0) {
+        await lockCustomerCredit(tx,user.id);
+        const debit = await tx.customerCreditEntry.findUnique({where:{idempotencyKey:'order:'+order.id+':credit-use'}});
+        if (!debit || debit.customerId !== user.id || Number(debit.amount) !== -Number(current.storeCreditUsed)) {
+          throw new BadRequestException('Não foi possível liberar o saldo reservado com segurança');
+        }
+        await tx.customerCreditEntry.upsert({
+          where:{idempotencyKey:'order:'+order.id+':credit-release'},
+          create:{customerId:user.id,amount:current.storeCreditUsed,idempotencyKey:'order:'+order.id+':credit-release',
+            description:'Saldo liberado de checkout não concluído',orderId:order.id},update:{},
+        });
+      }
+      await tx.order.update({where:{id:order.id},data:{status:OrderStatus.CANCELED,paymentStatus:PaymentStatus.FAILED}});
+      return {paid:false,abandoned:true};
+    });
+    if (result.abandoned) {
+      this.realtime.emitToUser(user.id,'checkout.closed',{orderId});
+      if (Number(order.storeCreditUsed)>0) this.realtime.emitToUser(user.id,'customer.credit.updated',{orderId});
+    }
+    return result;
+  }
+
   async confirmCredit(orderId:string,authorization?:string){
     const user=await this.auth.authenticate(authorization);
     if(user.role!==UserRole.CUSTOMER)throw new ForbiddenException('Acesso exclusivo de cliente');
@@ -370,7 +431,7 @@ export class PaymentsService {
           status: true,
         },
       });
-      if (order) this.realtime.emitOrderUpdated(order);
+      if (order?.customerId) this.realtime.emitToUser(order.customerId,'checkout.updated',{orderId:order.id});
     }
 
     return { received: true };

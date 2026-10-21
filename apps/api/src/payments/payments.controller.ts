@@ -44,6 +44,11 @@ export class PaymentsController {
     }).type('html').send(page.html);
   }
 
+  @Post('abandon')
+  abandon(@Body() body:ReconcilePaymentDto,@Headers('authorization') authorization?:string){
+    return this.payments.abandonCheckout(body.orderId,authorization);
+  }
+
   @Post('confirm-credit')
   confirmCredit(@Body() body:ReconcilePaymentDto,@Headers('authorization') authorization?:string){return this.payments.confirmCredit(body.orderId,authorization);}
 

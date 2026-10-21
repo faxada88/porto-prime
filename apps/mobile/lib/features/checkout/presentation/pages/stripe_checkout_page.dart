@@ -484,10 +484,19 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
     _leaving=true;
     try {
       if(paying||_paymentSubmitted){
-        final leave=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(title:const PrimeText('Sair do pagamento?'),content:const PrimeText('A confirmação pode continuar mesmo após você sair. Consulte o pedido antes de tentar pagar novamente. Seu pedido fica disponível em Pedidos.'),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const PrimeText('Continuar aqui')),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:const PrimeText('Sair e consultar depois'))]));
+        final leave=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(title:const PrimeText('Sair do pagamento?'),content:const PrimeText('Se o pagamento já estiver em processamento, aguardaremos a confirmação. Somente compras com pagamento confirmado aparecem em Pedidos.'),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const PrimeText('Continuar aqui')),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:const PrimeText('Voltar para a loja'))]));
         if(leave!=true||!mounted)return;
       }
-      if(mounted)Navigator.of(context).pop(home?'home':'back');
+      var abandoned=false;
+      try {
+        final app=AppState.instance;
+        final closed=await app.api.request('POST','/payments/abandon',body:{'orderId':widget.orderId});
+        if(!mounted)return;
+        if(closed['paid']==true){await _finishPaidPayment();return;}
+        abandoned=closed['abandoned']==true;
+        await Future.wait([app.loadOrders(),app.loadActiveOrder(),app.loadCustomerCredit()]);
+      } catch (_) { /* Keep Stripe authoritative if a confirmation or network request is in flight. */ }
+      if(mounted)Navigator.of(context).pop(home?'home':abandoned?'abandoned':'back');
     }finally{_leaving=false;}
   }
   @override

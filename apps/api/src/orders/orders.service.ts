@@ -167,7 +167,7 @@ export class OrdersService {
       return created;
     });
 
-    this.realtime.emitToUser(user.id,'order.created',{orderId:order.id,at:new Date().toISOString()});
+    this.realtime.emitToUser(user.id,'checkout.created',{orderId:order.id,at:new Date().toISOString()});
     if(Number(order.storeCreditUsed)>0)this.realtime.emitToUser(user.id,'customer.credit.updated',{at:new Date().toISOString()});
 
     return order;
@@ -228,7 +228,7 @@ export class OrdersService {
     }
 
     const orders = await this.prisma.order.findMany({
-      where: { customerId: user.id, adminDeletedAt:null },
+      where: { customerId: user.id, adminDeletedAt:null, paymentStatus: { in: [PaymentStatus.PAID, PaymentStatus.PARTIALLY_REFUNDED, PaymentStatus.REFUNDED] } },
       include: {
         items: true,
         cancellation: true,
@@ -265,6 +265,7 @@ export class OrdersService {
       where: {
         customerId: user.id,
         adminDeletedAt:null,
+        paymentStatus: { in: [PaymentStatus.PAID, PaymentStatus.PARTIALLY_REFUNDED, PaymentStatus.REFUNDED] },
         status: {
           notIn: [OrderStatus.DELIVERED, OrderStatus.CANCELED],
         },

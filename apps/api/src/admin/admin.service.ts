@@ -254,13 +254,13 @@ export class AdminService {
 
   async users(authorization?: string, compactCouriers=false) {
     await this.requireAdmin(authorization);
-    if(compactCouriers)return this.prisma.user.findMany({select:{id:true,name:true,email:true,phone:true,role:true,status:true,createdAt:true,customerProfile:true,partnerProfile:true,courierProfile:{select:{id:true,document:true,approvalStatus:true,isOnline:true,vehicleModel:true,vehiclePlate:true}},_count:{select:{orders:true}}},orderBy:{createdAt:'desc'}});
+    if(compactCouriers)return this.prisma.user.findMany({select:{id:true,name:true,email:true,phone:true,role:true,status:true,createdAt:true,customerProfile:true,partnerProfile:true,courierProfile:{select:{id:true,document:true,approvalStatus:true,isOnline:true,vehicleModel:true,vehiclePlate:true}},_count:{select:{orders:{where:{paymentStatus: { in: [PaymentStatus.PAID, PaymentStatus.PARTIALLY_REFUNDED, PaymentStatus.REFUNDED] }}}}}},orderBy:{createdAt:'desc'}});
     return this.prisma.user.findMany({
       include: {
         customerProfile: true,
         courierProfile: true,
         partnerProfile: true,
-        _count: { select: { orders: true } },
+        _count: { select: { orders: {where:{paymentStatus: { in: [PaymentStatus.PAID, PaymentStatus.PARTIALLY_REFUNDED, PaymentStatus.REFUNDED] }}} } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -293,11 +293,11 @@ export class AdminService {
     if(!user || user.role !== UserRole.CUSTOMER) throw new NotFoundException('Cliente não encontrado');
     const now = new Date();
     const [orders,totalOrders,paid,delivered,active,addresses,sessions] = await Promise.all([
-      this.prisma.order.findMany({where:{customerId:id,adminDeletedAt:null},include:{items:true,address:true,courier:{select:{vehicleBrand:true,vehicleModel:true,vehiclePlate:true,user:{select:{name:true,phone:true}}}}},orderBy:[{createdAt:'desc'},{id:'desc'}],take:20,skip:(page-1)*20}),
-      this.prisma.order.count({where:{customerId:id,adminDeletedAt:null}}),
+      this.prisma.order.findMany({where:{customerId:id,adminDeletedAt:null,paymentStatus: { in: [PaymentStatus.PAID, PaymentStatus.PARTIALLY_REFUNDED, PaymentStatus.REFUNDED] }},include:{items:true,address:true,courier:{select:{vehicleBrand:true,vehicleModel:true,vehiclePlate:true,user:{select:{name:true,phone:true}}}}},orderBy:[{createdAt:'desc'},{id:'desc'}],take:20,skip:(page-1)*20}),
+      this.prisma.order.count({where:{customerId:id,adminDeletedAt:null,paymentStatus: { in: [PaymentStatus.PAID, PaymentStatus.PARTIALLY_REFUNDED, PaymentStatus.REFUNDED] }}}),
       this.prisma.order.aggregate({where:{customerId:id,paymentStatus:PaymentStatus.PAID},_sum:{total:true},_count:true}),
-      this.prisma.order.count({where:{customerId:id,adminDeletedAt:null,status:OrderStatus.DELIVERED}}),
-      this.prisma.order.count({where:{customerId:id,adminDeletedAt:null,status:{notIn:[OrderStatus.DELIVERED,OrderStatus.CANCELED]}}}),
+      this.prisma.order.count({where:{customerId:id,adminDeletedAt:null,paymentStatus: { in: [PaymentStatus.PAID, PaymentStatus.PARTIALLY_REFUNDED, PaymentStatus.REFUNDED] },status:OrderStatus.DELIVERED}}),
+      this.prisma.order.count({where:{customerId:id,adminDeletedAt:null,paymentStatus: { in: [PaymentStatus.PAID, PaymentStatus.PARTIALLY_REFUNDED, PaymentStatus.REFUNDED] },status:{notIn:[OrderStatus.DELIVERED,OrderStatus.CANCELED]}}}),
       this.prisma.address.findMany({where:{userId:id},orderBy:[{isDefault:'desc'},{createdAt:'desc'}]}),
       this.prisma.authSession.findMany({where:{userId:id,revokedAt:null,OR:[{expiresAt:{gt:now}},{refreshExpiresAt:{gt:now}}]},select:{deviceName:true,lastSeenAt:true,createdAt:true},orderBy:{lastSeenAt:'desc'},take:20}),
     ]);

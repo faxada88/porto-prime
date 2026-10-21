@@ -17,6 +17,9 @@ class AppLanguage extends ChangeNotifier {
   SharedPreferences? _preferences;
 
   static const Map<String, Map<String, String>> _curated = {
+"Se o pagamento já estiver em processamento, aguardaremos a confirmação. Somente compras com pagamento confirmado aparecem em Pedidos.": {"es": "Si el pago ya se está procesando, esperaremos la confirmación. Solo las compras con pago confirmado aparecen en Pedidos.", "en": "If your payment is already processing, we will wait for confirmation. Only purchases with confirmed payment appear in Orders."},
+"Saldo liberado de checkout não concluído": {"es": "Saldo liberado de una compra no finalizada", "en": "Balance released from an unfinished checkout"},
+
   'produto': {'es': 'producto', 'en': 'product'},
   'produtos': {'es': 'productos', 'en': 'products'},
   'Ver carrinho': {'es': 'Ver carrito', 'en': 'View cart'},
