@@ -34,8 +34,8 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
     final image = (p['imageUrl'] ?? '').toString().trim();
     final description = (p['description'] ?? '').toString().trim();
     final category = (p['category']?['name'] ?? 'Porto Prime').toString();
-    final stock = int.tryParse(p['stock']?.toString() ?? '');
-    final available = state.storeStatusKnown && state.storeOpen && p['active'] != false && (stock == null || stock > 0);
+    final stock = int.tryParse(p['stock']?.toString() ?? '')??0;
+    final available = state.storeStatusKnown && state.storeOpen && p['active'] != false && stock > 0;
 
     final discount = oldPrice != null && oldPrice > price && oldPrice > 0
         ? (((oldPrice - price) / oldPrice) * 100).round()
@@ -49,7 +49,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
         image:image.isNotEmpty?Image.network(image,fit:BoxFit.contain,cacheWidth:512,errorBuilder:(_,__,___)=>fallback):fallback,
         control:!available?const SizedBox(height:44):qty==0
           ?_AddButton(onTap:()=>state.addProduct(id),productName:(p['name']??'produto').toString(),compact:false,cartIcon:true)
-          :_QuantityControl(qty:qty,onMinus:()=>state.changeQty(id,-1),onPlus:()=>state.changeQty(id,1)));
+          :_QuantityControl(qty:qty,onMinus:()=>state.changeQty(id,-1),onPlus:state.canIncreaseQuantity(id)?()=>state.changeQty(id,1):null));
     }
 
     return Semantics(
@@ -269,8 +269,8 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                                               qty: qty,
                                               onMinus: () =>
                                                   state.changeQty(id, -1),
-                                              onPlus: () =>
-                                                  state.changeQty(id, 1),
+                                              onPlus: state.canIncreaseQuantity(id) ? () =>
+                                                  state.changeQty(id, 1) : null,
                                             ),
                                     ),
                                   ),
@@ -411,7 +411,7 @@ class _QuantityControl extends StatelessWidget {
 
   final int qty;
   final VoidCallback onMinus;
-  final VoidCallback onPlus;
+  final VoidCallback? onPlus;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -446,7 +446,7 @@ class _QuantityControl extends StatelessWidget {
         _QtyButton(
           icon: AppIcons.plus,
           onTap: onPlus,
-          semanticLabel: 'Aumentar quantidade',
+          semanticLabel: onPlus==null?'Limite de estoque atingido':'Aumentar quantidade',
         ),
       ],
     ),
@@ -461,12 +461,13 @@ class _QtyButton extends StatelessWidget {
   });
 
   final IconData icon;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final String semanticLabel;
 
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
+    enabled: onTap!=null,
     label: semanticLabel,
     child: InkWell(
       onTap: onTap,
@@ -474,7 +475,7 @@ class _QtyButton extends StatelessWidget {
       child: SizedBox(
         width: AppControl.minTap,
         height: AppControl.minTap,
-        child: Icon(icon, size: 14, color: AppColors.ocean800),
+        child: Icon(icon, size: 14, color: onTap==null?AppColors.subtle:AppColors.ocean800),
       ),
     ),
   );

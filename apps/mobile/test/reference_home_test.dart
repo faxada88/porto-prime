@@ -52,8 +52,10 @@ void main() {
   final state=AppState.instance;
   final known=state.storeStatusKnown,open=state.storeOpen;
   final cart=Map<String,int>.from(state.cart);
+  final products=state.products;
+  state.products=[{'id':'reference-test','active':true,'stock':10}];
   state.storeStatusKnown=true;state.storeOpen=true;state.cart.clear();
-  addTearDown((){state.storeStatusKnown=known;state.storeOpen=open;state.cart..clear()..addAll(cart);});
+  addTearDown((){state.storeStatusKnown=known;state.storeOpen=open;state.cart..clear()..addAll(cart);state.products=products;});
   await tester.pumpWidget(MaterialApp(theme:AppTheme.light,home:Scaffold(body:Center(child:SizedBox(width:160,height:340,child:AnimatedBuilder(animation:state,builder:(context,_)=>PrimeProductCard(referenceStyle:true,product:{'id':'reference-test','name':'Produto de teste','price':'42.00','active':true,'stock':10,'category':{'name':'Cervejas','iconKey':'beer'}})))))));
   await tester.tap(action('Adicionar Produto de teste'));
   await tester.pump();

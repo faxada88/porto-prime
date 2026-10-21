@@ -17,6 +17,10 @@ class _CartPageState extends State<CartPage> {
   bool _opening=false;
   Future<void> _startCheckout() async {
     if(_opening)return;
+    if(AppState.instance.cartExceedsStock){
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('O estoque mudou. Ajuste as quantidades indicadas no carrinho para continuar.')));
+      return;
+    }
     setState(()=>_opening=true);
     try{await _checkout(context);}finally{if(mounted)setState(()=>_opening=false);}
   }
@@ -144,6 +148,7 @@ class _CartItem extends StatelessWidget {
           IconButton(tooltip: 'Remover $name', onPressed: () => app.removeProduct(id),
             icon: const Icon(AppIcons.close, size: 18, color: AppColors.muted)),
         ]),
+        if(qty>=app.stockLimit(id))Padding(padding:const EdgeInsets.only(top:12),child:Text(qty>app.stockLimit(id)?'Estoque atualizado: ${app.stockLimit(id)} disponíveis. Reduza a quantidade.':'Você adicionou todas as ${app.stockLimit(id)} unidades disponíveis.',style:TextStyle(fontSize:12,height:1.5,color:qty>app.stockLimit(id)?AppColors.danger:AppColors.muted))),
         const Padding(padding: EdgeInsets.symmetric(vertical: 14),
           child: Divider(height: 1, color: AppColors.stroke)),
         Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center,
@@ -155,7 +160,7 @@ class _CartItem extends StatelessWidget {
                 SizedBox(width: 40, child: Text('$qty', maxLines: 1, overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w800,
                     fontSize: 14, color: AppColors.ocean900))),
-                _QuantityButton(icon: AppIcons.plus, label: 'Aumentar quantidade de $name', onTap: () => app.changeQty(id,1)),
+                _QuantityButton(icon: AppIcons.plus, label: app.canIncreaseQuantity(id)?'Aumentar quantidade de $name':'Limite de estoque atingido', onTap: app.canIncreaseQuantity(id)?() => app.changeQty(id,1):null),
               ])),
             Text(_brl(price*qty), style: const TextStyle(fontSize: 20, height: 1.2,
               letterSpacing: -.5, fontWeight: FontWeight.w800, color: AppColors.ocean900)),
@@ -165,9 +170,9 @@ class _CartItem extends StatelessWidget {
 }
 class _QuantityButton extends StatelessWidget {
   const _QuantityButton({required this.icon,required this.label,required this.onTap});
-  final IconData icon;final String label;final VoidCallback onTap;
+  final IconData icon;final String label;final VoidCallback? onTap;
   @override
-  Widget build(BuildContext context)=>IconButton(tooltip:label,onPressed:onTap,icon:Icon(icon,size:16,color:AppColors.ocean700),constraints:const BoxConstraints(minWidth:44,minHeight:44));
+  Widget build(BuildContext context)=>IconButton(tooltip:label,onPressed:onTap,icon:Icon(icon,size:16,color:onTap==null?AppColors.subtle:AppColors.ocean700),constraints:const BoxConstraints(minWidth:44,minHeight:44));
 }
 
 Future<void> _checkout(BuildContext context) async {

@@ -513,8 +513,22 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addProduct(String id){if(!storeStatusKnown || !storeOpen)return;cart[id]=(cart[id]??0)+1;notifyListeners();}
-  void changeQty(String id,int d){final n=(cart[id]??0)+d;if(n<=0)cart.remove(id);else cart[id]=n;if(cart.isEmpty){useCustomerCredit=false;customerCreditRequested=0;}notifyListeners();}
+  int stockLimit(String id){
+    final item=product(id);
+    if(item==null||item['active']==false||item['archived']==true||item['category']?['active']==false||item['category']?['archived']==true)return 0;
+    final stock=int.tryParse('${item['stock']}')??0;
+    return stock<0?0:stock;
+  }
+  bool canIncreaseQuantity(String id)=>storeStatusKnown&&storeOpen&&(cart[id]??0)<stockLimit(id);
+  bool get cartExceedsStock=>cart.entries.any((entry)=>entry.value>stockLimit(entry.key));
+  void addProduct(String id){if(!canIncreaseQuantity(id))return;cart[id]=(cart[id]??0)+1;notifyListeners();}
+  void changeQty(String id,int d){
+    final n=(cart[id]??0)+d;
+    if(d>0&&(!canIncreaseQuantity(id)||n>stockLimit(id)))return;
+    if(n<=0)cart.remove(id);else cart[id]=n;
+    if(cart.isEmpty){useCustomerCredit=false;customerCreditRequested=0;}
+    notifyListeners();
+  }
   void removeProduct(String id){cart.remove(id);if(cart.isEmpty){useCustomerCredit=false;customerCreditRequested=0;}notifyListeners();}
   void clearCart(){cart.clear();useCustomerCredit=false;customerCreditRequested=0;notifyListeners();}
   void selectCatalogCategory(String name){catalogCategory=name;notifyListeners();}
