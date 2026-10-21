@@ -1,3 +1,4 @@
+import 'category_labels.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -130,7 +131,7 @@ class AppLanguage extends ChangeNotifier {
   String translate(String value) {
     final code = locale.languageCode;
     if (code == 'pt' || value.isEmpty) return value;
-    final exact = _curated[value]?[code] ?? _messages[code]?[value];
+    final exact = CategoryLabels.translate(value, code) ?? _curated[value]?[code] ?? _messages[code]?[value];
     if (exact != null) return exact;
     for (final phrase in _templates[code] ?? <_Phrase>[]) {
       final match = phrase.pattern.firstMatch(value);

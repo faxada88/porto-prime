@@ -10,8 +10,8 @@ class AllCategoriesPage extends StatefulWidget{
 }
 class _AllCategoriesState extends State<AllCategoriesPage>{
  String query='';
- @override Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(context,_){
-  final categories=AppState.instance.catalogCategories.where((e)=>'${e['name']??''}'.trim().isNotEmpty&&'${e['name']}'.toLowerCase().contains(query.toLowerCase())).toList();
+ @override Widget build(BuildContext context)=>AnimatedBuilder(animation:Listenable.merge([AppState.instance, AppLanguage.instance]),builder:(context,_){
+  final categories=AppState.instance.catalogCategories.where((e)=>'${e['name']??''}'.trim().isNotEmpty&&('${e['name']}'.toLowerCase().contains(query.toLowerCase()) || AppLanguage.instance.translate('${e['name']}').toLowerCase().contains(query.toLowerCase()))).toList();
   return Scaffold(backgroundColor:AppColors.canvas,appBar:AppBar(title:const PrimeText('Todas as categorias')),
    body:CustomScrollView(slivers:[
     SliverPadding(padding:const EdgeInsets.all(20),sliver:SliverToBoxAdapter(child:TextField(
