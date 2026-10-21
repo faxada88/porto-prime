@@ -235,6 +235,9 @@ class _AddressEditorState extends State<AddressEditorPage> {
     // Aguarda a cotação vigente antes de salvar; o pedido recalcula no backend.
     setState(()=>saving=true);
     try {
+      final cepCheck=await app.lookupPostalCode(fields['postalCode']!.text);
+      if(!mounted)return;
+      if(cepCheck['valid']!=true)throw Exception('Informe um CEP válido de Porto Seguro/BA.');
       await _calculate();
       if(!mounted||quote.isEmpty)return;
       final result=await app.api.request(widget.address==null?'POST':'PATCH',widget.address==null?'/addresses':'/addresses/${widget.address!['id']}',body:data);

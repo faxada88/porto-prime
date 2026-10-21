@@ -1,3 +1,4 @@
+import '../../../addresses/presentation/widgets/registration_place_search.dart';
 import '../../../../core/widgets/prime_registration_widgets.dart';
 import 'dart:async';
 import '../../../courier/presentation/pages/courier_photo_card.dart';
@@ -23,6 +24,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   String? verifiedCpfIdentity;
   String? cpfSituation;
   String? profilePhoto;
+  String? registrationLocationRef;
   GlobalKey<FormState> get form=>forms[step];
   final Map<String,TextEditingController> c={};
   TextEditingController ctl(String k)=>c.putIfAbsent(k,()=>TextEditingController());
@@ -170,6 +172,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           ),
                           child: Column(
                             children: [
+                              if(customer&&groups[step].any((f)=>f.key=='cep'))RegistrationPlaceSearch(onSelected:_selectRegistrationPlace),
                               ...groups[step].map(field),
                               if (courier && step == 0) _cpfVerificationStatus(),
                               if(courier && step==0 && _cpfApproved) ...[CourierPhotoCard(initialPhoto:profilePhoto,onSelected:(photo){if(mounted&&_cpfApproved)setState(()=>profilePhoto=photo);}),const SizedBox(height:16)],
@@ -408,7 +411,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
       onChanged: (value) {
         if (!(courier && f.key == 'cpf')) _queueRemoteCheck(f.key, value);
         if (courier && (f.key == 'cpf' || f.key == 'birthDate')) _queueCpfLookup();
-        if (courier && f.key == 'cep') _lookupCep(value);
+        if ((customer||courier) && f.key == 'cep') _lookupCep(value);
+        if(customer&&['street','cep'].contains(f.key))registrationLocationRef=null;
       },
       validator: (v) {
         final value = v?.trim() ?? '';
@@ -555,11 +559,24 @@ class _RegistrationPageState extends State<RegistrationPage> {
     });
   }
 
+  void _selectRegistrationPlace(Map<String,dynamic> place){
+    setState((){
+      registrationLocationRef=place['id']?.toString();
+      ctl('street').text=(place['street']??'').toString().isEmpty?'${place['name']}':'${place['street']}';
+      ctl('number').text='${place['number']??''}';
+      ctl('neighborhood').text='${place['neighborhood']??''}';
+      ctl('city').text='Porto Seguro';ctl('state').text='BA';
+      ctl('cep').text=(place['postalCode']??'').toString().replaceAll(RegExp(r'\D'),'').length==8?'${place['postalCode']}':'45810000';
+      if(place['kind']!='STREET')ctl('complement').text='${place['name']}';
+    });
+    _lookupCep(ctl('cep').text);
+  }
+
   Future<void> _lookupCep(String value) async {
     final digits=value.replaceAll(RegExp(r'\D'),'');
-    if(digits.length!=8)return;
     final ticket=(validationTicket['cepLookup']??0)+1;
     validationTicket['cepLookup']=ticket;
+    if(digits.length!=8){setState((){checking['cep']=false;remoteError.remove('cep');});return;}
     setState(()=>checking['cep']=true);
     try {
       final result=await AppState.instance.lookupPostalCode(digits);
@@ -568,8 +585,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
         setState((){
           checking['cep']=false;
           remoteError['cep']='';
-          ctl('street').text=(result['street']??'').toString();
-          ctl('neighborhood').text=(result['neighborhood']??'').toString();
+          if((result['street']??'').toString().isNotEmpty)ctl('street').text=result['street'].toString();
+          if((result['neighborhood']??'').toString().isNotEmpty)ctl('neighborhood').text=result['neighborhood'].toString();
           ctl('city').text=(result['city']??'Porto Seguro').toString();
           ctl('state').text=(result['state']??'BA').toString();
         });
@@ -578,7 +595,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         setState((){
           checking['cep']=false;
           remoteError['cep']=reason=='OUTSIDE_SERVICE_AREA'
-              ? 'Atendemos motoboys somente na região de Porto Seguro'
+              ? 'Atendemos somente Porto Seguro/BA. Informe um CEP da cidade.'
               : reason=='LOOKUP_UNAVAILABLE'
                   ? 'Não foi possível consultar o CEP agora'
                   : 'CEP não encontrado';
@@ -811,6 +828,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
       return;
     }
     if (!(form.currentState?.validate() ?? false)) return;
+    if(customer&&groups[step].any((f)=>f.key=='cep')&&remoteError['cep']!=''){
+      await _showInfo('Confira o CEP','Informe um CEP válido de Porto Seguro e aguarde a validação.',AppIcons.mapPin);return;
+    }
     if(checking.values.any((v)=>v)){await _showInfo('Verificando dados','Aguarde a conclusão das validações antes de continuar.',AppIcons.hourglass_top_rounded);return;}
     if(remoteError.values.any((v)=>v?.isNotEmpty ?? false))return;
     if(courier&&step==3&&(ctl('vehicleType').text.isEmpty||ctl('vehicleBrand').text.isEmpty||ctl('vehicleModel').text.isEmpty)){await _showInfo('Complete o veículo','Selecione tipo, marca e modelo antes de continuar.',AppIcons.two_wheeler_rounded);return;}
@@ -849,7 +869,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
         if ((data['street'] ?? '').toString().isNotEmpty) {
           try {
             await AppState.instance.addAddress({
-              'label': 'Casa',
+              'label': ctl('complement').text.trim().isEmpty?'Casa':ctl('complement').text.trim(),
+              if(registrationLocationRef!=null)'locationRef':registrationLocationRef,
               'street': data['street'],
               'number': data['number'],
               'complement': data['complement'],

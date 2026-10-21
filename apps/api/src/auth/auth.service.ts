@@ -191,6 +191,7 @@ export class AuthService {
     return verified;
   }
 
+  private readonly postalCache=new Map<string,{expires:number;value:Record<string,any>}>();
   async postalCode(raw: string) {
     const cep = this.digits(raw);
 
@@ -198,6 +199,8 @@ export class AuthService {
       return { valid: false, reason: 'INVALID_FORMAT' };
     }
 
+    const cached=this.postalCache.get(cep);
+    if(cached&&cached.expires>Date.now())return cached.value;
     const providers = [
       'https://viacep.com.br/ws/' + cep + '/json/',
       'https://cep.is/ws/' + cep + '/json/',
@@ -243,7 +246,7 @@ export class AuthService {
           };
         }
 
-        return {
+        const verified = {
           valid: true,
           cep,
           street: String(
@@ -255,6 +258,9 @@ export class AuthService {
           city,
           state,
         };
+        if(this.postalCache.size>2000)this.postalCache.clear();
+        this.postalCache.set(cep,{expires:Date.now()+3600000,value:verified});
+        return verified;
       } catch {
         continue;
       }
@@ -264,6 +270,15 @@ export class AuthService {
       valid: false,
       reason: hadResponse ? 'NOT_FOUND' : 'LOOKUP_UNAVAILABLE',
     };
+  }
+
+  async assertPortoSeguroAddress(address:{postalCode?:unknown;city?:unknown;state?:unknown}){
+    const normalize=(v:unknown)=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+    if(normalize(address.city)!=='porto seguro'||normalize(address.state)!=='ba')throw new BadRequestException('Atendemos somente endereços em Porto Seguro/BA.');
+    const result=await this.postalCode(String(address.postalCode??''));
+    if(!result.valid)throw new BadRequestException(result.reason==='LOOKUP_UNAVAILABLE'
+      ?'Não foi possível validar o CEP agora. Tente novamente.'
+      :'Informe um CEP válido de Porto Seguro/BA.');
   }
 
   async bootstrapStatus() {
@@ -331,6 +346,9 @@ export class AuthService {
       );
     }
 
+    if(data.role===UserRole.CUSTOMER&&data.profileData?.cep!==undefined){
+      await this.assertPortoSeguroAddress({postalCode:data.profileData.cep,city:'Porto Seguro',state:'BA'});
+    }
     const email = data.email.trim().toLowerCase();
     const phone = this.digits(data.phone) || null;
 

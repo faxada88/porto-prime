@@ -7,7 +7,7 @@ const address:any={id:'a',street:'Rua Teste',number:'10',neighborhood:'Centro',c
 function fixture(role='ADMIN',overrides:any={}) {
  const config:any={baseFee:5.5,includedKm:3,pricePerAdditionalKm:2.5,minDeliveryFee:20,maxDeliveryFee:6,maxDistanceKm:25,distributorLatitude:-16.449,distributorLongitude:-39.064,pricingRevision:1,...overrides};
  const db:any={customerCreditEntry:{aggregate:vi.fn(async()=>({_sum:{amount:0}})),create:vi.fn()},courierDemandSignal:{findUnique:vi.fn(async()=>({mode:'MANUAL_OFF',bonusAmount:2.5}))},order:{count:vi.fn(async()=>0)},deliveryPricingConfig:{upsert:vi.fn(async()=>config),update:vi.fn(async({data}:any)=>{const{pricingRevision,...rest}=data;Object.assign(config,rest);config.pricingRevision++;return config})},address:{findFirst:vi.fn(async()=>address)}};
- const events:any={emitCatalogUpdated:vi.fn()};const service=new DeliveryPricingService(db,{authenticate:async()=>({id:'customer',role})}as any,events);
+ const events:any={emitCatalogUpdated:vi.fn()};const service=new DeliveryPricingService(db,{authenticate:async()=>({id:'customer',role}),assertPortoSeguroAddress:async()=>{}}as any,events);
  return{service,db,config,events};
 }
 function route(meters:number) {return vi.spyOn(globalThis,'fetch').mockResolvedValue({ok:true,json:async()=>({code:'Ok',routes:[{distance:meters,duration:600}]})}as Response)}
@@ -54,3 +54,4 @@ describe('Adicional de alta demanda na tarifa do cliente',()=>{
  it('soma adicional uma única vez à rota e remove da próxima cotação quando desligado',async()=>{route(3000);const f=fixture();f.db.courierDemandSignal.findUnique.mockResolvedValue({mode:'MANUAL_ON',bonusAmount:2.5});const q=await f.service.quoteForAddress(address);expect(q).toMatchObject({baseDeliveryFee:5.5,demandSurcharge:2.5,deliveryFee:8});f.db.courierDemandSignal.findUnique.mockResolvedValue({mode:'MANUAL_OFF',bonusAmount:2.5});expect((await f.service.quoteForAddress(address)).deliveryFee).toBe(5.5)});
  it('aplica adicional automático com dez pedidos pagos e conserva cobrança proporcional acima de 3 km',async()=>{route(5000);const f=fixture();f.db.courierDemandSignal.findUnique.mockResolvedValue({mode:'AUTO',bonusAmount:3});f.db.order.count.mockResolvedValue(10);expect(await f.service.quoteForAddress(address)).toMatchObject({baseDeliveryFee:10.5,demandSurcharge:3,deliveryFee:13.5});f.db.order.count.mockResolvedValue(9);expect((await f.service.quoteForAddress(address)).deliveryFee).toBe(10.5)});
 });
+

@@ -106,9 +106,11 @@ export class DeliveryPricingService {
   private inServiceRegion(row: Place) {
     return this.validPoint(row.latitude,row.longitude) && (row.city ? this.normalize(row.city)==='porto seguro' : row.latitude>-16.9 && row.latitude<-16.1 && row.longitude>-39.3 && row.longitude<-38.9);
   }
-  async searchPlaces(query: string, authorization?: string) {
+  async searchPlaces(query: string, authorization?: string, registration=false) {
+    if(!registration){
     const user = await this.auth.authenticate(authorization);
     if (!['CUSTOMER', 'ADMIN'].includes(user.role)) throw new ForbiddenException('Acesso não permitido');
+    }
     if (typeof query !== 'string' || query.length > 150) throw new BadRequestException('Informe até 150 caracteres para buscar');
     const q = this.normalize(query);
     if (q.length < 3) return { results: [], attribution: '© OpenStreetMap contributors' };
@@ -118,7 +120,7 @@ export class DeliveryPricingService {
     for (const {row} of matches) {
       // Mantém trechos distantes da mesma rua como escolhas distintas.
       if (!results.some(p=>p.kind===row.kind && this.normalize(p.name)===this.normalize(row.name) && p.number===row.number && Math.hypot((p.latitude-row.latitude)*111,(p.longitude-row.longitude)*106)<0.3)) results.push(row);
-      if(results.length===8)break;
+      if(results.length===12)break;
     }
     return {results,attribution:'© OpenStreetMap contributors'};
   }
@@ -161,6 +163,7 @@ export class DeliveryPricingService {
   // CEP preenche o endereço; a localização vem do índice local, sem enviar
   // endereços residenciais para serviços públicos de geocodificação.
   private async resolveAddress(address: AddressLike) {
+    await this.auth.assertPortoSeguroAddress(address);
     if (address.locationRef) return this.selectedLocation(address);
     if (address.locationConfirmed && this.validPoint(address.latitude, address.longitude)) {
       return { latitude: Number(address.latitude), longitude: Number(address.longitude), accuracy: 'CONFIRMED_POINT' };
@@ -326,3 +329,4 @@ export class DeliveryPricingService {
     return {...quote,storeCreditBalance:await creditBalance(this.prisma,user.id)};
   }
 }
+

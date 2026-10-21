@@ -14,6 +14,11 @@ import { DeliveryPricingService } from './delivery-pricing.service.js';
 export class DeliveryPricingController {
   constructor(private readonly pricing: DeliveryPricingService) {}
 
+  @Get('address-suggestions')
+  addressSuggestions(@Query('q') query:string){
+    return this.pricing.searchPlaces(query,undefined,true);
+  }
+
   @Get('places')
   places(@Query('q') query: string, @Headers('authorization') authorization?: string) {
     return this.pricing.searchPlaces(query, authorization);
@@ -50,3 +55,4 @@ export class DeliveryPricingController {
     return this.pricing.updateAdminConfig(body, authorization);
   }
 }
+

@@ -26,6 +26,7 @@ export class AddressesService {
     const user = await this.auth.authenticate(authorization);
     if (user.role !== UserRole.CUSTOMER) throw new ForbiddenException('Apenas clientes podem cadastrar endereço');
 
+    await this.auth.assertPortoSeguroAddress(data);
     const selected = data.locationRef ? await this.pricing.selectedLocation(data) : null;
     const coords = selected ? {latitude:selected.latitude,longitude:selected.longitude,locationConfirmed:selected.locationConfirmed} : this.coordinates(data);
     const saved = await this.prisma.$transaction(async (tx) => {
@@ -55,6 +56,7 @@ export class AddressesService {
     const user=await this.auth.authenticate(authorization);
     const found=await this.prisma.address.findFirst({where:{id,userId:user.id}});
     if(!found) throw new NotFoundException('Endereço não encontrado');
+    await this.auth.assertPortoSeguroAddress(data);
     const selected = data.locationRef ? await this.pricing.selectedLocation(data) : null;
     const coords = selected ? {latitude:selected.latitude,longitude:selected.longitude,locationConfirmed:selected.locationConfirmed} : this.coordinates(data);
     const moved = ['street','number','neighborhood','city','state','postalCode'].some(k => String((data as any)[k]).replace(k==='postalCode'?/\D/g:/\s/g,'').toLowerCase() !== String((found as any)[k]).replace(k==='postalCode'?/\D/g:/\s/g,'').toLowerCase());
@@ -78,3 +80,4 @@ export class AddressesService {
     return {success:true};
   }
 }
+
