@@ -1,3 +1,4 @@
+import '../../../../core/widgets/customer_account_workspace.dart';
 import '../../../support/presentation/pages/support_page.dart';
 import '../../../support/presentation/pages/public_support_page.dart';
 import '../../../partners/presentation/pages/partner_referral_card.dart';
@@ -1782,6 +1783,14 @@ class _Account extends StatelessWidget {
     final state = AppState.instance;
     final user = state.user!;
     final pending = user['status'] == 'PENDING';
+    if(state.isCustomer)return CustomerAccountWorkspace(
+      name:(user['name']??'').toString(),email:(user['email']??'').toString(),
+      onOrders:()=>_orders(context),onAddresses:()=>_addresses(context),
+      onWallet:()=>Navigator.of(context).push(_primeRoute(const CustomerPrimeCardPage())),
+      onSupport:()=>_support(context),onCommercial:()=>_publicSupport(context,topic:'PARTNERSHIP'),
+      onLogout:()=>state.logout(),
+    );
+
 
     return SafeArea(
       bottom: false,
