@@ -1,3 +1,6 @@
+import { randomBytes } from 'node:crypto';
+import { checkoutLink, verifyCheckout } from './secure-checkout.js';
+import { secureCheckoutPage } from './secure-checkout-page.js';
 import {
   BadRequestException,
   ForbiddenException,
@@ -44,6 +47,7 @@ export class PaymentsService {
 
     if (!order) throw new BadRequestException('Pedido não encontrado');
     const summary={subtotal:Number(order.subtotal),deliveryFee:Number(order.deliveryFee),storeCreditUsed:Number(order.storeCreditUsed),total:Number(order.total),distanceKm:order.routeDistanceKm==null?null:Number(order.routeDistanceKm),durationMinutes:order.routeDurationMinutes,address:order.address,items:order.items.map(item=>({productName:item.productName,quantity:item.quantity,unitPrice:Number(item.unitPrice),total:Number(item.total)}))};
+    if (order.status === OrderStatus.CANCELED || ['REFUNDED','PARTIALLY_REFUNDED'].includes(order.paymentStatus)) throw new BadRequestException('Este pedido não aceita pagamentos.');
     if (order.paymentStatus === PaymentStatus.PAID) {
       throw new BadRequestException('Este pedido já está pago');
     }
@@ -112,6 +116,44 @@ export class PaymentsService {
     };
   }
 
+  async secureCheckout(orderId: string, origin: string, authorization?: string) {
+    const user = await this.auth.authenticate(authorization);
+    if (user.role !== UserRole.CUSTOMER) throw new ForbiddenException('Acesso exclusivo de cliente');
+    const order = await this.prisma.order.findFirst({where:{id:orderId,customerId:user.id,adminDeletedAt:null}});
+    if (!order || order.status !== OrderStatus.PENDING || !['PENDING','FAILED'].includes(order.paymentStatus) || !order.stripePaymentIntentId) {
+      throw new BadRequestException('Este pedido não está disponível para pagamento. Consulte o acompanhamento.');
+    }
+    const store = await this.prisma.deliveryPricingConfig.findUnique({where:{id:'default'},select:{storeOpen:true,storeMessage:true}});
+    if (store?.storeOpen === false) throw new BadRequestException(store.storeMessage || 'A loja está fechada');
+    const intent = await retrieveStripeIntent(order.stripePaymentIntentId);
+    isVerifiedPayment(intent, order);
+    if (intent.status === 'succeeded') {
+      await this.completePayment(intent);
+      return {paid:true};
+    }
+    if (intent.status === 'canceled') throw new BadRequestException('Reabra o checkout para atualizar seu pagamento.');
+    return checkoutLink(process.env.PAYMENTS_PUBLIC_URL || origin, order.id, intent.id);
+  }
+
+  async securePage(orderId: string, expires: string, token: string) {
+    if (typeof orderId !== 'string' || !/^[a-zA-Z0-9_-]{1,128}$/.test(orderId) || typeof expires !== 'string' || typeof token !== 'string') throw new UnauthorizedException('Link inválido');
+    // Verify the capability before retrieving any Stripe client secret.
+    const order = await this.prisma.order.findFirst({where:{id:orderId,adminDeletedAt:null},include:{customer:{select:{name:true,email:true}}}});
+    if (!order?.stripePaymentIntentId) throw new UnauthorizedException('Link de pagamento indisponível');
+    verifyCheckout(order.id, order.stripePaymentIntentId, expires, token);
+    if (order.status === OrderStatus.CANCELED || ['REFUNDED','PARTIALLY_REFUNDED'].includes(order.paymentStatus)) throw new BadRequestException('Este pedido não aceita pagamentos.');
+    const intent = await retrieveStripeIntent(order.stripePaymentIntentId);
+    isVerifiedPayment(intent, order);
+    if (!intent.client_secret || !process.env.STRIPE_PUBLISHABLE_KEY) throw new ServiceUnavailableException('Pagamento indisponível');
+    const nonce = randomBytes(18).toString('base64');
+    return {nonce,html:secureCheckoutPage({
+      publishableKey:process.env.STRIPE_PUBLISHABLE_KEY,
+      clientSecret:intent.client_secret,amount:Number(order.total),
+      testMode:process.env.STRIPE_PUBLISHABLE_KEY.startsWith('pk_test_'),
+      name:order.customer.name,email:order.customer.email,nonce,
+    })};
+  }
+
   async confirmCredit(orderId:string,authorization?:string){
     const user=await this.auth.authenticate(authorization);
     if(user.role!==UserRole.CUSTOMER)throw new ForbiddenException('Acesso exclusivo de cliente');
@@ -148,15 +190,18 @@ export class PaymentsService {
     const order = await this.prisma.order.findUnique({ where: { id: intent.metadata?.orderId ?? '' } });
     if (!order || !isVerifiedPayment(intent, order)) return false;
     if (order.paymentStatus===PaymentStatus.REFUNDED||order.paymentStatus===PaymentStatus.PARTIALLY_REFUNDED) return false;
+    const expanded = typeof intent.payment_method === 'string' ? await retrieveStripeIntent(intent.id) : intent;
+    const type = typeof expanded.payment_method === 'object' ? expanded.payment_method?.type : undefined;
+    const paymentMethod = type === 'pix' ? PaymentMethod.PIX : type === 'boleto' ? PaymentMethod.BOLETO : PaymentMethod.CARD;
     const where = { id: order.id, stripePaymentIntentId: intent.id, paymentStatus: { notIn: [PaymentStatus.PAID,PaymentStatus.REFUNDED,PaymentStatus.PARTIALLY_REFUNDED] } };
     // Never regress an order already being prepared, dispatched or delivered.
     const pending = await this.prisma.order.updateMany({
       where: { ...where, status: OrderStatus.PENDING },
-      data: { paymentStatus: PaymentStatus.PAID, paymentMethod: PaymentMethod.CARD, status: OrderStatus.CONFIRMED, paidAt:new Date() },
+      data: { paymentStatus: PaymentStatus.PAID, paymentMethod, status: OrderStatus.CONFIRMED, paidAt:new Date() },
     });
     const other = await this.prisma.order.updateMany({
       where: { ...where, status: { not: OrderStatus.PENDING } },
-      data: { paymentStatus: PaymentStatus.PAID, paymentMethod: PaymentMethod.CARD, paidAt:new Date() },
+      data: { paymentStatus: PaymentStatus.PAID, paymentMethod, paidAt:new Date() },
     });
     if (pending.count + other.count > 0) {
       const updated = await this.prisma.order.findUnique({ where: { id: order.id }, select: { id: true, customerId: true, courierId: true, status: true } });
@@ -243,3 +288,4 @@ export class PaymentsService {
     return { received: true };
   }
 }
+

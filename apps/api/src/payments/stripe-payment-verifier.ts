@@ -7,6 +7,7 @@ export type StripeIntent = {
   id: string;
   status: string;
   client_secret?: string;
+  payment_method?: string | { type?: string };
   currency: string;
   amount: number;
   amount_received: number;
@@ -21,7 +22,7 @@ export async function retrieveStripeIntent(id: string): Promise<StripeIntent> {
     );
   try {
     const response = await fetch(
-      `https://api.stripe.com/v1/payment_intents/${encodeURIComponent(id)}`,
+      `https://api.stripe.com/v1/payment_intents/${encodeURIComponent(id)}?expand%5B%5D=payment_method`,
       {
         headers: { Authorization: 'Bearer ' + secret },
         signal: AbortSignal.timeout(10_000),
@@ -62,3 +63,4 @@ export function isVerifiedPayment(
   }
   return intent.status === 'succeeded' && intent.amount_received === cents;
 }
+

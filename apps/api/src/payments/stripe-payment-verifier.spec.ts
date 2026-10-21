@@ -66,7 +66,7 @@ describe('server-verified Stripe payment', () => {
     );
     expect(await retrieveStripeIntent('pi_test')).toEqual(intent);
     expect(fetch).toHaveBeenCalledWith(
-      'https://api.stripe.com/v1/payment_intents/pi_test',
+      'https://api.stripe.com/v1/payment_intents/pi_test?expand%5B%5D=payment_method',
       expect.objectContaining({
         headers: { Authorization: 'Bearer test-secret' },
         redirect: 'error',
@@ -94,3 +94,4 @@ describe('server-verified Stripe payment', () => {
     );
   });
 });
+

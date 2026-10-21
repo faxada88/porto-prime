@@ -123,13 +123,13 @@
       return window.__portoPrimeStripePromise;
     };
 
-    window.portoPrimeStripeMount = async function(containerId, publishableKey, clientSecret, attempt, onPaymentState) {
+    window.portoPrimeStripeMount = async function(containerId, publishableKey, clientSecret, attempt, onPaymentState, onResize) {
       attempt = attempt || 0;
       const host = document.getElementById(containerId);
       if (!host) {
         if (attempt < 100) {
           window.setTimeout(function() {
-            window.portoPrimeStripeMount(containerId, publishableKey, clientSecret, attempt + 1, onPaymentState);
+            window.portoPrimeStripeMount(containerId, publishableKey, clientSecret, attempt + 1, onPaymentState, onResize);
           }, 50);
         }
         return;
@@ -139,10 +139,20 @@
 
       host.innerHTML = '<div id="' + containerId + '-payment"></div>' +
         '<div id="' + containerId + '-error" style="display:none;margin-top:12px;padding:13px 14px;border:1px solid #f2d0c8;border-radius:16px;background:#ffeae4;color:#4f2a23;font:650 13px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;line-height:1.45"></div>' +
-        '<button id="' + containerId + '-pay" type="button" disabled style="width:100%;height:56px;margin-top:18px;border:0;border-radius:18px;background:#075e75;color:white;font:800 15px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;cursor:pointer;box-shadow:0 14px 34px rgba(10,49,45,.16)">Pagar</button>' +
-        '<div id="' + containerId + '-status" role="status" aria-live="polite" style="display:none;margin-top:16px;color:#075e75;font:600 14px system-ui;line-height:1.5"></div>' +
+        '<div id="' + containerId + '-details"></div>' +
+        '<button id="' + containerId + '-pay" type="button" disabled style="width:100%;height:56px;margin-top:18px;border:0;border-radius:18px;background:#715019;color:white;font:800 15px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;cursor:pointer;box-shadow:0 14px 34px rgba(10,49,45,.16)">Pagar</button>' +
+        '<div id="' + containerId + '-status" role="status" aria-live="polite" style="display:none;margin-top:16px;color:#715019;font:600 14px system-ui;line-height:1.5"></div>' +
         '<div style="margin-top:12px;text-align:center;color:#697773;font:650 11px system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">Pagamento criptografado e processado pelo Stripe</div>';
 
+      host.style.position='relative';
+      if (onResize && window.ResizeObserver) {
+        const observer = new ResizeObserver(function() {
+          if (!host.isConnected) { observer.disconnect(); return; }
+          const bottom=Math.max(620,...Array.from(host.children).map(node=>node.offsetTop+node.offsetHeight+16));
+          onResize(bottom);
+        });
+        Array.from(host.children).forEach(node=>observer.observe(node));
+      }
       try {
         await window.portoPrimeLoadStripe();
         const stripe = window.Stripe(publishableKey, { locale: 'pt-BR' });
@@ -152,9 +162,9 @@
           appearance: {
             theme: 'stripe',
             variables: {
-              colorPrimary: '#075e75',
+              colorPrimary: '#715019',
               colorBackground: '#ffffff',
-              colorText: '#102b50',
+              colorText: '#211c16',
               colorDanger: '#e85f48',
               fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
               fontSizeBase: '16px',
@@ -163,16 +173,17 @@
             },
             rules: {
               '.Input': { border: '1px solid #e4e9e5', boxShadow: 'none', padding: '14px 15px', backgroundColor: '#fbfcfa' },
-              '.Input:focus': { border: '1px solid #14a08e', boxShadow: '0 0 0 3px rgba(20,160,142,.10)', backgroundColor: '#ffffff' },
+              '.Input:focus': { border: '1px solid #b58a36', boxShadow: '0 0 0 3px rgba(181,138,54,.10)', backgroundColor: '#ffffff' },
               '.Label': { fontWeight: '700', color: '#34413d', marginBottom: '7px' },
               '.Tab': { border: '1px solid #e4e9e5', boxShadow: 'none' },
-              '.Tab--selected': { borderColor: '#83d7c8', backgroundColor: '#f0faf7' }
+              '.Tab--selected': { borderColor: '#dfc28c', backgroundColor: '#fdf7ec' }
             }
           }
         });
 
         const paymentElement = elements.create('payment', {
-          layout: { type: 'tabs', defaultCollapsed: false },
+          layout: { type: 'accordion', defaultCollapsed: false },
+          paymentMethodOrder: ['pix', 'card', 'link', 'boleto'],
           defaultValues: { billingDetails: { address: { country: 'BR' } } }
         });
         paymentElement.mount('#' + containerId + '-payment');
@@ -193,6 +204,26 @@
         paymentElement.on('ready', function() { button.disabled = false; });
         button.addEventListener('click', async function() {
           if (button.disabled) return;
+          if(button.dataset.pending==='true'){
+            button.disabled=true;
+            try{
+              const result=await stripe.retrievePaymentIntent(clientSecret);
+              if(result.error)throw result.error;
+              const status=result.paymentIntent.status;
+              if(status==='succeeded'||status==='processing'){
+                if(onPaymentState)onPaymentState(status);
+              }else if(status==='requires_payment_method'){
+                button.dataset.pending='false';
+                document.getElementById(containerId+'-details').replaceChildren();
+                document.getElementById(containerId+'-status').textContent='O pagamento expirou ou não foi concluído. Escolha uma opção para tentar novamente.';
+                button.textContent='Pagar';
+              }else{
+                document.getElementById(containerId+'-status').textContent='Pagamento ainda não confirmado. Conclua no banco e verifique novamente.';
+              }
+            }catch(error){errorBox.style.display='block';errorBox.textContent=error.message||'Não foi possível verificar.';}
+            finally{button.disabled=false;}
+            return;
+          }
           button.disabled = true;
           button.textContent = 'Processando…';
           errorBox.style.display = 'none';
@@ -205,6 +236,38 @@
             });
             if (result.error) throw new Error(result.error.message || 'Não foi possível concluir o pagamento.');
             const status = result.paymentIntent && result.paymentIntent.status;
+            if (status === 'requires_action') {
+              const next = result.paymentIntent.next_action || {};
+              const details = next.pix_display_qr_code || next.boleto_display_details;
+              if (details) {
+                const statusBox=document.getElementById(containerId + '-status');
+                statusBox.style.display='block';
+                statusBox.textContent=next.pix_display_qr_code
+                  ? 'Pix gerado. Conclua o pagamento no aplicativo do banco. O pedido só será liberado após a confirmação.'
+                  : 'Boleto gerado. Aguarde a compensação; o pedido ainda não foi liberado.';
+                const detailsHost=document.getElementById(containerId+'-details');
+                detailsHost.replaceChildren();
+                const safeStripeUrl=value=>{try{const u=new URL(value);return u.protocol==='https:'&&u.hostname.endsWith('.stripe.com');}catch(_){return false;}};
+                if(next.pix_display_qr_code){
+                  const data=next.pix_display_qr_code;
+                  if(safeStripeUrl(data.image_url_png)){
+                    const qr=document.createElement('img');qr.src=data.image_url_png;qr.alt='QR Code Pix';
+                    qr.style.cssText='display:block;width:220px;max-width:100%;margin:16px auto';detailsHost.append(qr);
+                  }
+                  const code=document.createElement('textarea');code.value=data.data||'';code.readOnly=true;
+                  code.setAttribute('aria-label','Pix Copia e Cola');code.style.cssText='width:100%;height:90px;margin-top:12px';
+                  const copy=document.createElement('button');copy.type='button';copy.textContent='Copiar código Pix';copy.style.cssText='width:100%;padding:14px;margin-top:8px';
+                  copy.onclick=async()=>{try{if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(code.value);else{code.select();if(!document.execCommand('copy'))throw Error();}copy.textContent='Código copiado';}catch(_){code.focus();code.select();copy.textContent='Selecione e copie o código acima';}};
+                  detailsHost.append(code,copy);
+                }else if(safeStripeUrl(details.hosted_voucher_url)){
+                  const link=document.createElement('a');link.href=details.hosted_voucher_url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Abrir boleto';detailsHost.append(link);
+                }
+                button.dataset.pending='true';
+                button.disabled=false;button.textContent='Verificar pagamento';
+                if(onPaymentState)onPaymentState('error');
+                return;
+              }
+            }
             if (status !== 'succeeded' && status !== 'processing') {
               throw new Error('O pagamento ainda não foi concluído. Confira os dados e tente novamente.');
             }

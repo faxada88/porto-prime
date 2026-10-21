@@ -99,6 +99,7 @@ enum PaymentStatus {
 enum PaymentMethod {
   CARD
   PIX
+  BOLETO
 }
 
 enum PixKeyType {
@@ -756,3 +757,4 @@ model PublicContactMessage {
  @@unique([contactId, senderRole, requestId])
  @@index([contactId, createdAt, id])
 }
+

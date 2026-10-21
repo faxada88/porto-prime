@@ -1,5 +1,6 @@
 import '../widgets/prime_payment_experience.dart';
 import 'dart:async';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +33,8 @@ class StripeCheckoutPage extends StatefulWidget {
   State<StripeCheckoutPage> createState() => _StripeCheckoutPageState();
 }
 
-class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
+class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBindingObserver {
+  bool _browserOpened=false;
   bool ready = false;
   bool paying = false;
   String? error;
@@ -46,6 +48,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _configure();
   }
 
@@ -66,25 +69,10 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
         return;
       }
       if(widget.creditOnly){setState(()=>ready=true);return;}
-      Stripe.publishableKey = widget.publishableKey;
-      await Stripe.instance.applySettings();
+      if(kIsWeb){Stripe.publishableKey = widget.publishableKey;await Stripe.instance.applySettings();}
 
-      if (!kIsWeb) {
-        await Stripe.instance.initPaymentSheet(
-          paymentSheetParameters: SetupPaymentSheetParameters(
-            paymentIntentClientSecret: widget.clientSecret,
-            merchantDisplayName: 'Porto Prime',
-            primaryButtonLabel: 'Pagar',
-            billingDetails: const BillingDetails(address: Address(
-              country: 'BR', city: null, line1: null, line2: null,
-              postalCode: null, state: null,
-            )),
-            style: ThemeMode.light,
-            appearance: const PaymentSheetAppearance(),
-          ),
-        );
-      }
-
+      // All enabled methods use the official Payment Element; native apps open
+      // a signed page in the browser so Pix and boleto are available as well.
       if (mounted) setState(() => ready = true);
     } catch (e) {
       if (mounted) setState(() => error = _message(e));
@@ -124,7 +112,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
         _webPaymentPoll?.cancel();
         setState(() {
           paying = false;
-          error = 'O Stripe ainda está processando o pagamento. Você pode verificar novamente sem pagar outra vez.';
+          error = 'O pagamento ainda não foi confirmado. Se gerou Pix ou boleto, conclua o pagamento e verifique novamente. Não pague duas vezes.';
         });
       }
     } catch (_) {
@@ -144,7 +132,13 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
   @override
   void dispose() {
     _webPaymentPoll?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state){
+    if(state==AppLifecycleState.resumed&&_browserOpened&&!_finishingPayment)_startPaymentCheck();
   }
 
   String _message(Object e) {
@@ -169,7 +163,14 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
         // On web the official Stripe.js Payment Element owns confirmation.
         // The server verifies Stripe before the order is treated as paid.
       } else {
-        await Stripe.instance.presentPaymentSheet();
+        final result=Map<String,dynamic>.from(await AppState.instance.api.request(
+          'POST','/payments/secure-checkout',body:{'orderId':widget.orderId}));
+        if(result['paid']==true){if(mounted)await _finishPaidPayment();return;}
+        final url=Uri.tryParse((result['url']??'').toString());
+        if(url==null||!['http','https'].contains(url.scheme)||url.path!='/api/payments/secure')throw Exception('Não foi possível abrir o pagamento seguro.');
+        _browserOpened=true;
+        final opened=await launchUrl(url,mode:LaunchMode.externalApplication);
+        if(!opened){_browserOpened=false;throw Exception('Não foi possível abrir o navegador. Tente novamente.');}
       }
 
       if (mounted) _startPaymentCheck();
@@ -430,6 +431,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> {
       testMode:widget.publishableKey.startsWith('pk_test_'),error:error,
       onBack:()=>_leave(),onHome:()=>_leave(home:true),onPay:_pay,
       onVerify:_startPaymentCheck,onRetry:_configure,
+      onReopen:!kIsWeb&&!widget.creditOnly?_pay:null,
       paymentElement:ready&&kIsWeb&&!widget.creditOnly&&!_paymentSubmitted
         ?StripeWebElement(publishableKey:widget.publishableKey,clientSecret:widget.clientSecret,onPaymentState:_onWebPaymentState)
         :null,

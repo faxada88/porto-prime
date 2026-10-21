@@ -2,7 +2,7 @@ import {afterEach,describe,it,expect,vi} from 'vitest';
 vi.mock('../prisma/prisma.service.js',()=>({PrismaService:class{}}));
 vi.mock('../auth/auth.service.js',()=>({AuthService:class{}}));
 vi.mock('../realtime/realtime.gateway.js',()=>({RealtimeGateway:class{}}));
-vi.mock('../generated/prisma/client.js',()=>({UserRole:{CUSTOMER:'CUSTOMER'},PaymentStatus:{PAID:'PAID'},PaymentMethod:{CARD:'CARD'},OrderStatus:{}}));
+vi.mock('../generated/prisma/client.js',()=>({UserRole:{CUSTOMER:'CUSTOMER'},PaymentStatus:{PAID:'PAID'},PaymentMethod:{CARD:'CARD'},OrderStatus:{CANCELED:"CANCELED"}}));
 vi.mock('./stripe-payment-verifier.js',()=>({retrieveStripeIntent:vi.fn(),isVerifiedPayment:vi.fn()}));
 import {PaymentsService} from './payments.service.js';
 import {retrieveStripeIntent} from './stripe-payment-verifier.js';
@@ -29,3 +29,4 @@ describe('Authenticated checkout review',()=>{
  it('returns the frozen totals and delivery address without secrets or delivery PIN',async()=>{const f=fixture(true);const result=await f.service.createCheckout(request);expect(result.summary).toMatchObject({subtotal:14.5,deliveryFee:5.5,storeCreditUsed:0,total:20,distanceKm:2,durationMinutes:8,address:{street:'Rua A'},items:[{productName:'Produto',quantity:1,total:14.5}]});expect(result.summary).not.toHaveProperty('deliveryPin');expect(result.summary).not.toHaveProperty('customerId');expect(f.prisma.order.findFirst).toHaveBeenCalledWith(expect.objectContaining({where:{id:'o',customerId:'u',adminDeletedAt:null}}));});
  it('reuses the same payment intent and summary when returning to payment',async()=>{const f=fixture(true,true);vi.mocked(retrieveStripeIntent).mockResolvedValue({id:'pi_old',status:'requires_payment_method',client_secret:'existing_secret'} as any);const result=await f.service.createCheckout(request);expect(result.paymentIntentId).toBe('pi_old');expect(result.summary.total).toBe(20);expect(f.fetcher).not.toHaveBeenCalled();});
 });
+

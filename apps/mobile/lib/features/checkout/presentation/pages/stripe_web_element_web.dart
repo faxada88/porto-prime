@@ -14,6 +14,7 @@ external void _mountStripe(
   String clientSecret,
   int attempt,
   JSFunction onPaymentState,
+  JSFunction onResize,
 );
 
 class StripeWebElement extends StatefulWidget {
@@ -33,6 +34,7 @@ class StripeWebElement extends StatefulWidget {
 }
 
 class _StripeWebElementState extends State<StripeWebElement> {
+  double _height=620;
   late final String _viewType;
   late final String _containerId;
 
@@ -47,8 +49,7 @@ class _StripeWebElementState extends State<StripeWebElement> {
       final element = web.HTMLDivElement()
         ..id = _containerId
         ..style.width = '100%'
-        ..style.height = '520px'
-        ..style.minHeight = '520px'
+        ..style.minHeight = '620px'
         ..style.display = 'block'
         ..style.boxSizing = 'border-box';
 
@@ -62,6 +63,10 @@ class _StripeWebElementState extends State<StripeWebElement> {
           ((JSString status) {
             if (mounted) widget.onPaymentState(status.toDart);
           }).toJS,
+          ((JSNumber height) {
+            final value=height.toDartDouble.clamp(620.0,4000.0).toDouble();
+            if(mounted&&(_height-value).abs()>1)setState(()=>_height=value);
+          }).toJS,
         );
       });
 
@@ -72,7 +77,8 @@ class _StripeWebElementState extends State<StripeWebElement> {
   @override
   Widget build(BuildContext context) => SizedBox(
     width: double.infinity,
-    height: 520,
+    height: _height,
     child: HtmlElementView(viewType: _viewType),
   );
 }
+
