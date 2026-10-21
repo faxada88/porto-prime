@@ -17,13 +17,14 @@ class PrimeBottomNavigation extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 0),
       child: Center(heightFactor: 1, child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
-        child: DecoratedBox(
+        child: Container(
+          foregroundDecoration:BoxDecoration(borderRadius:BorderRadius.circular(30),border:Border.all(color:AppColors.strokeStrong,width:1.3)),
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: AppColors.stroke),
+            border: Border.all(color: AppColors.strokeStrong,width:1.3),
             boxShadow: const [
-              BoxShadow(color: Color(0x14233E48), blurRadius: 28, offset: Offset(0, 10)),
+              BoxShadow(color: Color(0x1A233E48), blurRadius: 24, offset: Offset(0, 8)),
               BoxShadow(color: Color(0x06000000), blurRadius: 6, offset: Offset(0, 2)),
             ],
           ),
@@ -58,14 +59,14 @@ class PrimeBottomNavigation extends StatelessWidget {
           curve: AppMotion.curve,
           margin: const EdgeInsets.symmetric(horizontal: 3),
           padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 7),
-          decoration: BoxDecoration(color: selected ? AppColors.ocean50 : Colors.transparent,
+          decoration: BoxDecoration(color: Colors.transparent,
             borderRadius: BorderRadius.circular(20)),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             AnimatedContainer(duration: AppMotion.resolve(context, AppMotion.standard),
-              width: 58, height: 32, decoration: BoxDecoration(color:selected?AppColors.ocean700:Colors.transparent,borderRadius:BorderRadius.circular(14)), child: Stack(clipBehavior: Clip.none,
+              width: 58, height: 32, decoration: BoxDecoration(color:Colors.transparent,borderRadius:BorderRadius.circular(14)), child: Stack(clipBehavior: Clip.none,
               alignment: Alignment.center, children: [
                 Icon(icon, size: selected ? 24 : 23,
-                  color: selected ? Colors.white : AppColors.muted),
+                  color: selected ? AppColors.ink : AppColors.muted),
                 if (count > 0) Positioned(top: -5, right: 2,
                   child: Container(constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                     padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -82,7 +83,11 @@ class PrimeBottomNavigation extends StatelessWidget {
             SizedBox(height: 17, child: FittedBox(fit: BoxFit.scaleDown,
               child: Text(label, style: TextStyle(fontSize: 11,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                color: selected ? AppColors.ocean700 : AppColors.muted)))),
+                color: selected ? AppColors.ink : AppColors.muted)))),
+            const SizedBox(height:6),
+            AnimatedContainer(duration:AppMotion.resolve(context,AppMotion.standard),
+              height:3,width:selected?22:6,decoration:BoxDecoration(
+                color:selected?AppColors.ink:Colors.transparent,borderRadius:BorderRadius.circular(4))),
           ]),
         ),
       )),
