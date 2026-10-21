@@ -14,7 +14,7 @@ void main(){
    await tester.pumpWidget(MaterialApp(theme:AppTheme.light,home:MediaQuery(
     data:MediaQueryData(size:const Size(320,640),textScaler:TextScaler.linear(scale)),
     child:Scaffold(bottomNavigationBar:PrimeBottomNavigation(index:0,cartCount:3,onSelect:calls.add)))));
-   for(final label in ['Início','Buscar','Carrinho','Conta']){
+   for(final label in ['Início','Pedidos','Carrinho','Conta']){
     await tester.tap(find.text(label));
    }
    expect(calls,[0,1,2,3]);

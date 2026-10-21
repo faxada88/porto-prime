@@ -41,9 +41,9 @@ void main() {
    ReferenceHomeHeader(address:'Porto Seguro',region:'BA',cartCount:0,onAddress:()=>calls.add('address'),onCart:()=>calls.add('cart'),onProfile:()=>calls.add('profile')),
    ReferenceHomeSearch(onTap:()=>calls.add('search')),
   ]))));
-  await tester.tap(find.text('ENTREGAR EM'));
+  await tester.tap(find.text('Olá! Onde vamos entregar?'));
   expect(find.bySemanticsLabel('Abrir carrinho'),findsNothing);
-  await tester.tap(action('Abrir perfil'));
+  await tester.tap(action('Abrir notificações'));
   await tester.tap(find.text('O que você quer pedir hoje?'));
   expect(calls,['address','profile','search']);
  });

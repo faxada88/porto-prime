@@ -1,3 +1,6 @@
+import '../state/customer_activity.dart';
+import '../../features/orders/presentation/pages/order_tracking_page.dart';
+import '../../features/orders/presentation/pages/orders_page.dart';
 import 'dart:async';
 import '../../features/support/presentation/pages/delivery_chat_page.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +38,7 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
+    CustomerActivity.instance.start();
     _orderSync = Timer.periodic(const Duration(seconds: 12), (_) async {
       final state = AppState.instance;
       if (_syncingOrder || !state.isCustomer || AppNav.instance.observer.top?.isFirst == false) return;
@@ -98,7 +102,17 @@ class _AppShellState extends State<AppShell> {
         bottomNavigationBar: PrimeBottomNavigation(
           index: index,
           cartCount: state.cartCount,
-          onSelect: (value) => AppNav.instance.go(value),
+          orderCount: customerLiveOrder(state)==null?0:1,
+          onSelect: (value) async {
+            if(value!=1){AppNav.instance.go(value);return;}
+            try{await Future.wait([state.loadOrders(),state.loadActiveOrder()]);}catch(_){}
+            if(!context.mounted)return;
+            final active=customerLiveOrder(state);
+            final visible=state.orders.whereType<Map>().where((o)=>o['adminDeletedAt']==null).toList()
+              ..sort((a,b)=>'${b['createdAt']}'.compareTo('${a['createdAt']}'));
+            final order=active??(visible.isEmpty?null:Map<String,dynamic>.from(visible.first));
+            Navigator.of(context).push(MaterialPageRoute(builder:(_)=>order==null?const OrdersPage():OrderTrackingPage(orderId:order['id'].toString())));
+          },
         ),
       );
     },

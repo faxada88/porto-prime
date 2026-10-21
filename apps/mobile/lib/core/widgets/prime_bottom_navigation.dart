@@ -5,8 +5,8 @@ import '../theme/app_theme.dart';
 /// Presentation only: selection is owned by the existing shell/router.
 class PrimeBottomNavigation extends StatelessWidget {
   const PrimeBottomNavigation({super.key, required this.index,
-    required this.onSelect, this.cartCount = 0});
-  final int index, cartCount;
+    required this.onSelect, this.orderCount = 0, this.cartCount = 0});
+  final int index, cartCount, orderCount;
   final ValueChanged<int> onSelect;
 
   @override
@@ -33,7 +33,7 @@ class PrimeBottomNavigation extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: Row(children: [
                 _destination(context, 0, 'Início', AppIcons.home),
-                _destination(context, 1, 'Buscar', AppIcons.search),
+                _destination(context, 1, 'Pedidos', AppIcons.receipt_long_rounded),
                 _destination(context, 2, 'Carrinho', AppIcons.cart),
                 _destination(context, 3, 'Conta', AppIcons.user),
               ]),
@@ -46,8 +46,9 @@ class PrimeBottomNavigation extends StatelessWidget {
 
   Widget _destination(BuildContext context, int value, String label, IconData icon) {
     final selected = index == value;
+    final count=value==1?orderCount:value==2?cartCount:0;
     return Expanded(child: Semantics(button: true, selected: selected,
-      label: value == 2 && cartCount > 0 ? '$label, $cartCount itens' : label,
+      label: count > 0 ? '$label, $count ${value==1?'pedidos ativos':'itens'}' : label,
       excludeSemantics: true, onTap: () => onSelect(value),
       child: Material(color: Colors.transparent, child: InkWell(
         borderRadius: BorderRadius.circular(20),
@@ -65,14 +66,14 @@ class PrimeBottomNavigation extends StatelessWidget {
               alignment: Alignment.center, children: [
                 Icon(icon, size: selected ? 24 : 23,
                   color: selected ? Colors.white : AppColors.muted),
-                if (value == 2 && cartCount > 0) Positioned(top: -5, right: 2,
+                if (count > 0) Positioned(top: -5, right: 2,
                   child: Container(constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(color: AppColors.coral600,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.white, width: 1.5)),
                     alignment: Alignment.center,
-                    child: Text(cartCount > 99 ? '99+' : '$cartCount',
+                    child: Text(count > 99 ? '99+' : '$count',
                       textScaler: TextScaler.noScaling,
                       style: const TextStyle(fontSize: 10, height: 1.2,
                         fontWeight: FontWeight.w800, color: Colors.white)))),

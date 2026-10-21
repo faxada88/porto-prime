@@ -1,3 +1,6 @@
+import '../../../categories/presentation/pages/all_categories_page.dart';
+import '../../../../core/state/customer_activity.dart';
+import '../../../../core/widgets/customer_activity_page.dart';
 import '../../../addresses/presentation/widgets/delivery_address_sheet.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/prime_reference_home.dart';
@@ -37,9 +40,9 @@ class HomePage extends StatelessWidget {
          const Text('Loja fechada no momento',style:TextStyle(fontWeight:FontWeight.w800,color:AppColors.warning)),
          const SizedBox(height:6),Text(state.storeMessage.replaceAll('Sua sacola','Seu carrinho').replaceAll('sua sacola','seu carrinho'),style:const TextStyle(color:AppColors.warning,height:1.5)),
         ]))),
-      if(state.user?['name']!=null)_section(Text('${DateTime.now().hour<12?'Bom dia':DateTime.now().hour<18?'Boa tarde':'Boa noite'}, ${state.user!['name'].toString().trim().split(' ').first}',style:const TextStyle(fontSize:13,color:AppColors.muted)),top:14),
-      _section(ReferenceHomeHeader(address:address,region:region,cartCount:state.cartCount,
-       onAddress:(){if(state.isCustomer){showDeliveryAddressSheet(context);}else{AppNav.instance.go(3);}},onCart:()=>AppNav.instance.go(2),onProfile:()=>AppNav.instance.go(3)),top:12),
+      _section(AnimatedBuilder(animation:CustomerActivity.instance,builder:(context,_)=>ReferenceHomeHeader(address:address,region:region,cartCount:state.cartCount,
+       greeting:'${DateTime.now().hour<12?'Bom dia':DateTime.now().hour<18?'Boa tarde':'Boa noite'}${state.user?['name']==null?'':', ${state.user!['name'].toString().trim().split(' ').first}'}',notificationCount:CustomerActivity.instance.unread,
+       onAddress:(){if(state.isCustomer){showDeliveryAddressSheet(context);}else{AppNav.instance.go(3);}},onCart:()=>AppNav.instance.go(2),onProfile:(){if(!state.isCustomer){AppNav.instance.go(3);return;}Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const CustomerActivityPage()));})),top:12),
       _section(ReferenceHomeSearch(onTap:()=>AppNav.instance.go(1))),
       if(categories.isNotEmpty)_section(_HomeCategories(categories:categories),top:12),
       _section(ReferenceCoastHero(onTap:()=>AppNav.instance.go(1)),top:14),
@@ -74,7 +77,7 @@ class _HomeCategories extends StatelessWidget {
    Row(children:[
     const Expanded(child:Text('Categorias',style:TextStyle(fontSize:16,fontWeight:FontWeight.w800,color:AppColors.ink))),
     TextButton(onPressed:(){
-     AppState.instance.selectCatalogCategory('Todos');AppNav.instance.go(1);
+     Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const AllCategoriesPage()));
     },child:const Text('Ver todas')),
    ]),
    const SizedBox(height:4),
