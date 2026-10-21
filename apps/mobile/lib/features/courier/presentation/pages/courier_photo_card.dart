@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -39,8 +40,8 @@ class _CourierPhotoCardState extends State<CourierPhotoCard>{
         await AppState.instance.api.request('PATCH','/couriers/profile/photo',body:{'photo':photo});
         await AppState.instance.refreshCourier();
       }
-      if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Foto selecionada com sucesso.')));
-    }catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(PrimeMessages.friendly(e))));}
+      if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:PrimeText('Foto selecionada com sucesso.')));
+    }catch(e){if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:PrimeText(PrimeMessages.friendly(e))));}
     finally{if(mounted)setState(()=>saving=false);}
   }
   @override

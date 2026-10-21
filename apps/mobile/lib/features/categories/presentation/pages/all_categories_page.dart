@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/state/app_state.dart';
 import 'categories_page.dart';
@@ -11,11 +12,11 @@ class _AllCategoriesState extends State<AllCategoriesPage>{
  String query='';
  @override Widget build(BuildContext context)=>AnimatedBuilder(animation:AppState.instance,builder:(context,_){
   final categories=AppState.instance.catalogCategories.where((e)=>'${e['name']??''}'.trim().isNotEmpty&&'${e['name']}'.toLowerCase().contains(query.toLowerCase())).toList();
-  return Scaffold(backgroundColor:AppColors.canvas,appBar:AppBar(title:const Text('Todas as categorias')),
+  return Scaffold(backgroundColor:AppColors.canvas,appBar:AppBar(title:const PrimeText('Todas as categorias')),
    body:CustomScrollView(slivers:[
     SliverPadding(padding:const EdgeInsets.all(20),sliver:SliverToBoxAdapter(child:TextField(
-     onChanged:(value)=>setState(()=>query=value),decoration:const InputDecoration(hintText:'Encontrar categoria',prefixIcon:Icon(Icons.search_rounded))))),
-    if(categories.isEmpty)const SliverToBoxAdapter(child:Padding(padding:EdgeInsets.all(24),child:Text('Nenhuma categoria encontrada.',textAlign:TextAlign.center))),
+     onChanged:(value)=>setState(()=>query=value),decoration:const PrimeInputDecoration(hintText:'Encontrar categoria',prefixIcon:Icon(Icons.search_rounded))))),
+    if(categories.isEmpty)const SliverToBoxAdapter(child:Padding(padding:EdgeInsets.all(24),child:PrimeText('Nenhuma categoria encontrada.',textAlign:TextAlign.center))),
     SliverPadding(padding:const EdgeInsets.fromLTRB(20,0,20,28),sliver:SliverLayoutBuilder(builder:(context,box){
      final columns=box.crossAxisExtent>=700?6:box.crossAxisExtent>=480?4:3;
      return SliverGrid(gridDelegate:SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:columns,crossAxisSpacing:10,mainAxisSpacing:14,

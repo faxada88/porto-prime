@@ -1,3 +1,4 @@
+import '../localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
@@ -8,10 +9,10 @@ class PrimeRegistrationChoiceIntro extends StatelessWidget {
   final VoidCallback onClose;
   @override
   Widget build(BuildContext context)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-    Row(children:[const Expanded(child:Text('Vamos começar',style:TextStyle(fontSize:27,height:1.2,fontWeight:FontWeight.w800,letterSpacing:-.7,color:AppColors.ink))),
-      IconButton(tooltip:'Fechar',onPressed:onClose,icon:const Icon(AppIcons.close,size:21,color:AppColors.ink))]),
+    Row(children:[const Expanded(child:PrimeText('Vamos começar',style:TextStyle(fontSize:27,height:1.2,fontWeight:FontWeight.w800,letterSpacing:-.7,color:AppColors.ink))),
+      IconButton(tooltip: translateLabel('Fechar'),onPressed:onClose,icon:const Icon(AppIcons.close,size:21,color:AppColors.ink))]),
     const SizedBox(height:10),
-    const Text('Escolha como você quer usar a Porto Prime.',style:TextStyle(fontSize:14,height:1.6,color:AppColors.inkSoft)),
+    const PrimeText('Escolha como você quer usar a Porto Prime.',style:TextStyle(fontSize:14,height:1.6,color:AppColors.inkSoft)),
   ]);
 }
 
@@ -35,12 +36,12 @@ class PrimeRegistrationRoleCard extends StatelessWidget {
           child: Icon(icon, size: 24, color: AppColors.ocean900)),
         const SizedBox(width: 14),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: const TextStyle(fontSize: 18, height: 1.25,
+          PrimeText(title, style: const TextStyle(fontSize: 18, height: 1.25,
             fontWeight: FontWeight.w800, letterSpacing: -.4, color: AppColors.ocean900)),
           const SizedBox(height: 7),
-          Text(subtitle, style: const TextStyle(fontSize: 12, height: 1.5, color: AppColors.muted)),
+          PrimeText(subtitle, style: const TextStyle(fontSize: 12, height: 1.5, color: AppColors.muted)),
           const SizedBox(height: 12),
-          const Text('Começar cadastro', style: TextStyle(fontSize: 11,
+          const PrimeText('Começar cadastro', style: TextStyle(fontSize: 11,
             height: 1.5, fontWeight: FontWeight.w800, color: AppColors.ocean700)),
         ])),
         const SizedBox(width: 8),
@@ -62,22 +63,22 @@ class PrimeRegistrationHeader extends StatelessWidget {
     child: Padding(padding: const EdgeInsets.fromLTRB(12, 10, 20, 12),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Row(children: [
-          IconButton(tooltip: step == 0 ? 'Fechar cadastro' : 'Voltar etapa',
+          IconButton(tooltip: translateLabel( step == 0 ? 'Fechar cadastro' : 'Voltar etapa'),
             onPressed: onBack, icon: Icon(step == 0 ? AppIcons.close : AppIcons.arrowLeft,
               color: AppColors.ocean900, size: 22)),
           const SizedBox(width: 6),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Conta de $roleLabel', style: const TextStyle(fontSize: 16, height: 1.3,
+            PrimeText('Conta de $roleLabel', style: const TextStyle(fontSize: 16, height: 1.3,
               fontWeight: FontWeight.w800, color: AppColors.ocean900)),
             const SizedBox(height: 3),
-            Text('Etapa ${step + 1} de $total', style: const TextStyle(
+            PrimeText('Etapa ${step + 1} de $total', style: const TextStyle(
               fontSize: 11, height: 1.4, color: AppColors.muted)),
           ])),
           const SizedBox(width: 12), const PrimeBrandMark(size: 34),
         ]),
         const SizedBox(height: 12),
         Padding(padding: const EdgeInsets.only(left: 12),
-          child: Semantics(label: 'Progresso do cadastro', value: '${step + 1} de $total',
+          child: Semantics(label: translateLabel( 'Progresso do cadastro'), value: '${step + 1} de $total',
             child: LinearProgressIndicator(value: (step + 1) / total,
               minHeight: 4, borderRadius: BorderRadius.circular(8),
               color: AppColors.ocean700, backgroundColor: AppColors.stroke))),
@@ -102,7 +103,7 @@ class PrimeRegistrationContinue extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Flexible(child: Text(loading ? 'Aguarde…' : label, textAlign: TextAlign.center,
+              Flexible(child: PrimeText(loading ? 'Aguarde…' : label, textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800))),
               const SizedBox(width: 12),
               if (loading) const SizedBox(width: 18, height: 18,

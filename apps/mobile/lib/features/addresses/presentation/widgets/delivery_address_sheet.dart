@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/state/app_state.dart';
@@ -81,9 +82,9 @@ class _DeliveryAddressSheetState extends State<DeliveryAddressSheet> {
   if(action=='select'){await _select(address);return;}
   final confirmed=await showDialog<bool>(context:context,builder:(dialog)=>AlertDialog(
    shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(22)),
-   icon:const Icon(AppIcons.trash,color:AppColors.coral600),title:const Text('Remover endereço?'),
-   content:Text('O endereço ${address['label']??address['street']??''} será removido da sua lista.'),
-   actions:[TextButton(onPressed:()=>Navigator.pop(dialog,false),child:const Text('Manter endereço')),FilledButton(onPressed:()=>Navigator.pop(dialog,true),child:const Text('Remover'))],
+   icon:const Icon(AppIcons.trash,color:AppColors.coral600),title:const PrimeText('Remover endereço?'),
+   content:PrimeText('O endereço ${address['label']??address['street']??''} será removido da sua lista.'),
+   actions:[TextButton(onPressed:()=>Navigator.pop(dialog,false),child:const PrimeText('Manter endereço')),FilledButton(onPressed:()=>Navigator.pop(dialog,true),child:const PrimeText('Remover'))],
   ));
   if(confirmed!=true||!mounted||!_authorized)return;
   setState((){_busy=true;_error=null;});
@@ -101,25 +102,25 @@ class _DeliveryAddressSheetState extends State<DeliveryAddressSheet> {
    child:SafeArea(top:false,child:Column(children:[
     Container(padding:const EdgeInsets.fromLTRB(14,10,14,16),decoration:const BoxDecoration(color:Colors.white,borderRadius:BorderRadius.vertical(top:Radius.circular(26))),child:Column(children:[
      Container(width:36,height:4,decoration:BoxDecoration(color:AppColors.stroke,borderRadius:BorderRadius.circular(4))),const SizedBox(height:10),
-     Row(children:[IconButton(tooltip:'Fechar endereços',onPressed:_busy?null:()=>Navigator.pop(context),icon:const Icon(AppIcons.chevronDown)),const Expanded(child:Text('Endereço de entrega',textAlign:TextAlign.center,style:TextStyle(fontSize:17,fontWeight:FontWeight.w800,color:AppColors.ink))),const SizedBox(width:48)]),
+     Row(children:[IconButton(tooltip: translateLabel('Fechar endereços'),onPressed:_busy?null:()=>Navigator.pop(context),icon:const Icon(AppIcons.chevronDown)),const Expanded(child:PrimeText('Endereço de entrega',textAlign:TextAlign.center,style:TextStyle(fontSize:17,fontWeight:FontWeight.w800,color:AppColors.ink))),const SizedBox(width:48)]),
      const SizedBox(height:8),
-     TextField(controller:_query,enabled:!_busy&&_authorized,onChanged:_search,textInputAction:TextInputAction.search,onSubmitted:(_)=>_edit(),decoration:InputDecoration(hintText:'Buscar rua, hotel ou endereço',hintStyle:const TextStyle(fontSize:13),filled:true,fillColor:const Color(0xFFF3F4F5),prefixIcon:const Icon(AppIcons.search,size:21),suffixIcon:query.isEmpty?null:IconButton(tooltip:'Limpar busca',onPressed:(){_query.clear();_search('');},icon:const Icon(AppIcons.close,size:18)),border:OutlineInputBorder(borderRadius:BorderRadius.circular(14),borderSide:BorderSide.none),enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(14),borderSide:BorderSide.none))),
+     TextField(controller:_query,enabled:!_busy&&_authorized,onChanged:_search,textInputAction:TextInputAction.search,onSubmitted:(_)=>_edit(),decoration:PrimeInputDecoration(hintText:'Buscar rua, hotel ou endereço',hintStyle:const TextStyle(fontSize:13),filled:true,fillColor:const Color(0xFFF3F4F5),prefixIcon:const Icon(AppIcons.search,size:21),suffixIcon:query.isEmpty?null:IconButton(tooltip: translateLabel('Limpar busca'),onPressed:(){_query.clear();_search('');},icon:const Icon(AppIcons.close,size:18)),border:OutlineInputBorder(borderRadius:BorderRadius.circular(14),borderSide:BorderSide.none),enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(14),borderSide:BorderSide.none))),
     ])),
     if(_busy||_loading||_searching)const LinearProgressIndicator(minHeight:2),
     Expanded(child:ListView(keyboardDismissBehavior:ScrollViewKeyboardDismissBehavior.onDrag,padding:const EdgeInsets.fromLTRB(18,18,18,10),children:[
-     if(!_authorized)const Text('Entre na sua conta para gerenciar seus endereços.'),
-     if(_error!=null)Padding(padding:const EdgeInsets.only(bottom:14),child:Text(_error!,style:const TextStyle(color:AppColors.coral600,fontSize:12,height:1.4))),
+     if(!_authorized)const PrimeText('Entre na sua conta para gerenciar seus endereços.'),
+     if(_error!=null)Padding(padding:const EdgeInsets.only(bottom:14),child:PrimeText(_error!,style:const TextStyle(color:AppColors.coral600,fontSize:12,height:1.4))),
      if(_authorized)...[
-      const Text('Seus endereços',style:TextStyle(fontSize:12,fontWeight:FontWeight.w700,color:AppColors.muted)),const SizedBox(height:12),
-      if(addresses.isEmpty&&!_loading)Padding(padding:const EdgeInsets.symmetric(vertical:20),child:Text(query.isEmpty?'Adicione seu primeiro endereço de entrega.':'Nenhum endereço salvo corresponde à busca.',style:const TextStyle(fontSize:14,color:AppColors.muted,height:1.5))),
+      const PrimeText('Seus endereços',style:TextStyle(fontSize:12,fontWeight:FontWeight.w700,color:AppColors.muted)),const SizedBox(height:12),
+      if(addresses.isEmpty&&!_loading)Padding(padding:const EdgeInsets.symmetric(vertical:20),child:PrimeText(query.isEmpty?'Adicione seu primeiro endereço de entrega.':'Nenhum endereço salvo corresponde à busca.',style:const TextStyle(fontSize:14,color:AppColors.muted,height:1.5))),
       for(final address in addresses)DeliveryAddressCard(address:address,selected:address['id']==current,busy:_busy||_editing,onSelect:()=>_select(address),onAction:(action)=>_manage(address,action)),
       if(_places.isNotEmpty)...[
-       const Padding(padding:EdgeInsets.symmetric(vertical:12),child:Text('Locais encontrados',style:TextStyle(fontWeight:FontWeight.w700,color:AppColors.muted,fontSize:12))),
-       for(final place in _places)Card(elevation:0,color:Colors.white,child:ListTile(contentPadding:const EdgeInsets.symmetric(horizontal:14,vertical:8),leading:const Icon(AppIcons.mapPin,color:AppColors.ocean700),title:Text((place['name']??'Local encontrado').toString(),style:const TextStyle(fontSize:14,fontWeight:FontWeight.w700)),subtitle:Text([place['street'],place['number'],place['neighborhood']].where((part)=>part!=null&&part.toString().isNotEmpty).join(' · '),style:const TextStyle(fontSize:12)),trailing:const Icon(AppIcons.chevronRight,size:18),onTap:_busy||_editing?null:()=>_edit(place:place))),
+       const Padding(padding:EdgeInsets.symmetric(vertical:12),child:PrimeText('Locais encontrados',style:TextStyle(fontWeight:FontWeight.w700,color:AppColors.muted,fontSize:12))),
+       for(final place in _places)Card(elevation:0,color:Colors.white,child:ListTile(contentPadding:const EdgeInsets.symmetric(horizontal:14,vertical:8),leading:const Icon(AppIcons.mapPin,color:AppColors.ocean700),title:PrimeText((place['name']??'Local encontrado').toString(),style:const TextStyle(fontSize:14,fontWeight:FontWeight.w700)),subtitle:PrimeText([place['street'],place['number'],place['neighborhood']].where((part)=>part!=null&&part.toString().isNotEmpty).join(' · '),style:const TextStyle(fontSize:12)),trailing:const Icon(AppIcons.chevronRight,size:18),onTap:_busy||_editing?null:()=>_edit(place:place))),
       ],
      ],
     ])),
-    if(MediaQuery.viewInsetsOf(context).bottom==0)Container(padding:const EdgeInsets.fromLTRB(18,12,18,14),color:Colors.white,child:SizedBox(width:double.infinity,child:FilledButton.icon(onPressed:_busy||_editing||!_authorized?null:()=>_edit(),style:FilledButton.styleFrom(backgroundColor:AppColors.ocean900,padding:const EdgeInsets.symmetric(vertical:16),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(16))),icon:const Icon(AppIcons.plus,size:19),label:const Text('Adicionar novo endereço',style:TextStyle(fontWeight:FontWeight.w700))))),
+    if(MediaQuery.viewInsetsOf(context).bottom==0)Container(padding:const EdgeInsets.fromLTRB(18,12,18,14),color:Colors.white,child:SizedBox(width:double.infinity,child:FilledButton.icon(onPressed:_busy||_editing||!_authorized?null:()=>_edit(),style:FilledButton.styleFrom(backgroundColor:AppColors.ocean900,padding:const EdgeInsets.symmetric(vertical:16),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(16))),icon:const Icon(AppIcons.plus,size:19),label:const PrimeText('Adicionar novo endereço',style:TextStyle(fontWeight:FontWeight.w700))))),
    ])),
   )));
  });
@@ -135,13 +136,13 @@ class DeliveryAddressCard extends StatelessWidget {
   return Padding(padding:const EdgeInsets.only(bottom:12),child:Material(color:Colors.white,borderRadius:BorderRadius.circular(18),child:InkWell(onTap:busy?null:onSelect,borderRadius:BorderRadius.circular(18),child:Container(padding:const EdgeInsets.fromLTRB(14,16,8,16),decoration:BoxDecoration(borderRadius:BorderRadius.circular(18),border:Border.all(color:selected?AppColors.ocean700:const Color(0xFFE8ECEA),width:selected?1.5:1)),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
    Padding(padding:const EdgeInsets.only(top:5),child:Icon(label.toLowerCase()=='casa'?AppIcons.home:AppIcons.mapPin,size:24,color:selected?AppColors.ocean700:AppColors.muted)),const SizedBox(width:12),
    Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-    Text(label.isEmpty?(street.isEmpty?'Endereço de entrega':street):label,style:const TextStyle(fontSize:15,fontWeight:FontWeight.w800,color:AppColors.ink)),const SizedBox(height:5),
-    if(label.isNotEmpty)Text(street,style:const TextStyle(fontSize:13,height:1.45,color:AppColors.muted)),
-    Text([address['neighborhood'],[address['city'],address['state']].where((part)=>part!=null&&part.toString().isNotEmpty).join('/')].where((part)=>part!=null&&part.toString().isNotEmpty).join(' · '),style:const TextStyle(fontSize:12,height:1.45,color:AppColors.muted)),
-    if((address['complement']??'').toString().isNotEmpty)Padding(padding:const EdgeInsets.only(top:6),child:Text(address['complement'].toString(),style:const TextStyle(fontSize:11,height:1.4,color:AppColors.muted))),
-    if(selected)const Padding(padding:EdgeInsets.only(top:9),child:Text('EM USO',style:TextStyle(fontSize:9,fontWeight:FontWeight.w800,letterSpacing:1,color:AppColors.ocean700))),
+    PrimeText(label.isEmpty?(street.isEmpty?'Endereço de entrega':street):label,style:const TextStyle(fontSize:15,fontWeight:FontWeight.w800,color:AppColors.ink)),const SizedBox(height:5),
+    if(label.isNotEmpty)PrimeText(street,style:const TextStyle(fontSize:13,height:1.45,color:AppColors.muted)),
+    PrimeText([address['neighborhood'],[address['city'],address['state']].where((part)=>part!=null&&part.toString().isNotEmpty).join('/')].where((part)=>part!=null&&part.toString().isNotEmpty).join(' · '),style:const TextStyle(fontSize:12,height:1.45,color:AppColors.muted)),
+    if((address['complement']??'').toString().isNotEmpty)Padding(padding:const EdgeInsets.only(top:6),child:PrimeText(address['complement'].toString(),style:const TextStyle(fontSize:11,height:1.4,color:AppColors.muted))),
+    if(selected)const Padding(padding:EdgeInsets.only(top:9),child:PrimeText('EM USO',style:TextStyle(fontSize:9,fontWeight:FontWeight.w800,letterSpacing:1,color:AppColors.ocean700))),
    ])),
-   Column(children:[if(selected)const Padding(padding:EdgeInsets.only(bottom:3),child:Icon(AppIcons.checkCircle,size:18,color:AppColors.ocean700)),PopupMenuButton<String>(tooltip:'Opções do endereço',enabled:!busy,onSelected:onAction,itemBuilder:(_)=>[const PopupMenuItem(value:'edit',child:Text('Editar endereço')),if(!selected)const PopupMenuItem(value:'select',child:Text('Usar para entrega')),const PopupMenuItem(value:'remove',child:Text('Remover endereço'))])]),
+   Column(children:[if(selected)const Padding(padding:EdgeInsets.only(bottom:3),child:Icon(AppIcons.checkCircle,size:18,color:AppColors.ocean700)),PopupMenuButton<String>(tooltip: translateLabel('Opções do endereço'),enabled:!busy,onSelected:onAction,itemBuilder:(_)=>[const PopupMenuItem(value:'edit',child:PrimeText('Editar endereço')),if(!selected)const PopupMenuItem(value:'select',child:PrimeText('Usar para entrega')),const PopupMenuItem(value:'remove',child:PrimeText('Remover endereço'))])]),
   ])))));
  }
 }

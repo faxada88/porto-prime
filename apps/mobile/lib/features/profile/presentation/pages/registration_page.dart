@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import '../../../addresses/presentation/widgets/registration_place_search.dart';
 import '../../../../core/widgets/prime_registration_widgets.dart';
 import 'dart:async';
@@ -142,7 +143,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           ),
                         ),
                         const SizedBox(height: 17),
-                        Text(
+                        PrimeText(
                           heading(),
                           style: const TextStyle(
                             fontSize: 28,
@@ -152,7 +153,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           ),
                         ),
                         const SizedBox(height: 9),
-                        Text(
+                        PrimeText(
                           sub(),
                           style: const TextStyle(
                             fontSize: 13,
@@ -256,7 +257,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Text(
+                                          PrimeText(
                                             'Confirmação dos dados',
                                             style: TextStyle(
                                               fontSize: 11.5,
@@ -264,7 +265,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                             ),
                                           ),
                                           SizedBox(height: 3),
-                                          Text(
+                                          PrimeText(
                                             'Confirmo que as informações são verdadeiras e aceito os termos e a política de privacidade.',
                                             style: TextStyle(
                                               fontSize: AppFontSize.caption,
@@ -342,9 +343,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
         child:const Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
           Icon(AppIcons.verified_user_rounded,color:AppColors.oceanDeep,size:27),SizedBox(width:12),
           Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-            Text('Confira tudo antes de enviar',style:TextStyle(fontSize:16,fontWeight:AppFontWeight.display)),
+            PrimeText('Confira tudo antes de enviar',style:TextStyle(fontSize:16,fontWeight:AppFontWeight.display)),
             SizedBox(height:4),
-            Text('Revise seus dados pessoais, CNH, veículo e contato. Se encontrar algo errado, toque em Editar e volte exatamente à etapa correspondente.',style:TextStyle(fontSize:10.5,height:1.45,color:AppColors.muted,fontWeight:AppFontWeight.medium)),
+            PrimeText('Revise seus dados pessoais, CNH, veículo e contato. Se encontrar algo errado, toque em Editar e volte exatamente à etapa correspondente.',style:TextStyle(fontSize:10.5,height:1.45,color:AppColors.muted,fontWeight:AppFontWeight.medium)),
           ])),
         ]),
       ),
@@ -354,10 +355,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
         child:Column(children:[
           Row(children:[
             Container(width:38,height:38,decoration:BoxDecoration(color:AppColors.canvas,borderRadius:BorderRadius.circular(AppRadius.sm)),child:Icon(section['icon'] as IconData,color:AppColors.oceanDeep,size:20)),
-            const SizedBox(width:10),Expanded(child:Text(section['title'] as String,style:const TextStyle(fontSize:13.5,fontWeight:AppFontWeight.display))),
+            const SizedBox(width:10),Expanded(child:PrimeText(section['title'] as String,style:const TextStyle(fontSize:13.5,fontWeight:AppFontWeight.display))),
             TextButton.icon(
               onPressed:()=>setState(()=>step=section['step'] as int),
-              icon:const Icon(AppIcons.edit_rounded,size:15),label:const Text('Editar'),
+              icon:const Icon(AppIcons.edit_rounded,size:15),label:const PrimeText('Editar'),
               style:TextButton.styleFrom(foregroundColor:AppColors.oceanDeep,textStyle:const TextStyle(fontSize:11,fontWeight:AppFontWeight.display)),
             ),
           ]),
@@ -366,9 +367,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
             final row=raw as List<String>;return Padding(
               padding:const EdgeInsets.symmetric(vertical:6),
               child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
-                Expanded(flex:4,child:Text(row[0],style:const TextStyle(fontSize:9.5,color:AppColors.muted,fontWeight:AppFontWeight.strong))),
+                Expanded(flex:4,child:PrimeText(row[0],style:const TextStyle(fontSize:9.5,color:AppColors.muted,fontWeight:AppFontWeight.strong))),
                 const SizedBox(width:10),
-                Expanded(flex:6,child:Text(row[1].isEmpty?'Não informado':row[1],textAlign:TextAlign.right,style:const TextStyle(fontSize:10.5,height:1.3,fontWeight:AppFontWeight.display))),
+                Expanded(flex:6,child:PrimeText(row[1].isEmpty?'Não informado':row[1],textAlign:TextAlign.right,style:const TextStyle(fontSize:10.5,height:1.3,fontWeight:AppFontWeight.display))),
               ]),
             );
           }),
@@ -379,7 +380,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         decoration:BoxDecoration(color:AppColors.sand,borderRadius:BorderRadius.circular(AppRadius.md)),
         child:const Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
           Icon(AppIcons.manage_search_rounded,color:AppColors.coral,size:22),SizedBox(width:10),
-          Expanded(child:Text('Depois do envio, o cadastro ficará em análise. A equipe Porto Prime verificará as informações antes de liberar o acesso operacional.',style:TextStyle(fontSize:10.5,height:1.45,color:AppColors.ink,fontWeight:AppFontWeight.strong))),
+          Expanded(child:PrimeText('Depois do envio, o cadastro ficará em análise. A equipe Porto Prime verificará as informações antes de liberar o acesso operacional.',style:TextStyle(fontSize:10.5,height:1.45,color:AppColors.ink,fontWeight:AppFontWeight.strong))),
         ]),
       ),
     ]);
@@ -414,7 +415,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         if ((customer||courier) && f.key == 'cep') _lookupCep(value);
         if(customer&&['street','cep'].contains(f.key))registrationLocationRef=null;
       },
-      validator: (v) {
+      validator: localizeValidator( (v) {
         final value = v?.trim() ?? '';
         if (f.required && value.isEmpty) return 'Preencha este campo';
         final digits = value.replaceAll(RegExp(r'\D'), '');
@@ -438,8 +439,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
           return 'Informe a data completa';
         }
         return null;
-      },
-      decoration: InputDecoration(
+      }),
+      decoration: PrimeInputDecoration(
         labelText: f.label,
         hintText: courier && f.key == 'name' ? 'Nome completo' : f.hint,
         errorMaxLines: 6,
@@ -514,7 +515,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     final value=ctl(f.key).text;
     return Padding(padding:const EdgeInsets.only(bottom:13),child:InkWell(
       borderRadius:BorderRadius.circular(AppRadius.md),onTap:()=>openPicker(f,options),
-      child:InputDecorator(decoration:InputDecoration(labelText:f.label,filled:true,fillColor:AppColors.surfaceSoft,
+      child:InputDecorator(decoration:PrimeInputDecoration(labelText:f.label,filled:true,fillColor:AppColors.surfaceSoft,
         prefixIcon:Padding(
           padding:const EdgeInsets.all(11),
           child:Container(
@@ -527,7 +528,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         suffixIcon:Icon(AppIcons.unfold_more_rounded,color:accent,size:20),
         enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(AppRadius.md),borderSide:const BorderSide(color:AppColors.stroke)),
         border:OutlineInputBorder(borderRadius:BorderRadius.circular(AppRadius.md),borderSide:BorderSide.none)),
-        child:Text(value.isEmpty?'Toque para selecionar':value,style:TextStyle(fontWeight:AppFontWeight.display,fontSize:12,color:value.isEmpty?AppColors.muted:AppColors.ink))),
+        child:PrimeText(value.isEmpty?'Toque para selecionar':value,style:TextStyle(fontWeight:AppFontWeight.display,fontSize:12,color:value.isEmpty?AppColors.muted:AppColors.ink))),
     ));
   }
 
@@ -541,12 +542,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
         child:Column(children:[
           Container(width:42,height:4,decoration:BoxDecoration(color:AppColors.stroke,borderRadius:BorderRadius.circular(8))),
           const SizedBox(height:18),
-          Row(children:[Expanded(child:Text(f.label,style:const TextStyle(fontSize:21,fontWeight:AppFontWeight.display))),IconButton(onPressed:()=>Navigator.pop(ctx),icon:const Icon(AppIcons.close_rounded))]),
+          Row(children:[Expanded(child:PrimeText(f.label,style:const TextStyle(fontSize:21,fontWeight:AppFontWeight.display))),IconButton(onPressed:()=>Navigator.pop(ctx),icon:const Icon(AppIcons.close_rounded))]),
           TextField(controller:search,onChanged:(q)=>setSheet(()=>filtered=options.where((x)=>x.toLowerCase().contains(q.toLowerCase())).toList()),
-            decoration:InputDecoration(hintText:'Pesquisar',prefixIcon:const Icon(AppIcons.search_rounded),filled:true,fillColor:AppColors.surfaceSoft,border:OutlineInputBorder(borderRadius:BorderRadius.circular(AppRadius.md),borderSide:BorderSide.none))),
+            decoration:PrimeInputDecoration(hintText:'Pesquisar',prefixIcon:const Icon(AppIcons.search_rounded),filled:true,fillColor:AppColors.surfaceSoft,border:OutlineInputBorder(borderRadius:BorderRadius.circular(AppRadius.md),borderSide:BorderSide.none))),
           const SizedBox(height:10),
           Expanded(child:ListView.separated(itemCount:filtered.length,separatorBuilder:(_,_)=>const Divider(height:1,color:AppColors.stroke),
-            itemBuilder:(ctx,i){final x=filtered[i],selected=ctl(f.key).text==x;return ListTile(title:Text(x,style:TextStyle(fontWeight:selected?AppFontWeight.display:AppFontWeight.strong)),trailing:selected?const Icon(AppIcons.check_circle_rounded,color:AppColors.success):null,onTap:()=>Navigator.pop(ctx,x));})),
+            itemBuilder:(ctx,i){final x=filtered[i],selected=ctl(f.key).text==x;return ListTile(title:PrimeText(x,style:TextStyle(fontWeight:selected?AppFontWeight.display:AppFontWeight.strong)),trailing:selected?const Icon(AppIcons.check_circle_rounded,color:AppColors.success):null,onTap:()=>Navigator.pop(ctx,x));})),
         ]),
       )));
     search.dispose();
@@ -625,7 +626,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
+        PrimeText(
           waiting ? 'Validando seus dados…'
               : regular ? 'Dados validados. Agora adicione sua foto.'
               : error??'Confira os dados informados.',
@@ -635,7 +636,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           TextButton.icon(
             onPressed: _queueCpfLookup,
             icon: const Icon(AppIcons.manage_search_rounded, size: 18),
-            label: const Text('Tentar novamente'),
+            label: const PrimeText('Tentar novamente'),
           ),
       ]),
     );
@@ -932,7 +933,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 child: Icon(icon, color: AppColors.oceanDeep, size: 31),
               ),
               const SizedBox(height: 18),
-              Text(
+              PrimeText(
                 title,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
@@ -942,7 +943,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 ),
               ),
               const SizedBox(height: 9),
-              Text(
+              PrimeText(
                 message,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
@@ -958,7 +959,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 height: 52,
                 child: FilledButton(
                   onPressed: () => Navigator.pop(d),
-                  child: const Text(
+                  child: const PrimeText(
                     'Entendi',
                     style: TextStyle(fontWeight: AppFontWeight.display),
                   ),
@@ -1023,7 +1024,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 ),
               ),
               const SizedBox(height: 18),
-              Text(
+              PrimeText(
                 dialogTitle,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
@@ -1034,7 +1035,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 ),
               ),
               const SizedBox(height: 9),
-              Text(
+              PrimeText(
                 message,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
@@ -1055,7 +1056,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                   ),
-                  child: const Text(
+                  child: const PrimeText(
                     'Corrigir meus dados',
                     style: TextStyle(fontWeight: AppFontWeight.display),
                   ),
@@ -1067,7 +1068,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   Navigator.pop(d);
                   Navigator.pop(context);
                 },
-                child: const Text(
+                child: const PrimeText(
                   'Já tenho uma conta',
                   style: TextStyle(
                     color: AppColors.muted,

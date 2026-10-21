@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/state/app_state.dart';
@@ -38,7 +39,7 @@ class _SplashPageState extends State<SplashPage> {
           child: Center(
             child: Semantics(
               liveRegion: true,
-              child: const Text(
+              child: const PrimeText(
                 'Preparando seu espaço…',
                 style: TextStyle(color: AppColors.muted),
               ),
@@ -47,3 +48,4 @@ class _SplashPageState extends State<SplashPage> {
         ),
       );
 }
+

@@ -1,8 +1,9 @@
+import '../../../../core/localization/prime_localization.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart' show LatLng;
+import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/tracking/courier_route_tracker.dart';
@@ -66,7 +67,7 @@ class _LiveDeliveryMapState extends State<LiveDeliveryMap> with SingleTickerProv
   final line=<LatLng>[];
   if(route is Map&&route['coordinates'] is List){for(final p in route['coordinates']){if(p is List&&p.length>=2&&p[0] is num&&p[1] is num)line.add(LatLng((p[1] as num).toDouble(),(p[0] as num).toDouble()));}}
   return Container(margin:const EdgeInsets.symmetric(vertical:16),clipBehavior:Clip.antiAlias,decoration:BoxDecoration(color:AppColors.surface,borderRadius:BorderRadius.circular(24),border:Border.all(color:AppColors.stroke)),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
-   Padding(padding:const EdgeInsets.all(18),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Container(padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:AppColors.ocean50,borderRadius:BorderRadius.circular(14)),child:const Icon(AppIcons.route,color:AppColors.ocean700)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(returning?'Retorno à distribuidora':'Seu pedido está a caminho',style:const TextStyle(fontSize:17,fontWeight:FontWeight.w800)),const SizedBox(height:4),Text(_error??(stale?'Aguardando atualização do motoboy':'Localização ao vivo • atualizado agora'),style:const TextStyle(fontSize:12,height:1.5,color:AppColors.muted))])),])),
+   Padding(padding:const EdgeInsets.all(18),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Container(padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:AppColors.ocean50,borderRadius:BorderRadius.circular(14)),child:const Icon(AppIcons.route,color:AppColors.ocean700)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[PrimeText(returning?'Retorno à distribuidora':'Seu pedido está a caminho',style:const TextStyle(fontSize:17,fontWeight:FontWeight.w800)),const SizedBox(height:4),PrimeText(_error??(stale?'Aguardando atualização do motoboy':'Localização ao vivo • atualizado agora'),style:const TextStyle(fontSize:12,height:1.5,color:AppColors.muted))])),])),
    SizedBox(height:300,child:AnimatedBuilder(animation:_motion,builder:(context,_){
     final position=_animatedPoint;
     return Stack(children:[FlutterMap(mapController:_map,options:MapOptions(initialCenter:center,initialZoom:14,onMapReady:(){_mapReady=true;if(_to!=null)_map.move(_to!,14);},onPositionChanged:(_,hasGesture){if(hasGesture&&_follow)setState(()=>_follow=false);}),children:[
@@ -75,18 +76,18 @@ class _LiveDeliveryMapState extends State<LiveDeliveryMap> with SingleTickerProv
      MarkerLayer(markers:[
       if(origin!=null)Marker(point:origin,width:36,height:36,child:const _MapPin(icon:AppIcons.store,label:'Distribuidora')),
       if(target!=null)Marker(point:target,width:40,height:40,child:const _MapPin(icon:AppIcons.mapPin,label:'Destino da rota')),
-      if(position!=null)Marker(point:position,width:64,height:64,child:Semantics(label:stale?'Última posição conhecida do motoboy':'Posição do motoboy',child:Opacity(opacity:stale ? 0.5 : 1.0,child:Container(padding:const EdgeInsets.all(12),decoration:BoxDecoration(color:AppColors.ocean800,shape:BoxShape.circle,border:Border.all(color:Colors.white,width:3),boxShadow:const [BoxShadow(color:Color(0x33000000),blurRadius:12,offset:Offset(0,4))]),child:Transform.rotate(angle:(((sample?['heading'] as num?)?.toDouble()??90)-90)*math.pi/180,child:const CustomPaint(painter:_MotoPainter())))))),
+      if(position!=null)Marker(point:position,width:64,height:64,child:Semantics(label: translateLabel(stale?'Última posição conhecida do motoboy':'Posição do motoboy'),child:Opacity(opacity:stale ? 0.5 : 1.0,child:Container(padding:const EdgeInsets.all(12),decoration:BoxDecoration(color:AppColors.ocean800,shape:BoxShape.circle,border:Border.all(color:Colors.white,width:3),boxShadow:const [BoxShadow(color:Color(0x33000000),blurRadius:12,offset:Offset(0,4))]),child:Transform.rotate(angle:(((sample?['heading'] as num?)?.toDouble()??90)-90)*math.pi/180,child:const CustomPaint(painter:_MotoPainter())))))),
      ]),
      RichAttributionWidget(attributions:[TextSourceAttribution('OpenStreetMap contributors',onTap:()=>launchUrl(Uri.parse('https://www.openstreetmap.org/copyright')))]),
-    ]),Positioned(top:12,right:12,child:Material(color:AppColors.surface,shape:const CircleBorder(),elevation:2,child:IconButton(tooltip:'Acompanhar motoboy',onPressed:_to==null?null:(){setState(()=>_follow=true);_map.move(_to!,15);},icon:const Icon(AppIcons.mapPin,color:AppColors.ocean700))))]);
+    ]),Positioned(top:12,right:12,child:Material(color:AppColors.surface,shape:const CircleBorder(),elevation:2,child:IconButton(tooltip: translateLabel('Acompanhar motoboy'),onPressed:_to==null?null:(){setState(()=>_follow=true);_map.move(_to!,15);},icon:const Icon(AppIcons.mapPin,color:AppColors.ocean700))))]);
    })),
-   Padding(padding:const EdgeInsets.all(16),child:Text(_error??(received==null?'O mapa será atualizado assim que recebermos o primeiro sinal GPS.':stale?'Última localização há $age segundos. O sinal pode estar indisponível.':eta!=null?'Chegada estimada em aproximadamente $eta min • pode variar durante o trajeto':'Acompanhe a moto no mapa durante a rota.'),style:const TextStyle(fontSize:12,height:1.6,color:AppColors.muted))),
+   Padding(padding:const EdgeInsets.all(16),child:PrimeText(_error??(received==null?'O mapa será atualizado assim que recebermos o primeiro sinal GPS.':stale?'Última localização há $age segundos. O sinal pode estar indisponível.':eta!=null?'Chegada estimada em aproximadamente $eta min • pode variar durante o trajeto':'Acompanhe a moto no mapa durante a rota.'),style:const TextStyle(fontSize:12,height:1.6,color:AppColors.muted))),
   ]));
  }
 }
 class _MapPin extends StatelessWidget {
  const _MapPin({required this.icon,required this.label});final IconData icon;final String label;
- @override Widget build(BuildContext context)=>Semantics(label:label,child:Container(decoration:BoxDecoration(color:AppColors.surface,shape:BoxShape.circle,border:Border.all(color:AppColors.ocean700,width:2)),child:Icon(icon,size:18,color:AppColors.ocean700)));
+ @override Widget build(BuildContext context)=>Semantics(label: translateLabel(label),child:Container(decoration:BoxDecoration(color:AppColors.surface,shape:BoxShape.circle,border:Border.all(color:AppColors.ocean700,width:2)),child:Icon(icon,size:18,color:AppColors.ocean700)));
 }
 /// A single vector motorcycle silhouette, independent from font glyphs or emojis.
 class _MotoPainter extends CustomPainter {

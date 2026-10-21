@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import '../widgets/live_delivery_map.dart';
 import '../../../../core/tracking/courier_route_tracker.dart';
 import '../widgets/customer_cancellation_panel.dart';
@@ -64,7 +65,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     builder: (_, __) {
       final current = order;
       if(AppState.instance.removedOrderIds.contains(widget.orderId)){
-        return Scaffold(appBar:AppBar(title:const Text('Pedido removido')),body:Center(child:Padding(padding:const EdgeInsets.all(24),child:Column(mainAxisSize:MainAxisSize.min,children:[const Icon(AppIcons.receipt,size:56),const SizedBox(height:16),const Text('Este pedido foi removido pela administração.',textAlign:TextAlign.center),const SizedBox(height:20),FilledButton(onPressed:()=>Navigator.of(context).popUntil((route)=>route.isFirst),child:const Text('Voltar ao início'))]))));
+        return Scaffold(appBar:AppBar(title:const PrimeText('Pedido removido')),body:Center(child:Padding(padding:const EdgeInsets.all(24),child:Column(mainAxisSize:MainAxisSize.min,children:[const Icon(AppIcons.receipt,size:56),const SizedBox(height:16),const PrimeText('Este pedido foi removido pela administração.',textAlign:TextAlign.center),const SizedBox(height:20),FilledButton(onPressed:()=>Navigator.of(context).popUntil((route)=>route.isFirst),child:const PrimeText('Voltar ao início'))]))));
       }
       if (current == null) {
         return Scaffold(
@@ -96,11 +97,11 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
         backgroundColor: AppColors.canvas,
         appBar: AppBar(
           leading: Navigator.of(context).canPop() ? const PrimeBackButton() : null,
-          title: const Text('Acompanhar pedido'),
+          title: const PrimeText('Acompanhar pedido'),
           actions: [
-            IconButton(tooltip:'Conversar sobre a entrega',icon:const Icon(AppIcons.mail),onPressed:()=>Navigator.of(context).push(MaterialPageRoute(settings:RouteSettings(name:'/delivery-chat/${widget.orderId}'),builder:(_)=>DeliveryChatPage(orderId:widget.orderId)))),
+            IconButton(tooltip: translateLabel('Conversar sobre a entrega'),icon:const Icon(AppIcons.mail),onPressed:()=>Navigator.of(context).push(MaterialPageRoute(settings:RouteSettings(name:'/delivery-chat/${widget.orderId}'),builder:(_)=>DeliveryChatPage(orderId:widget.orderId)))),
             IconButton(
-              tooltip: 'Início',
+              tooltip: translateLabel( 'Início'),
               onPressed: AppNav.instance.home,
               icon: const Icon(AppIcons.home),
             ),
@@ -117,13 +118,13 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
               children: [
                 _Hero(order: current, status: status, id: widget.orderId),
                 const SizedBox(height: 16),
-                OutlinedButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(settings:RouteSettings(name:'/delivery-chat/${widget.orderId}'),builder:(_)=>DeliveryChatPage(orderId:widget.orderId))),icon:const Icon(AppIcons.mail,size:18),label:const Text('Conversar sobre a entrega')),
+                OutlinedButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(settings:RouteSettings(name:'/delivery-chat/${widget.orderId}'),builder:(_)=>DeliveryChatPage(orderId:widget.orderId))),icon:const Icon(AppIcons.mail,size:18),label:const PrimeText('Conversar sobre a entrega')),
                 const SizedBox(height:16),
                 if(liveRouteMode(current)!=null)LiveDeliveryMap(orderId:widget.orderId),
                 CustomerCancellationPanel(order:current),
                 const SizedBox(height:16),
                 OrderItemAvailabilityNotice(order:current),
-                if(status!='CANCELED')_Journey(status: status, step: step) else const _Section(title:'Pedido encerrado',icon:AppIcons.info,child:Text('Não há produtos a entregar. Seu histórico e os registros de devolução continuam disponíveis neste acompanhamento.',style:TextStyle(height:1.6))),
+                if(status!='CANCELED')_Journey(status: status, step: step) else const _Section(title:'Pedido encerrado',icon:AppIcons.info,child:PrimeText('Não há produtos a entregar. Seu histórico e os registros de devolução continuam disponíveis neste acompanhamento.',style:TextStyle(height:1.6))),
                 if (courier != null) ...[
                   const SizedBox(height: 16),
                   _Courier(courier: courier),
@@ -161,7 +162,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                                     AppRadius.sm,
                                   ),
                                 ),
-                                child: Text(
+                                child: PrimeText(
                                   item['quantity'].toString() + 'x',
                                   style: Theme.of(context).textTheme.labelMedium
                                       ?.copyWith(
@@ -172,12 +173,12 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                               ),
                               const SizedBox(width: 10),
                               Expanded(
-                                child: Text(
+                                child: PrimeText(
                                   (item['productName'] ?? 'Produto').toString(),
                                   style: Theme.of(context).textTheme.labelLarge,
                                 ),
                               ),
-                              Text(
+                              PrimeText(
                                 _money(item['total']),
                                 style: Theme.of(context).textTheme.labelLarge
                                     ?.copyWith(
@@ -211,14 +212,14 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        PrimeText(
                           (address['street'] ?? '').toString() +
                               ', ' +
                               (address['number'] ?? '').toString(),
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                         const SizedBox(height: 5),
-                        Text(
+                        PrimeText(
                           (address['neighborhood'] ?? '').toString() +
                               ' • ' +
                               (address['city'] ?? '').toString() +
@@ -229,7 +230,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                         if ((address['complement'] ?? '').toString().isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 3),
-                            child: Text(
+                            child: PrimeText(
                               address['complement'].toString(),
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
@@ -278,7 +279,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                 OutlinedButton.icon(
                   onPressed: AppNav.instance.home,
                   icon: const Icon(AppIcons.home, size: 18),
-                  label: const Text('Voltar para o início'),
+                  label: const PrimeText('Voltar para o início'),
                 ),
               ],
             ),
@@ -320,7 +321,7 @@ class _Hero extends StatelessWidget {
               tone: PrimeStatusTone.success,
             ),
             const Spacer(),
-            Text(
+            PrimeText(
               '#' +
                   id.substring(0, id.length < 8 ? id.length : 8).toUpperCase(),
               style: Theme.of(
@@ -331,7 +332,7 @@ class _Hero extends StatelessWidget {
         ),
         const SizedBox(height: 22),
         if (status == 'SEARCHING_COURIER') const CourierSearchNotice() else ...[
-        Text(
+        PrimeText(
           _title(status),
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
             color: Colors.white,
@@ -339,7 +340,7 @@ class _Hero extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Text(
+        PrimeText(
           _subtitle(status),
           style: Theme.of(
             context,
@@ -352,7 +353,7 @@ class _Hero extends StatelessWidget {
             const Icon(AppIcons.creditCard, color: Color(0xFF9FFFE7), size: 18),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(
+              child: PrimeText(
                 (double.tryParse(order['removedItemsTotal'].toString())??0)>0
                     ? 'Valor atualizado do pedido'
                     :order['paymentStatus'] == 'PAID'
@@ -363,7 +364,7 @@ class _Hero extends StatelessWidget {
                 ).textTheme.labelMedium?.copyWith(color: Colors.white),
               ),
             ),
-            Text(
+            PrimeText(
               _money((double.tryParse(order['removedItemsTotal'].toString())??0)>0?order['adjustedTotal']:order['total']),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: Colors.white,
@@ -485,7 +486,7 @@ class _Stage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                PrimeText(
                   title,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: done ? AppColors.ink : AppColors.muted,
@@ -493,7 +494,7 @@ class _Stage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 3),
-                Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                PrimeText(subtitle, style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ),
@@ -633,14 +634,14 @@ class _DeliveryPin extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    PrimeText(
                       'PIN DE ENTREGA',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.warning,
                       ),
                     ),
                     const SizedBox(height: 3),
-                    Text(
+                    PrimeText(
                       'Seu código de confirmação',
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
@@ -657,7 +658,7 @@ class _DeliveryPin extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
-            child: Text(
+            child: PrimeText(
               digits,
               textAlign: TextAlign.center,
               style: const TextStyle(
@@ -675,7 +676,7 @@ class _DeliveryPin extends StatelessWidget {
               const Icon(AppIcons.shield, color: AppColors.warning, size: 17),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
+                child: PrimeText(
                   'Informe este PIN ao motoboy somente quando estiver com o pedido em mãos.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: const Color(0xFF7D6841),
@@ -705,12 +706,12 @@ class _PinConfirmed extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              PrimeText(
                 'Entrega confirmada com segurança',
                 style: Theme.of(context).textTheme.labelLarge,
               ),
               const SizedBox(height: 3),
-              Text(
+              PrimeText(
                 'O PIN foi validado pelo motoboy no momento da entrega.',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
@@ -734,7 +735,7 @@ class _Courier extends StatelessWidget {
     child: Row(
       children: [
         GestureDetector(
-          onTap: courier['profilePhoto']==null?null:()=>showDialog<void>(context:context,builder:(c)=>AlertDialog(title:Text((courier['user']?['name']??'Seu motoboy').toString()),content:Column(mainAxisSize:MainAxisSize.min,children:[CourierPortrait(photo:courier['profilePhoto']?.toString(),size:190),const SizedBox(height:16),const Text('Confira a foto ao receber sua entrega.',textAlign:TextAlign.center)]),actions:[TextButton(onPressed:()=>Navigator.pop(c),child:const Text('Fechar'))])),
+          onTap: courier['profilePhoto']==null?null:()=>showDialog<void>(context:context,builder:(c)=>AlertDialog(title:PrimeText((courier['user']?['name']??'Seu motoboy').toString()),content:Column(mainAxisSize:MainAxisSize.min,children:[CourierPortrait(photo:courier['profilePhoto']?.toString(),size:190),const SizedBox(height:16),const PrimeText('Confira a foto ao receber sua entrega.',textAlign:TextAlign.center)]),actions:[TextButton(onPressed:()=>Navigator.pop(c),child:const PrimeText('Fechar'))])),
           child:CourierPortrait(photo:courier['profilePhoto']?.toString(),size:62),
         ),
         const SizedBox(width: 13),
@@ -742,17 +743,17 @@ class _Courier extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              PrimeText(
                 'SEU MOTOBOY',
                 style: Theme.of(context).textTheme.labelSmall,
               ),
               const SizedBox(height: 3),
-              Text(
+              PrimeText(
                 (courier['user']?['name'] ?? 'Motoboy Porto Prime').toString(),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               if (courier['user']?['phone'] != null)
-                Text(
+                PrimeText(
                   courier['user']['phone'].toString(),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
@@ -794,7 +795,7 @@ class _Section extends StatelessWidget {
               child: Icon(icon, size: 18, color: AppColors.ocean800),
             ),
             const SizedBox(width: 10),
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            PrimeText(title, style: Theme.of(context).textTheme.titleMedium),
           ],
         ),
         const SizedBox(height: 17),
@@ -809,7 +810,7 @@ Widget _value(String label, dynamic value, {bool strong = false}) => Padding(
   child: Row(
     children: [
       Expanded(
-        child: Text(
+        child: PrimeText(
           label,
           style: TextStyle(
             fontSize: strong ? 13 : 10,
@@ -818,7 +819,7 @@ Widget _value(String label, dynamic value, {bool strong = false}) => Padding(
           ),
         ),
       ),
-      Text(
+      PrimeText(
         _money(value),
         style: TextStyle(
           fontSize: strong ? 16 : 11,
@@ -836,7 +837,7 @@ Widget _info(String label, String value) => Padding(
     children: [
       SizedBox(
         width: 100,
-        child: Text(
+        child: PrimeText(
           label,
           style: const TextStyle(
             fontSize: 10,
@@ -846,7 +847,7 @@ Widget _info(String label, String value) => Padding(
         ),
       ),
       Expanded(
-        child: Text(
+        child: PrimeText(
           value,
           textAlign: TextAlign.right,
           style: const TextStyle(

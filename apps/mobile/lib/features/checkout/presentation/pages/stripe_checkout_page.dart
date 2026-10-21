@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import '../widgets/prime_payment_experience.dart';
 import 'dart:async';
 import '../widgets/native_payment_modals.dart';
@@ -349,7 +350,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
                   ],
                 ),
                 const SizedBox(height: 22),
-                const Text(
+                const PrimeText(
                   'Pagamento aprovado!',
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -359,7 +360,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
                   ),
                 ),
                 const SizedBox(height: 7),
-                const Text(
+                const PrimeText(
                   'Recebemos a confirmação do Stripe. Seu pedido já entrou no fluxo da Porto Prime.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -390,7 +391,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            PrimeText(
                               'Pedido recebido',
                               style: TextStyle(
                                 color: Colors.white,
@@ -399,7 +400,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
                               ),
                             ),
                             SizedBox(height: 3),
-                            Text(
+                            PrimeText(
                               'Agora a distribuidora confirma os itens e prepara a liberação para entrega.',
                               style: TextStyle(
                                 color: Color(0xFFD4ECE7),
@@ -448,7 +449,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
                     ),
                     onPressed: () => Navigator.pop(sheetContext, true),
                     icon: const Icon(AppIcons.route_rounded),
-                    label: const Text(
+                    label: const PrimeText(
                       'Acompanhar meu pedido',
                       style: TextStyle(
                         fontWeight: AppFontWeight.display,
@@ -460,7 +461,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => Navigator.pop(sheetContext, false),
-                  child: const Text(
+                  child: const PrimeText(
                     'Voltar para a loja',
                     style: TextStyle(
                       color: AppColors.muted,
@@ -483,7 +484,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
     _leaving=true;
     try {
       if(paying||_paymentSubmitted){
-        final leave=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(title:const Text('Sair do pagamento?'),content:const Text('A confirmação pode continuar mesmo após você sair. Consulte o pedido antes de tentar pagar novamente. Seu pedido fica disponível em Pedidos.'),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('Continuar aqui')),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:const Text('Sair e consultar depois'))]));
+        final leave=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(title:const PrimeText('Sair do pagamento?'),content:const PrimeText('A confirmação pode continuar mesmo após você sair. Consulte o pedido antes de tentar pagar novamente. Seu pedido fica disponível em Pedidos.'),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const PrimeText('Continuar aqui')),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:const PrimeText('Sair e consultar depois'))]));
         if(leave!=true||!mounted)return;
       }
       if(mounted)Navigator.of(context).pop(home?'home':'back');
@@ -534,7 +535,7 @@ class _PaidInfo extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              PrimeText(
                 label,
                 style: const TextStyle(
                   fontSize: AppFontSize.caption,
@@ -543,7 +544,7 @@ class _PaidInfo extends StatelessWidget {
                   letterSpacing: .7,
                 ),
               ),
-              Text(
+              PrimeText(
                 value,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(

@@ -1,3 +1,4 @@
+import '../localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
@@ -22,7 +23,7 @@ class _PrimeMomentCardState extends State<PrimeMomentCard> {
     final background = switch (widget.scene) {
       0 => AppColors.sand100, 1 => AppColors.ocean100, _ => AppColors.ocean900,
     };
-    return Semantics(button: true, label: '${widget.title}. ${widget.subtitle}. Explorar catálogo',
+    return Semantics(button: true, label: translateLabel( '${widget.title}. ${widget.subtitle}. Explorar catálogo'),
       excludeSemantics: true, onTap: widget.onTap,
       child: MouseRegion(onEnter: (_) => setState(() => _hovered = true),
         onExit: (_) => setState(() => _hovered = false),
@@ -37,15 +38,15 @@ class _PrimeMomentCardState extends State<PrimeMomentCard> {
                   child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
                     Expanded(child: Column(mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(widget.title, style: TextStyle(fontSize: 21, height: 1.15,
+                        PrimeText(widget.title, style: TextStyle(fontSize: 21, height: 1.15,
                           letterSpacing: -.5, fontWeight: FontWeight.w800,
                           color: dark ? Colors.white : AppColors.ocean900)),
                         const SizedBox(height: 7),
-                        Text(widget.subtitle, style: TextStyle(fontSize: 12, height: 1.5,
+                        PrimeText(widget.subtitle, style: TextStyle(fontSize: 12, height: 1.5,
                           color: dark ? AppColors.ocean100 : AppColors.inkSoft)),
                         const SizedBox(height: 18),
                         Row(mainAxisSize: MainAxisSize.min, children: [
-                          Flexible(child: Text('Explorar', style: TextStyle(fontSize: 12,
+                          Flexible(child: PrimeText('Explorar', style: TextStyle(fontSize: 12,
                             fontWeight: FontWeight.w800,
                             color: dark ? AppColors.sun500 : AppColors.ocean900))),
                           const SizedBox(width: 8), Icon(AppIcons.arrowUpRight,

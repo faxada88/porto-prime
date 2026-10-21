@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import '../../../../core/widgets/prime_brand.dart';
 import '../../../../core/widgets/prime_ui.dart';
 import 'dart:async';
@@ -103,26 +104,26 @@ class _SupportPageState extends State<SupportPage> with WidgetsBindingObserver {
     final partner = AppState.instance.isPartner;
     return Scaffold(
       backgroundColor:AppColors.canvas,
-      appBar:AppBar(title:const Text('Ajuda e suporte')),
+      appBar:AppBar(title:const PrimeText('Ajuda e suporte')),
       body:SafeArea(child:RefreshIndicator(onRefresh:_load,child:ListView(
         physics:const AlwaysScrollableScrollPhysics(), padding:const EdgeInsets.all(20),
         children:[
           _SupportHero(title:partner ? 'Seu parceiro, em cada etapa.' : 'Conte com a Porto Prime.', subtitle:partner ? 'Abra um ticket sobre comissões, saques, indicações ou cadastro. Acompanhe cada resposta aqui.' : widget.orderId != null ? 'Fale com a distribuidora sobre o pedido #${_short(widget.orderId!)}. Nossa equipe recebe sua mensagem nesta conversa.' : 'Pedidos, entregas e sua conta. Um canal direto com a nossa equipe.'),
           const SizedBox(height:20),
-          FilledButton.icon(onPressed:_categories.isEmpty ? null : _new,icon:const Icon(AppIcons.plus,size:19),label:Text(partner ? 'Abrir ticket' : 'Iniciar conversa')),
+          FilledButton.icon(onPressed:_categories.isEmpty ? null : _new,icon:const Icon(AppIcons.plus,size:19),label:PrimeText(partner ? 'Abrir ticket' : 'Iniciar conversa')),
           const SizedBox(height:24),
-          Text(widget.orderId != null ? 'Atendimento do pedido' : 'Seus atendimentos',style:const TextStyle(fontSize:18,fontWeight:FontWeight.w800,color:AppColors.ink)),
+          PrimeText(widget.orderId != null ? 'Atendimento do pedido' : 'Seus atendimentos',style:const TextStyle(fontSize:18,fontWeight:FontWeight.w800,color:AppColors.ink)),
           const SizedBox(height:12),
           if (_error != null) _SupportError(message:_error!,onRetry:_load),
           if (_loading) ...List.generate(3, (_) => const _SupportSkeleton()),
           if (!_loading && _rows.isEmpty && _error == null) const _SupportEmpty(),
           ..._rows.map((t) => Padding(padding:const EdgeInsets.only(bottom:12),child:Material(color:Colors.white,borderRadius:BorderRadius.circular(20),child:InkWell(borderRadius:BorderRadius.circular(20),onTap:() => _open(t['id'].toString()),child:Padding(padding:const EdgeInsets.all(18),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-            Row(children:[Container(padding:const EdgeInsets.all(11),decoration:BoxDecoration(color:AppColors.ocean100,borderRadius:BorderRadius.circular(12)),child:const Icon(AppIcons.mail,size:21,color:AppColors.ocean700)),const SizedBox(width:12),Expanded(child:Text(t['subject'].toString(),style:const TextStyle(fontWeight:FontWeight.w800,fontSize:14,color:AppColors.ink))),const Icon(AppIcons.chevronRight,size:18,color:AppColors.muted)]),
-            const SizedBox(height:12),Text((t['messages'] as List).isEmpty ? t['category'].toString() : t['messages'][0]['text'].toString(),maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:12,color:AppColors.muted,height:1.6)),
-            const SizedBox(height:14),Wrap(spacing:12,runSpacing:8,children:[_StatusPill(status:t['status'].toString()),Text('#${_short(t['id'].toString())} · ${_time(t['updatedAt'])}',style:const TextStyle(fontSize:10,color:AppColors.muted))]),
+            Row(children:[Container(padding:const EdgeInsets.all(11),decoration:BoxDecoration(color:AppColors.ocean100,borderRadius:BorderRadius.circular(12)),child:const Icon(AppIcons.mail,size:21,color:AppColors.ocean700)),const SizedBox(width:12),Expanded(child:PrimeText(t['subject'].toString(),style:const TextStyle(fontWeight:FontWeight.w800,fontSize:14,color:AppColors.ink))),const Icon(AppIcons.chevronRight,size:18,color:AppColors.muted)]),
+            const SizedBox(height:12),PrimeText((t['messages'] as List).isEmpty ? t['category'].toString() : t['messages'][0]['text'].toString(),maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:12,color:AppColors.muted,height:1.6)),
+            const SizedBox(height:14),Wrap(spacing:12,runSpacing:8,children:[_StatusPill(status:t['status'].toString()),PrimeText('#${_short(t['id'].toString())} · ${_time(t['updatedAt'])}',style:const TextStyle(fontSize:10,color:AppColors.muted))]),
           ])))))),
           const SizedBox(height:20),
-          const Text('Suas mensagens ficam registradas. Você pode sair e voltar para acompanhar as respostas.',textAlign:TextAlign.center,style:TextStyle(fontSize:11,color:AppColors.muted,height:1.7)),
+          const PrimeText('Suas mensagens ficam registradas. Você pode sair e voltar para acompanhar as respostas.',textAlign:TextAlign.center,style:TextStyle(fontSize:11,color:AppColors.muted,height:1.7)),
         ],
       ))),
     );
@@ -159,19 +160,19 @@ class _NewSupportPageState extends State<_NewSupportPage> {
     }
   }
   @override
-  Widget build(BuildContext context) => Scaffold(backgroundColor:AppColors.canvas,appBar:AppBar(title:Text(AppState.instance.isPartner ? 'Novo ticket' : 'Falar com a equipe')),body:SafeArea(child:Form(key:_form,child:ListView(padding:const EdgeInsets.all(20),children:[
+  Widget build(BuildContext context) => Scaffold(backgroundColor:AppColors.canvas,appBar:AppBar(title:PrimeText(AppState.instance.isPartner ? 'Novo ticket' : 'Falar com a equipe')),body:SafeArea(child:Form(key:_form,child:ListView(padding:const EdgeInsets.all(20),children:[
     const _SupportHero(title:'Vamos resolver juntos.',subtitle:'Selecione o assunto e conte o que aconteceu. Quanto mais claro, melhor podemos ajudar.'),
     const SizedBox(height:24),
-    DropdownButtonFormField<String>(value:_category,isExpanded:true,decoration:const InputDecoration(labelText:'Como podemos ajudar?'),items:widget.categories.map((c) => DropdownMenuItem(value:c,child:Text(c))).toList(),onChanged:_sending ? null : (v) => setState(() => _category = v)),
+    DropdownButtonFormField<String>(value:_category,isExpanded:true,decoration:const PrimeInputDecoration(labelText:'Como podemos ajudar?'),items:widget.categories.map((c) => DropdownMenuItem(value:c,child:PrimeText(c))).toList(),onChanged:_sending ? null : (v) => setState(() => _category = v)),
     const SizedBox(height:18),
-    TextFormField(controller:_subject,enabled:!_sending,maxLength:120,decoration:const InputDecoration(labelText:'Título',hintText:'Um resumo do que você precisa'),validator:(v) => v == null || v.trim().isEmpty ? 'Informe o título do atendimento' : null),
+    TextFormField(controller:_subject,enabled:!_sending,maxLength:120,decoration:const PrimeInputDecoration(labelText:'Título',hintText:'Um resumo do que você precisa'),validator: localizeValidator((v) => v == null || v.trim().isEmpty ? 'Informe o título do atendimento' : null)),
     const SizedBox(height:8),
-    TextFormField(controller:_message,enabled:!_sending,maxLength:4000,minLines:5,maxLines:10,keyboardType:TextInputType.multiline,decoration:const InputDecoration(labelText:'Sua mensagem',alignLabelWithHint:true,hintText:'Descreva sua dúvida ou o que aconteceu…'),validator:(v) => v == null || v.trim().isEmpty ? 'Escreva sua mensagem' : null),
+    TextFormField(controller:_message,enabled:!_sending,maxLength:4000,minLines:5,maxLines:10,keyboardType:TextInputType.multiline,decoration:const PrimeInputDecoration(labelText:'Sua mensagem',alignLabelWithHint:true,hintText:'Descreva sua dúvida ou o que aconteceu…'),validator: localizeValidator((v) => v == null || v.trim().isEmpty ? 'Escreva sua mensagem' : null)),
     if(_error != null) Padding(padding:const EdgeInsets.symmetric(vertical:12),child:_SupportError(message:_error!,onRetry:_send)),
     const SizedBox(height:18),
-    FilledButton.icon(onPressed:_sending ? null : _send,icon:_sending ? const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)) : const Icon(AppIcons.arrowRight,size:18),label:Text(_sending ? 'Enviando…' : 'Enviar para Porto Prime')),
+    FilledButton.icon(onPressed:_sending ? null : _send,icon:_sending ? const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)) : const Icon(AppIcons.arrowRight,size:18),label:PrimeText(_sending ? 'Enviando…' : 'Enviar para Porto Prime')),
     const SizedBox(height:18),
-    const Text('Não envie senhas, códigos de acesso ou dados completos do cartão.',style:TextStyle(fontSize:11,color:AppColors.muted,height:1.6)),
+    const PrimeText('Não envie senhas, códigos de acesso ou dados completos do cartão.',style:TextStyle(fontSize:11,color:AppColors.muted,height:1.6)),
   ]))));
 }
 
@@ -246,17 +247,17 @@ class _SupportConversationPageState extends State<SupportConversationPage> with 
     finally { if(mounted) setState(() => _sending = false); }
   }
   @override
-  Widget build(BuildContext context) => Scaffold(backgroundColor:AppColors.canvas,appBar:AppBar(title:const Text('Equipe Porto Prime')),body:SafeArea(child:Column(children:[
-    if(_thread != null) Container(width:double.infinity,color:Colors.white,padding:const EdgeInsets.fromLTRB(20,10,20,16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(_thread!['subject'].toString(),style:const TextStyle(fontWeight:FontWeight.w800,fontSize:16,color:AppColors.ink)),const SizedBox(height:9),Wrap(spacing:10,runSpacing:8,children:[_StatusPill(status:_thread!['status'].toString()),Text('#${_short(widget.threadId)}${_thread!['orderId'] == null ? '' : ' · Pedido #${_short(_thread!['orderId'].toString())}'}',style:const TextStyle(fontSize:10,color:AppColors.muted))])])),
+  Widget build(BuildContext context) => Scaffold(backgroundColor:AppColors.canvas,appBar:AppBar(title:const PrimeText('Equipe Porto Prime')),body:SafeArea(child:Column(children:[
+    if(_thread != null) Container(width:double.infinity,color:Colors.white,padding:const EdgeInsets.fromLTRB(20,10,20,16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[PrimeText(_thread!['subject'].toString(),style:const TextStyle(fontWeight:FontWeight.w800,fontSize:16,color:AppColors.ink)),const SizedBox(height:9),Wrap(spacing:10,runSpacing:8,children:[_StatusPill(status:_thread!['status'].toString()),PrimeText('#${_short(widget.threadId)}${_thread!['orderId'] == null ? '' : ' · Pedido #${_short(_thread!['orderId'].toString())}'}',style:const TextStyle(fontSize:10,color:AppColors.muted))])])),
     if(_error != null) Padding(padding:const EdgeInsets.all(12),child:_SupportError(message:_error!,onRetry:_load)),
     Expanded(child:_thread == null ? ListView(padding:const EdgeInsets.all(20),children:const [_SupportSkeleton(),_SupportSkeleton(),_SupportSkeleton()]) : ListView.builder(controller:_scroll,padding:const EdgeInsets.all(20),itemCount:_messages.length+1,itemBuilder:(context,index) {
-      if(index == 0) return _olderCursor == null ? const Padding(padding:EdgeInsets.only(bottom:18),child:Text('Atendimento oficial Porto Prime',textAlign:TextAlign.center,style:TextStyle(fontSize:10,color:AppColors.muted))) : Center(child:TextButton(onPressed:_olderBusy ? null : _older,child:Text(_olderBusy ? 'Buscando…' : 'Mensagens anteriores')));
+      if(index == 0) return _olderCursor == null ? const Padding(padding:EdgeInsets.only(bottom:18),child:PrimeText('Atendimento oficial Porto Prime',textAlign:TextAlign.center,style:TextStyle(fontSize:10,color:AppColors.muted))) : Center(child:TextButton(onPressed:_olderBusy ? null : _older,child:PrimeText(_olderBusy ? 'Buscando…' : 'Mensagens anteriores')));
       final m = _messages[index-1], admin = m['senderRole'] == 'ADMIN';
-      return Align(alignment:admin ? Alignment.centerLeft : Alignment.centerRight,child:Container(constraints:BoxConstraints(maxWidth:min(MediaQuery.sizeOf(context).width*.8,640.0)),margin:const EdgeInsets.only(bottom:14),padding:const EdgeInsets.all(15),decoration:BoxDecoration(color:admin ? Colors.white : AppColors.ocean700,border:admin ? Border.all(color:AppColors.stroke) : null,borderRadius:BorderRadius.only(topLeft:const Radius.circular(18),topRight:const Radius.circular(18),bottomLeft:Radius.circular(admin ? 4 : 18),bottomRight:Radius.circular(admin ? 18 : 4))),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(admin ? 'Equipe Porto Prime' : 'Você',style:TextStyle(fontSize:10,fontWeight:FontWeight.w800,color:admin ? AppColors.ocean700 : Colors.white70)),const SizedBox(height:7),SelectableText(m['text'].toString(),style:TextStyle(fontSize:14,height:1.55,color:admin ? AppColors.ink : Colors.white)),const SizedBox(height:8),Text(_time(m['createdAt']),style:TextStyle(fontSize:9,color:admin ? AppColors.muted : Colors.white70))])));
+      return Align(alignment:admin ? Alignment.centerLeft : Alignment.centerRight,child:Container(constraints:BoxConstraints(maxWidth:min(MediaQuery.sizeOf(context).width*.8,640.0)),margin:const EdgeInsets.only(bottom:14),padding:const EdgeInsets.all(15),decoration:BoxDecoration(color:admin ? Colors.white : AppColors.ocean700,border:admin ? Border.all(color:AppColors.stroke) : null,borderRadius:BorderRadius.only(topLeft:const Radius.circular(18),topRight:const Radius.circular(18),bottomLeft:Radius.circular(admin ? 4 : 18),bottomRight:Radius.circular(admin ? 18 : 4))),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[PrimeText(admin ? 'Equipe Porto Prime' : 'Você',style:TextStyle(fontSize:10,fontWeight:FontWeight.w800,color:admin ? AppColors.ocean700 : Colors.white70)),const SizedBox(height:7),SelectableText(m['text'].toString(),style:TextStyle(fontSize:14,height:1.55,color:admin ? AppColors.ink : Colors.white)),const SizedBox(height:8),PrimeText(_time(m['createdAt']),style:TextStyle(fontSize:9,color:admin ? AppColors.muted : Colors.white70))])));
     })),
     Container(padding:const EdgeInsets.fromLTRB(16,12,16,16),decoration:const BoxDecoration(color:Colors.white,border:Border(top:BorderSide(color:AppColors.stroke))),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-      if(_thread?['status'] == 'RESOLVED') const Padding(padding:EdgeInsets.only(bottom:8),child:Text('Precisa de mais ajuda? Sua mensagem reabre o atendimento.',style:TextStyle(fontSize:11,color:AppColors.muted))),
-      Row(crossAxisAlignment:CrossAxisAlignment.end,children:[Expanded(child:TextField(controller:_draft,enabled:!_sending,minLines:1,maxLines:4,maxLength:4000,keyboardType:TextInputType.multiline,decoration:const InputDecoration(hintText:'Escreva sua mensagem…',counterText:''))),const SizedBox(width:10),SizedBox(height:48,child:FilledButton(onPressed:_sending || _thread == null ? null : _send,style:FilledButton.styleFrom(padding:const EdgeInsets.symmetric(horizontal:15)),child:_sending ? const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)) : const Icon(AppIcons.arrowRight,semanticLabel:'Enviar mensagem')))]),
+      if(_thread?['status'] == 'RESOLVED') const Padding(padding:EdgeInsets.only(bottom:8),child:PrimeText('Precisa de mais ajuda? Sua mensagem reabre o atendimento.',style:TextStyle(fontSize:11,color:AppColors.muted))),
+      Row(crossAxisAlignment:CrossAxisAlignment.end,children:[Expanded(child:TextField(controller:_draft,enabled:!_sending,minLines:1,maxLines:4,maxLength:4000,keyboardType:TextInputType.multiline,decoration:const PrimeInputDecoration(hintText:'Escreva sua mensagem…',counterText:''))),const SizedBox(width:10),SizedBox(height:48,child:FilledButton(onPressed:_sending || _thread == null ? null : _send,style:FilledButton.styleFrom(padding:const EdgeInsets.symmetric(horizontal:15)),child:_sending ? const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)) :  Icon(AppIcons.arrowRight,semanticLabel: translateLabel('Enviar mensagem'))))]),
     ])),
   ])));
 }
@@ -270,12 +271,12 @@ class _StatusPill extends StatelessWidget {
  const _StatusPill({required this.status});
  final String status;
  @override
- Widget build(BuildContext context) => Container(padding:const EdgeInsets.symmetric(horizontal:10,vertical:6),decoration:BoxDecoration(color:status == 'RESOLVED' ? AppColors.ocean100 : status == 'IN_PROGRESS' ? AppColors.sky100 : AppColors.sun200,borderRadius:BorderRadius.circular(8)),child:Text(_status(status),style:TextStyle(fontSize:10,fontWeight:FontWeight.w800,color:status == 'OPEN' ? const Color(0xFF73501B) : AppColors.ocean700)));
+ Widget build(BuildContext context) => Container(padding:const EdgeInsets.symmetric(horizontal:10,vertical:6),decoration:BoxDecoration(color:status == 'RESOLVED' ? AppColors.ocean100 : status == 'IN_PROGRESS' ? AppColors.sky100 : AppColors.sun200,borderRadius:BorderRadius.circular(8)),child:PrimeText(_status(status),style:TextStyle(fontSize:10,fontWeight:FontWeight.w800,color:status == 'OPEN' ? const Color(0xFF73501B) : AppColors.ocean700)));
 }
 class _SupportSkeleton extends StatelessWidget {
  const _SupportSkeleton();
  @override
- Widget build(BuildContext context) => Semantics(label:'Carregando atendimento',child:Container(height:110,margin:const EdgeInsets.only(bottom:12),padding:const EdgeInsets.all(20),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(20)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Container(height:14,width:160,color:AppColors.surfaceMuted),const SizedBox(height:12),Container(height:10,width:double.infinity,color:AppColors.surfaceMuted),const SizedBox(height:12),Container(height:10,width:110,color:AppColors.surfaceMuted)])));
+ Widget build(BuildContext context) => Semantics(label: translateLabel('Carregando atendimento'),child:Container(height:110,margin:const EdgeInsets.only(bottom:12),padding:const EdgeInsets.all(20),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(20)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Container(height:14,width:160,color:AppColors.surfaceMuted),const SizedBox(height:12),Container(height:10,width:double.infinity,color:AppColors.surfaceMuted),const SizedBox(height:12),Container(height:10,width:110,color:AppColors.surfaceMuted)])));
 }
 class _SupportEmpty extends StatelessWidget {
  const _SupportEmpty();
@@ -286,6 +287,6 @@ class _SupportError extends StatelessWidget {
  final String message;
  final VoidCallback onRetry;
  @override
- Widget build(BuildContext context) => Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:AppColors.coral100,borderRadius:BorderRadius.circular(14)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(message,style:const TextStyle(color:AppColors.coral600,fontSize:12,height:1.6)),TextButton(onPressed:onRetry,child:const Text('Tentar novamente'))]));
+ Widget build(BuildContext context) => Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:AppColors.coral100,borderRadius:BorderRadius.circular(14)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[PrimeText(message,style:const TextStyle(color:AppColors.coral600,fontSize:12,height:1.6)),TextButton(onPressed:onRetry,child:const PrimeText('Tentar novamente'))]));
 }
 

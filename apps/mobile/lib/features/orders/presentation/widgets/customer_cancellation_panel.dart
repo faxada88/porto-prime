@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
@@ -44,9 +45,9 @@ class _CustomerCancellationPanelState extends State<CustomerCancellationPanel> {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(AppRadius.lg), border: Border.all(color: AppColors.stroke)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [Icon(done ? AppIcons.checkCircle : AppIcons.clock, color: AppColors.ocean700), const SizedBox(width: 12), Expanded(child: Text(done ? 'Cancelamento concluído' : 'Pedido cancelado', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)))]),
+          Row(children: [Icon(done ? AppIcons.checkCircle : AppIcons.clock, color: AppColors.ocean700), const SizedBox(width: 12), Expanded(child: PrimeText(done ? 'Cancelamento concluído' : 'Pedido cancelado', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)))]),
           const SizedBox(height: 12),
-          Text(done ? 'Devoluções registradas nas formas de pagamento utilizadas.' : record['status'] == 'REVIEW' ? 'A entrega foi interrompida. A loja está verificando o estorno do pagamento.' : 'A entrega foi interrompida. Seu saldo volta ao Cartão Porto Prime e o estorno do pagamento está em processamento.', style: const TextStyle(color: AppColors.muted, height: 1.5)),
+          PrimeText(done ? 'Devoluções registradas nas formas de pagamento utilizadas.' : record['status'] == 'REVIEW' ? 'A entrega foi interrompida. A loja está verificando o estorno do pagamento.' : 'A entrega foi interrompida. Seu saldo volta ao Cartão Porto Prime e o estorno do pagamento está em processamento.', style: const TextStyle(color: AppColors.muted, height: 1.5)),
           const SizedBox(height: 14),
           _RefundRow(icon: AppIcons.creditCard, label: 'Pagamento via Stripe', amount: record['cashRefund']),
           _RefundRow(icon: AppIcons.wallet, label: 'Cartão Porto Prime', amount: record['creditRefund']),
@@ -56,7 +57,7 @@ class _CustomerCancellationPanelState extends State<CustomerCancellationPanel> {
     }
     if (['DELIVERED', 'CANCELED'].contains(widget.order['status']) || widget.order['deliveredAt'] != null || !['PAID', 'PARTIALLY_REFUNDED'].contains(widget.order['paymentStatus'])) return const SizedBox.shrink();
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      OutlinedButton.icon(onPressed: _loading ? null : _open, icon: _loading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(AppIcons.close, size: 18), label: const Text('Cancelar pedido')),
+      OutlinedButton.icon(onPressed: _loading ? null : _open, icon: _loading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(AppIcons.close, size: 18), label: const PrimeText('Cancelar pedido')),
       if (_error != null) Padding(padding: const EdgeInsets.only(top: 8), child: PrimeErrorBanner(message: _error!)),
     ]);
   }
@@ -99,19 +100,19 @@ class _CancellationSheetState extends State<_CancellationSheet> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Padding(padding: const EdgeInsets.fromLTRB(24, 16, 12, 8), child: Row(children: [
           Container(width: 44, height: 44, decoration: BoxDecoration(color: AppColors.ocean50, borderRadius: BorderRadius.circular(14)), child: const Icon(AppIcons.receipt, color: AppColors.ocean700)),
-          const SizedBox(width: 12), const Expanded(child: Text('Revisar cancelamento', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18))),
-          IconButton(tooltip: 'Fechar', onPressed: saving ? null : () => Navigator.of(context).pop(), icon: const Icon(AppIcons.close)),
+          const SizedBox(width: 12), const Expanded(child: PrimeText('Revisar cancelamento', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18))),
+          IconButton(tooltip: translateLabel( 'Fechar'), onPressed: saving ? null : () => Navigator.of(context).pop(), icon: const Icon(AppIcons.close)),
         ])),
         const Divider(height: 1),
         Expanded(child: SingleChildScrollView(padding: const EdgeInsets.all(24), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Antes de cancelar', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -.7)),
-          const SizedBox(height: 8), const Text('A entrega será interrompida. Cada valor retorna à forma de pagamento utilizada.', style: TextStyle(color: AppColors.muted, height: 1.5)),
+          const PrimeText('Antes de cancelar', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -.7)),
+          const SizedBox(height: 8), const PrimeText('A entrega será interrompida. Cada valor retorna à forma de pagamento utilizada.', style: TextStyle(color: AppColors.muted, height: 1.5)),
           const SizedBox(height: 24),
-          DropdownButtonFormField<String>(initialValue: reason, isExpanded: true, decoration: const InputDecoration(labelText: 'Por que deseja cancelar?'), items: ['Mudei de ideia', 'Endereço incorreto', 'Demora no atendimento', 'Outro motivo'].map((r) => DropdownMenuItem(value: r, child: Text(r, overflow: TextOverflow.ellipsis))).toList(), onChanged: saving ? null : (r) => setState(() => reason = r ?? reason)),
+          DropdownButtonFormField<String>(initialValue: reason, isExpanded: true, decoration: const PrimeInputDecoration(labelText: 'Por que deseja cancelar?'), items: ['Mudei de ideia', 'Endereço incorreto', 'Demora no atendimento', 'Outro motivo'].map((r) => DropdownMenuItem(value: r, child: PrimeText(r, overflow: TextOverflow.ellipsis))).toList(), onChanged: saving ? null : (r) => setState(() => reason = r ?? reason)),
           const SizedBox(height: 24),
           Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: AppColors.ocean50, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.ocean100)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('VOCÊ RECEBE DE VOLTA', style: TextStyle(fontSize: 10, letterSpacing: 1.2, fontWeight: FontWeight.w800, color: AppColors.ocean700)),
-            const SizedBox(height: 8), Text(_money(value('cashRefund') + value('creditRefund')), style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: AppColors.ocean900)),
+            const PrimeText('VOCÊ RECEBE DE VOLTA', style: TextStyle(fontSize: 10, letterSpacing: 1.2, fontWeight: FontWeight.w800, color: AppColors.ocean700)),
+            const SizedBox(height: 8), PrimeText(_money(value('cashRefund') + value('creditRefund')), style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: AppColors.ocean900)),
             const SizedBox(height: 12),
             if (value('cashRefund') > 0) _RefundRow(icon: AppIcons.creditCard, label: 'Pagamento via Stripe', amount: quote['cashRefund']),
             if (value('creditRefund') > 0) _RefundRow(icon: AppIcons.wallet, label: 'Cartão Porto Prime', amount: quote['creditRefund']),
@@ -119,14 +120,14 @@ class _CancellationSheetState extends State<_CancellationSheet> {
           const SizedBox(height: 16),
           if (value('fee') > 0) ...[
             _RefundRow(icon: AppIcons.bike, label: 'Taxa de cancelamento', amount: quote['fee']),
-            const Text('Este valor já foi descontado das devoluções acima e será repassado ao entregador. Após a coleta, a taxa de entrega é retida integralmente para cobrir o retorno à distribuidora.', style: TextStyle(fontSize: 12, color: AppColors.muted, height: 1.5)),
-          ] else const Text('Cancelamento sem custo.', style: TextStyle(color: AppColors.ocean700, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 16), const Text('O saldo retorna ao Cartão Porto Prime. O prazo do estorno Stripe depende da instituição financeira.', style: TextStyle(fontSize: 12, color: AppColors.muted, height: 1.5)),
+            const PrimeText('Este valor já foi descontado das devoluções acima e será repassado ao entregador. Após a coleta, a taxa de entrega é retida integralmente para cobrir o retorno à distribuidora.', style: TextStyle(fontSize: 12, color: AppColors.muted, height: 1.5)),
+          ] else const PrimeText('Cancelamento sem custo.', style: TextStyle(color: AppColors.ocean700, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 16), const PrimeText('O saldo retorna ao Cartão Porto Prime. O prazo do estorno Stripe depende da instituição financeira.', style: TextStyle(fontSize: 12, color: AppColors.muted, height: 1.5)),
           if (error != null) Padding(padding: const EdgeInsets.only(top: 16), child: PrimeErrorBanner(message: error!)),
         ]))),
         Container(padding: EdgeInsets.fromLTRB(24, 16, 24, 16 + MediaQuery.paddingOf(context).bottom), decoration: BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: AppColors.stroke))), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          SizedBox(height: 52, child: FilledButton(onPressed: saving ? null : _confirm, child: saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Confirmar cancelamento'))),
-          TextButton(onPressed: saving ? null : () => Navigator.of(context).pop(), child: const Text('Manter meu pedido')),
+          SizedBox(height: 52, child: FilledButton(onPressed: saving ? null : _confirm, child: saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const PrimeText('Confirmar cancelamento'))),
+          TextButton(onPressed: saving ? null : () => Navigator.of(context).pop(), child: const PrimeText('Manter meu pedido')),
         ])),
       ]),
     ),
@@ -138,6 +139,6 @@ class _RefundRow extends StatelessWidget {
   final String label;
   final dynamic amount;
   @override
-  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.symmetric(vertical: 9), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, size: 18, color: AppColors.ocean700), const SizedBox(width: 10), Expanded(child: Text(label, style: const TextStyle(fontSize: 12, height: 1.5))), const SizedBox(width: 12), Text(_money(amount), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14))]));
+  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.symmetric(vertical: 9), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, size: 18, color: AppColors.ocean700), const SizedBox(width: 10), Expanded(child: PrimeText(label, style: const TextStyle(fontSize: 12, height: 1.5))), const SizedBox(width: 12), PrimeText(_money(amount), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14))]));
 }
 

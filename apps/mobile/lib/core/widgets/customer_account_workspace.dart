@@ -1,3 +1,4 @@
+import '../localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
@@ -14,7 +15,7 @@ class CustomerAccountWorkspace extends StatelessWidget {
   return SafeArea(bottom:false,child:Center(child:ConstrainedBox(
    constraints:const BoxConstraints(maxWidth:640),child:ListView(
     padding:const EdgeInsets.fromLTRB(20,24,20,28),children:[
-     const Text('Minha conta',style:TextStyle(fontSize:28,fontWeight:FontWeight.w800,letterSpacing:-.8,color:AppColors.ink)),
+     const PrimeText('Minha conta',style:TextStyle(fontSize:28,fontWeight:FontWeight.w800,letterSpacing:-.8,color:AppColors.ink)),
      const SizedBox(height:20),
      Container(padding:const EdgeInsets.all(20),decoration:BoxDecoration(
       color:AppColors.ocean50,borderRadius:BorderRadius.circular(24),border:Border.all(color:AppColors.stroke)),
@@ -22,8 +23,8 @@ class CustomerAccountWorkspace extends StatelessWidget {
        Container(width:52,height:52,decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(18)),
         child:const Icon(AppIcons.user,color:AppColors.ocean700,size:26)),
        const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-        Text(displayName,style:const TextStyle(fontSize:20,height:1.25,fontWeight:FontWeight.w800,color:AppColors.ink)),
-        if(email.isNotEmpty)...[const SizedBox(height:6),Text(email,style:const TextStyle(fontSize:12,height:1.5,color:AppColors.muted))],
+        PrimeText(displayName,style:const TextStyle(fontSize:20,height:1.25,fontWeight:FontWeight.w800,color:AppColors.ink)),
+        if(email.isNotEmpty)...[const SizedBox(height:6),PrimeText(email,style:const TextStyle(fontSize:12,height:1.5,color:AppColors.muted))],
        ])),
       ])),
      const SizedBox(height:26),
@@ -43,10 +44,10 @@ class CustomerAccountWorkspace extends StatelessWidget {
      ]),
      const SizedBox(height:24),
      TextButton.icon(onPressed:onLogout,icon:const Icon(AppIcons.logout_rounded,size:19),
-      label:const Text('Sair da conta'),style:TextButton.styleFrom(foregroundColor:AppColors.muted,minimumSize:const Size(48,52))),
+      label:const PrimeText('Sair da conta'),style:TextButton.styleFrom(foregroundColor:AppColors.muted,minimumSize:const Size(48,52))),
     ]))));
  }
- Widget _section(String title)=>Padding(padding:const EdgeInsets.only(left:4,bottom:10),child:Text(title,
+ Widget _section(String title)=>Padding(padding:const EdgeInsets.only(left:4,bottom:10),child:PrimeText(title,
   style:const TextStyle(fontSize:13,fontWeight:FontWeight.w700,color:AppColors.inkSoft)));
  Widget _group(List<Widget> entries)=>Material(color:AppColors.surface,
   shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(22),side:const BorderSide(color:AppColors.stroke)),
@@ -59,8 +60,8 @@ class CustomerAccountWorkspace extends StatelessWidget {
     Container(width:38,height:42,decoration:BoxDecoration(color:AppColors.surfaceMuted,borderRadius:BorderRadius.circular(13)),
      child:Icon(icon,size:21,color:AppColors.ocean700)),
     const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-     Text(title,style:const TextStyle(fontSize:15,height:1.3,fontWeight:FontWeight.w700,color:AppColors.ink)),
-     const SizedBox(height:4),Text(subtitle,style:const TextStyle(fontSize:12,height:1.5,color:AppColors.muted)),
+     PrimeText(title,style:const TextStyle(fontSize:15,height:1.3,fontWeight:FontWeight.w700,color:AppColors.ink)),
+     const SizedBox(height:4),PrimeText(subtitle,style:const TextStyle(fontSize:12,height:1.5,color:AppColors.muted)),
     ])),const SizedBox(width:10),const Icon(Icons.chevron_right_rounded,size:19,color:AppColors.subtle),
    ])));
 }

@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/prime_brand.dart';
 
@@ -69,7 +70,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
             onPressed: () => Navigator.pop(context),
             icon: const Icon(AppIcons.arrow_back_rounded),
           ),
-          title: const Text(
+          title: const PrimeText(
             'Pagamentos',
             style: TextStyle(fontSize: 17, fontWeight: AppFontWeight.display),
           ),
@@ -137,7 +138,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                             color: Colors.white.withValues(alpha: .10),
                             borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
-                          child: const Text(
+                          child: const PrimeText(
                             'PORTO PRIME PAY',
                             style: TextStyle(
                               color: Colors.white,
@@ -150,7 +151,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       ],
                     ),
                     const SizedBox(height: 22),
-                    const Text(
+                    const PrimeText(
                       'Total confirmado',
                       style: TextStyle(
                         color: Color(0xFFB9D7D1),
@@ -159,7 +160,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    PrimeText(
                       _brl(paidTotal),
                       style: const TextStyle(
                         color: Colors.white,
@@ -191,7 +192,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
               Row(
                 children: [
                   const Expanded(
-                    child: Text(
+                    child: PrimeText(
                       'Movimentações',
                       style: TextStyle(
                         fontSize: 20,
@@ -200,7 +201,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       ),
                     ),
                   ),
-                  Text(
+                  PrimeText(
                     '${orders.length} pedido(s)',
                     style: const TextStyle(
                       color: AppColors.muted,
@@ -211,7 +212,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                 ],
               ),
               const SizedBox(height: 5),
-              const Text(
+              const PrimeText(
                 'Cobranças, créditos e devoluções organizados por pedido.',
                 style: TextStyle(
                   color: AppColors.muted,
@@ -235,7 +236,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       ),
                       const SizedBox(width: 11),
                       const Expanded(
-                        child: Text(
+                        child: PrimeText(
                           'Há pagamentos ainda não concluídos. Você pode limpar somente as pendências, sem alterar pedidos pagos.',
                           style: TextStyle(
                             fontSize: AppFontSize.caption,
@@ -272,7 +273,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                         color: AppColors.muted,
                       ),
                       SizedBox(height: 12),
-                      Text(
+                      PrimeText(
                         'Nenhum pagamento ainda',
                         style: TextStyle(
                           fontSize: 17,
@@ -280,7 +281,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                         ),
                       ),
                       SizedBox(height: 5),
-                      Text(
+                      PrimeText(
                         'Quando você fizer um pedido, o histórico financeiro aparecerá aqui.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -315,7 +316,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              PrimeText(
                 value,
                 style: const TextStyle(
                   color: Colors.white,
@@ -323,7 +324,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                   fontWeight: AppFontWeight.display,
                 ),
               ),
-              Text(
+              PrimeText(
                 label,
                 style: const TextStyle(
                   color: Color(0xFFB9D7D1),
@@ -393,7 +394,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       Row(
                         children: [
                           Expanded(
-                            child: Text(
+                            child: PrimeText(
                               label,
                               style: const TextStyle(
                                 fontSize: 12,
@@ -401,7 +402,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                               ),
                             ),
                           ),
-                          Text(
+                          PrimeText(
                             _brl(order['total']),
                             style: const TextStyle(
                               fontSize: 13,
@@ -412,7 +413,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(
+                      PrimeText(
                         'Pedido #${_short(id)}${method == null ? '' : ' • $method'}',
                         style: const TextStyle(
                           fontSize: AppFontSize.caption,
@@ -422,7 +423,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       ),
                       if (created != null) ...[
                         const SizedBox(height: 3),
-                        Text(
+                        PrimeText(
                           created.replaceFirst('T', ' ').split('.').first,
                           style: const TextStyle(
                             fontSize: AppFontSize.caption,
@@ -451,18 +452,18 @@ class _PaymentsPageState extends State<PaymentsPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: const Text('Limpar pendências?'),
-        content: const Text(
+        title: const PrimeText('Limpar pendências?'),
+        content: const PrimeText(
           'Somente pedidos não pagos serão apagados. Pagamentos confirmados serão preservados.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
-            child: const Text('Cancelar'),
+            child: const PrimeText('Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(c, true),
-            child: const Text('Limpar'),
+            child: const PrimeText('Limpar'),
           ),
         ],
       ),
@@ -472,12 +473,12 @@ class _PaymentsPageState extends State<PaymentsPage> {
       final count = await AppState.instance.clearPendingOrders();
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$count pendência(s) removida(s).')),
+          SnackBar(content: PrimeText('$count pendência(s) removida(s).')),
         );
     } catch (e) {
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(PrimeMessages.friendly(e))),
+          SnackBar(content: PrimeText(PrimeMessages.friendly(e))),
         );
     }
   }

@@ -1,3 +1,4 @@
+import '../localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_icons.dart';
@@ -26,17 +27,17 @@ class PrimeSectionHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (eyebrow != null) ...[
-            Text(
+            PrimeText(
               eyebrow!,
               style: Theme.of(context).textTheme.labelSmall
                   ?.copyWith(color: AppColors.ocean600, letterSpacing: 1.2),
             ),
             const SizedBox(height: 5),
           ],
-          Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -.5)),
+          PrimeText(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -.5)),
           if (subtitle != null) ...[
             const SizedBox(height: 5),
-            Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
+            PrimeText(subtitle!, style: Theme.of(context).textTheme.bodySmall),
           ],
         ],
       );
@@ -46,7 +47,7 @@ class PrimeSectionHeader extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Flexible(child: Text(actionLabel!)),
+                  Flexible(child: PrimeText(actionLabel!)),
                   const SizedBox(width: 4),
                   const Icon(AppIcons.chevronRight, size: 15),
                 ],
@@ -127,7 +128,7 @@ class PrimeIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
-    label: semanticLabel,
+    label: translateLabel( semanticLabel),
     child: Stack(
       clipBehavior: Clip.none,
       children: [
@@ -157,7 +158,7 @@ class PrimeIconButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.pill),
                 border: Border.all(color: AppColors.surface, width: 2),
               ),
-              child: Text(
+              child: PrimeText(
                 badgeCount > 99 ? '99+' : '$badgeCount',
                 style: const TextStyle(
                   color: Colors.white,
@@ -234,7 +235,7 @@ class _PrimeSearchFieldState extends State<PrimeSearchField> {
   Widget build(BuildContext context) => Semantics(
     textField: !widget.readOnly,
     button: widget.readOnly,
-    label: widget.hint,
+    label: translateLabel( widget.hint),
     child: TextField(
       style: Theme.of(context).textTheme.bodyLarge
           ?.copyWith(fontSize: AppFontSize.input),
@@ -244,7 +245,7 @@ class _PrimeSearchFieldState extends State<PrimeSearchField> {
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,
       textInputAction: TextInputAction.search,
-      decoration: InputDecoration(
+      decoration: PrimeInputDecoration(
         hintText: widget.hint,
         prefixIcon: const Padding(padding: EdgeInsets.all(12), child: DecoratedBox(decoration: BoxDecoration(color: AppColors.ocean50, borderRadius: BorderRadius.all(Radius.circular(10))), child: Icon(AppIcons.search, size: AppIconSize.sm, color: AppColors.ocean700))),
         suffixIcon: widget.loading
@@ -258,7 +259,7 @@ class _PrimeSearchFieldState extends State<PrimeSearchField> {
               )
             : controller.text.isNotEmpty && !widget.readOnly
             ? IconButton(
-                tooltip: 'Limpar busca',
+                tooltip: translateLabel( 'Limpar busca'),
                 onPressed: () {
                   controller.clear();
                   widget.onChanged?.call('');
@@ -302,20 +303,20 @@ class PrimeEmptyState extends StatelessWidget {
           child: Icon(icon, color: AppColors.ocean700, size: AppIconSize.lg),
         ),
         const SizedBox(height: 16),
-        Text(
+        PrimeText(
           title,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 6),
-        Text(
+        PrimeText(
           message,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall,
         ),
         if (actionLabel != null && onAction != null) ...[
           const SizedBox(height: 18),
-          FilledButton(onPressed: onAction, child: Text(actionLabel!)),
+          FilledButton(onPressed: onAction, child: PrimeText(actionLabel!)),
         ],
       ],
     ),
@@ -421,7 +422,7 @@ class PrimeStatusPill extends StatelessWidget {
             ),
             const SizedBox(width: 6),
           ],
-          Text(
+          PrimeText(
             label,
             style: Theme.of(context).textTheme.labelSmall
                 ?.copyWith(color: foreground, letterSpacing: .35),
@@ -462,7 +463,7 @@ class PrimeErrorBanner extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Text(
+            child: PrimeText(
               friendly,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: AppColors.inkSoft,
@@ -474,7 +475,7 @@ class PrimeErrorBanner extends StatelessWidget {
             const SizedBox(width: AppSpacing.xs),
             TextButton(
               onPressed: onRetry,
-              child: const Text('Tentar novamente'),
+              child: const PrimeText('Tentar novamente'),
             ),
           ],
         ],
@@ -533,7 +534,7 @@ class PrimeBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconButton(
-    tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+    tooltip: translateLabel( MaterialLocalizations.of(context).backButtonTooltip),
     onPressed: () => Navigator.maybePop(context),
     icon: const Icon(AppIcons.arrowLeft),
   );
@@ -578,17 +579,17 @@ class PrimePageHeader extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (eyebrow != null) ...[
-              Text(
+              PrimeText(
                 eyebrow!,
                 style: Theme.of(context).textTheme.labelSmall
                     ?.copyWith(color: AppColors.ocean600, letterSpacing: 1.15),
               ),
               const SizedBox(height: 5),
             ],
-            Text(title, style: Theme.of(context).textTheme.headlineLarge),
+            PrimeText(title, style: Theme.of(context).textTheme.headlineLarge),
             if (subtitle != null) ...[
               const SizedBox(height: 6),
-              Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
+              PrimeText(subtitle!, style: Theme.of(context).textTheme.bodySmall),
             ],
           ],
         ),
@@ -647,10 +648,10 @@ class PrimeMetricCard extends StatelessWidget {
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
-          child: Text(value, style: Theme.of(context).textTheme.titleLarge),
+          child: PrimeText(value, style: Theme.of(context).textTheme.titleLarge),
         ),
         const SizedBox(height: AppSpacing.xxs),
-        Text(
+        PrimeText(
           label,
           maxLines: 2,
           style: Theme.of(context).textTheme.labelMedium

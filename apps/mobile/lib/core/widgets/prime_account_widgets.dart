@@ -1,3 +1,4 @@
+import '../localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
@@ -16,12 +17,12 @@ class PrimeAccountWelcome extends StatelessWidget {
       Row(children:[
         Container(width:46,height:46,decoration:BoxDecoration(color:AppColors.ocean50,borderRadius:BorderRadius.circular(16)),
           child:const Icon(AppIcons.user,size:24,color:AppColors.ink)),
-        const SizedBox(width:12),const Expanded(child:Text('PORTO PRIME',style:TextStyle(fontSize:11,letterSpacing:1.4,fontWeight:FontWeight.w800,color:AppColors.inkSoft))),
+        const SizedBox(width:12),const Expanded(child:PrimeText('PORTO PRIME',style:TextStyle(fontSize:11,letterSpacing:1.4,fontWeight:FontWeight.w800,color:AppColors.inkSoft))),
       ]),
       const SizedBox(height:24),
-      const Text('Seu próximo pedido\ncomeça com você.',style:TextStyle(fontSize:30,height:1.14,letterSpacing:-1,fontWeight:FontWeight.w800,color:AppColors.ink)),
+      const PrimeText('Seu próximo pedido\ncomeça com você.',style:TextStyle(fontSize:30,height:1.14,letterSpacing:-1,fontWeight:FontWeight.w800,color:AppColors.ink)),
       const SizedBox(height:12),
-      const Text('Crie sua conta para pedir, acompanhar a entrega e usar seu saldo Porto Prime.',
+      const PrimeText('Crie sua conta para pedir, acompanhar a entrega e usar seu saldo Porto Prime.',
         style:TextStyle(fontSize:14,height:1.65,color:AppColors.inkSoft)),
       const SizedBox(height:22),
       Wrap(spacing:14,runSpacing:12,children:[
@@ -34,21 +35,21 @@ class PrimeAccountWelcome extends StatelessWidget {
         backgroundColor:AppColors.ink,foregroundColor:Colors.white,
         padding:const EdgeInsets.symmetric(horizontal:18,vertical:18),
         shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(16))),
-        child:const Row(children:[Expanded(child:Text('Criar minha conta',textAlign:TextAlign.center,style:TextStyle(fontSize:14,fontWeight:FontWeight.w800))),SizedBox(width:10),Icon(AppIcons.arrowRight,size:19)])),
+        child:const Row(children:[Expanded(child:PrimeText('Criar minha conta',textAlign:TextAlign.center,style:TextStyle(fontSize:14,fontWeight:FontWeight.w800))),SizedBox(width:10),Icon(AppIcons.arrowRight,size:19)])),
       const SizedBox(height:12),
       OutlinedButton(onPressed:onLogin,style:OutlinedButton.styleFrom(
         foregroundColor:AppColors.ink,side:const BorderSide(color:AppColors.inkSoft,width:1.3),
         padding:const EdgeInsets.symmetric(horizontal:18,vertical:18),
         shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(16))),
-        child:const Text('Entrar na minha conta',textAlign:TextAlign.center,style:TextStyle(fontSize:14,fontWeight:FontWeight.w700))),
+        child:const PrimeText('Entrar na minha conta',textAlign:TextAlign.center,style:TextStyle(fontSize:14,fontWeight:FontWeight.w700))),
       const SizedBox(height:18),
       const Row(mainAxisAlignment:MainAxisAlignment.center,children:[Icon(AppIcons.lock,size:14,color:AppColors.inkSoft),SizedBox(width:7),
-        Flexible(child:Text('Uma conta. Tudo organizado.',textAlign:TextAlign.center,style:TextStyle(fontSize:11,height:1.5,color:AppColors.inkSoft)))]),
+        Flexible(child:PrimeText('Uma conta. Tudo organizado.',textAlign:TextAlign.center,style:TextStyle(fontSize:11,height:1.5,color:AppColors.inkSoft)))]),
     ]),
   );
   Widget _benefit(IconData icon,String label)=>Row(mainAxisSize:MainAxisSize.min,children:[
     Icon(icon,size:17,color:AppColors.ocean700),const SizedBox(width:6),
-    Text(label,style:const TextStyle(fontSize:11,fontWeight:FontWeight.w600,color:AppColors.inkSoft)),
+    PrimeText(label,style:const TextStyle(fontSize:11,fontWeight:FontWeight.w600,color:AppColors.inkSoft)),
   ]);
 }
 
@@ -73,10 +74,10 @@ class PrimeAccountActionTile extends StatelessWidget {
           child: Icon(icon, color: AppColors.ocean900, size: 21)),
         const SizedBox(width: 13),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: const TextStyle(fontSize: 14, height: 1.3,
+          PrimeText(title, style: const TextStyle(fontSize: 14, height: 1.3,
             fontWeight: FontWeight.w800, letterSpacing: -.2, color: AppColors.ocean900)),
           const SizedBox(height: 5),
-          Text(subtitle, style: const TextStyle(fontSize: 12, height: 1.5, color: AppColors.muted)),
+          PrimeText(subtitle, style: const TextStyle(fontSize: 12, height: 1.5, color: AppColors.muted)),
         ])),
         const SizedBox(width: 10),
         const Padding(padding: EdgeInsets.only(top: 12),
@@ -101,22 +102,22 @@ class PrimeAccountIdentity extends StatelessWidget {
             decoration: BoxDecoration(color: AppColors.sun500,
               borderRadius: BorderRadius.circular(20)),
             child: Padding(padding: const EdgeInsets.all(8), child: FittedBox(fit: BoxFit.scaleDown,
-              child: Text(name.isEmpty ? 'P' : name.substring(0,1).toUpperCase(),
+              child: PrimeText(name.isEmpty ? 'P' : name.substring(0,1).toUpperCase(),
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.ocean900))))),
           Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(color: AppColors.ocean800, borderRadius: BorderRadius.circular(30)),
-            child: Text(roleLabel, style: const TextStyle(color: AppColors.ocean100,
+            child: PrimeText(roleLabel, style: const TextStyle(color: AppColors.ocean100,
               fontSize: 10, height: 1.4, fontWeight: FontWeight.w800, letterSpacing: 1))),
         ]),
       const SizedBox(height: 22),
-      Text(name, style: const TextStyle(fontSize: 25, height: 1.2,
+      PrimeText(name, style: const TextStyle(fontSize: 25, height: 1.2,
         fontWeight: FontWeight.w800, letterSpacing: -.6, color: Colors.white)),
       const SizedBox(height: 7),
-      Text(email, style: const TextStyle(fontSize: 12, height: 1.5, color: AppColors.ocean100)),
+      PrimeText(email, style: const TextStyle(fontSize: 12, height: 1.5, color: AppColors.ocean100)),
       const SizedBox(height: 20),
       const Divider(color: AppColors.ocean800, height: 1),
       const SizedBox(height: 14),
-      const Text('Sua conta Porto Prime', style: TextStyle(fontSize: 11,
+      const PrimeText('Sua conta Porto Prime', style: TextStyle(fontSize: 11,
         height: 1.5, color: AppColors.ocean300, fontWeight: FontWeight.w600)),
     ]),
   );

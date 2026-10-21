@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import '../../../../core/widgets/product_showcase.dart';
 import '../../../categories/presentation/pages/categories_page.dart';
 import '../../../categories/presentation/pages/all_categories_page.dart';
@@ -38,8 +39,8 @@ class HomePage extends StatelessWidget {
       if(state.storeStatusKnown&&!state.storeOpen)_section(
        Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(color:AppColors.sand100,borderRadius:BorderRadius.circular(16)),
         child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-         const Text('Loja fechada no momento',style:TextStyle(fontWeight:FontWeight.w800,color:AppColors.warning)),
-         const SizedBox(height:6),Text(state.storeMessage.replaceAll('Sua sacola','Seu carrinho').replaceAll('sua sacola','seu carrinho'),style:const TextStyle(color:AppColors.warning,height:1.5)),
+         const PrimeText('Loja fechada no momento',style:TextStyle(fontWeight:FontWeight.w800,color:AppColors.warning)),
+         const SizedBox(height:6),PrimeText(state.storeMessage.replaceAll('Sua sacola','Seu carrinho').replaceAll('sua sacola','seu carrinho'),style:const TextStyle(color:AppColors.warning,height:1.5)),
         ]))),
       _section(AnimatedBuilder(animation:CustomerActivity.instance,builder:(context,_)=>ReferenceHomeHeader(address:address,region:region,cartCount:state.cartCount,
        greeting:'${DateTime.now().hour<12?'Bom dia':DateTime.now().hour<18?'Boa tarde':'Boa noite'}${state.user?['name']==null?'':', ${state.user!['name'].toString().trim().split(' ').first}'}',notificationCount:CustomerActivity.instance.unread,
@@ -48,7 +49,7 @@ class HomePage extends StatelessWidget {
       if(categories.isNotEmpty)_section(_HomeCategories(categories:categories),top:12),
       _section(ReferenceCoastHero(onTap:()=>openProductCatalogue(context)),top:14),
       if(products.isNotEmpty)...[
-       _section(const Text('Em destaque',style:TextStyle(fontSize:20,fontWeight:FontWeight.w800,color:AppColors.ink)),top:24,bottom:12),
+       _section(const PrimeText('Em destaque',style:TextStyle(fontSize:20,fontWeight:FontWeight.w800,color:AppColors.ink)),top:24,bottom:12),
        _section(ProductShowcase(products:products),top:0),
       ],
       const SliverToBoxAdapter(child:SizedBox(height:28)),
@@ -64,10 +65,10 @@ class _HomeCategories extends StatelessWidget {
   final height=68+MediaQuery.textScalerOf(context).scale(10.5)*2.4;
   return Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
    Row(children:[
-    const Expanded(child:Text('Categorias',style:TextStyle(fontSize:16,fontWeight:FontWeight.w800,color:AppColors.ink))),
+    const Expanded(child:PrimeText('Categorias',style:TextStyle(fontSize:16,fontWeight:FontWeight.w800,color:AppColors.ink))),
     TextButton(onPressed:(){
      Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const AllCategoriesPage()));
-    },child:const Text('Ver todas')),
+    },child:const PrimeText('Ver todas')),
    ]),
    const SizedBox(height:4),
    GridView.builder(

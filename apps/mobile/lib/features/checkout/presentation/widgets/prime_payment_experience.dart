@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -30,21 +31,21 @@ class PrimePaymentExperience extends StatelessWidget {
   final label=creditOnly?'Confirmar com saldo Porto Prime':selectedMethod=='pix'?'Gerar Pix':'Pagar com cartão ou carteira';
   return Scaffold(backgroundColor:AppColors.canvas,
    appBar:AppBar(backgroundColor:AppColors.canvas,surfaceTintColor:AppColors.canvas,
-    leading:IconButton(tooltip:'Voltar à entrega e revisão',onPressed:onBack,icon:const Icon(AppIcons.arrowLeft)),
-    title:const Text('Pagamento',style:TextStyle(fontSize:18,fontWeight:FontWeight.w800)),
-    actions:[IconButton(tooltip:'Voltar ao início',onPressed:onHome,icon:const Icon(AppIcons.home))]),
+    leading:IconButton(tooltip: translateLabel('Voltar à entrega e revisão'),onPressed:onBack,icon:const Icon(AppIcons.arrowLeft)),
+    title:const PrimeText('Pagamento',style:TextStyle(fontSize:18,fontWeight:FontWeight.w800)),
+    actions:[IconButton(tooltip: translateLabel('Voltar ao início'),onPressed:onHome,icon:const Icon(AppIcons.home))]),
    body:SafeArea(bottom:false,child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:620),
     child:ListView(padding:const EdgeInsets.fromLTRB(20,8,20,24),children:[
      const CheckoutProgress(step:2),const SizedBox(height:22),
-     Text(creditOnly?'TOTAL COM SEU SALDO':'TOTAL A PAGAR',style:const TextStyle(fontSize:10,fontWeight:FontWeight.w800,letterSpacing:1.3,color:AppColors.muted)),
+     PrimeText(creditOnly?'TOTAL COM SEU SALDO':'TOTAL A PAGAR',style:const TextStyle(fontSize:10,fontWeight:FontWeight.w800,letterSpacing:1.3,color:AppColors.muted)),
      const SizedBox(height:6),
-     Text(checkoutMoney(creditOnly?credit:summary['total']),style:const TextStyle(fontSize:36,fontWeight:FontWeight.w800,letterSpacing:-1,color:AppColors.ink)),
-     if(credit>0&&!creditOnly)Padding(padding:const EdgeInsets.only(top:6),child:Text('${checkoutMoney(credit)} do seu saldo já foram descontados.',style:const TextStyle(fontSize:12,color:AppColors.muted,height:1.5))),
-     if(testMode&&!creditOnly)const Padding(padding:EdgeInsets.only(top:8),child:Text('Modo de teste · sem cobrança real',style:TextStyle(fontSize:11,color:AppColors.warning))),
+     PrimeText(checkoutMoney(creditOnly?credit:summary['total']),style:const TextStyle(fontSize:36,fontWeight:FontWeight.w800,letterSpacing:-1,color:AppColors.ink)),
+     if(credit>0&&!creditOnly)Padding(padding:const EdgeInsets.only(top:6),child:PrimeText('${checkoutMoney(credit)} do seu saldo já foram descontados.',style:const TextStyle(fontSize:12,color:AppColors.muted,height:1.5))),
+     if(testMode&&!creditOnly)const Padding(padding:EdgeInsets.only(top:8),child:PrimeText('Modo de teste · sem cobrança real',style:TextStyle(fontSize:11,color:AppColors.warning))),
      const SizedBox(height:16),
      _Surface(child:ExpansionTile(tilePadding:EdgeInsets.zero,childrenPadding:const EdgeInsets.only(bottom:8),
       shape:const Border(),collapsedShape:const Border(),
-      title:const Text('Resumo do pedido',style:TextStyle(fontWeight:FontWeight.w700,fontSize:14)),
+      title:const PrimeText('Resumo do pedido',style:TextStyle(fontWeight:FontWeight.w700,fontSize:14)),
       children:[
        _Line('Produtos',checkoutMoney(summary['subtotal'])),
        _Line('Entrega',checkoutMoney(summary['deliveryFee'])),
@@ -57,44 +58,44 @@ class PrimePaymentExperience extends StatelessWidget {
      if(address.isNotEmpty)...[const SizedBox(height:12),_Surface(child:Row(crossAxisAlignment:CrossAxisAlignment.center,children:[
       const Icon(AppIcons.mapPin,size:20,color:AppColors.ocean700),const SizedBox(width:10),
       Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-       Text('${address['street']??''}, ${address['number']??''}',maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:12,fontWeight:FontWeight.w700,height:1.5)),
-       if(distance!=null||duration!=null)Text([if(distance!=null)'$distance km por rota',if(duration!=null)'aproximadamente $duration min'].join(' · '),style:const TextStyle(fontSize:11,color:AppColors.muted,height:1.5)),
+       PrimeText('${address['street']??''}, ${address['number']??''}',maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:12,fontWeight:FontWeight.w700,height:1.5)),
+       if(distance!=null||duration!=null)PrimeText([if(distance!=null)'$distance km por rota',if(duration!=null)'aproximadamente $duration min'].join(' · '),style:const TextStyle(fontSize:11,color:AppColors.muted,height:1.5)),
       ])),
-      IconButton(tooltip:'Revisar endereço e entrega',onPressed:onBack,icon:const Icon(Icons.edit_outlined,size:18)),
+      IconButton(tooltip: translateLabel('Revisar endereço e entrega'),onPressed:onBack,icon:const Icon(Icons.edit_outlined,size:18)),
      ]))],
      const SizedBox(height:22),
      if(submitted)...[
       _Surface(child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
-       const Text('Aguardando confirmação',style:TextStyle(fontSize:18,fontWeight:FontWeight.w800)),
-       const SizedBox(height:8),const Text('Se já pagou, não precisa pagar novamente. Vamos atualizar seu pedido assim que o pagamento for confirmado.',style:TextStyle(fontSize:13,color:AppColors.muted,height:1.6)),
+       const PrimeText('Aguardando confirmação',style:TextStyle(fontSize:18,fontWeight:FontWeight.w800)),
+       const SizedBox(height:8),const PrimeText('Se já pagou, não precisa pagar novamente. Vamos atualizar seu pedido assim que o pagamento for confirmado.',style:TextStyle(fontSize:13,color:AppColors.muted,height:1.6)),
        if(paying)const Padding(padding:EdgeInsets.only(top:16),child:LinearProgressIndicator()),
       ])),
       if(!paying)...[
-       const SizedBox(height:12),FilledButton.icon(onPressed:onVerify,icon:const Icon(AppIcons.refresh),label:const Text('Verificar meu pedido')),
-       if(onReopen!=null)TextButton(onPressed:onReopen,child:const Text('Abrir formas de pagamento')),
+       const SizedBox(height:12),FilledButton.icon(onPressed:onVerify,icon:const Icon(AppIcons.refresh),label:const PrimeText('Verificar meu pedido')),
+       if(onReopen!=null)TextButton(onPressed:onReopen,child:const PrimeText('Abrir formas de pagamento')),
       ],
-     ]else if(creditOnly)_Surface(child:const Text('Seu saldo cobre os produtos e a entrega. Basta confirmar para concluir.',style:TextStyle(fontSize:13,height:1.6,color:AppColors.ink)))
+     ]else if(creditOnly)_Surface(child:const PrimeText('Seu saldo cobre os produtos e a entrega. Basta confirmar para concluir.',style:TextStyle(fontSize:13,height:1.6,color:AppColors.ink)))
      else if(!ready&&error==null)const PrimeSkeleton(height:140,radius:18)
      else if(ready&&web&&paymentElement!=null)paymentElement!
      else if(ready)...[
-      const Text('Como prefere pagar?',style:TextStyle(fontSize:19,fontWeight:FontWeight.w800)),
+      const PrimeText('Como prefere pagar?',style:TextStyle(fontSize:19,fontWeight:FontWeight.w800)),
       const SizedBox(height:12),
       PaymentMethodPicker(methods:methods,selected:selectedMethod,onSelect:paying?null:onSelectMethod),
       const SizedBox(height:14),
       const Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
        Icon(AppIcons.lock,size:14,color:AppColors.muted),SizedBox(width:7),
-       Expanded(child:Text('Pagamento seguro. Você continua dentro do app.',style:TextStyle(fontSize:11,height:1.5,color:AppColors.muted))),
+       Expanded(child:PrimeText('Pagamento seguro. Você continua dentro do app.',style:TextStyle(fontSize:11,height:1.5,color:AppColors.muted))),
       ]),
      ],
      if(error!=null)...[const SizedBox(height:14),PrimeErrorBanner(message:error!)],
-     if(!ready&&!submitted&&error!=null)TextButton.icon(onPressed:onRetry,icon:const Icon(AppIcons.refresh),label:const Text('Carregar pagamento novamente')),
+     if(!ready&&!submitted&&error!=null)TextButton.icon(onPressed:onRetry,icon:const Icon(AppIcons.refresh),label:const PrimeText('Carregar pagamento novamente')),
     ])))),
    bottomNavigationBar:nativeAction?ColoredBox(color:AppColors.surface,child:SafeArea(top:false,child:Padding(
     padding:const EdgeInsets.fromLTRB(20,12,20,12),child:Center(heightFactor:1,child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:580),
      child:FilledButton.icon(onPressed:paying?null:onPay,
       style:FilledButton.styleFrom(minimumSize:const Size(double.infinity,54),padding:const EdgeInsets.symmetric(horizontal:18,vertical:16)),
       icon:paying?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)):Icon(selectedMethod=='pix'&&!creditOnly?Icons.qr_code_2_rounded:AppIcons.lock,size:19),
-      label:Text(paying?'Aguarde…':label,textAlign:TextAlign.center,style:const TextStyle(fontSize:14,fontWeight:FontWeight.w800)),
+      label:PrimeText(paying?'Aguarde…':label,textAlign:TextAlign.center,style:const TextStyle(fontSize:14,fontWeight:FontWeight.w800)),
      )))))):null,
   );
  }
@@ -112,15 +113,15 @@ class PaymentMethodPicker extends StatelessWidget {
  Widget _option(String value,String title,String subtitle,IconData icon){
   final active=selected==value;
   return Padding(padding:const EdgeInsets.only(bottom:10),child:Semantics(
-   button:true,selected:active,label:title,child:Material(color:active?AppColors.ocean50:AppColors.surface,borderRadius:BorderRadius.circular(18),
+   button:true,selected:active,label: translateLabel(title),child:Material(color:active?AppColors.ocean50:AppColors.surface,borderRadius:BorderRadius.circular(18),
     child:InkWell(key:ValueKey('payment-method-$value'),onTap:onSelect==null?null:()=>onSelect!(value),borderRadius:BorderRadius.circular(18),
      child:Container(padding:const EdgeInsets.all(16),decoration:BoxDecoration(borderRadius:BorderRadius.circular(18),
       border:Border.all(color:active?AppColors.ocean700:AppColors.stroke,width:active?1.5:1)),
       child:Row(children:[
        Icon(icon,size:25,color:active?AppColors.ocean700:AppColors.muted),const SizedBox(width:13),
        Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-        Text(title,style:const TextStyle(fontSize:14,fontWeight:FontWeight.w800)),const SizedBox(height:4),
-        Text(subtitle,style:const TextStyle(fontSize:11,height:1.5,color:AppColors.muted)),
+        PrimeText(title,style:const TextStyle(fontSize:14,fontWeight:FontWeight.w800)),const SizedBox(height:4),
+        PrimeText(subtitle,style:const TextStyle(fontSize:11,height:1.5,color:AppColors.muted)),
        ])),const SizedBox(width:10),Icon(active?Icons.radio_button_checked:Icons.radio_button_unchecked,size:21,color:active?AppColors.ocean700:AppColors.subtle),
       ])),
     ),
@@ -135,7 +136,7 @@ class _Surface extends StatelessWidget{
 class _Line extends StatelessWidget{
  const _Line(this.label,this.value);final String label,value;
  @override Widget build(BuildContext context)=>Padding(padding:const EdgeInsets.symmetric(vertical:5),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
-  Expanded(child:Text(label,style:const TextStyle(fontSize:12,height:1.5,color:AppColors.muted))),const SizedBox(width:12),
-  Flexible(child:Text(value,textAlign:TextAlign.end,style:const TextStyle(fontSize:12,height:1.5,fontWeight:FontWeight.w700))),
+  Expanded(child:PrimeText(label,style:const TextStyle(fontSize:12,height:1.5,color:AppColors.muted))),const SizedBox(width:12),
+  Flexible(child:PrimeText(value,textAlign:TextAlign.end,style:const TextStyle(fontSize:12,height:1.5,fontWeight:FontWeight.w700))),
  ]));
 }

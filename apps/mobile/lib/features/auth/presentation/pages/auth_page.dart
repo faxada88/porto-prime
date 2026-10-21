@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import '../../../../core/widgets/prime_brand.dart';
 import 'package:flutter/material.dart';
 
@@ -41,7 +42,7 @@ class _AuthPageState extends State<AuthPage> {
         if (role != 'CUSTOMER' && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text(
+              content: PrimeText(
                 'Cadastro enviado. Sua conta ficará disponível após aprovação.',
               ),
             ),
@@ -64,7 +65,7 @@ class _AuthPageState extends State<AuthPage> {
     appBar: AppBar(
           leading: Navigator.of(context).canPop() ? const PrimeBackButton() : null,
       backgroundColor: Colors.transparent,
-      title: Text(register ? 'Criar sua conta' : 'Entrar na Porto Prime'),
+      title: PrimeText(register ? 'Criar sua conta' : 'Entrar na Porto Prime'),
     ),
     body: ListView(
       padding: const EdgeInsets.all(22),
@@ -75,7 +76,7 @@ class _AuthPageState extends State<AuthPage> {
           TextField(
             controller: name,
             textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(
+            decoration: const PrimeInputDecoration(
               labelText: 'Nome completo',
               prefixIcon: Icon(AppIcons.person_outline_rounded),
             ),
@@ -84,13 +85,13 @@ class _AuthPageState extends State<AuthPage> {
           TextField(
             controller: phone,
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(
+            decoration: const PrimeInputDecoration(
               labelText: 'Telefone',
               prefixIcon: Icon(AppIcons.phone_outlined),
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          const PrimeText(
             'Como você vai usar a Porto Prime?',
             style: TextStyle(fontWeight: AppFontWeight.display),
           ),
@@ -104,7 +105,7 @@ class _AuthPageState extends State<AuthPage> {
                 ('PARTNER', 'Parceiro'),
               ])
                 ChoiceChip(
-                  label: Text(r.$2),
+                  label: PrimeText(r.$2),
                   selected: role == r.$1,
                   onSelected: (_) => setState(() => role = r.$1),
                 ),
@@ -114,7 +115,7 @@ class _AuthPageState extends State<AuthPage> {
           if (role == 'PARTNER') ...[
             TextField(
               controller: business,
-              decoration: const InputDecoration(
+              decoration: const PrimeInputDecoration(
                 labelText: 'Nome do estabelecimento',
                 prefixIcon: Icon(AppIcons.storefront_outlined),
               ),
@@ -124,7 +125,7 @@ class _AuthPageState extends State<AuthPage> {
           if (role != 'CUSTOMER') ...[
             TextField(
               controller: document,
-              decoration: InputDecoration(
+              decoration: PrimeInputDecoration(
                 labelText: role == 'COURIER'
                     ? 'Documento do motoboy'
                     : 'CPF/CNPJ do parceiro',
@@ -138,7 +139,7 @@ class _AuthPageState extends State<AuthPage> {
           controller: email,
           keyboardType: TextInputType.emailAddress,
           autocorrect: false,
-          decoration: const InputDecoration(
+          decoration: const PrimeInputDecoration(
             labelText: 'E-mail',
             prefixIcon: Icon(AppIcons.mail_outline_rounded),
           ),
@@ -147,14 +148,14 @@ class _AuthPageState extends State<AuthPage> {
         TextField(
           controller: password,
           obscureText: true,
-          decoration: const InputDecoration(
+          decoration: const PrimeInputDecoration(
             labelText: 'Senha',
             prefixIcon: Icon(AppIcons.lock_outline_rounded),
           ),
         ),
         if (error != null) ...[
           const SizedBox(height: 12),
-          Text(PrimeMessages.friendly(error!),
+          PrimeText(PrimeMessages.friendly(error!),
             style: const TextStyle(
               color: Colors.red,
               fontWeight: AppFontWeight.medium,
@@ -174,14 +175,14 @@ class _AuthPageState extends State<AuthPage> {
                     color: Colors.white,
                   ),
                 )
-              : Text(
+              : PrimeText(
                   register ? 'Criar conta' : 'Entrar',
                   style: const TextStyle(fontWeight: AppFontWeight.display),
                 ),
         ),
         TextButton(
           onPressed: busy ? null : () => setState(() => register = !register),
-          child: Text(
+          child: PrimeText(
             register
                 ? 'Já tenho conta • Entrar'
                 : 'Ainda não tenho conta • Cadastrar',

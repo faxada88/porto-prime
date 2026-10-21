@@ -1,3 +1,4 @@
+import '../localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -42,7 +43,7 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
     final initials = widget.name.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty)
         .take(2).map((part) => String.fromCharCode(part.runes.first)).join().toUpperCase();
     Widget artwork() => visual.key == null
-      ? SizedBox(width: 42, height: 42, child: Center(child: Text(initials,
+      ? SizedBox(width: 42, height: 42, child: Center(child: PrimeText(initials,
           textScaler: TextScaler.noScaling, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: visual.foreground))))
       : widget.iconKey != null && widget.iconKey!.isNotEmpty
         ? SizedBox.square(dimension: compact ? 37 : 42, child: Icon(visual.icon,
@@ -51,7 +52,7 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
     return Semantics(
       button: true,
       selected: selected,
-      label: 'Categoria ${widget.name}',
+      label: translateLabel( 'Categoria ${widget.name}'),
       onTap: widget.onTap,
       child: FocusableActionDetector(
         onShowFocusHighlight: (value) => setState(() => _focused = value),
@@ -186,7 +187,7 @@ class _PrimeCategoryTileState extends State<PrimeCategoryTile> {
                       ),
                     ),
                     SizedBox(height: compact ? 7 : 8),
-                    Text(
+                    PrimeText(
                       widget.name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

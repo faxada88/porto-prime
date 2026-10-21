@@ -1,3 +1,4 @@
+import '../localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
@@ -49,7 +50,7 @@ class PrimeBottomNavigation extends StatelessWidget {
     final selected = index == value;
     final count=value==1?orderCount:value==2?cartCount:0;
     return Expanded(child: Semantics(button: true, selected: selected,
-      label: count > 0 ? '$label, $count ${value==1?'pedidos ativos':'itens'}' : label,
+      label: translateLabel( count > 0 ? '$label, $count ${value==1?'pedidos ativos':'itens'}' : label),
       excludeSemantics: true, onTap: () => onSelect(value),
       child: Material(color: Colors.transparent, child: InkWell(
         borderRadius: BorderRadius.circular(20),
@@ -74,14 +75,14 @@ class PrimeBottomNavigation extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.white, width: 1.5)),
                     alignment: Alignment.center,
-                    child: Text(count > 99 ? '99+' : '$count',
+                    child: PrimeText(count > 99 ? '99+' : '$count',
                       textScaler: TextScaler.noScaling,
                       style: const TextStyle(fontSize: 10, height: 1.2,
                         fontWeight: FontWeight.w800, color: Colors.white)))),
               ])),
             const SizedBox(height: 5),
             SizedBox(height: 17, child: FittedBox(fit: BoxFit.scaleDown,
-              child: Text(label, style: TextStyle(fontSize: 12,
+              child: PrimeText(label, style: TextStyle(fontSize: 12,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
                 color: selected ? AppColors.ink : AppColors.inkSoft)))),
             const SizedBox(height:6),

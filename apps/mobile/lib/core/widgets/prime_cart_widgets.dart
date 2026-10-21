@@ -1,3 +1,4 @@
+import '../localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
@@ -18,11 +19,11 @@ class PrimeCartEmpty extends StatelessWidget {
         const ExcludeSemantics(child: SizedBox(width: 190, height: 164,
           child: CustomPaint(painter: _EmptyCartArtwork()))),
         const SizedBox(height: 20),
-        const Text('Seu carrinho está vazio', textAlign: TextAlign.center,
+        const PrimeText('Seu carrinho está vazio', textAlign: TextAlign.center,
           style: TextStyle(fontSize: 26, height: 1.15, letterSpacing: -.8,
             fontWeight: FontWeight.w800, color: AppColors.ocean900)),
         const SizedBox(height: 12),
-        const Text('O próximo momento bom começa com a sua escolha.',
+        const PrimeText('O próximo momento bom começa com a sua escolha.',
           textAlign: TextAlign.center, style: TextStyle(fontSize: 14,
             height: 1.6, color: AppColors.muted)),
         const SizedBox(height: 26),
@@ -32,7 +33,7 @@ class PrimeCartEmpty extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
           child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Flexible(child: Text('Explorar produtos', textAlign: TextAlign.center,
+            Flexible(child: PrimeText('Explorar produtos', textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.white))),
             SizedBox(width: 12), Icon(AppIcons.arrowRight, size: 20, color: AppColors.sun500),
           ]))),
@@ -63,7 +64,7 @@ class PrimeCartSummary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         if (storeKnown && !storeOpen) Padding(
           padding: const EdgeInsets.only(bottom: 12),
-          child: Text(storeMessage, style: const TextStyle(
+          child: PrimeText(storeMessage, style: const TextStyle(
             fontSize: 12, height: 1.5, color: AppColors.coral600))),
         Semantics(value: 'Subtotal dos produtos: $subtotal',
           child: FilledButton(
@@ -72,7 +73,7 @@ class PrimeCartSummary extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Flexible(child: Text(working ? 'Preparando…' : !storeKnown ? 'Verificando loja…'
+              Flexible(child: PrimeText(working ? 'Preparando…' : !storeKnown ? 'Verificando loja…'
                 : storeOpen ? 'Continuar para entrega' : 'Loja fechada',
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800))),
@@ -82,7 +83,7 @@ class PrimeCartSummary extends StatelessWidget {
               else const Icon(AppIcons.arrowRight, size: 20),
             ]))),
         const SizedBox(height: 10),
-        const Text('Frete e total no próximo passo.',
+        const PrimeText('Frete e total no próximo passo.',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 11, height: 1.4, color: AppColors.muted)),
       ]),
@@ -96,7 +97,7 @@ class _CartNote extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(mainAxisSize: MainAxisSize.min, children: [
     Icon(icon, size: 14, color: AppColors.ocean700), const SizedBox(width: 7),
-    Flexible(child: Text(label, style: const TextStyle(fontSize: 10,
+    Flexible(child: PrimeText(label, style: const TextStyle(fontSize: 10,
       height: 1.4, color: AppColors.muted))),
   ]);
 }

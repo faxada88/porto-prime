@@ -1,3 +1,4 @@
+import '../localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import '../../features/orders/presentation/pages/order_tracking_page.dart';
 import '../state/app_state.dart';
@@ -26,13 +27,13 @@ class ActiveOrderShortcut extends StatelessWidget {
       _ => 'Seu pedido está confirmado',
     };
     final id = order['id'].toString();
-    return Semantics(button: true, label: '$label. Abrir acompanhamento do pedido.', child: Material(
+    return Semantics(button: true, label: translateLabel( '$label. Abrir acompanhamento do pedido.'), child: Material(
       color: AppColors.ocean900, elevation: 10, shadowColor: AppColors.midnight.withValues(alpha: .22), borderRadius: BorderRadius.circular(AppRadius.lg), clipBehavior: Clip.antiAlias,
       child: InkWell(onTap: () => Navigator.of(context).push(MaterialPageRoute(settings: RouteSettings(name: '/order-tracking/$id'), builder: (_) => OrderTrackingPage(orderId: id))), child: Padding(padding: const EdgeInsets.all(14), child: Row(children: [
         Container(width: 44, height: 44, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .12), borderRadius: BorderRadius.circular(15)), child: Icon(status == 'SEARCHING_COURIER' ? AppIcons.search : AppIcons.bike, size: 24, color: Colors.white)),
         const SizedBox(width: 12), Expanded(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('PEDIDO EM ANDAMENTO', style: TextStyle(color: Color(0xFF9FFFE7), fontSize: 9, letterSpacing: 1, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 4), Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+          const PrimeText('PEDIDO EM ANDAMENTO', style: TextStyle(color: Color(0xFF9FFFE7), fontSize: 9, letterSpacing: 1, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 4), PrimeText(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
         ])), const SizedBox(width: 10), const Icon(AppIcons.chevronRight, color: Colors.white, size: 20),
       ]))),
     ));

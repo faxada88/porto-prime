@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import '../../../../core/widgets/customer_account_workspace.dart';
 import '../../../support/presentation/pages/support_page.dart';
 import '../../../support/presentation/pages/public_support_page.dart';
@@ -176,7 +177,7 @@ class _GuestHero extends StatelessWidget {
                                   color: AppColors.sun500,
                                 ),
                                 SizedBox(width: 5),
-                                Text(
+                                PrimeText(
                                   'ACESSO SEGURO',
                                   style: TextStyle(
                                     color: Colors.white,
@@ -191,7 +192,7 @@ class _GuestHero extends StatelessWidget {
                         ],
                       ),
                       const Spacer(),
-                      const Text(
+                      const PrimeText(
                         'Sua Porto Prime\ncomeça aqui.',
                         style: TextStyle(
                           color: Colors.white,
@@ -205,7 +206,7 @@ class _GuestHero extends StatelessWidget {
                       Row(
                         children: [
                           const Expanded(
-                            child: Text(
+                            child: PrimeText(
                               'Entre ou crie sua conta para liberar a experiência completa.',
                               style: TextStyle(
                                 color: Colors.white70,
@@ -281,7 +282,7 @@ class _QuickAction extends StatelessWidget {
                   child: Icon(icon, color: AppColors.oceanDeep, size: 20),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                PrimeText(
                   label,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
@@ -290,7 +291,7 @@ class _QuickAction extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
+                PrimeText(
                   subtitle,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
@@ -321,7 +322,7 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          PrimeText(
             eyebrow,
             style: const TextStyle(
               color: AppColors.ocean,
@@ -331,7 +332,7 @@ class _SectionLabel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 5),
-          Text(
+          PrimeText(
             title,
             style: const TextStyle(
               color: AppColors.ink,
@@ -343,7 +344,7 @@ class _SectionLabel extends StatelessWidget {
           ),
           if (subtitle != null) ...[
             const SizedBox(height: 6),
-            Text(
+            PrimeText(
               subtitle!,
               style: const TextStyle(
                 color: AppColors.muted,
@@ -407,7 +408,7 @@ class _AccessCard extends StatelessWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: Text(
+                            child: PrimeText(
                               title,
                               style: const TextStyle(
                                 fontSize: 14,
@@ -416,7 +417,7 @@ class _AccessCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                          Text(
+                          PrimeText(
                             badge,
                             style: const TextStyle(
                               fontSize: AppFontSize.caption,
@@ -428,7 +429,7 @@ class _AccessCard extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(
+                      PrimeText(
                         subtitle,
                         style: const TextStyle(
                           color: AppColors.muted,
@@ -548,7 +549,7 @@ class _BahiaSignature extends StatelessWidget {
             ),
             SizedBox(width: 12),
             Expanded(
-              child: Text(
+              child: PrimeText(
                 'Feito em Porto Seguro para praia, festa, descanso e aquele brinde que não pode esperar.',
                 style: TextStyle(
                   fontSize: AppFontSize.caption,
@@ -572,7 +573,7 @@ Future<void> _accountMenu(BuildContext context) async {
       children: [
         PrimeRegistrationChoiceIntro(onClose: () => Navigator.pop(ctx)),
         const SizedBox(height: 18),
-        const Text('CRIAR MINHA CONTA', style: TextStyle(fontSize: 10,
+        const PrimeText('CRIAR MINHA CONTA', style: TextStyle(fontSize: 10,
           letterSpacing: 1.2, height: 1.5, fontWeight: FontWeight.w800, color: AppColors.ocean700)),
         const SizedBox(height: 14),
         _RoleCard(
@@ -621,7 +622,7 @@ Future<void> _accountMenu(BuildContext context) async {
               _auth(context);
             },
             icon: const Icon(AppIcons.login_rounded, size: 20),
-            label: const Text(
+            label: const PrimeText(
               'Entrar na minha conta',
               style: TextStyle(fontWeight: AppFontWeight.display),
             ),
@@ -655,7 +656,7 @@ Future<void> _accountMenu(BuildContext context) async {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        PrimeText(
                           'Acompanhar candidatura',
                           style: TextStyle(
                             fontSize: 14,
@@ -663,7 +664,7 @@ Future<void> _accountMenu(BuildContext context) async {
                           ),
                         ),
                         SizedBox(height: 3),
-                        Text(
+                        PrimeText(
                           'Consulte pelo CPF e responda solicitações do Admin.',
                           style: TextStyle(
                             color: Color(0xFF866A3E),
@@ -772,7 +773,7 @@ Future<void> _courierStatus(BuildContext context) async {
                       foreground: Color(0xFF9B6817),
                     ),
                     const SizedBox(height: 15),
-                    Text(
+                    PrimeText(
                       (requirement['title'] ?? 'Pendência').toString(),
                       style: const TextStyle(
                         fontSize: 20,
@@ -782,7 +783,7 @@ Future<void> _courierStatus(BuildContext context) async {
                       ),
                     ),
                     const SizedBox(height: 7),
-                    Text(
+                    PrimeText(
                       (requirement['description'] ?? '').toString(),
                       style: const TextStyle(
                         color: AppColors.muted,
@@ -796,7 +797,7 @@ Future<void> _courierStatus(BuildContext context) async {
                       controller: response,
                       minLines: 4,
                       maxLines: 7,
-                      decoration: InputDecoration(
+                      decoration: PrimeInputDecoration(
                         labelText: 'Sua resposta',
                         hintText: 'Digite a informação solicitada pelo Admin...',
                         alignLabelWithHint: true,
@@ -815,7 +816,7 @@ Future<void> _courierStatus(BuildContext context) async {
                           child: OutlinedButton(
                             onPressed: () =>
                                 Navigator.pop(dialogContext, false),
-                            child: const Text('Cancelar'),
+                            child: const PrimeText('Cancelar'),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -823,7 +824,7 @@ Future<void> _courierStatus(BuildContext context) async {
                           child: FilledButton(
                             onPressed: () =>
                                 Navigator.pop(dialogContext, true),
-                            child: const Text('Enviar resposta'),
+                            child: const PrimeText('Enviar resposta'),
                           ),
                         ),
                       ],
@@ -850,7 +851,7 @@ Future<void> _courierStatus(BuildContext context) async {
             if (sheetContext.mounted) {
               ScaffoldMessenger.of(sheetContext).showSnackBar(
                 SnackBar(
-                  content: Text(PrimeMessages.friendly(e)),
+                  content: PrimeText(PrimeMessages.friendly(e)),
                 ),
               );
             }
@@ -868,10 +869,10 @@ Future<void> _courierStatus(BuildContext context) async {
           children: [
             Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
               const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-                Text('Sua candidatura',style:TextStyle(fontSize:26,height:1.2,fontWeight:FontWeight.w800,letterSpacing:-.7,color:AppColors.ink)),
-                SizedBox(height:8),Text('Resultado da análise e solicitações da equipe.',style:TextStyle(fontSize:13,height:1.5,color:AppColors.inkSoft)),
+                PrimeText('Sua candidatura',style:TextStyle(fontSize:26,height:1.2,fontWeight:FontWeight.w800,letterSpacing:-.7,color:AppColors.ink)),
+                SizedBox(height:8),PrimeText('Resultado da análise e solicitações da equipe.',style:TextStyle(fontSize:13,height:1.5,color:AppColors.inkSoft)),
               ])),
-              IconButton(tooltip:'Fechar acompanhamento',onPressed:()=>Navigator.pop(sheetContext),icon:const Icon(AppIcons.close,size:22,color:AppColors.ink)),
+              IconButton(tooltip: translateLabel('Fechar acompanhamento'),onPressed:()=>Navigator.pop(sheetContext),icon:const Icon(AppIcons.close,size:22,color:AppColors.ink)),
             ]),
             const SizedBox(height: 18),
             _PremiumField(
@@ -891,19 +892,19 @@ Future<void> _courierStatus(BuildContext context) async {
               ),
             ],
             if(application==null)const Padding(padding:EdgeInsets.only(top:2,bottom:8),
-              child:Text('Use o CPF informado no cadastro.',style:TextStyle(fontSize:12,color:AppColors.inkSoft))),
+              child:PrimeText('Use o CPF informado no cadastro.',style:TextStyle(fontSize:12,color:AppColors.inkSoft))),
             if (application != null) ...[
               const SizedBox(height: 7),
               _ApplicationOverview(application: application!),
               const SizedBox(height: 18),
               if(requirements.isNotEmpty)...[
-                Row(children:[const Expanded(child:Text('Solicitações da equipe',style:TextStyle(fontSize:18,fontWeight:FontWeight.w800,color:AppColors.ink))),_SmallCounter(value:requirements.length)]),
+                Row(children:[const Expanded(child:PrimeText('Solicitações da equipe',style:TextStyle(fontSize:18,fontWeight:FontWeight.w800,color:AppColors.ink))),_SmallCounter(value:requirements.length)]),
                 const SizedBox(height:12),
               ],
               if(requirements.isEmpty)
                 const Padding(padding:EdgeInsets.symmetric(vertical:6),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
                   Icon(AppIcons.check_circle_rounded,size:18,color:AppColors.ocean700),SizedBox(width:8),
-                  Expanded(child:Text('Nenhuma solicitação para responder.',style:TextStyle(fontSize:13,height:1.5,color:AppColors.inkSoft))),
+                  Expanded(child:PrimeText('Nenhuma solicitação para responder.',style:TextStyle(fontSize:13,height:1.5,color:AppColors.inkSoft))),
                 ]))
               else
                 ...requirements.map(
@@ -936,7 +937,7 @@ Future<void> _courierStatus(BuildContext context) async {
                           color: Colors.white,
                         ),
                       )
-                    : Text(
+                    : PrimeText(
                         application == null
                             ? 'Consultar candidatura'
                             : 'Atualizar acompanhamento',
@@ -971,11 +972,11 @@ class _ApplicationOverview extends StatelessWidget {
           _StatusPill(status:raw),
         ]),
         const SizedBox(height:18),
-        Text((application['name']??'Candidatura').toString(),style:const TextStyle(fontSize:21,height:1.3,fontWeight:FontWeight.w800,letterSpacing:-.4,color:AppColors.ink)),
+        PrimeText((application['name']??'Candidatura').toString(),style:const TextStyle(fontSize:21,height:1.3,fontWeight:FontWeight.w800,letterSpacing:-.4,color:AppColors.ink)),
         const SizedBox(height:6),
-        Text((application['document']??'CPF confirmado').toString(),style:const TextStyle(fontSize:12,height:1.5,color:AppColors.inkSoft)),
+        PrimeText((application['document']??'CPF confirmado').toString(),style:const TextStyle(fontSize:12,height:1.5,color:AppColors.inkSoft)),
         const Padding(padding:EdgeInsets.symmetric(vertical:16),child:Divider(height:1,color:AppColors.stroke)),
-        Text(config.message,style:const TextStyle(fontSize:13,height:1.65,color:AppColors.inkSoft)),
+        PrimeText(config.message,style:const TextStyle(fontSize:13,height:1.65,color:AppColors.inkSoft)),
       ]),
     );
   }
@@ -1028,7 +1029,7 @@ class _RequirementCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    PrimeText(
                       (requirement['title'] ?? 'Pendência').toString(),
                       style: const TextStyle(
                         fontSize: 14,
@@ -1036,7 +1037,7 @@ class _RequirementCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    PrimeText(
                       (requirement['description'] ?? '').toString(),
                       style: const TextStyle(
                         color: AppColors.muted,
@@ -1064,7 +1065,7 @@ class _RequirementCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  const PrimeText(
                     'SUA RESPOSTA',
                     style: TextStyle(
                       color: AppColors.oceanDeep,
@@ -1074,7 +1075,7 @@ class _RequirementCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
+                  PrimeText(
                     requirement['response'].toString(),
                     style: const TextStyle(
                       fontSize: AppFontSize.caption,
@@ -1093,7 +1094,7 @@ class _RequirementCard extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: onAnswer,
                 icon: const Icon(AppIcons.reply_rounded, size: 18),
-                label: const Text('Responder solicitação'),
+                label: const PrimeText('Responder solicitação'),
               ),
             ),
           ],
@@ -1116,7 +1117,7 @@ class _StatusPill extends StatelessWidget {
         color: config.background,
         borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
-      child: Text(
+      child: PrimeText(
         config.label,
         style: TextStyle(
           color: config.foreground,
@@ -1226,7 +1227,7 @@ class _SmallCounter extends StatelessWidget {
           color: AppColors.mint,
           borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
-        child: Text(
+        child: PrimeText(
           value.toString(),
           style: const TextStyle(
             color: AppColors.oceanDeep,
@@ -1274,7 +1275,7 @@ Future<void> _auth(BuildContext context) async {
               _passwordRecovery(context);
             },
             icon: const Icon(AppIcons.help_outline_rounded, size: 17),
-            label: const Text('Esqueci minha senha'),
+            label: const PrimeText('Esqueci minha senha'),
           ),
         ),
         const SizedBox(height: 6),
@@ -1288,7 +1289,7 @@ Future<void> _auth(BuildContext context) async {
         ),
         const SizedBox(height: 12),
         TextButton.icon(onPressed:(){Navigator.pop(ctx);_publicSupport(context,topic:'ACCESS');},
-          icon:const Icon(AppIcons.help,size:17),label:const Text('Preciso de ajuda para entrar')),
+          icon:const Icon(AppIcons.help,size:17),label:const PrimeText('Preciso de ajuda para entrar')),
         const SizedBox(height: 15),
         Container(
           padding: const EdgeInsets.all(13),
@@ -1305,7 +1306,7 @@ Future<void> _auth(BuildContext context) async {
               ),
               SizedBox(width: 9),
               Expanded(
-                child: Text(
+                child: PrimeText(
                   'Sessão protegida e acesso individual. Nunca compartilhe sua senha.',
                   style: TextStyle(
                     color: AppColors.muted,
@@ -1363,7 +1364,7 @@ class _PremiumFieldState extends State<_PremiumField> {
           fontSize: 14,
           fontWeight: AppFontWeight.strong,
         ),
-        decoration: InputDecoration(
+        decoration: PrimeInputDecoration(
           labelText: widget.label,
           hintText: widget.hint,
           hintStyle: const TextStyle(
@@ -1470,7 +1471,7 @@ class _LoginSubmit extends StatelessWidget {
                           color: Colors.white,
                         ),
                       )
-                    : Text(
+                    : PrimeText(
                         label,
                         style: const TextStyle(fontWeight: AppFontWeight.display),
                       ),
@@ -1563,7 +1564,7 @@ class _SheetBrandHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                PrimeText(
                   eyebrow,
                   style: const TextStyle(
                     color: AppColors.ocean,
@@ -1573,7 +1574,7 @@ class _SheetBrandHeader extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
+                PrimeText(
                   title,
                   style: const TextStyle(
                     fontSize: 23,
@@ -1583,7 +1584,7 @@ class _SheetBrandHeader extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
+                PrimeText(
                   subtitle,
                   style: const TextStyle(
                     color: AppColors.muted,
@@ -1597,7 +1598,7 @@ class _SheetBrandHeader extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           IconButton(
-            tooltip: 'Fechar',
+            tooltip: translateLabel( 'Fechar'),
             onPressed: () => Navigator.pop(context),
             icon: const Icon(AppIcons.close_rounded),
           ),
@@ -1632,7 +1633,7 @@ class _InlineNotice extends StatelessWidget {
             Icon(icon, color: foreground, size: 18),
             const SizedBox(width: 9),
             Expanded(
-              child: Text(
+              child: PrimeText(
                 text,
                 style: TextStyle(
                   color: foreground,
@@ -1677,7 +1678,7 @@ class _Account extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    const PrimeText(
                       'MINHA PORTO PRIME',
                       style: TextStyle(
                         color: AppColors.ocean,
@@ -1687,12 +1688,12 @@ class _Account extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Text(
+                    PrimeText(
                       'Sua conta',
                       style: Theme.of(context).textTheme.headlineLarge,
                     ),
                     const SizedBox(height: 5),
-                    const Text(
+                    const PrimeText(
                       'Seus atalhos. Suas escolhas. Seu espaço.',
                       style: TextStyle(
                         color: AppColors.muted,
@@ -1831,7 +1832,7 @@ class _Account extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      PrimeText(
                         'Entrega do seu jeito',
                         style: TextStyle(
                           fontSize: 14,
@@ -1839,7 +1840,7 @@ class _Account extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 3),
-                      Text(
+                      PrimeText(
                         'Rápida, gelada e acompanhada em tempo real.',
                         style: TextStyle(
                           color: AppColors.muted,
@@ -1861,7 +1862,7 @@ class _Account extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () => state.logout(),
               icon: const Icon(AppIcons.logout_rounded, size: 19),
-              label: const Text('Sair da conta'),
+              label: const PrimeText('Sair da conta'),
             ),
           ),
         ],
@@ -1927,7 +1928,7 @@ void _passwordRecovery(BuildContext context) {
                   ? 'Solicitação criada. Use o token de desenvolvimento para redefinir sua senha.'
                   : 'Se o e-mail estiver cadastrado, enviaremos as instruções.';
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
+                SnackBar(content: PrimeText(message)),
               );
             }
           },

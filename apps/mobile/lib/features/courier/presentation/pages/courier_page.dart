@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import '../../../../core/tracking/courier_route_tracker.dart';
 import '../../../../core/tracking/courier_tracking_notice.dart';
 import '../../../../core/widgets/prime_brand.dart';
@@ -170,7 +171,7 @@ class _CourierPageState extends State<CourierPage> {
                   if (sheetContext.mounted) {
                     ScaffoldMessenger.of(sheetContext).showSnackBar(
                       SnackBar(
-                        content: Text(PrimeMessages.friendly(e)),
+                        content: PrimeText(PrimeMessages.friendly(e)),
                       ),
                     );
                   }
@@ -227,7 +228,7 @@ class _CourierPageState extends State<CourierPage> {
                   ),
                 ),
                 const SizedBox(height: 17),
-                const Text(
+                const PrimeText(
                   'Confirme com o cliente',
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -238,7 +239,7 @@ class _CourierPageState extends State<CourierPage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                const PrimeText(
                   'Peça ao cliente o PIN de 4 dígitos exibido no acompanhamento do pedido. A entrega só será concluída com o código correto.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -264,7 +265,7 @@ class _CourierPageState extends State<CourierPage> {
                     letterSpacing: 12,
                     fontWeight: AppFontWeight.display,
                   ),
-                  decoration: InputDecoration(
+                  decoration: PrimeInputDecoration(
                     counterText: '',
                     hintText: '••••',
                     hintStyle: const TextStyle(
@@ -297,7 +298,7 @@ class _CourierPageState extends State<CourierPage> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(PrimeMessages.friendly(error!),
+                          child: PrimeText(PrimeMessages.friendly(error!),
                             style: const TextStyle(
                               color: AppColors.coralStrong,
                               fontSize: AppFontSize.caption,
@@ -317,7 +318,7 @@ class _CourierPageState extends State<CourierPage> {
                         onPressed: loading
                             ? null
                             : () => Navigator.pop(dialogContext),
-                        child: const Text('Cancelar'),
+                        child: const PrimeText('Cancelar'),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -375,7 +376,7 @@ class _CourierPageState extends State<CourierPage> {
                                   color: Colors.white,
                                 ),
                               )
-                            : const Text('Confirmar entrega'),
+                            : const PrimeText('Confirmar entrega'),
                       ),
                     ),
                   ],
@@ -469,7 +470,7 @@ class _CourierPageState extends State<CourierPage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                const PrimeText(
                   'Solicitar saque',
                   style: TextStyle(
                     fontSize: 21,
@@ -478,7 +479,7 @@ class _CourierPageState extends State<CourierPage> {
                   ),
                 ),
                 const SizedBox(height: 7),
-                Text(
+                PrimeText(
                   'Disponível: ' +
                       _money(
                         AppState.instance
@@ -496,7 +497,7 @@ class _CourierPageState extends State<CourierPage> {
                   autofocus: true,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
+                  decoration: const PrimeInputDecoration(
                     labelText: 'Valor',
                     prefixText: 'R\$ ',
                     prefixIcon: Icon(AppIcons.payments_rounded),
@@ -505,12 +506,12 @@ class _CourierPageState extends State<CourierPage> {
                 const SizedBox(height: 14),
                 DropdownButtonFormField<String>(
                   initialValue: pixType,
-                  decoration: const InputDecoration(labelText: 'Tipo de chave PIX'),
-                  items: const [DropdownMenuItem(value:'CPF',child:Text('CPF')),DropdownMenuItem(value:'CNPJ',child:Text('CNPJ')),DropdownMenuItem(value:'EMAIL',child:Text('E-mail')),DropdownMenuItem(value:'PHONE',child:Text('Celular')),DropdownMenuItem(value:'RANDOM',child:Text('Aleatória'))],
+                  decoration: const PrimeInputDecoration(labelText: 'Tipo de chave PIX'),
+                  items: const [DropdownMenuItem(value:'CPF',child:PrimeText('CPF')),DropdownMenuItem(value:'CNPJ',child:PrimeText('CNPJ')),DropdownMenuItem(value:'EMAIL',child:PrimeText('E-mail')),DropdownMenuItem(value:'PHONE',child:PrimeText('Celular')),DropdownMenuItem(value:'RANDOM',child:PrimeText('Aleatória'))],
                   onChanged: loading ? null : (value) => setDialogState(() => pixType = value),
                 ),
                 const SizedBox(height: 12),
-                TextField(controller: pixController, enabled: !loading, decoration: const InputDecoration(labelText: 'Chave PIX de recebimento', helperText: 'Confira a chave antes de solicitar o saque.')),
+                TextField(controller: pixController, enabled: !loading, decoration: const PrimeInputDecoration(labelText: 'Chave PIX de recebimento', helperText: 'Confira a chave antes de solicitar o saque.')),
                 if (error != null) ...[
                   const SizedBox(height: 10),
                   Container(
@@ -519,7 +520,7 @@ class _CourierPageState extends State<CourierPage> {
                       color: AppColors.peach,
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
-                    child: Text(PrimeMessages.friendly(error!),
+                    child: PrimeText(PrimeMessages.friendly(error!),
                       style: const TextStyle(
                         color: AppColors.coralStrong,
                         fontSize: AppFontSize.caption,
@@ -529,7 +530,7 @@ class _CourierPageState extends State<CourierPage> {
                   ),
                 ],
                 const SizedBox(height: 12),
-                const Text(
+                const PrimeText(
                   'Sua solicitação de saque ficará pendente até o processamento.',
                   style: TextStyle(
                     color: AppColors.muted,
@@ -546,7 +547,7 @@ class _CourierPageState extends State<CourierPage> {
                         onPressed: loading
                             ? null
                             : () => Navigator.pop(dialogContext),
-                        child: const Text('Cancelar'),
+                        child: const PrimeText('Cancelar'),
                       ),
                     ),
                     const SizedBox(width: 9),
@@ -596,7 +597,7 @@ class _CourierPageState extends State<CourierPage> {
                                   color: Colors.white,
                                 ),
                               )
-                            : const Text('Solicitar'),
+                            : const PrimeText('Solicitar'),
                       ),
                     ),
                   ],
@@ -637,7 +638,7 @@ class _CourierPageState extends State<CourierPage> {
               if(_navBusy)return;
               setState(()=>_navBusy=true);
               try { if(current!=null){await _showDeliverySheet(context,order:current,incoming:false);}else if(!state.courierOnline){await state.setCourierOnline(true);}else{await state.refreshCourier();} }
-              catch(e){if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(PrimeMessages.friendly(e))));}
+              catch(e){if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:PrimeText(PrimeMessages.friendly(e))));}
               finally{if(mounted)setState(()=>_navBusy=false);}
             }),
             body: SafeArea(
@@ -650,7 +651,7 @@ class _CourierPageState extends State<CourierPage> {
                   ),
                   padding: const EdgeInsets.fromLTRB(18, 18, 18, 34),
                   children: [
-                    Row(children:[const Expanded(child:Text('Porto Prime / Driver',style:TextStyle(fontSize:13,fontWeight:FontWeight.w800,color:AppColors.ocean800))),IconButton(tooltip:'Menu do motoboy',onPressed:()=>_openDriverMenu(context),icon:const Icon(AppIcons.grid_view_rounded)),IconButton(tooltip:'Sair',onPressed:state.logout,icon:const Icon(AppIcons.logout_rounded))]),
+                    Row(children:[const Expanded(child:PrimeText('Porto Prime / Driver',style:TextStyle(fontSize:13,fontWeight:FontWeight.w800,color:AppColors.ocean800))),IconButton(tooltip: translateLabel('Menu do motoboy'),onPressed:()=>_openDriverMenu(context),icon:const Icon(AppIcons.grid_view_rounded)),IconButton(tooltip: translateLabel('Sair'),onPressed:state.logout,icon:const Icon(AppIcons.logout_rounded))]),
                     const SizedBox(height:14),
                     if(state.courierHighDemand) ...[CourierDemandNotice(online:state.courierOnline,bonusAmount:state.courierDemandBonus),const SizedBox(height:14)],
                     CourierOperationsHero(name:first,online:state.courierOnline,active:current!=null,onChanged:current==null?state.setCourierOnline:null),
@@ -695,7 +696,7 @@ class _CourierPageState extends State<CourierPage> {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text(PrimeMessages.friendly(e)),
+                                    content: PrimeText(PrimeMessages.friendly(e)),
                                   ),
                                 );
                               }
@@ -768,7 +769,7 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          PrimeText(
             eyebrow,
             style: const TextStyle(
               color: AppColors.ocean,
@@ -778,7 +779,7 @@ class _SectionTitle extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 5),
-          Text(
+          PrimeText(
             title,
             style: const TextStyle(
               fontSize: 20,
@@ -788,7 +789,7 @@ class _SectionTitle extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 5),
-          Text(
+          PrimeText(
             subtitle,
             style: const TextStyle(
               color: AppColors.muted,
@@ -854,7 +855,7 @@ class _OfferCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        PrimeText(
                           'NOVA OFERTA',
                           style: TextStyle(
                             color: Color(0xFFA26A14),
@@ -864,7 +865,7 @@ class _OfferCard extends StatelessWidget {
                           ),
                         ),
                         SizedBox(height: 3),
-                        Text(
+                        PrimeText(
                           'Entrega disponível',
                           style: TextStyle(
                             fontSize: 14,
@@ -874,7 +875,7 @@ class _OfferCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Text(
+                  PrimeText(
                     _money(order['courierEarnings'] ?? ((double.tryParse(order['deliveryFee'].toString())??0)+(order['demandSurchargeIncluded']==true?0:(double.tryParse((order['courierDemandBonus']??order['demandBonus']??0).toString())??0)))),
                     style: const TextStyle(
                       fontSize: 15,
@@ -916,7 +917,7 @@ class _OfferCard extends StatelessWidget {
               Row(
                 children: [
                   const Expanded(
-                    child: Text(
+                    child: PrimeText(
                       'Toque para decidir',
                       style: TextStyle(
                         color: AppColors.oceanDeep,
@@ -959,7 +960,7 @@ class _CompactMetric extends StatelessWidget {
             Icon(icon, color: AppColors.oceanDeep, size: 15),
             const SizedBox(width: 6),
             Expanded(
-              child: Text(
+              child: PrimeText(
                 text,
                 style: const TextStyle(
                   fontSize: AppFontSize.caption,
@@ -1028,7 +1029,7 @@ class _OfferCountdownState extends State<_OfferCountdown> {
         urgent ? AppColors.coral100 : AppColors.ocean50;
 
     return Semantics(
-      label: 'Tempo restante da oferta: ' + seconds.toString() + ' segundos',
+      label: translateLabel( 'Tempo restante da oferta: ' + seconds.toString() + ' segundos'),
       child: SizedBox(
         width: 50,
         height: 50,
@@ -1052,7 +1053,7 @@ class _OfferCountdownState extends State<_OfferCountdown> {
                 backgroundColor: foreground.withValues(alpha: .12),
               ),
             ),
-            Text(
+            PrimeText(
               seconds.toString() + 's',
               style: TextStyle(
                 color: foreground,
@@ -1099,7 +1100,7 @@ class _ActiveDeliveryCard extends StatelessWidget {
             children: [
               _StatusMark(status: status),
               const Spacer(),
-              Text(
+              PrimeText(
                 '#${_shortId(order['id'])}',
                 style: const TextStyle(
                   color: AppColors.muted,
@@ -1111,7 +1112,7 @@ class _ActiveDeliveryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 17),
-          Text(
+          PrimeText(
             order['customer']?['name']?.toString() ?? 'Cliente Porto Prime',
             style: const TextStyle(
               fontSize: 20,
@@ -1136,7 +1137,7 @@ class _ActiveDeliveryCard extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: onOpen,
                   icon: const Icon(AppIcons.receipt_long_rounded, size: 18),
-                  label: const Text('Ver detalhes'),
+                  label: const PrimeText('Ver detalhes'),
                 ),
               ),
               if (next != null) ...[
@@ -1146,7 +1147,7 @@ class _ActiveDeliveryCard extends StatelessWidget {
                   child: FilledButton.icon(
                     onPressed: onPrimaryAction,
                     icon: Icon(_nextIcon(next), size: 18),
-                    label: Text(_nextLabel(next)),
+                    label: PrimeText(_nextLabel(next)),
                   ),
                 ),
               ],
@@ -1240,7 +1241,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            PrimeText(
                               incoming
                                   ? 'NOVA ENTREGA'
                                   : 'ENTREGA EM ANDAMENTO',
@@ -1254,7 +1255,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
+                            PrimeText(
                               incoming
                                   ? 'Confira a oferta antes de decidir'
                                   : 'Sua rota atual',
@@ -1291,7 +1292,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          PrimeText(
                             (pickup['name'] ?? 'Porto Prime').toString(),
                             style: const TextStyle(
                               fontSize: 13,
@@ -1299,7 +1300,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
+                          PrimeText(
                             (pickup['region'] ?? 'Base Porto Prime').toString(),
                             style: const TextStyle(
                               color: AppColors.muted,
@@ -1317,7 +1318,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          PrimeText(
                             (dropoff['neighborhood'] ?? 'Região informada')
                                 .toString(),
                             style: const TextStyle(
@@ -1326,7 +1327,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
+                          PrimeText(
                             (dropoff['city'] ?? 'Porto Seguro').toString(),
                             style: const TextStyle(
                               color: AppColors.muted,
@@ -1402,7 +1403,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          PrimeText(
                             (address['street'] ?? '').toString() +
                                 ', ' +
                                 (address['number'] ?? '').toString(),
@@ -1412,7 +1413,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
+                          PrimeText(
                             (address['neighborhood'] ?? '').toString() +
                                 ' • ' +
                                 (address['city'] ?? '').toString() +
@@ -1429,7 +1430,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                               .toString()
                               .isNotEmpty) ...[
                             const SizedBox(height: 4),
-                            Text(
+                            PrimeText(
                               address['complement'].toString(),
                               style: const TextStyle(
                                 color: AppColors.muted,
@@ -1469,7 +1470,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                                         borderRadius:
                                             BorderRadius.circular(11),
                                       ),
-                                      child: Text(
+                                      child: PrimeText(
                                         (item['quantity'] ?? 0).toString() +
                                             'x',
                                         style: const TextStyle(
@@ -1481,7 +1482,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 10),
                                     Expanded(
-                                      child: Text(
+                                      child: PrimeText(
                                         item['productName']?.toString() ??
                                             'Produto',
                                         style: const TextStyle(
@@ -1491,7 +1492,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                                         ),
                                       ),
                                     ),
-                                    Text(
+                                    PrimeText(
                                       _money(item['total']),
                                       style: const TextStyle(
                                         fontSize: AppFontSize.caption,
@@ -1541,7 +1542,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                               onPressed: () async {
                                 await onReject?.call();
                               },
-                              child: const Text('RECUSAR'),
+                              child: const PrimeText('RECUSAR'),
                             ),
                           ),
                           const SizedBox(width: 9),
@@ -1555,7 +1556,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                                 AppIcons.check_circle_rounded,
                                 size: 19,
                               ),
-                              label: const Text('ACEITAR ENTREGA'),
+                              label: const PrimeText('ACEITAR ENTREGA'),
                             ),
                           ),
                         ],
@@ -1565,7 +1566,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                           Expanded(
                             child: OutlinedButton(
                               onPressed: () => Navigator.pop(context),
-                              child: const Text('Fechar'),
+                              child: const PrimeText('Fechar'),
                             ),
                           ),
                           if (next != null) ...[
@@ -1577,7 +1578,7 @@ class _DeliveryDetailsSheet extends StatelessWidget {
                                   await onAdvance?.call(next);
                                 },
                                 icon: Icon(_nextIcon(next), size: 18),
-                                label: Text(_nextLabel(next)),
+                                label: PrimeText(_nextLabel(next)),
                               ),
                             ),
                           ],
@@ -1612,7 +1613,7 @@ class _PrivacyOfferNotice extends StatelessWidget {
             ),
             SizedBox(width: 8),
             Expanded(
-              child: Text(
+              child: PrimeText(
                 'Nome, telefone, rua, número e itens detalhados são liberados somente depois que você aceitar a entrega.',
                 style: TextStyle(
                   color: AppColors.oceanDeep,
@@ -1648,7 +1649,7 @@ class _PinNotice extends StatelessWidget {
             ),
             SizedBox(width: 10),
             Expanded(
-              child: Text(
+              child: PrimeText(
                 'Na porta, peça ao cliente o PIN de 4 dígitos. Sem o código correto o pedido não pode ser finalizado.',
                 style: TextStyle(
                   color: Color(0xFF846A3C),
@@ -1709,7 +1710,7 @@ class _SheetHero extends StatelessWidget {
                   autoClose: true,
                 )
               else
-                Text(
+                PrimeText(
                   '#' + _shortId(id),
                   style: const TextStyle(
                     color: Colors.white60,
@@ -1722,10 +1723,10 @@ class _SheetHero extends StatelessWidget {
           ),
           if (!incoming) ...[
             const SizedBox(height:12),
-            TextButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(settings:RouteSettings(name:'/delivery-chat/$id'),builder:(_)=>DeliveryChatPage(orderId:id.toString()))),icon:const Icon(AppIcons.mail,color:Colors.white,size:18),label:const Text('Conversar com cliente',style:TextStyle(color:Colors.white))),
+            TextButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(settings:RouteSettings(name:'/delivery-chat/$id'),builder:(_)=>DeliveryChatPage(orderId:id.toString()))),icon:const Icon(AppIcons.mail,color:Colors.white,size:18),label:const PrimeText('Conversar com cliente',style:TextStyle(color:Colors.white))),
           ],
           const SizedBox(height: 17),
-          Text(
+          PrimeText(
             customerName,
             style: const TextStyle(
               color: Colors.white,
@@ -1735,7 +1736,7 @@ class _SheetHero extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          Text(
+          PrimeText(
             incoming
                 ? 'Veja somente os dados necessários para decidir.'
                 : 'Pedido aceito e vinculado ao seu perfil.',
@@ -1754,7 +1755,7 @@ class _SheetHero extends StatelessWidget {
                 size: 18,
               ),
               const SizedBox(width: 7),
-              Text(
+              PrimeText(
                 incoming ? 'Ganhos da entrega' : 'Valor do pedido',
                 style: const TextStyle(
                   color: Colors.white70,
@@ -1763,7 +1764,7 @@ class _SheetHero extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              Text(
+              PrimeText(
                 _money(amount),
                 style: const TextStyle(
                   color: Colors.white,
@@ -1775,7 +1776,7 @@ class _SheetHero extends StatelessWidget {
           ),
           if(incoming && (double.tryParse((order['demandBonus']??0).toString())??0)>0) ...[
             const SizedBox(height:10),
-            Text('Inclui ${_money(order['demandBonus'])} de bônus garantido nesta oferta.',style:const TextStyle(color:Color(0xFF93F2D9),fontSize:12,fontWeight:FontWeight.w700)),
+            PrimeText('Inclui ${_money(order['demandBonus'])} de bônus garantido nesta oferta.',style:const TextStyle(color:Color(0xFF93F2D9),fontSize:12,fontWeight:FontWeight.w700)),
           ],
         ],
       ),
@@ -1821,7 +1822,7 @@ class _DetailSection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Text(
+                PrimeText(
                   title,
                   style: const TextStyle(
                     fontSize: 13,
@@ -1856,7 +1857,7 @@ class _DetailRow extends StatelessWidget {
           children: [
             SizedBox(
               width: 105,
-              child: Text(
+              child: PrimeText(
                 label,
                 style: const TextStyle(
                   color: AppColors.muted,
@@ -1866,7 +1867,7 @@ class _DetailRow extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: Text(
+              child: PrimeText(
                 value,
                 textAlign: TextAlign.right,
                 style: const TextStyle(
@@ -1908,7 +1909,7 @@ class _CompactInfo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                PrimeText(
                   title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -1918,7 +1919,7 @@ class _CompactInfo extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
+                PrimeText(
                   subtitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -1987,7 +1988,7 @@ class _DeliveryProgress extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 5),
-                Text(
+                PrimeText(
                   stages[i].$2,
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -2034,7 +2035,7 @@ class _StatusMark extends StatelessWidget {
               : _statusBackground(status),
           borderRadius: BorderRadius.circular(AppRadius.xl),
         ),
-        child: Text(
+        child: PrimeText(
           _statusLabel(status),
           style: TextStyle(
             color: dark ? Colors.white : _statusColor(status),
@@ -2149,7 +2150,7 @@ class _DriverMenuSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      PrimeText(
                         'PORTO PRIME DRIVER',
                         style: TextStyle(
                           color: AppColors.ocean,
@@ -2159,7 +2160,7 @@ class _DriverMenuSheet extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 4),
-                      Text(
+                      PrimeText(
                         'Central do motoboy',
                         style: TextStyle(
                           fontSize: 22,
@@ -2201,7 +2202,7 @@ class _DriverMenuSheet extends StatelessWidget {
                         size: 20,
                       ),
                     ),
-                    title: Text(
+                    title: PrimeText(
                       item.$2,
                       style: const TextStyle(
                         fontSize: 12,
@@ -2294,7 +2295,7 @@ class _DriverSectionSheet extends StatelessWidget {
                         ),
                         const SizedBox(width: 11),
                         Expanded(
-                          child: Text(
+                          child: PrimeText(
                             title,
                             style: const TextStyle(
                               fontSize: 20,
@@ -2379,7 +2380,7 @@ class _DriverSectionSheet extends StatelessWidget {
           child: FilledButton.icon(
             onPressed: onWithdraw,
             icon: const Icon(AppIcons.payments_rounded),
-            label: const Text('Solicitar saque'),
+            label: const PrimeText('Solicitar saque'),
           ),
         ),
         const SizedBox(height: 16),
@@ -2406,7 +2407,7 @@ class _DriverSectionSheet extends StatelessWidget {
           child: FilledButton.icon(
             onPressed: onWithdraw,
             icon: const Icon(AppIcons.add_card_rounded),
-            label: const Text('Nova solicitação'),
+            label: const PrimeText('Nova solicitação'),
           ),
         ),
         const SizedBox(height: 16),
@@ -2425,7 +2426,7 @@ class _DriverSectionSheet extends StatelessWidget {
     if (section == 'profile') {
       final user = state.user ?? {};
       return [
-        OutlinedButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const SupportPage())),icon:const Icon(AppIcons.help,size:19),label:const Text('Ajuda e suporte')),
+        OutlinedButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const SupportPage())),icon:const Icon(AppIcons.help,size:19),label:const PrimeText('Ajuda e suporte')),
         const SizedBox(height:16),
         const CourierPhotoCard(),
         const SizedBox(height:14),
@@ -2479,14 +2480,14 @@ class _DriverSectionSheet extends StatelessWidget {
             onChanged: state.courierDelivery == null
                 ? state.setCourierOnline
                 : null,
-            title: const Text(
+            title: const PrimeText(
               'Receber novas ofertas',
               style: TextStyle(
                 fontSize: 11.5,
                 fontWeight: AppFontWeight.display,
               ),
             ),
-            subtitle: Text(
+            subtitle: PrimeText(
               state.courierPresenceStatus.replaceAll('_', ' '),
               style: const TextStyle(
                 fontSize: AppFontSize.caption,
@@ -2502,7 +2503,7 @@ class _DriverSectionSheet extends StatelessWidget {
           child: OutlinedButton.icon(
             onPressed: state.logout,
             icon: const Icon(AppIcons.logout_rounded),
-            label: const Text('Sair deste dispositivo'),
+            label: const PrimeText('Sair deste dispositivo'),
           ),
         ),
       ];
@@ -2627,7 +2628,7 @@ class _LedgerRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                PrimeText(
                   (entry['description'] ?? 'Movimentação').toString(),
                   style: const TextStyle(
                     fontSize: AppFontSize.caption,
@@ -2635,7 +2636,7 @@ class _LedgerRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
+                PrimeText(
                   _date(entry['createdAt']),
                   style: const TextStyle(
                     color: AppColors.muted,
@@ -2646,7 +2647,7 @@ class _LedgerRow extends StatelessWidget {
               ],
             ),
           ),
-          Text(
+          PrimeText(
             (positive ? '+ ' : '- ') + _money(amount.abs()),
             style: TextStyle(
               color: positive
@@ -2686,7 +2687,7 @@ class _WithdrawalRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  PrimeText(
                     _money(row['amount']),
                     style: const TextStyle(
                       fontSize: 11.5,
@@ -2694,7 +2695,7 @@ class _WithdrawalRow extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
+                  PrimeText(
                     _date(row['requestedAt']),
                     style: const TextStyle(
                       color: AppColors.muted,
@@ -2704,7 +2705,7 @@ class _WithdrawalRow extends StatelessWidget {
                 ],
               ),
             ),
-          Text(
+          PrimeText(
             _withdrawalStatus((row['status'] ?? '').toString()),
             style: const TextStyle(
               color: AppColors.oceanDeep,
@@ -2745,7 +2746,7 @@ class _HistoryRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  PrimeText(
                     'Entrega #' + _shortId(order['id']),
                     style: const TextStyle(
                       fontSize: AppFontSize.caption,
@@ -2753,7 +2754,7 @@ class _HistoryRow extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
+                  PrimeText(
                     _date(order['deliveredAt'] ?? order['updatedAt']),
                     style: const TextStyle(
                       color: AppColors.muted,
@@ -2763,7 +2764,7 @@ class _HistoryRow extends StatelessWidget {
                 ],
               ),
             ),
-            Text(
+            PrimeText(
               _money(order['courierEarnings'] ?? ((double.tryParse(order['deliveryFee'].toString())??0)+(order['demandSurchargeIncluded']==true?0:(double.tryParse((order['courierDemandBonus']??order['demandBonus']??0).toString())??0)))),
               style: const TextStyle(
                 fontSize: AppFontSize.caption,
@@ -2803,7 +2804,7 @@ class _DataPanel extends StatelessWidget {
               children: [
                 Icon(icon, color: AppColors.oceanDeep, size: 20),
                 const SizedBox(width: 9),
-                Text(
+                PrimeText(
                   title,
                   style: const TextStyle(
                     fontSize: 12.5,
@@ -2824,7 +2825,7 @@ class _DataPanel extends StatelessWidget {
                     children: [
                       SizedBox(
                         width: 100,
-                        child: Text(
+                        child: PrimeText(
                           row.$1,
                           style: const TextStyle(
                             color: AppColors.muted,
@@ -2834,7 +2835,7 @@ class _DataPanel extends StatelessWidget {
                         ),
                       ),
                       Expanded(
-                        child: Text(
+                        child: PrimeText(
                           row.$2,
                           textAlign: TextAlign.right,
                           style: const TextStyle(
@@ -2906,7 +2907,7 @@ class _DriverEmpty extends StatelessWidget {
               child: Icon(icon, color: AppColors.oceanDeep, size: 29),
             ),
             const SizedBox(height: 15),
-            Text(
+            PrimeText(
               title,
               textAlign: TextAlign.center,
               style: const TextStyle(
@@ -2915,7 +2916,7 @@ class _DriverEmpty extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            Text(
+            PrimeText(
               subtitle,
               textAlign: TextAlign.center,
               style: const TextStyle(

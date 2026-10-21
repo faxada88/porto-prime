@@ -1,3 +1,4 @@
+import '../localization/prime_localization.dart';
 import 'prime_reference_home.dart';
 import 'package:flutter/material.dart';
 
@@ -55,7 +56,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
     return Semantics(
       button: widget.onOpen != null,
       enabled: available,
-      label: (p['name'] ?? 'Produto').toString(),
+      label: translateLabel( (p['name'] ?? 'Produto').toString()),
       child: MouseRegion(
         cursor: widget.onOpen != null
             ? SystemMouseCursors.click
@@ -172,7 +173,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              PrimeText(
                                 category.toUpperCase(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -184,7 +185,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                                     ),
                               ),
                               const SizedBox(height: 4),
-                              Text(
+                              PrimeText(
                                 (p['name'] ?? '').toString(),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -198,7 +199,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                               ),
                               if (description.isNotEmpty && !compact) ...[
                                 const SizedBox(height: 4),
-                                Text(
+                                PrimeText(
                                   description,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -208,7 +209,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                               ],
                               const Spacer(),
                               if (oldPrice != null && oldPrice > price)
-                                Text(
+                                PrimeText(
                                   _money(oldPrice),
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
@@ -218,7 +219,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                                       ),
                                 ),
                               const SizedBox(height: 1),
-                              Text(
+                              PrimeText(
                                 _money(price),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -313,7 +314,7 @@ class _DiscountBadge extends StatelessWidget {
         ),
       ],
     ),
-    child: Text(
+    child: PrimeText(
       '-' + value.toString() + '%',
       style: const TextStyle(
         color: Colors.white,
@@ -334,7 +335,7 @@ class _UnavailableBadge extends StatelessWidget {
       color: AppColors.ink.withValues(alpha: .86),
       borderRadius: BorderRadius.circular(AppRadius.pill),
     ),
-    child: const Text(
+    child: const PrimeText(
       'INDISPONÍVEL',
       style: TextStyle(
         color: Colors.white,
@@ -363,7 +364,7 @@ class _AddButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
-    label: 'Adicionar ' + productName,
+    label: translateLabel( 'Adicionar ' + productName),
     child: Material(
       color: cartIcon ? AppColors.ocean100 : AppColors.ocean900,
       borderRadius: BorderRadius.circular(AppRadius.md),
@@ -382,7 +383,7 @@ class _AddButton extends StatelessWidget {
                 if(!cartIcon) const Flexible(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text(
+                    child: PrimeText(
                       'Adicionar',
                       style: TextStyle(
                         color: Colors.white,
@@ -428,10 +429,10 @@ class _QuantityControl extends StatelessWidget {
         _QtyButton(
           icon: AppIcons.minus,
           onTap: onMinus,
-          semanticLabel: 'Diminuir quantidade',
+          semanticLabel: translateLabel( 'Diminuir quantidade'),
         ),
         Expanded(
-          child: Text(
+          child: PrimeText(
             qty.toString(),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -446,7 +447,7 @@ class _QuantityControl extends StatelessWidget {
         _QtyButton(
           icon: AppIcons.plus,
           onTap: onPlus,
-          semanticLabel: onPlus==null?'Limite de estoque atingido':'Aumentar quantidade',
+          semanticLabel: translateLabel( onPlus==null?'Limite de estoque atingido':'Aumentar quantidade'),
         ),
       ],
     ),
@@ -468,7 +469,7 @@ class _QtyButton extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
     button: true,
     enabled: onTap!=null,
-    label: semanticLabel,
+    label: translateLabel( semanticLabel),
     child: InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppRadius.sm),

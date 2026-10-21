@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/state/app_state.dart';
@@ -25,16 +26,16 @@ class _RegistrationPlaceSearchState extends State<RegistrationPlaceSearch>{
   });
  }
  @override Widget build(BuildContext context)=>Padding(padding:const EdgeInsets.only(bottom:20),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
-  TextField(controller:controller,onChanged:search,decoration:InputDecoration(
+  TextField(controller:controller,onChanged:search,decoration:PrimeInputDecoration(
    labelText:'Onde vamos entregar?',hintText:'Hotel, pousada, rua ou estabelecimento',prefixIcon:const Icon(Icons.search_rounded),
    suffixIcon:loading?const Padding(padding:EdgeInsets.all(16),child:SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2))):null)),
-  const SizedBox(height:8),const Text('Digite a rua, hotel ou estabelecimento e escolha seu endereço nas sugestões.',style:TextStyle(fontSize:12,height:1.5,color:AppColors.inkSoft)),
-  if(error!=null)Padding(padding:const EdgeInsets.only(top:8),child:Text(error!,style:const TextStyle(fontSize:12,color:AppColors.muted))),
+  const SizedBox(height:8),const PrimeText('Digite a rua, hotel ou estabelecimento e escolha seu endereço nas sugestões.',style:TextStyle(fontSize:12,height:1.5,color:AppColors.inkSoft)),
+  if(error!=null)Padding(padding:const EdgeInsets.only(top:8),child:PrimeText(error!,style:const TextStyle(fontSize:12,color:AppColors.muted))),
   for(final place in results)ListTile(contentPadding:EdgeInsets.zero,
    leading:Icon(place['kind']=='HOTEL'?Icons.hotel_outlined:place['kind']=='STREET'?Icons.place_outlined:Icons.storefront_outlined,color:AppColors.ocean700),
-   title:Text('${place['name']}',style:const TextStyle(fontWeight:FontWeight.w700)),
-   subtitle:Text([place['street'],place['number'],place['neighborhood']].where((v)=>v!=null&&'$v'.isNotEmpty).join(' · ')),
+   title:PrimeText('${place['name']}',style:const TextStyle(fontWeight:FontWeight.w700)),
+   subtitle:PrimeText([place['street'],place['number'],place['neighborhood']].where((v)=>v!=null&&'$v'.isNotEmpty).join(' · ')),
    onTap:(){timer?.cancel();generation++;setState((){controller.text='${place['name']}';results=[];loading=false;error=null;});widget.onSelected(place);}),
-  const SizedBox(height:6),const Text('© OpenStreetMap contributors',style:TextStyle(fontSize:10,color:AppColors.muted)),
+  const SizedBox(height:6),const PrimeText('© OpenStreetMap contributors',style:TextStyle(fontSize:10,color:AppColors.muted)),
  ]));
 }

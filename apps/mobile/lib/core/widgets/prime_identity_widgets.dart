@@ -1,3 +1,4 @@
+import '../localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_theme.dart';
@@ -38,16 +39,16 @@ class PrimeLoginIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     Row(children: [const PrimeBrandMark(size: 42), const SizedBox(width: 12),
-      const Expanded(child: Text('SUA CONTA PORTO PRIME', style: TextStyle(fontSize: 10,
+      const Expanded(child: PrimeText('SUA CONTA PORTO PRIME', style: TextStyle(fontSize: 10,
         height: 1.5, letterSpacing: 1.2, fontWeight: FontWeight.w800, color: AppColors.ocean700))),
-      IconButton(tooltip: 'Fechar entrada', onPressed: onClose,
+      IconButton(tooltip: translateLabel( 'Fechar entrada'), onPressed: onClose,
         icon: const Icon(AppIcons.close, color: AppColors.ocean900, size: 21)),
     ]),
     const SizedBox(height: 24),
-    const Text('Bom ter você\naqui de novo.', style: TextStyle(fontSize: 30, height: 1.12,
+    const PrimeText('Bom ter você\naqui de novo.', style: TextStyle(fontSize: 30, height: 1.12,
       letterSpacing: -.9, fontWeight: FontWeight.w800, color: AppColors.ocean900)),
     const SizedBox(height: 12),
-    const Text('Entre com seu e-mail e senha para continuar de onde parou.',
+    const PrimeText('Entre com seu e-mail e senha para continuar de onde parou.',
       style: TextStyle(fontSize: 13, height: 1.6, color: AppColors.muted)),
   ]);
 }
@@ -57,11 +58,11 @@ class PrimePhotoSource extends StatelessWidget {
   final VoidCallback onCamera, onGallery, onClose;
   @override
   Widget build(BuildContext context) => PrimeIdentitySheet(children: [
-    Row(children: [const Expanded(child: Text('Sua foto. Sua identidade.', style: TextStyle(
+    Row(children: [const Expanded(child: PrimeText('Sua foto. Sua identidade.', style: TextStyle(
       fontSize: 24, height: 1.2, fontWeight: FontWeight.w800, letterSpacing: -.5, color: AppColors.ocean900))),
-      IconButton(tooltip: 'Fechar opções de foto', onPressed: onClose, icon: const Icon(AppIcons.close))]),
+      IconButton(tooltip: translateLabel( 'Fechar opções de foto'), onPressed: onClose, icon: const Icon(AppIcons.close))]),
     const SizedBox(height: 10),
-    const Text('Mostre seu rosto com clareza. Essa imagem ajuda o cliente a reconhecer quem fará a entrega.',
+    const PrimeText('Mostre seu rosto com clareza. Essa imagem ajuda o cliente a reconhecer quem fará a entrega.',
       style: TextStyle(fontSize: 13, height: 1.6, color: AppColors.muted)),
     const SizedBox(height: 24),
     _PhotoOption(icon: AppIcons.camera, title: 'Tirar uma selfie',
@@ -70,7 +71,7 @@ class PrimePhotoSource extends StatelessWidget {
     _PhotoOption(icon: AppIcons.image, title: 'Escolher da galeria',
       subtitle: 'Selecionar uma foto que você já tem', onTap: onGallery),
     const SizedBox(height: 20),
-    const Text('Boa iluminação, rosto descoberto e sem outras pessoas na imagem.',
+    const PrimeText('Boa iluminação, rosto descoberto e sem outras pessoas na imagem.',
       style: TextStyle(fontSize: 11, height: 1.5, color: AppColors.muted)),
   ]);
 }
@@ -90,9 +91,9 @@ class _PhotoOption extends StatelessWidget {
         Icon(icon, size: 26, color: primary ? AppColors.sun500 : AppColors.ocean700),
         const SizedBox(width: 14),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: TextStyle(fontSize: 15, height: 1.3, fontWeight: FontWeight.w800,
+          PrimeText(title, style: TextStyle(fontSize: 15, height: 1.3, fontWeight: FontWeight.w800,
             color: primary ? Colors.white : AppColors.ocean900)), const SizedBox(height: 6),
-          Text(subtitle, style: TextStyle(fontSize: 12, height: 1.5,
+          PrimeText(subtitle, style: TextStyle(fontSize: 12, height: 1.5,
             color: primary ? AppColors.ocean100 : AppColors.muted)),
         ])),
         const SizedBox(width: 8), Icon(AppIcons.arrowUpRight, size: 18,
@@ -112,22 +113,22 @@ class PrimePhotoReview extends StatelessWidget {
       maxHeight: MediaQuery.sizeOf(context).height * .84),
       child: SingleChildScrollView(padding: const EdgeInsets.all(24),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Text('É assim que vão\nreconhecer você.', textAlign: TextAlign.center,
+          const PrimeText('É assim que vão\nreconhecer você.', textAlign: TextAlign.center,
             style: TextStyle(fontSize: 25, height: 1.2, letterSpacing: -.6,
               fontWeight: FontWeight.w800, color: AppColors.ocean900)),
           const SizedBox(height: 24),
           Center(child: CourierPortrait(photo: photo, size: 150)),
           const SizedBox(height: 24),
-          const Text('Confira se o rosto está nítido e bem enquadrado. O cliente verá esta foto na entrega.',
+          const PrimeText('Confira se o rosto está nítido e bem enquadrado. O cliente verá esta foto na entrega.',
             textAlign: TextAlign.center, style: TextStyle(fontSize: 13, height: 1.6, color: AppColors.muted)),
           const SizedBox(height: 24),
           FilledButton(onPressed: onUse, style: FilledButton.styleFrom(backgroundColor: AppColors.ocean900,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17)),
-            child: const Text('Salvar foto', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w800))),
+            child: const PrimeText('Salvar foto', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w800))),
           const SizedBox(height: 10),
           OutlinedButton(onPressed: onRetake, style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16)),
-            child: const Text('Escolher outra', textAlign: TextAlign.center)),
+            child: const PrimeText('Escolher outra', textAlign: TextAlign.center)),
         ])),
     ));
 }
@@ -148,15 +149,15 @@ class PrimePhotoProfileCard extends StatelessWidget {
         Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(color: photo == null ? AppColors.sand100 : AppColors.ocean100,
             borderRadius: BorderRadius.circular(20)),
-          child: Text(photo == null ? 'FOTO DO PERFIL' : 'FOTO SELECIONADA',
+          child: PrimeText(photo == null ? 'FOTO DO PERFIL' : 'FOTO SELECIONADA',
             style: const TextStyle(fontSize: 10, height: 1.5, fontWeight: FontWeight.w800, color: AppColors.ocean900))),
       ]),
       const SizedBox(height: 18),
-      Text(photo == null ? 'Seu rosto transmite confiança.' : 'Seu rosto, sua entrega.',
+      PrimeText(photo == null ? 'Seu rosto transmite confiança.' : 'Seu rosto, sua entrega.',
         style: const TextStyle(fontSize: 19, height: 1.25, letterSpacing: -.4,
           fontWeight: FontWeight.w800, color: AppColors.ocean900)),
       const SizedBox(height: 9),
-      Text(photo == null ? (registration ? 'Adicione sua foto para concluir o cadastro.' : 'Adicione sua foto para aparecer ao cliente.')
+      PrimeText(photo == null ? (registration ? 'Adicione sua foto para concluir o cadastro.' : 'Adicione sua foto para aparecer ao cliente.')
         : 'Esta é a imagem que o cliente verá na entrega.',
         style: const TextStyle(fontSize: 12, height: 1.6, color: AppColors.muted)),
       const SizedBox(height: 18),
@@ -166,7 +167,7 @@ class PrimePhotoProfileCard extends StatelessWidget {
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           if (saving) const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
           else const Icon(AppIcons.camera, size: 19), const SizedBox(width: 10),
-          Flexible(child: Text(saving ? 'Preparando foto…' : photo == null ? 'Adicionar minha foto' : 'Alterar foto',
+          Flexible(child: PrimeText(saving ? 'Preparando foto…' : photo == null ? 'Adicionar minha foto' : 'Alterar foto',
             textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800))),
         ])),
     ]));

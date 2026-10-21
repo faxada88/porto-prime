@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/prime_brand.dart';
 
@@ -43,10 +44,10 @@ class _OrdersPageState extends State<OrdersPage> {
         backgroundColor: AppColors.canvas,
         appBar: AppBar(
           leading: Navigator.of(context).canPop() ? const PrimeBackButton() : null,
-          title: const Text('Pedidos'),
+          title: const PrimeText('Pedidos'),
           actions: [
             IconButton(
-              tooltip: 'Início',
+              tooltip: translateLabel( 'Início'),
               onPressed: AppNav.instance.home,
               icon: const Icon(AppIcons.home),
             ),
@@ -185,7 +186,7 @@ class _OrderCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 15),
-                Text(
+                PrimeText(
                   'Pedido #' + shortId,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: active ? Colors.white : AppColors.ink,
@@ -193,7 +194,7 @@ class _OrderCard extends StatelessWidget {
                       ),
                 ),
                 const SizedBox(height: 6),
-                Text(
+                PrimeText(
                   items.isEmpty
                       ? 'Pedido Porto Prime'
                       : items
@@ -224,7 +225,7 @@ class _OrderCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 7),
                     Expanded(
-                      child: Text(
+                      child: PrimeText(
                         (double.tryParse(order['removedItemsTotal'].toString())??0)>0?'Pedido atualizado · item removido':paid?'Pagamento aprovado':order['paymentStatus']=='REFUNDED'?'Pagamento reembolsado':order['paymentStatus']=='FAILED'?'Pagamento não concluído':'Pagamento pendente',
                         style:
                             Theme.of(context).textTheme.labelMedium?.copyWith(
@@ -234,7 +235,7 @@ class _OrderCard extends StatelessWidget {
                                 ),
                       ),
                     ),
-                    Text(
+                    PrimeText(
                       _money((double.tryParse(order['removedItemsTotal'].toString())??0)>0?order['adjustedTotal']:order['total']),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: active ? Colors.white : AppColors.ink,

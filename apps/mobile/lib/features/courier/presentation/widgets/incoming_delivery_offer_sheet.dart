@@ -1,3 +1,4 @@
+import '../../../../core/localization/prime_localization.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_icons.dart';
@@ -61,23 +62,23 @@ class _IncomingDeliveryOfferSheetState extends State<IncomingDeliveryOfferSheet>
    child:SafeArea(top:false,child:SingleChildScrollView(padding:const EdgeInsets.fromLTRB(22,12,22,20),child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.stretch,children:[
     Center(child:Container(width:38,height:4,decoration:BoxDecoration(color:AppColors.stroke,borderRadius:BorderRadius.circular(4)))),
     const SizedBox(height:20),
-    Row(children:[const Expanded(child:Text('Nova entrega',style:TextStyle(fontSize:22,fontWeight:FontWeight.w800,color:AppColors.ocean900))),const SizedBox(width:12),Container(padding:const EdgeInsets.symmetric(horizontal:12,vertical:8),decoration:BoxDecoration(color:_seconds<=8?AppColors.coral100:AppColors.ocean50,borderRadius:BorderRadius.circular(12)),child:Text('$_seconds s',style:TextStyle(fontWeight:FontWeight.w800,color:_seconds<=8?AppColors.coral600:AppColors.ocean900)))]),
+    Row(children:[const Expanded(child:PrimeText('Nova entrega',style:TextStyle(fontSize:22,fontWeight:FontWeight.w800,color:AppColors.ocean900))),const SizedBox(width:12),Container(padding:const EdgeInsets.symmetric(horizontal:12,vertical:8),decoration:BoxDecoration(color:_seconds<=8?AppColors.coral100:AppColors.ocean50,borderRadius:BorderRadius.circular(12)),child:PrimeText('$_seconds s',style:TextStyle(fontWeight:FontWeight.w800,color:_seconds<=8?AppColors.coral600:AppColors.ocean900)))]),
     const SizedBox(height:18),
     Container(padding:const EdgeInsets.all(20),decoration:BoxDecoration(color:AppColors.ocean900,borderRadius:BorderRadius.circular(20)),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-     const Text('VOCÊ RECEBE',style:TextStyle(fontSize:10,letterSpacing:1.2,fontWeight:FontWeight.w700,color:Colors.white70)),const SizedBox(height:7),
-     Text(_money(order['courierEarnings']??order['deliveryFee']),style:const TextStyle(fontSize:34,fontWeight:FontWeight.w800,color:Colors.white)),
-     const SizedBox(height:12),Wrap(spacing:18,runSpacing:8,children:[Text(_metric(order['routeDistanceKm'],'km'),style:const TextStyle(color:Colors.white,fontSize:13)),Text(_metric(order['routeDurationMinutes'],'min'),style:const TextStyle(color:Colors.white,fontSize:13))]),
+     const PrimeText('VOCÊ RECEBE',style:TextStyle(fontSize:10,letterSpacing:1.2,fontWeight:FontWeight.w700,color:Colors.white70)),const SizedBox(height:7),
+     PrimeText(_money(order['courierEarnings']??order['deliveryFee']),style:const TextStyle(fontSize:34,fontWeight:FontWeight.w800,color:Colors.white)),
+     const SizedBox(height:12),Wrap(spacing:18,runSpacing:8,children:[PrimeText(_metric(order['routeDistanceKm'],'km'),style:const TextStyle(color:Colors.white,fontSize:13)),PrimeText(_metric(order['routeDurationMinutes'],'min'),style:const TextStyle(color:Colors.white,fontSize:13))]),
     ])),
     const SizedBox(height:20),
     _OfferStop(icon:AppIcons.storefront_rounded,label:'RETIRAR EM',title:(pickup['name']??'Porto Prime').toString(),detail:(pickup['region']??'Base Porto Prime').toString()),
     const Padding(padding:EdgeInsets.symmetric(vertical:14),child:Divider(height:1)),
     _OfferStop(icon:AppIcons.mapPin,label:'ENTREGAR EM',title:(dropoff['neighborhood']??'Região informada').toString(),detail:(dropoff['city']??'Porto Seguro').toString()),
     const SizedBox(height:16),
-    const Text('O endereço completo será liberado após aceitar.',style:TextStyle(fontSize:11,color:AppColors.muted,height:1.4)),
-    if(_error!=null)Padding(padding:const EdgeInsets.only(top:14),child:Text(_error!,style:const TextStyle(color:AppColors.coral600,fontSize:12,height:1.4))),
+    const PrimeText('O endereço completo será liberado após aceitar.',style:TextStyle(fontSize:11,color:AppColors.muted,height:1.4)),
+    if(_error!=null)Padding(padding:const EdgeInsets.only(top:14),child:PrimeText(_error!,style:const TextStyle(color:AppColors.coral600,fontSize:12,height:1.4))),
     const SizedBox(height:20),
-    FilledButton(onPressed:_busy||_seconds==0?null:()=>_respond(true),style:FilledButton.styleFrom(backgroundColor:AppColors.ocean900,minimumSize:const Size(double.infinity,54),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(16))),child:_busy&&_action=='accept'?const Row(mainAxisSize:MainAxisSize.min,children:[SizedBox(width:17,height:17,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)),SizedBox(width:10),Text('Confirmando…')]):const Text('Aceitar entrega',style:TextStyle(fontSize:15,fontWeight:FontWeight.w800))),
-    const SizedBox(height:6),TextButton(onPressed:_busy||_seconds==0?null:()=>_respond(false),style:TextButton.styleFrom(minimumSize:const Size(double.infinity,46),foregroundColor:AppColors.muted),child:Text(_busy&&_action=='reject'?'Enviando…':'Agora não')),
+    FilledButton(onPressed:_busy||_seconds==0?null:()=>_respond(true),style:FilledButton.styleFrom(backgroundColor:AppColors.ocean900,minimumSize:const Size(double.infinity,54),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(16))),child:_busy&&_action=='accept'?const Row(mainAxisSize:MainAxisSize.min,children:[SizedBox(width:17,height:17,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)),SizedBox(width:10),PrimeText('Confirmando…')]):const PrimeText('Aceitar entrega',style:TextStyle(fontSize:15,fontWeight:FontWeight.w800))),
+    const SizedBox(height:6),TextButton(onPressed:_busy||_seconds==0?null:()=>_respond(false),style:TextButton.styleFrom(minimumSize:const Size(double.infinity,46),foregroundColor:AppColors.muted),child:PrimeText(_busy&&_action=='reject'?'Enviando…':'Agora não')),
    ]))),
   ));
  }
@@ -85,5 +86,5 @@ class _IncomingDeliveryOfferSheetState extends State<IncomingDeliveryOfferSheet>
 class _OfferStop extends StatelessWidget {
  const _OfferStop({required this.icon,required this.label,required this.title,required this.detail});
  final IconData icon;final String label,title,detail;
- @override Widget build(BuildContext context)=>Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Container(width:38,height:38,decoration:BoxDecoration(color:AppColors.ocean50,borderRadius:BorderRadius.circular(12)),child:Icon(icon,size:19,color:AppColors.ocean700)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(label,style:const TextStyle(fontSize:9,fontWeight:FontWeight.w700,color:AppColors.muted,letterSpacing:1)),const SizedBox(height:4),Text(title,style:const TextStyle(fontSize:14,fontWeight:FontWeight.w700)),const SizedBox(height:3),Text(detail,style:const TextStyle(fontSize:12,color:AppColors.muted,height:1.4))]))]);
+ @override Widget build(BuildContext context)=>Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Container(width:38,height:38,decoration:BoxDecoration(color:AppColors.ocean50,borderRadius:BorderRadius.circular(12)),child:Icon(icon,size:19,color:AppColors.ocean700)),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[PrimeText(label,style:const TextStyle(fontSize:9,fontWeight:FontWeight.w700,color:AppColors.muted,letterSpacing:1)),const SizedBox(height:4),PrimeText(title,style:const TextStyle(fontSize:14,fontWeight:FontWeight.w700)),const SizedBox(height:3),PrimeText(detail,style:const TextStyle(fontSize:12,color:AppColors.muted,height:1.4))]))]);
 }
