@@ -107,7 +107,7 @@ class PaymentMethodPicker extends StatelessWidget {
  final ValueChanged<String>? onSelect;
  @override Widget build(BuildContext context)=>Column(children:[
   if(methods.contains('pix'))_option('pix','Pix','QR Code ou Copia e Cola',Icons.qr_code_2_rounded),
-  if(methods.contains('card')||methods.contains('link'))_option('card','Cartão e carteiras','Cartão, Google Pay, Apple Pay ou Link disponíveis',Icons.credit_card_rounded),
+  if(methods.contains('card')||methods.contains('link'))_option('card','Cartão e carteiras','Formulário oficial Stripe. Carteiras aparecem em aparelhos compatíveis.',Icons.credit_card_rounded),
  ]);
  Widget _option(String value,String title,String subtitle,IconData icon){
   final active=selected==value;

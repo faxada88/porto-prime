@@ -172,7 +172,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
       final choice=options['pendingPix']==true?'pix':_selectedMethod;
       if(choice=='pix'&&!methods.contains('pix'))throw Exception('Pix indisponível. Selecione cartão e carteiras.');
       if(choice!='pix'&&!methods.contains('card')&&!methods.contains('link'))throw Exception('Cartão indisponível. Selecione Pix.');
-      _nativePaymentStarted=true;
+      _nativePaymentStarted=false;
       if(choice=='pix'){
         final paid=await showModalBottomSheet<bool>(
           context:context,isScrollControlled:true,backgroundColor:AppColors.surface,
@@ -182,6 +182,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
               load:()async=>Map<String,dynamic>.from(await AppState.instance.api.request('POST','/payments/pix',body:{'orderId':widget.orderId})),
               verify:()=>AppState.instance.refreshPayment(widget.orderId),
             )));
+        _nativePaymentStarted=paid==true;
         return paid==true;
       }
       const merchant=String.fromEnvironment('STRIPE_APPLE_MERCHANT_ID');
@@ -191,13 +192,33 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
         style:ThemeMode.light,appearance:const PaymentSheetAppearance(colors:PaymentSheetAppearanceColors(primary:AppColors.ocean700)),
         allowsDelayedPaymentMethods:false,
         paymentMethodOrder:const ['card','link'],
+        returnURL:'portoprime://stripe-redirect',
         googlePay:defaultTargetPlatform==TargetPlatform.android?PaymentSheetGooglePay(
           merchantCountryCode:'BR',currencyCode:'BRL',testEnv:widget.publishableKey.startsWith('pk_test_')):null,
         applePay:defaultTargetPlatform==TargetPlatform.iOS&&merchant.isNotEmpty?const PaymentSheetApplePay(merchantCountryCode:'BR'):null,
       ));
       await Stripe.instance.presentPaymentSheet();
+      _nativePaymentStarted=true;
       return true;
     }finally{_nativeModalOpen=false;}
+  }
+
+  Future<void> _returnToPaymentMethods() async {
+    _nativePaymentStarted=false;
+    _webPaymentPoll?.cancel();
+    if(!mounted)return;
+    setState((){paying=true;error=null;});
+    try{
+      final status=await AppState.instance.checkPaymentStatus(widget.orderId);
+      if(!mounted)return;
+      if(status['paid']==true){await _finishPaidPayment();return;}
+      if(status['status']=='processing'||status['status']=='succeeded'){
+        _startPaymentCheck();return;
+      }
+      setState((){_paymentSubmitted=false;paying=false;ready=true;error=null;});
+    }catch(_){
+      if(mounted)setState((){paying=false;error='Não foi possível verificar o pagamento. Verifique antes de tentar novamente.';});
+    }
   }
 
   Future<void> _pay() async {
@@ -216,13 +237,14 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
       } else {
         final submitted=await _showNativePayment();
         if(!mounted)return;
-        if(!submitted){setState(()=>paying=false);return;}
+        if(!submitted){await _returnToPaymentMethods();return;}
       }
 
       if (mounted) _startPaymentCheck();
     } on StripeException catch (e) {
       if (!mounted) return;
       final canceled = e.error.code == FailureCode.Canceled;
+      if(canceled){await _returnToPaymentMethods();return;}
       setState(() {
         paying = false;
         error = canceled
@@ -479,7 +501,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
       testMode:widget.publishableKey.startsWith('pk_test_'),error:error,
       onBack:()=>_leave(),onHome:()=>_leave(home:true),onPay:_pay,
       onVerify:_startPaymentCheck,onRetry:_configure,
-      onReopen:!kIsWeb&&!widget.creditOnly?_pay:null,
+      onReopen:!kIsWeb&&!widget.creditOnly?_returnToPaymentMethods:null,
       paymentElement:ready&&kIsWeb&&!widget.creditOnly&&!_paymentSubmitted
         ?StripeWebElement(publishableKey:widget.publishableKey,clientSecret:widget.clientSecret,onPaymentState:_onWebPaymentState)
         :null,
