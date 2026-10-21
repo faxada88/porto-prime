@@ -1,10 +1,8 @@
-import '../../../../core/widgets/prime_brand.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/widgets/prime_category_tile.dart';
 import '../../../../core/widgets/prime_product_card.dart';
 import '../../../../core/widgets/prime_ui.dart';
 
@@ -66,7 +64,10 @@ class _CategoriesPageState extends State<CategoriesPage> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                      child: const PrimePageIntro(title:'O que combina com hoje?',subtitle:'Encontre seu favorito por produto ou categoria.',icon:AppIcons.search,label:'CATÁLOGO / PORTO PRIME'),
+                      child: const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                        Text('Buscar',style:TextStyle(fontSize:28,fontWeight:FontWeight.w800,letterSpacing:-.8,color:AppColors.ink)),
+                        SizedBox(height:7),Text('Encontre o que você precisa.',style:TextStyle(fontSize:13,height:1.5,color:AppColors.muted)),
+                      ]),
                     ),
                   ),
                 ),
@@ -79,9 +80,19 @@ class _CategoriesPageState extends State<CategoriesPage> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                      child: PrimeSearchField(
-                        controller: search,
-                        onChanged: (_) => setState(() {}),
+                      child: TextField(
+                        controller:search,onChanged:(_)=>setState((){}),
+                        textInputAction:TextInputAction.search,
+                        onSubmitted:(_)=>FocusScope.of(context).unfocus(),
+                        decoration:InputDecoration(
+                          hintText:'Produto ou categoria',prefixIcon:const Icon(AppIcons.search,size:21),
+                          suffixIcon:search.text.isEmpty?null:IconButton(tooltip:'Limpar busca',
+                            icon:const Icon(Icons.close_rounded,size:20),onPressed:(){search.clear();setState((){});}),
+                          filled:true,fillColor:AppColors.surface,
+                          contentPadding:const EdgeInsets.symmetric(horizontal:18,vertical:18),
+                          border:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:const BorderSide(color:AppColors.stroke)),
+                          enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(18),borderSide:const BorderSide(color:AppColors.stroke)),
+                        ),
                       ),
                     ),
                   ),
@@ -94,23 +105,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                       maxWidth: AppControl.maxContentWidth,
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 22, 20, 10),
-                      child: const PrimeSectionHeader(
-                        eyebrow: 'CATEGORIAS',
-                        title: 'Escolha por tipo',
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: AppControl.maxContentWidth,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.fromLTRB(20,16,20,0),
                       child: _CategoryGrid(
                         categories: categories,
                         selected: selected,
@@ -128,21 +123,18 @@ class _CategoriesPageState extends State<CategoriesPage> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-                      child: PrimeSectionHeader(
-                        eyebrow: selected == 'Todos'
-                            ? 'CATÁLOGO'
-                            : selected.toUpperCase(),
-                        title: query.isEmpty
-                            ? (selected == 'Todos'
-                                  ? 'Todos os produtos'
-                                  : selected)
-                            : 'Resultados',
-                        subtitle:
-                            filtered.length.toString() +
-                            (filtered.length == 1
-                                ? ' item encontrado'
-                                : ' itens encontrados'),
-                      ),
+                      child: Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                        Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                          Text(query.isEmpty?(selected=='Todos'?'Produtos':selected):'Resultados da busca',
+                            style:const TextStyle(fontSize:20,height:1.3,fontWeight:FontWeight.w800,color:AppColors.ink)),
+                          const SizedBox(height:5),
+                          Text('${filtered.length} ${filtered.length==1?'produto':'produtos'}',
+                            style:const TextStyle(fontSize:12,color:AppColors.muted)),
+                        ])),
+                        if(query.isNotEmpty||selected!='Todos')TextButton(onPressed:(){
+                          search.clear();state.selectCatalogCategory('Todos');setState((){});
+                        },child:const Text('Limpar filtros')),
+                      ]),
                     ),
                   ),
                 ),
@@ -179,7 +171,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 )
               else
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 124),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
                   sliver: SliverLayoutBuilder(
                     builder: (_, constraints) {
                       final width = constraints.crossAxisExtent;
@@ -231,40 +223,22 @@ class _CategoryGrid extends StatelessWidget {
   final ValueChanged<String> onSelect;
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (_, constraints) {
-      final width = constraints.maxWidth;
-      final columns = AppResponsive.categoryColumns(width);
-      final rows = (categories.length / columns).ceil();
-      final height = AppResponsive.categoryHeight(context);
-
-      return SizedBox(
-        height: rows * height + (rows - 1).clamp(0, rows) * AppSpacing.xs,
-        child: GridView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.zero,
-          itemCount: categories.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: columns,
-            mainAxisExtent: height,
-            crossAxisSpacing: AppSpacing.xs,
-            mainAxisSpacing: AppSpacing.xs,
-          ),
-          itemBuilder: (_, i) {
-            final category = AppState.instance.catalogCategories.firstWhere(
-              (item) => item['name'] == categories[i], orElse: () => <String, dynamic>{});
-            return PrimeCategoryTile(
-              name: categories[i],
-              iconKey: category['iconKey']?.toString(),
-              imageUrls: category['imageUrl'] == null ? const [] : [category['imageUrl'].toString()],
-              selected: selected == categories[i],
-              compact: width < 390,
-              onTap: () => onSelect(categories[i]),
-            );
-          },
-        ),
-      );
-    },
+  Widget build(BuildContext context)=>SingleChildScrollView(
+    scrollDirection:Axis.horizontal,
+    child:Row(children:[for(final category in categories)Padding(
+      padding:const EdgeInsets.only(right:8),
+      child:ChoiceChip(
+        label:Text(category),selected:selected==category,
+        onSelected:(_)=>onSelect(category),
+        showCheckmark:false,
+        selectedColor:AppColors.ocean100,backgroundColor:AppColors.surface,
+        labelStyle:TextStyle(fontSize:13,fontWeight:selected==category?FontWeight.w700:FontWeight.w500,
+          color:selected==category?AppColors.ocean700:AppColors.inkSoft),
+        side:BorderSide(color:selected==category?AppColors.ocean300:AppColors.stroke),
+        shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(14)),
+        padding:const EdgeInsets.symmetric(horizontal:10,vertical:10),
+      ),
+    )]),
   );
 }
 
