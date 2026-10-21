@@ -18,11 +18,11 @@ class PrimeBottomNavigation extends StatelessWidget {
       child: Center(heightFactor: 1, child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
         child: Container(
-          foregroundDecoration:BoxDecoration(borderRadius:BorderRadius.circular(30),border:Border.all(color:AppColors.strokeStrong,width:1.3)),
+          foregroundDecoration:BoxDecoration(borderRadius:BorderRadius.circular(30),border:Border.all(color:const Color(0xFF526970),width:2)),
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: AppColors.strokeStrong,width:1.3),
+            border: Border.all(color: const Color(0xFF526970),width:2),
             boxShadow: const [
               BoxShadow(color: Color(0x1A233E48), blurRadius: 24, offset: Offset(0, 8)),
               BoxShadow(color: Color(0x06000000), blurRadius: 6, offset: Offset(0, 2)),
@@ -65,8 +65,8 @@ class PrimeBottomNavigation extends StatelessWidget {
             AnimatedContainer(duration: AppMotion.resolve(context, AppMotion.standard),
               width: 58, height: 32, decoration: BoxDecoration(color:Colors.transparent,borderRadius:BorderRadius.circular(14)), child: Stack(clipBehavior: Clip.none,
               alignment: Alignment.center, children: [
-                Icon(icon, size: selected ? 24 : 23,
-                  color: selected ? AppColors.ink : AppColors.muted),
+                Icon(icon, size: selected ? 26 : 25,
+                  color: selected ? AppColors.ink : AppColors.inkSoft),
                 if (count > 0) Positioned(top: -5, right: 2,
                   child: Container(constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                     padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -81,12 +81,12 @@ class PrimeBottomNavigation extends StatelessWidget {
               ])),
             const SizedBox(height: 5),
             SizedBox(height: 17, child: FittedBox(fit: BoxFit.scaleDown,
-              child: Text(label, style: TextStyle(fontSize: 11,
-                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                color: selected ? AppColors.ink : AppColors.muted)))),
+              child: Text(label, style: TextStyle(fontSize: 12,
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+                color: selected ? AppColors.ink : AppColors.inkSoft)))),
             const SizedBox(height:6),
             AnimatedContainer(duration:AppMotion.resolve(context,AppMotion.standard),
-              height:3,width:selected?22:6,decoration:BoxDecoration(
+              height:4,width:selected?26:6,decoration:BoxDecoration(
                 color:selected?AppColors.ink:Colors.transparent,borderRadius:BorderRadius.circular(4))),
           ]),
         ),
