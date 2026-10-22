@@ -7,7 +7,6 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/catalogue_cart_shortcut.dart';
 import '../../../../core/widgets/home_reference_artwork.dart';
 import '../../../../core/widgets/prime_product_card.dart';
-import '../../../../core/widgets/ice_product_option.dart';
 import '../../../../core/widgets/ice_selector_sheet.dart';
 
 Future<void> openProductCatalogue(BuildContext context,{required String category})async{
@@ -95,7 +94,24 @@ class _CategoriesPageState extends State<CategoriesPage>{
     final scoped=state.products.where((p)=>p['category']?['name']==category&&p['archived']!=true).toList();
     final query=_fold(search.text.trim());
     final isIce=visual.key=='ice';
-    final options=isIce?const <_Facet>[]:_facets[visual.key]??const <_Facet>[];
+    if(isIce)return AnnotatedRegion<SystemUiOverlayStyle>(value:SystemUiOverlayStyle.dark,child:Column(children:[
+     Expanded(child:RefreshIndicator(onRefresh:state.loadProducts,child:CustomScrollView(
+      physics:const AlwaysScrollableScrollPhysics(),slivers:[
+       SliverToBoxAdapter(child:SafeArea(bottom:false,child:Padding(
+        padding:const EdgeInsets.fromLTRB(8,6,16,4),child:Row(children:[
+         IconButton(tooltip:translateLabel('Voltar'),onPressed:()=>Navigator.of(context).maybePop(),
+          icon:const Icon(Icons.arrow_back_rounded,color:Color(0xFF123F49))),
+         const SizedBox(width:6),
+         Expanded(child:PrimeText(category,style:const TextStyle(fontSize:24,height:1.2,
+          fontWeight:FontWeight.w800,color:Color(0xFF123F49)))),
+         const Icon(Icons.ac_unit_rounded,size:26,color:Color(0xFF6798AA)),
+        ])))),
+       SliverPadding(padding:const EdgeInsets.fromLTRB(16,12,16,24),
+        sliver:SliverToBoxAdapter(child:IceOrderPanel(key:ValueKey(category),categoryName:category))),
+      ]))),
+     const CatalogueCartShortcut(compact:true),
+    ]));
+    final options=_facets[visual.key]??const <_Facet>[];
     final selected=options.where((f)=>f.label==facet);
     final products=scoped.where((p)=>(query.isEmpty||_searchable(p).contains(query))&&
      (selected.isEmpty||selected.first.matches(p))&&(!stockOnly||(p['active']!=false&&(int.tryParse('${p['stock']}')??0)>0))&&
@@ -116,8 +132,6 @@ class _CategoriesPageState extends State<CategoriesPage>{
       physics:const AlwaysScrollableScrollPhysics(),keyboardDismissBehavior:ScrollViewKeyboardDismissBehavior.onDrag,
       slivers:[
        SliverToBoxAdapter(child:_CategoryHero(name:category,iconKey:visual.key,photo:photo)),
-       if(isIce)SliverPadding(padding:const EdgeInsets.fromLTRB(16,20,16,0),
-        sliver:SliverToBoxAdapter(child:IceSelectionBanner(categoryName:category))),
        SliverPadding(padding:const EdgeInsets.fromLTRB(16,16,16,0),sliver:SliverToBoxAdapter(child:Row(children:[
         Expanded(child:TextField(controller:search,onChanged:(_)=>setState((){}),textInputAction:TextInputAction.search,
          onSubmitted:(_)=>FocusScope.of(context).unfocus(),
@@ -152,10 +166,10 @@ class _CategoriesPageState extends State<CategoriesPage>{
        SliverPadding(padding:const EdgeInsets.fromLTRB(16,22,16,14),sliver:SliverToBoxAdapter(child:Row(
         crossAxisAlignment:CrossAxisAlignment.start,children:[
          Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-          PrimeText(isIce?'Opções disponíveis':_headlines[visual.key]??'Produtos selecionados',style:const TextStyle(
+          PrimeText(_headlines[visual.key]??'Produtos selecionados',style:const TextStyle(
            fontSize:18,fontWeight:FontWeight.w800,color:Color(0xFF123F49),height:1.2)),
           const SizedBox(height:4),
-          PrimeText(isIce?'Encontre o gelo para o seu pedido.':'Escolha sua favorita e aproveite!',style:const TextStyle(fontSize:11,color:Color(0xFF839BA5),height:1.35)),
+          const PrimeText('Escolha sua favorita e aproveite!',style:TextStyle(fontSize:11,color:Color(0xFF839BA5),height:1.35)),
          ])),
          const SizedBox(width:8),
          PopupMenuButton<String>(tooltip:translateLabel('Ordenar produtos'),initialValue:sort,
@@ -191,8 +205,7 @@ class _CategoriesPageState extends State<CategoriesPage>{
         final detailsHeight=(146+brandSpace+ratingSpace+oldPriceSpace+quantitySpace)*scale;
         return SliverGrid(gridDelegate:SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:columns,
          crossAxisSpacing:12,mainAxisSpacing:14,mainAxisExtent:width/1.35+detailsHeight),
-         delegate:SliverChildBuilderDelegate((_,i)=>PrimeProductCard(product:products[i],categoryStyle:true,
-          onOpen:isIce&&IceProductOption.fromProduct(products[i])!=null?()=>showIceSelector(context,categoryName:category,initialProductId:IceProductOption.fromProduct(products[i])?.id):null),childCount:products.length));
+         delegate:SliverChildBuilderDelegate((_,i)=>PrimeProductCard(product:products[i],categoryStyle:true),childCount:products.length));
        })),
       ]))),
      const CatalogueCartShortcut(compact:true),

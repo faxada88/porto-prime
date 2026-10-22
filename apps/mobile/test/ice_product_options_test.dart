@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:porto_prime/core/state/app_state.dart';
 import 'package:porto_prime/core/widgets/ice_product_option.dart';
 import 'package:porto_prime/core/widgets/ice_selector_sheet.dart';
+import 'package:porto_prime/features/categories/presentation/pages/categories_page.dart';
 
 Map<String, dynamic> product(String id, String name, {String category = 'Gelos', int stock = 2}) =>
  {'id': id, 'name': name, 'price': 12, 'stock': stock, 'active': true, 'category': {'name': category}};
@@ -62,4 +63,36 @@ void main() {
   expect(state.cart, {'crushed6': 2});
   expect(tester.takeException(), isNull);
  });
+ testWidgets('Ice category has one total and buys a legacy product without a duplicate list', (tester) async {
+  final state = AppState.instance;
+  final oldProducts = state.products, oldCategories = state.catalogCategories;
+  final oldCart = Map<String, int>.from(state.cart);
+  final oldKnown = state.storeStatusKnown, oldOpen = state.storeOpen;
+  state.products = [product('legacy-ice', 'Gelo')..['price'] = 19,
+   product('other', 'Cerveja', category: 'Cervejas')];
+  state.catalogCategories = [{'name': 'Gelos', 'iconKey': 'ice'}];
+  state.cart.clear(); state.storeStatusKnown = true; state.storeOpen = true;
+  addTearDown(() {
+   state.products = oldProducts; state.catalogCategories = oldCategories;
+   state.cart..clear()..addAll(oldCart);
+   state.storeStatusKnown = oldKnown; state.storeOpen = oldOpen;
+  });
+  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = const Size(390, 1000);
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  await tester.pumpWidget(const MaterialApp(home: Scaffold(body: CategoriesPage(categoryName: 'Gelos'))));
+  await tester.pump();
+  expect(find.text(r'R$ 19,00'), findsOneWidget);
+  expect(find.text('Gelo'), findsOneWidget);
+  expect(find.text('Cerveja'), findsNothing);
+  expect(find.text('Escolher meu gelo'), findsNothing);
+  expect(find.text('Opções disponíveis'), findsNothing);
+  expect(find.byType(TextField), findsNothing);
+  await tester.tap(find.text('Adicionar ao carrinho')); await tester.pumpAndSettle();
+  expect(state.cart, {'legacy-ice': 1});
+  expect(tester.takeException(), isNull);
+  await tester.pumpWidget(const SizedBox.shrink());
+ });
+
 }

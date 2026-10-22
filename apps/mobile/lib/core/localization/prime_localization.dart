@@ -17,6 +17,16 @@ class AppLanguage extends ChangeNotifier {
   SharedPreferences? _preferences;
 
   static const Map<String, Map<String, String>> _curated = {
+"Aguarde um instante": {"es":"Espera un momento","en":"Please wait a moment"},
+"Produto": {"es":"Producto","en":"Product"},
+"Total": {"es":"Total","en":"Total"},
+"Quantidade": {"es":"Cantidad","en":"Quantity"},
+"Outras opções": {"es":"Otras opciones","en":"Other options"},
+"Peso do pacote": {"es":"Peso de la bolsa","en":"Bag weight"},
+"Tipo": {"es":"Tipo","en":"Type"},
+"Novas opções de gelo em breve.": {"es":"Pronto habrá nuevas opciones de hielo.","en":"More ice options coming soon."},
+"Escolha, adicione e pronto.": {"es":"Elige, añade y listo.","en":"Choose, add, and you're set."},
+"Escolha seu gelo": {"es":"Elige tu hielo","en":"Choose your ice"},
 "Fechar": {"es":"Cerrar","en":"Close"},
 "Adicionar ao carrinho": {"es":"Añadir al carrito","en":"Add to cart"},
 "Indisponível": {"es":"No disponible","en":"Unavailable"},
