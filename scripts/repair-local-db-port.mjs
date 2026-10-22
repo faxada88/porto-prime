@@ -14,6 +14,25 @@ const docker = (...args) => execFileSync('docker', args, { encoding: 'utf8', std
 const inspect = (target) => JSON.parse(docker('inspect', target))[0];
 const pause = (ms) => new Promise((done) => setTimeout(done, ms));
 
+function publishedPort(container) {
+  const bindings = container.NetworkSettings?.Ports?.['5432/tcp'] ?? [];
+  const binding = bindings.find((item) => ['', '127.0.0.1', '0.0.0.0'].includes(item.HostIp));
+  const port = Number(binding?.HostPort);
+  return Number.isInteger(port) && port > 0 && port <= 65535 ? port : null;
+}
+
+function portResponds(port) {
+  if (!port) return Promise.resolve(false);
+  return new Promise((done) => {
+    const socket = net.createConnection({ host: '127.0.0.1', port });
+    const finish = (ok) => { socket.destroy(); done(ok); };
+    socket.once('connect', () => finish(true));
+    socket.once('error', () => finish(false));
+    socket.setTimeout(3000, () => finish(false));
+  });
+}
+
+
 async function availablePort() {
   for (const port of [15432, 15433, 15434, 25432, 35432]) {
     const free = await new Promise((done) => {
@@ -56,27 +75,14 @@ async function main() {
       mounts[0].Name !== volume || mounts[0].Destination !== destination) {
     throw new Error('Configuracao diferente do PostgreSQL 16 e volume conhecidos. Nada foi alterado.');
   }
-  if (original.State.Running) {
-    const published = original.NetworkSettings.Ports?.['5432/tcp'] ?? [];
-    const binding = published.find((item) => ['127.0.0.1', '0.0.0.0'].includes(item.HostIp));
-    const activePort = Number(binding?.HostPort);
-    if (!Number.isInteger(activePort) || activePort < 1 || activePort > 65535) {
-      throw new Error('Banco rodando sem uma porta IPv4 local publicada. Nenhuma alteracao realizada.');
-    }
-    const variables = original.Config.Env ?? [];
-    const findVariable = (key, fallback) => variables.find((entry) => entry.startsWith(key + '='))?.slice(key.length + 1) || fallback;
-    const user = findVariable('POSTGRES_USER', 'postgres');
-    docker('exec', name, 'pg_isready', '-q', '-U', user, '-d', findVariable('POSTGRES_DB', user));
-    const reachable = await new Promise((done) => {
-      const socket = net.createConnection({ host: '127.0.0.1', port: activePort });
-      const finish = (ok) => { socket.destroy(); done(ok); };
-      socket.once('connect', () => finish(true));
-      socket.once('error', () => finish(false));
-      socket.setTimeout(3000, () => finish(false));
-    });
-    if (!reachable) throw new Error('O banco esta rodando, mas sua porta local nao responde. Nenhum arquivo foi alterado.');
+  const variables = original.Config.Env ?? [];
+  const findVariable = (key, fallback) => variables.find((entry) => entry.startsWith(key + '='))?.slice(key.length + 1) || fallback;
+  const user = findVariable('POSTGRES_USER', 'postgres');
+  const database = findVariable('POSTGRES_DB', user);
+  const activePort = publishedPort(original);
+  if (original.State.Running && activePort && await portResponds(activePort)) {
+    docker('exec', name, 'pg_isready', '-q', '-U', user, '-d', database);
     const previousEnv = readFileSync(envPath, 'utf8');
-    // The running container is the authority for its published host port.
     const nextEnv = updateDatabaseUrl(previousEnv, null, activePort);
     if (readFileSync(envPath, 'utf8') !== previousEnv) throw new Error('O .env mudou durante a operacao. Repita com o arquivo fechado.');
     if (nextEnv !== previousEnv) writeFileSync(envPath, nextEnv, 'utf8');
@@ -84,37 +90,47 @@ async function main() {
     console.log('Container, volume e credenciais preservados. Reinicie o Nest para carregar a conexao atualizada.');
     return;
   }
+  // Docker may report Running after a failed host-port setup. Recreate only
+  // this container if it has no working published endpoint, retaining PGDATA.
   if (JSON.stringify(original.Config.Cmd) !== JSON.stringify(['postgres']) ||
       !['bridge', 'default'].includes(original.HostConfig.NetworkMode)) {
     throw new Error('Este banco tem inicializacao ou rede personalizada. Nada foi alterado.');
   }
-  const ports = original.HostConfig.PortBindings?.['5432/tcp'];
-  if (!ports || ports.length !== 1) throw new Error('Mapeamento da porta do banco nao reconhecido.');
-  const oldPort = ports[0].HostPort;
   const port = await availablePort();
   const previousEnv = readFileSync(envPath, 'utf8');
-  const nextEnv = updateDatabaseUrl(previousEnv, oldPort, port);
+  const nextEnv = updateDatabaseUrl(previousEnv, null, port);
   // Reuse the exact image already installed; never download or upgrade Postgres.
   docker('volume', 'inspect', volume);
   // Refuse to initialize a fresh database if the known volume has lost its data.
-  docker('run', '--rm', '--network', 'none', '--read-only',
+  const version = docker('run', '--rm', '--network', 'none', '--read-only',
     '--mount', 'type=volume,source=' + volume + ',target=' + destination + ',readonly',
-    '--entrypoint', 'sh', original.Image, '-c', 'test "$(cat /var/lib/postgresql/data/PG_VERSION)" = 16');
+    '--entrypoint', 'cat', original.Image, destination + '/PG_VERSION');
+  if (version !== '16') throw new Error('O volume nao contem um banco PostgreSQL 16 existente. Nada foi alterado.');
+  if (findVariable('PGDATA', destination) !== destination) throw new Error('PGDATA personalizado. Nada foi alterado.');
+  const activeContainers = docker('ps', '--filter', 'volume=' + volume, '--format', '{{.ID}}').split(/\r?\n/).filter(Boolean);
+  if (activeContainers.some((id) => !original.Id?.startsWith(id))) {
+    throw new Error('Outro container esta usando o volume. Nenhum banco foi parado ou recriado.');
+  }
 
   const stamp = new Date().toISOString().replace(/[^0-9]/g, '');
   const backup = name + '-backup-' + stamp;
   const work = mkdtempSync(join(tmpdir(), 'porto-db-port-'));
   const envFile = join(work, 'postgres.env');
-  let renamed = false, created = false, envChanged = false;
+  let renamed = false, created = false, envChanged = false, restartChanged = false;
   const restart = original.HostConfig.RestartPolicy;
   const restartValue = restart.Name === 'on-failure' && restart.MaximumRetryCount > 0 ?
     'on-failure:' + restart.MaximumRetryCount : restart.Name || 'no';
   try {
-    const variables = original.Config.Env ?? [];
     if (variables.some((entry) => /[\r\n]/.test(entry))) throw new Error('Variavel Docker com formato nao suportado.');
     writeFileSync(envFile, variables.join('\n') + '\n', { mode: 0o600 });
     // A stopped backup must never auto-start against the same live PGDATA.
     docker('update', '--restart=no', name);
+    restartChanged = true;
+    if (original.State.Running) {
+      console.log('Reconfigurando a publicacao da porta do banco. Volume existente mantido.');
+      docker('stop', '--time', '30', name);
+      if (inspect(name).State.Running) throw new Error('O banco nao parou. Nenhum segundo PostgreSQL sera iniciado.');
+    }
     docker('rename', name, backup);
     renamed = true;
     console.log('Container antigo preservado e parado: ' + backup);
@@ -124,20 +140,18 @@ async function main() {
       '--env-file', envFile, original.Image);
     created = true;
     docker('start', name);
-    const findVariable = (key, fallback) => variables.find((entry) => entry.startsWith(key + '='))?.slice(key.length + 1) || fallback;
-    const user = findVariable('POSTGRES_USER', 'postgres');
-    const database = findVariable('POSTGRES_DB', user);
     let ready = false;
     for (let attempt = 0; attempt < 45; attempt++) {
       try {
         docker('exec', name, 'pg_isready', '-q', '-U', user, '-d', database);
-        ready = true; break;
+        if (await portResponds(port)) { ready = true; break; }
+        await pause(1000);
       } catch {
         if (!inspect(name).State.Running) break;
         await pause(1000);
       }
     }
-    if (!ready) throw new Error('O PostgreSQL nao ficou pronto. A configuracao anterior sera restaurada.');
+    if (!ready || !await portResponds(port)) throw new Error('O PostgreSQL nao ficou acessivel pela nova porta. A configuracao anterior sera restaurada.');
     // Avoid overwriting edits made while PostgreSQL was starting.
     if (readFileSync(envPath, 'utf8') !== previousEnv) throw new Error('O .env mudou durante a operacao. Repita com o arquivo fechado.');
     writeFileSync(envPath, nextEnv, 'utf8');
@@ -155,6 +169,8 @@ async function main() {
       try { docker('rename', backup, name); docker('update', '--restart', restartValue, name); } catch {
         console.error('O container antigo continua preservado como: ' + backup + '. Nao inicie dois bancos com o mesmo volume.');
       }
+    } else if (restartChanged) {
+      try { docker('update', '--restart', restartValue, name); } catch {}
     }
     throw error;
   } finally { rmSync(work, { recursive: true, force: true }); }
