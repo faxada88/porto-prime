@@ -17,6 +17,26 @@ class AppLanguage extends ChangeNotifier {
   SharedPreferences? _preferences;
 
   static const Map<String, Map<String, String>> _curated = {
+"Fechar": {"es":"Cerrar","en":"Close"},
+"Adicionar ao carrinho": {"es":"Añadir al carrito","en":"Add to cart"},
+"Indisponível": {"es":"No disponible","en":"Unavailable"},
+"Limite de estoque atingido": {"es":"Límite de existencias alcanzado","en":"Stock limit reached"},
+"Gelo na medida certa": {"es":"Hielo a tu medida","en":"Ice to suit your plans"},
+"Escolha o tipo, o peso e pronto.": {"es":"Elige el tipo, el peso y listo.","en":"Choose the type and weight. That's it."},
+"Moído": {"es":"Picado","en":"Crushed"},
+"Escolher meu gelo": {"es":"Elegir mi hielo","en":"Choose my ice"},
+"Seu gelo, do seu jeito": {"es":"Tu hielo, a tu gusto","en":"Your ice, your way"},
+"Escolha uma opção para adicionar.": {"es":"Elige una opción para añadir.","en":"Choose an option to add."},
+"Como você prefere?": {"es":"¿Cómo lo prefieres?","en":"How would you like it?"},
+"Qual o peso?": {"es":"¿Qué peso?","en":"Which weight?"},
+"Esta combinação não está disponível. Confira as opções abaixo ou escolha outro tipo.": {"es":"Esta combinación no está disponible. Revisa las opciones de abajo o elige otro tipo.","en":"This combination is unavailable. Check the options below or choose another type."},
+"Escolha seu produto": {"es":"Elige tu producto","en":"Choose your product"},
+"Escolha uma opção": {"es":"Elige una opción","en":"Choose an option"},
+"Gelo adicionado ao carrinho": {"es":"Hielo añadido al carrito","en":"Ice added to your cart"},
+"Opções disponíveis": {"es":"Opciones disponibles","en":"Available options"},
+"Encontre o gelo para o seu pedido.": {"es":"Encuentra el hielo para tu pedido.","en":"Find the right ice for your order."},
+"Adicionar": {"es":"Añadir","en":"Add"},
+
 "Nossas cervejas": {"es":"Nuestras cervezas","en":"Our beers"},
 "Cortes para o seu churrasco": {"es":"Cortes para tu barbacoa","en":"Cuts for your barbecue"},
 "Sua rotina, seu ritmo": {"es":"Tu rutina, tu ritmo","en":"Your routine, your pace"},
@@ -270,7 +290,8 @@ class PrimeInputDecoration extends InputDecoration {
 }
 
 class LanguagePicker extends StatelessWidget {
-  const LanguagePicker({super.key});
+  const LanguagePicker({super.key, this.compact = false});
+  final bool compact;
   static const labels = {'pt': 'Português', 'es': 'Español', 'en': 'English'};
   static const flags = {'pt': '🇧🇷', 'es': '🇪🇸', 'en': '🇺🇸'};
   @override Widget build(BuildContext context) => ListenableBuilder(
@@ -287,13 +308,13 @@ class LanguagePicker extends StatelessWidget {
           const SizedBox(width: 12), Expanded(child: Text(entry.value)),
           if (entry.key == AppLanguage.instance.locale.languageCode)
             const Icon(Icons.check_rounded, size: 20)]))).toList(),
-      child: Container(height: 46, padding: const EdgeInsets.symmetric(horizontal: 9),
+      child: Container(height: 48, padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 9),
         decoration: BoxDecoration(color: const Color(0xFF004A50), borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFFC4D4D6), width: 1.5)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Text(flags[AppLanguage.instance.locale.languageCode]!, style: const TextStyle(fontSize: 22)),
-          const SizedBox(width: 6),
-          Text(AppLanguage.instance.locale.languageCode.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+          if (!compact) const SizedBox(width: 6),
+          if (!compact) Text(AppLanguage.instance.locale.languageCode.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
           const SizedBox(width: 4), const Icon(Icons.expand_more_rounded, size: 16, color: Colors.white)])),
     ));
 }

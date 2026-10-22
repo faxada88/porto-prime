@@ -7,6 +7,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/catalogue_cart_shortcut.dart';
 import '../../../../core/widgets/home_reference_artwork.dart';
 import '../../../../core/widgets/prime_product_card.dart';
+import '../../../../core/widgets/ice_product_option.dart';
+import '../../../../core/widgets/ice_selector_sheet.dart';
 
 Future<void> openProductCatalogue(BuildContext context,{required String category})async{
  AppState.instance.selectCatalogCategory(category);
@@ -92,7 +94,8 @@ class _CategoriesPageState extends State<CategoriesPage>{
     // Every control filters only this category, even if the Home selection changes.
     final scoped=state.products.where((p)=>p['category']?['name']==category&&p['archived']!=true).toList();
     final query=_fold(search.text.trim());
-    final options=_facets[visual.key]??const <_Facet>[];
+    final isIce=visual.key=='ice';
+    final options=isIce?const <_Facet>[]:_facets[visual.key]??const <_Facet>[];
     final selected=options.where((f)=>f.label==facet);
     final products=scoped.where((p)=>(query.isEmpty||_searchable(p).contains(query))&&
      (selected.isEmpty||selected.first.matches(p))&&(!stockOnly||(p['active']!=false&&(int.tryParse('${p['stock']}')??0)>0))&&
@@ -112,7 +115,9 @@ class _CategoriesPageState extends State<CategoriesPage>{
      Expanded(child:RefreshIndicator(onRefresh:state.loadProducts,child:CustomScrollView(
       physics:const AlwaysScrollableScrollPhysics(),keyboardDismissBehavior:ScrollViewKeyboardDismissBehavior.onDrag,
       slivers:[
-       SliverToBoxAdapter(child:_CategoryHero(name:category,iconKey:visual.key,photo:photo,count:state.cartCount)),
+       SliverToBoxAdapter(child:_CategoryHero(name:category,iconKey:visual.key,photo:photo)),
+       if(isIce)SliverPadding(padding:const EdgeInsets.fromLTRB(16,20,16,0),
+        sliver:SliverToBoxAdapter(child:IceSelectionBanner(categoryName:category))),
        SliverPadding(padding:const EdgeInsets.fromLTRB(16,16,16,0),sliver:SliverToBoxAdapter(child:Row(children:[
         Expanded(child:TextField(controller:search,onChanged:(_)=>setState((){}),textInputAction:TextInputAction.search,
          onSubmitted:(_)=>FocusScope.of(context).unfocus(),
@@ -147,10 +152,10 @@ class _CategoriesPageState extends State<CategoriesPage>{
        SliverPadding(padding:const EdgeInsets.fromLTRB(16,22,16,14),sliver:SliverToBoxAdapter(child:Row(
         crossAxisAlignment:CrossAxisAlignment.start,children:[
          Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-          PrimeText(_headlines[visual.key]??'Produtos selecionados',style:const TextStyle(
+          PrimeText(isIce?'Opções disponíveis':_headlines[visual.key]??'Produtos selecionados',style:const TextStyle(
            fontSize:18,fontWeight:FontWeight.w800,color:Color(0xFF123F49),height:1.2)),
           const SizedBox(height:4),
-          const PrimeText('Escolha sua favorita e aproveite!',style:TextStyle(fontSize:11,color:Color(0xFF839BA5),height:1.35)),
+          PrimeText(isIce?'Encontre o gelo para o seu pedido.':'Escolha sua favorita e aproveite!',style:const TextStyle(fontSize:11,color:Color(0xFF839BA5),height:1.35)),
          ])),
          const SizedBox(width:8),
          PopupMenuButton<String>(tooltip:translateLabel('Ordenar produtos'),initialValue:sort,
@@ -186,7 +191,8 @@ class _CategoriesPageState extends State<CategoriesPage>{
         final detailsHeight=(146+brandSpace+ratingSpace+oldPriceSpace+quantitySpace)*scale;
         return SliverGrid(gridDelegate:SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:columns,
          crossAxisSpacing:12,mainAxisSpacing:14,mainAxisExtent:width/1.35+detailsHeight),
-         delegate:SliverChildBuilderDelegate((_,i)=>PrimeProductCard(product:products[i],categoryStyle:true),childCount:products.length));
+         delegate:SliverChildBuilderDelegate((_,i)=>PrimeProductCard(product:products[i],categoryStyle:true,
+          onOpen:isIce&&IceProductOption.fromProduct(products[i])!=null?()=>showIceSelector(context,categoryName:category,initialProductId:IceProductOption.fromProduct(products[i])?.id):null),childCount:products.length));
        })),
       ]))),
      const CatalogueCartShortcut(compact:true),
@@ -195,8 +201,8 @@ class _CategoriesPageState extends State<CategoriesPage>{
 }
 
 class _CategoryHero extends StatelessWidget{
- const _CategoryHero({required this.name,required this.iconKey,required this.photo,required this.count});
- final String name,photo;final String? iconKey;final int count;
+ const _CategoryHero({required this.name,required this.iconKey,required this.photo});
+ final String name,photo;final String? iconKey;
  @override Widget build(BuildContext context){
   final inset=MediaQuery.paddingOf(context).top;
   final scale=MediaQuery.textScalerOf(context).scale(14)/14;
@@ -213,18 +219,8 @@ class _CategoryHero extends StatelessWidget{
     const DecoratedBox(decoration:BoxDecoration(gradient:LinearGradient(
      colors:[Color(0xEF001A20),Color(0xD900252B),Color(0x2200252B)],stops:[0,.48,1]))),
     Padding(padding:EdgeInsets.fromLTRB(16,inset+9,16,16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-     Row(children:[
-      _HeroButton(icon:Icons.arrow_back_rounded,label:'Voltar',onTap:()=>Navigator.of(context).maybePop()),
-      const Spacer(),
-      Stack(clipBehavior:Clip.none,children:[
-       _HeroButton(icon:AppIcons.cart,label:'Ver carrinho',onTap:()=>openCatalogueCart(context)),
-       if(count>0)Positioned(top:-3,right:-3,child:Container(padding:const EdgeInsets.all(4),
-        constraints:const BoxConstraints(minWidth:18,minHeight:18),alignment:Alignment.center,
-        decoration:const BoxDecoration(color:Color(0xFFFC445B),shape:BoxShape.circle),
-        child:Text(count>99?'99+':'$count',textScaler:TextScaler.noScaling,style:const TextStyle(
-         fontSize:10,fontWeight:FontWeight.w800,color:Colors.white)))),
-      ]),
-     ]),
+     Align(alignment:Alignment.centerLeft,child:
+      _HeroButton(icon:Icons.arrow_back_rounded,label:'Voltar',onTap:()=>Navigator.of(context).maybePop())),
      const Spacer(),
      const PrimeText('PORTO PRIME DELIVERY',style:TextStyle(fontSize:8,letterSpacing:1.9,color:Color(0xFFE1E1CD),fontWeight:FontWeight.w600)),
      const SizedBox(height:7),

@@ -22,37 +22,39 @@ class ReferenceHomeHeader extends StatelessWidget {
  final String? greeting;
  final int cartCount, notificationCount;
  final VoidCallback onAddress, onCart, onProfile;
- @override Widget build(BuildContext context) => Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-  Expanded(child: InkWell(onTap: onAddress, borderRadius: BorderRadius.circular(14),
-   child: Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start, children: [
-     PrimeText(greeting ?? 'Olá! Onde vamos entregar?', style: const TextStyle(
-      fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF52616D))),
-     const SizedBox(height: 7),
-     Row(children: [
+ @override Widget build(BuildContext context) => Column(
+  crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+   InkWell(onTap: onAddress, borderRadius: BorderRadius.circular(10),
+    child: Padding(padding: const EdgeInsets.only(bottom: 8),
+     child: PrimeText(greeting ?? 'Olá! Onde vamos entregar?', style: const TextStyle(
+      fontSize: 12, height: 1.25, fontWeight: FontWeight.w600, color: Color(0xFF52616D))))),
+   Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+    Expanded(child: InkWell(onTap: onAddress, borderRadius: BorderRadius.circular(12),
+     child: Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [
       const Icon(Icons.location_on_rounded, color: Color(0xFF00474D), size: 20),
       const SizedBox(width: 5),
-      Flexible(child: PrimeText(address, maxLines: 1, overflow: TextOverflow.ellipsis,
-       style: const TextStyle(fontSize: 14, height: 1.2, fontWeight: FontWeight.w800, color: Color(0xFF0C2330)))),
-      const SizedBox(width: 3), const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF0C2330)),
-     ]),
-     if (region.isNotEmpty) Padding(padding: const EdgeInsets.only(left: 25, top: 5),
-      child: PrimeText(region, maxLines: 1, overflow: TextOverflow.ellipsis,
-       style: const TextStyle(fontSize: 11, color: Color(0xFF52616D)))),
-   ])))),
-  const SizedBox(width: 6),
-  Semantics(button: true, label: translateLabel('Abrir notificações'),
-   child: Material(color: Colors.white, borderRadius: BorderRadius.circular(16),
-    elevation: 2, shadowColor: const Color(0x100C2830),
-    child: InkWell(onTap: onProfile, borderRadius: BorderRadius.circular(16),
-     child: SizedBox(width: 40, height: 44, child: Stack(alignment: Alignment.center, children: [
-      const Icon(Icons.notifications_rounded, color: Color(0xFF00525B), size: 24),
-      if (notificationCount > 0) Positioned(right: 7, top: 6, child: Container(width: 9, height: 9,
-       decoration: BoxDecoration(color: const Color(0xFFEF233C), shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 1.5)))),
-     ]))))),
-  const SizedBox(width: 8), const LanguagePicker(),
- ]);
+      Flexible(child: PrimeText(address, maxLines: 2, overflow: TextOverflow.ellipsis,
+       style: const TextStyle(fontSize: 14, height: 1.25, fontWeight: FontWeight.w800, color: Color(0xFF0C2330)))),
+      const SizedBox(width: 2),
+      const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF0C2330)),
+     ])))),
+    const SizedBox(width: 8),
+    Semantics(button: true, label: translateLabel('Abrir notificações'),
+     child: Material(color: Colors.white, borderRadius: BorderRadius.circular(15),
+      child: InkWell(onTap: onProfile, borderRadius: BorderRadius.circular(15),
+       child: SizedBox(width: 44, height: 48, child: Stack(alignment: Alignment.center, children: [
+        const Icon(Icons.notifications_rounded, color: Color(0xFF00525B), size: 24),
+        if (notificationCount > 0) Positioned(right: 8, top: 8, child: Container(width: 9, height: 9,
+         decoration: BoxDecoration(color: const Color(0xFFEF233C), shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 1.5)))),
+       ]))))),
+    const SizedBox(width: 8),
+    const LanguagePicker(compact: true),
+   ]),
+   if (region.isNotEmpty) Padding(padding: const EdgeInsets.only(left: 25, top: 4),
+    child: PrimeText(region, maxLines: 1, overflow: TextOverflow.ellipsis,
+     style: const TextStyle(fontSize: 11, height: 1.3, color: Color(0xFF52616D)))),
+  ]);
 }
 class ReferenceHomeSearch extends StatelessWidget {
  const ReferenceHomeSearch({super.key, required this.onTap});
