@@ -196,7 +196,7 @@ class _CategoriesPageState extends State<CategoriesPage>{
 
 class _CategoryHero extends StatelessWidget{
  const _CategoryHero({required this.name,required this.iconKey,required this.photo,required this.count});
- final String name,iconKey,photo;final int count;
+ final String name,photo;final String? iconKey;final int count;
  @override Widget build(BuildContext context){
   final inset=MediaQuery.paddingOf(context).top;
   final scale=MediaQuery.textScalerOf(context).scale(14)/14;
