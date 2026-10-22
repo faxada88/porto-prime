@@ -121,7 +121,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                           childCount: products.length),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: columns, crossAxisSpacing: 14, mainAxisSpacing: 16,
-                          mainAxisExtent: width + 158 + (scale - 1).clamp(0, 2) * 180),
+                          mainAxisExtent: width / .84 + 190 + (scale - 1).clamp(0, 2) * 200),
                       );
                     })),
               ],

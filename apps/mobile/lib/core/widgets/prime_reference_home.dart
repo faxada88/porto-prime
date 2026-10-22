@@ -46,12 +46,66 @@ class ReferenceCategoryTile extends StatelessWidget {
 }
 
 class ReferenceProductSurface extends StatelessWidget {
- const ReferenceProductSurface({super.key,required this.name,required this.description,required this.price,required this.image,required this.control,required this.available,this.oldPrice,this.discount,this.onOpen,this.fullWidthControl=false});
- final String name,description,price;final String? oldPrice;final int? discount;final Widget image,control;final bool available;final bool fullWidthControl;final VoidCallback? onOpen;
- @override Widget build(BuildContext context)=>Semantics(button:onOpen!=null,label: translateLabel(name),child:Material(color:Colors.white,borderRadius:BorderRadius.circular(22),child:InkWell(onTap:onOpen,borderRadius:BorderRadius.circular(22),child:Container(decoration:BoxDecoration(borderRadius:BorderRadius.circular(22),border:Border.all(color:AppColors.stroke),boxShadow:const []),padding:const EdgeInsets.all(10),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
-  Expanded(child:Stack(fit:StackFit.expand,children:[ClipRRect(borderRadius:BorderRadius.circular(16),child:ColoredBox(color:AppColors.surfaceSoft,child:Padding(padding:const EdgeInsets.all(8),child:image))),if(discount!=null)Positioned(left:0,top:0,child:Container(padding:const EdgeInsets.symmetric(horizontal:7,vertical:4),decoration:BoxDecoration(color:AppColors.coral600,borderRadius:BorderRadius.circular(9)),child:PrimeText('−$discount%',textScaler:TextScaler.noScaling,style:const TextStyle(color:Colors.white,fontSize:10,fontWeight:FontWeight.w800)))),if(!available)const Center(child:Chip(label:PrimeText('Indisponível',style:TextStyle(fontSize:10))))])),
-  const SizedBox(height:9),PrimeText(name,maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:13,height:1.18,fontWeight:FontWeight.w800,color:AppColors.ink)),
-  if(description.isNotEmpty)...[const SizedBox(height:4),PrimeText(description,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10.5,color:AppColors.muted))],
-  const SizedBox(height:7),if(oldPrice!=null)PrimeText(oldPrice!,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:10,color:AppColors.muted,decoration:TextDecoration.lineThrough)),if(fullWidthControl)...[PrimeText(price,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontSize:15,fontWeight:FontWeight.w800,color:AppColors.ink)),const SizedBox(height:7),control]else Row(children:[Expanded(child:FittedBox(fit:BoxFit.scaleDown,alignment:Alignment.centerLeft,child:PrimeText(price,maxLines:1,style:const TextStyle(fontSize:15,fontWeight:FontWeight.w800,color:AppColors.ink)))),const SizedBox(width:4),SizedBox(width:44,child:control)]),
- ])))));
+  const ReferenceProductSurface({super.key, required this.name, required this.description,
+    required this.price, required this.image, required this.control, required this.available,
+    this.oldPrice, this.discount, this.onOpen, this.fullWidthControl = false});
+  final String name, description, price;
+  final String? oldPrice;
+  final int? discount;
+  final Widget image, control;
+  final bool available, fullWidthControl;
+  final VoidCallback? onOpen;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: onOpen != null, label: translateLabel(name),
+    child: Material(color: Colors.white, borderRadius: BorderRadius.circular(22),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(onTap: onOpen, borderRadius: BorderRadius.circular(22),
+        child: DecoratedBox(
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppColors.stroke)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Expanded(child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(21)),
+              child: Stack(fit: StackFit.expand, children: [
+                ColoredBox(color: AppColors.surfaceSoft, child: image),
+                if (discount != null) Positioned(left: 10, top: 10, child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                  decoration: BoxDecoration(color: AppColors.coral600, borderRadius: BorderRadius.circular(9)),
+                  child: PrimeText('−$discount%', textScaler: TextScaler.noScaling,
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)))),
+                if (!available) const Center(child: Chip(label: PrimeText('Indisponível', style: TextStyle(fontSize: 10)))),
+              ]),
+            )),
+            Expanded(child: Padding(padding: const EdgeInsets.all(10),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                PrimeText(name, maxLines: 2, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 13, height: 1.18, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                if (description.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  PrimeText(description, maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 10.5, color: AppColors.muted)),
+                ],
+                const Spacer(),
+                if (oldPrice != null) PrimeText(oldPrice!, maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 10, color: AppColors.muted, decoration: TextDecoration.lineThrough)),
+                const SizedBox(height: 7),
+                if (fullWidthControl) ...[
+                  PrimeText(price, maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                  const SizedBox(height: 7), control,
+                ] else Row(children: [
+                  Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft,
+                    child: PrimeText(price, maxLines: 1,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.ink)))),
+                  const SizedBox(width: 4), SizedBox(width: 44, child: control),
+                ]),
+              ]),
+            )),
+          ]),
+        ),
+      ),
+    ),
+  );
 }

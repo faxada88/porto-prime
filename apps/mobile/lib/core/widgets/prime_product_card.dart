@@ -47,7 +47,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
       return ReferenceProductSurface(name:(p['name']??'Produto').toString(),description:description,
         price:_money(price),oldPrice:oldPrice!=null&&oldPrice>price?_money(oldPrice):null,
         discount:discount,available:available,onOpen:widget.onOpen,fullWidthControl:qty>0,
-        image:image.isNotEmpty?Image.network(image,fit:BoxFit.contain,cacheWidth:512,errorBuilder:(_,__,___)=>fallback):fallback,
+        image:image.isNotEmpty?Image.network(image,fit:BoxFit.cover,alignment:Alignment.center,cacheWidth:768,errorBuilder:(_,__,___)=>fallback):fallback,
         control:!available?const SizedBox(height:44):qty==0
           ?_AddButton(onTap:()=>state.addProduct(id),productName:(p['name']??'produto').toString(),compact:false,cartIcon:true)
           :_QuantityControl(qty:qty,onMinus:()=>state.changeQty(id,-1),onPlus:state.canIncreaseQuantity(id)?()=>state.changeQty(id,1):null));
@@ -107,7 +107,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                           fit: StackFit.expand,
                           children: [
                             Container(
-                              margin: const EdgeInsets.fromLTRB(10, 10, 10, 3),
+                              margin: EdgeInsets.zero,
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
                                   begin: Alignment.topLeft,
@@ -117,26 +117,20 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                                     AppColors.surfaceMuted,
                                   ],
                                 ),
-                                borderRadius: BorderRadius.circular(
-                                  AppRadius.md,
-                                ),
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
                                 border: Border.all(
                                   color: Colors.transparent,
                                 ),
                               ),
                               clipBehavior: Clip.antiAlias,
                               child: image.isNotEmpty
-                                  ? Padding(
-                                      padding: EdgeInsets.all(compact ? 6 : 9),
-                                      child: Image.network(
-                                        image,
-                                        fit: BoxFit.contain,
-                                        filterQuality: FilterQuality.medium,
-                                        errorBuilder: (_, __, ___) =>
-                                            _FallbackProduct(icon: AppIcons.categoryVisual(category, iconKey: p['category']?['iconKey']?.toString()).icon, exact: p['category']?['iconKey'] != null),
-                                      ),
-                                    )
-                                  : _FallbackProduct(icon: AppIcons.categoryVisual(category, iconKey: p['category']?['iconKey']?.toString()).icon, exact: p['category']?['iconKey'] != null),
+                                  ? Image.network(image, fit: BoxFit.cover, alignment: Alignment.center,
+                                      cacheWidth: 768, filterQuality: FilterQuality.medium,
+                                      errorBuilder: (_, __, ___) =>
+                                        _FallbackProduct(icon: AppIcons.categoryVisual(category, iconKey: p['category']?['iconKey']?.toString()).icon,
+                                          exact: p['category']?['iconKey'] != null))
+                                  : _FallbackProduct(icon: AppIcons.categoryVisual(category, iconKey: p['category']?['iconKey']?.toString()).icon,
+                                      exact: p['category']?['iconKey'] != null),
                             ),
                             if (discount != null)
                               Positioned(
@@ -147,7 +141,7 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
                             if (!available)
                               Positioned.fill(
                                 child: Container(
-                                  margin: const EdgeInsets.fromLTRB(10, 10, 10, 3),
+                                  margin: EdgeInsets.zero,
                                   decoration: BoxDecoration(
                                     color: Colors.white.withValues(alpha: .76),
                                     borderRadius: BorderRadius.circular(
