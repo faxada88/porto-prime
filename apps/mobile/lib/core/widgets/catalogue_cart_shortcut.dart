@@ -4,9 +4,17 @@ import '../navigation/app_nav.dart';
 import '../state/app_state.dart';
 import '../theme/app_icons.dart';
 
+void openCatalogueCart(BuildContext context) {
+ FocusScope.of(context).unfocus();
+ AppNav.instance.go(2);
+ final navigator=AppNav.instance.rootNavigatorKey.currentState??Navigator.of(context);
+ navigator.popUntil((route)=>route.isFirst);
+}
+
 /// Used only inside catalogue pages. Home and checkout keep their own controls.
 class CatalogueCartShortcut extends StatelessWidget {
-  const CatalogueCartShortcut({super.key});
+  const CatalogueCartShortcut({super.key,this.compact=false});
+  final bool compact;
   String _countLabel(int count) {
     switch (AppLanguage.instance.locale.languageCode) {
       case 'es': return '$count ${count == 1 ? 'artículo' : 'artículos'} en el carrito';
@@ -14,13 +22,7 @@ class CatalogueCartShortcut extends StatelessWidget {
       default: return '$count ${count == 1 ? 'item' : 'itens'} no carrinho';
     }
   }
-  void _open(BuildContext context) {
-    FocusScope.of(context).unfocus();
-    // Reuse the existing cart tab and its stock, address and payment flow.
-    AppNav.instance.go(2);
-    final navigator = AppNav.instance.rootNavigatorKey.currentState ?? Navigator.of(context);
-    navigator.popUntil((route) => route.isFirst);
-  }
+  void _open(BuildContext context) => openCatalogueCart(context);
   @override Widget build(BuildContext context) => AnimatedBuilder(
     animation: Listenable.merge([AppState.instance, AppLanguage.instance]),
     builder: (context, _) => _content(context));
@@ -32,8 +34,35 @@ class CatalogueCartShortcut extends StatelessWidget {
       child: !visible ? const SizedBox.shrink() : SafeArea(top: false,
         minimum: const EdgeInsets.fromLTRB(16, 10, 16, 12),
         child: Center(heightFactor: 1, child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 600),
-          child: _summary(context, app, duration)))));
+          child: compact ? _compactSummary(context, app) : _summary(context, app, duration)))));
   }
+  Widget _compactSummary(BuildContext context,AppState app){
+    final price='R\$ ${app.cartSubtotal.toStringAsFixed(2).replaceAll('.',',')}';
+    final label=_countLabel(app.cartCount);
+    return Semantics(button:true,excludeSemantics:true,
+      label:'$label. ${AppLanguage.instance.translate('Subtotal')}: $price. ${AppLanguage.instance.translate('Ver carrinho')}.',
+      onTap:()=>_open(context),child:Material(color:const Color(0xFF003C46),
+        borderRadius:BorderRadius.circular(22),clipBehavior:Clip.antiAlias,
+        child:InkWell(onTap:()=>_open(context),child:Row(children:[
+          const Padding(padding:EdgeInsets.only(left:16,right:12),child:Icon(AppIcons.cart,color:Colors.white,size:23)),
+          Expanded(flex:4,child:Padding(padding:const EdgeInsets.symmetric(vertical:14),
+            child:PrimeText(label,maxLines:2,overflow:TextOverflow.ellipsis,
+              style:const TextStyle(fontSize:12,height:1.3,fontWeight:FontWeight.w700,color:Colors.white)))),
+          const SizedBox(width:9),
+          Flexible(flex:3,child:Container(padding:const EdgeInsets.symmetric(horizontal:15,vertical:12),
+            decoration:BoxDecoration(color:const Color(0xFF006C75),borderRadius:BorderRadius.circular(22)),
+            child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.end,children:[
+              const PrimeText('Subtotal',style:TextStyle(fontSize:8,color:Color(0xFFCBE8E7))),
+              const SizedBox(height:2),
+              Row(mainAxisSize:MainAxisSize.min,children:[
+                Flexible(child:FittedBox(fit:BoxFit.scaleDown,child:Text(price,
+                  style:const TextStyle(fontSize:17,fontWeight:FontWeight.w800,color:Colors.white)))),
+                const SizedBox(width:3),const Icon(Icons.chevron_right_rounded,color:Colors.white,size:18),
+              ]),
+            ]))),
+        ]))));
+  }
+
   Widget _summary(BuildContext context, AppState app, Duration duration) {
     final entries = app.cart.entries.where((entry) => entry.value > 0).toList();
     final names = entries.map((entry) => '${entry.value}× ${app.product(entry.key)?['name'] ?? AppLanguage.instance.translate('Produto')}').join(' · ');

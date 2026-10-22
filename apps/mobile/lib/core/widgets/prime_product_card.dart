@@ -1,3 +1,4 @@
+import 'category_product_surface.dart';
 import '../localization/prime_localization.dart';
 import 'prime_reference_home.dart';
 import 'package:flutter/material.dart';
@@ -8,9 +9,10 @@ import '../theme/app_theme.dart';
 import 'prime_category_artwork.dart';
 
 class PrimeProductCard extends StatefulWidget {
-  const PrimeProductCard({super.key, required this.product, this.onOpen, this.referenceStyle = false});
+  const PrimeProductCard({super.key, required this.product, this.onOpen, this.referenceStyle = false, this.categoryStyle = false});
 
   final bool referenceStyle;
+  final bool categoryStyle;
   final dynamic product;
   final VoidCallback? onOpen;
 
@@ -41,6 +43,18 @@ class _PrimeProductCardState extends State<PrimeProductCard> {
     final discount = oldPrice != null && oldPrice > price && oldPrice > 0
         ? (((oldPrice - price) / oldPrice) * 100).round()
         : null;
+
+    if(widget.categoryStyle) {
+      return CategoryProductSurface(product:p,name:(p['name']??'Produto').toString(),description:description,
+        price:_money(price),oldPrice:oldPrice!=null&&oldPrice>price?_money(oldPrice):null,
+        discount:discount,available:available,onOpen:widget.onOpen,fullWidthControl:qty>0,
+        image:image.isNotEmpty?Image.network(image,fit:BoxFit.cover,cacheWidth:768,errorBuilder:(_,__,___)=>_FallbackProduct(icon:AppIcons.categoryVisual(category,iconKey:p['category']?['iconKey']?.toString()).icon,exact:true)):_FallbackProduct(icon:AppIcons.categoryVisual(category,iconKey:p['category']?['iconKey']?.toString()).icon,exact:true),
+        control:!available?const SizedBox(height:44):qty==0
+          ?Semantics(button:true,label:translateLabel('Adicionar '+(p['name']??'produto').toString()),child:IconButton.filled(
+            style:IconButton.styleFrom(backgroundColor:const Color(0xFF003E48),foregroundColor:Colors.white),
+            onPressed:()=>state.addProduct(id),icon:const Icon(AppIcons.plus,size:23)))
+          :_QuantityControl(qty:qty,onMinus:()=>state.changeQty(id,-1),onPlus:state.canIncreaseQuantity(id)?()=>state.changeQty(id,1):null));
+    }
 
     if(widget.referenceStyle) {
       final fallback=_FallbackProduct(icon:AppIcons.categoryVisual(category,iconKey:p['category']?['iconKey']?.toString()).icon,exact:p['category']?['iconKey']!=null);

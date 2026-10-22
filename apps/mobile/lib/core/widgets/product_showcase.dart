@@ -136,7 +136,7 @@ class ShowcaseProductTile extends StatelessWidget {
      AspectRatio(aspectRatio:1.05,child:Stack(fit:StackFit.expand,children:[
       ColoredBox(color:visual.background,child:url.isEmpty?fallback:Image.network(url,fit:BoxFit.cover,
        cacheWidth:640,errorBuilder:(_,__,___)=>fallback)),
-      Positioned(top:4,right:3,child:_FavoriteProductButton(productId:id,owner:'${state.user?['id']??'guest'}')),
+      Positioned(top:4,right:3,child:ProductFavoriteButton(productId:id,owner:'${state.user?['id']??'guest'}')),
      ])),
      Expanded(child:Padding(padding:EdgeInsets.all(compact?7:12),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
       PrimeText(category,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(fontSize:compact?8:11,color:AppColors.muted)),
@@ -171,16 +171,16 @@ class ShowcaseProductTile extends StatelessWidget {
  }
 }
 
-class _FavoriteProductButton extends StatefulWidget {
- const _FavoriteProductButton({required this.productId,required this.owner});
+class ProductFavoriteButton extends StatefulWidget {
+ const ProductFavoriteButton({super.key,required this.productId,required this.owner});
  final String productId,owner;
- @override State<_FavoriteProductButton> createState()=>_FavoriteProductButtonState();
+ @override State<ProductFavoriteButton> createState()=>ProductFavoriteButtonState();
 }
-class _FavoriteProductButtonState extends State<_FavoriteProductButton> {
+class ProductFavoriteButtonState extends State<ProductFavoriteButton> {
  bool saved=false,busy=false;int epoch=0;
  String get storageKey=>'porto-prime:favorite:${widget.owner}:${widget.productId}';
  @override void initState(){super.initState();load();}
- @override void didUpdateWidget(covariant _FavoriteProductButton old){
+ @override void didUpdateWidget(covariant ProductFavoriteButton old){
   super.didUpdateWidget(old);if(old.productId!=widget.productId||old.owner!=widget.owner){saved=false;busy=false;load();}
  }
  Future<void> load()async{

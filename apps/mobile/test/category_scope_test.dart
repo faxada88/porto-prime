@@ -17,7 +17,9 @@ void main(){
  tearDown((){app.products=products;app.catalogCategories=categories;app.catalogCategory=selected;});
  testWidgets('Category has only its own products and no category switcher',(tester)async{
   await tester.pumpWidget(MaterialApp(theme:AppTheme.light,home:const Scaffold(body:CategoriesPage(categoryName:'Cervejas'))));
-  expect(find.byType(ChoiceChip),findsNothing);
+  expect(find.text('Carnes'),findsNothing);
+  expect(find.text('Todas'),findsOneWidget);
+  expect(find.text('Long Neck'),findsOneWidget);
   expect(find.text('Corona'),findsOneWidget);expect(find.text('Picanha'),findsNothing);
   app.selectCatalogCategory('Carnes');await tester.pump();
   expect(find.text('Corona'),findsOneWidget);expect(find.text('Picanha'),findsNothing);
