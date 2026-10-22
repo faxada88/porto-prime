@@ -38,7 +38,7 @@ export function updateDatabaseUrl(text, oldPort, newPort) {
   try { url = new URL(value); } catch { throw new Error('DATABASE_URL invalida. Nenhuma alteracao realizada.'); }
   if (!['postgres:', 'postgresql:'].includes(url.protocol) ||
       !['localhost', '127.0.0.1'].includes(url.hostname) ||
-      Number(url.port || 5432) !== Number(oldPort) ||
+      (oldPort !== null && Number(url.port || 5432) !== Number(oldPort)) ||
       url.searchParams.has('host')) {
     throw new Error('DATABASE_URL nao aponta para a porta local deste container. Nenhuma alteracao realizada.');
   }
@@ -57,7 +57,31 @@ async function main() {
     throw new Error('Configuracao diferente do PostgreSQL 16 e volume conhecidos. Nada foi alterado.');
   }
   if (original.State.Running) {
-    console.log('O banco ja esta rodando. Nenhum container ou arquivo foi alterado.');
+    const published = original.NetworkSettings.Ports?.['5432/tcp'] ?? [];
+    const binding = published.find((item) => ['127.0.0.1', '0.0.0.0'].includes(item.HostIp));
+    const activePort = Number(binding?.HostPort);
+    if (!Number.isInteger(activePort) || activePort < 1 || activePort > 65535) {
+      throw new Error('Banco rodando sem uma porta IPv4 local publicada. Nenhuma alteracao realizada.');
+    }
+    const variables = original.Config.Env ?? [];
+    const findVariable = (key, fallback) => variables.find((entry) => entry.startsWith(key + '='))?.slice(key.length + 1) || fallback;
+    const user = findVariable('POSTGRES_USER', 'postgres');
+    docker('exec', name, 'pg_isready', '-q', '-U', user, '-d', findVariable('POSTGRES_DB', user));
+    const reachable = await new Promise((done) => {
+      const socket = net.createConnection({ host: '127.0.0.1', port: activePort });
+      const finish = (ok) => { socket.destroy(); done(ok); };
+      socket.once('connect', () => finish(true));
+      socket.once('error', () => finish(false));
+      socket.setTimeout(3000, () => finish(false));
+    });
+    if (!reachable) throw new Error('O banco esta rodando, mas sua porta local nao responde. Nenhum arquivo foi alterado.');
+    const previousEnv = readFileSync(envPath, 'utf8');
+    // The running container is the authority for its published host port.
+    const nextEnv = updateDatabaseUrl(previousEnv, null, activePort);
+    if (readFileSync(envPath, 'utf8') !== previousEnv) throw new Error('O .env mudou durante a operacao. Repita com o arquivo fechado.');
+    if (nextEnv !== previousEnv) writeFileSync(envPath, nextEnv, 'utf8');
+    console.log('Banco pronto em 127.0.0.1:' + activePort + '. DATABASE_URL conferida e sincronizada.');
+    console.log('Container, volume e credenciais preservados. Reinicie o Nest para carregar a conexao atualizada.');
     return;
   }
   if (JSON.stringify(original.Config.Cmd) !== JSON.stringify(['postgres']) ||
