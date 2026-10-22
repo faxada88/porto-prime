@@ -17,12 +17,12 @@ class HomePage extends StatelessWidget {
  const HomePage({super.key});
  Widget _section(Widget child,{double top=16,double bottom=0})=>SliverToBoxAdapter(
   child:Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:AppControl.maxContentWidth),
-   child:Padding(padding:EdgeInsets.fromLTRB(18,top,18,bottom),child:child))));
+   child:Padding(padding:EdgeInsets.fromLTRB(14,top,14,bottom),child:child))));
 
  @override Widget build(BuildContext context)=>ColoredBox(
   color:ReferenceHomeTokens.canvas,
   child:SafeArea(bottom:false,child:AnimatedBuilder(
-   animation:AppState.instance,
+   animation:Listenable.merge([AppState.instance,AppLanguage.instance]),
    builder:(context,_){
     final state=AppState.instance;
     final products=state.products.where((p)=>p['featuredHome']==true&&p['active']!=false&&p['archived']!=true&&(int.tryParse('${p["stock"]}')??0)>0).toList();
@@ -47,9 +47,9 @@ class HomePage extends StatelessWidget {
        onAddress:(){if(state.isCustomer){showDeliveryAddressSheet(context);}else{AppNav.instance.go(3);}},onCart:()=>AppNav.instance.go(2),onProfile:(){if(!state.isCustomer){AppNav.instance.go(3);return;}Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const CustomerActivityPage()));})),top:12),
       _section(ReferenceHomeSearch(onTap:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const AllCategoriesPage())))),
       if(categories.isNotEmpty)_section(_HomeCategories(categories:categories),top:12),
-      _section(const ReferenceCoastHero(),top:14),
+      _section(ReferenceCoastHero(onTap:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const ShowcaseProductsPage(offersOnly:true)))),top:14),
       if(products.isNotEmpty)...[
-       _section(ProductShowcase(products:products),top:24),
+       _section(ProductShowcase(products:products),top:20),
       ],
       const SliverToBoxAdapter(child:SizedBox(height:28)),
      ]));
@@ -60,28 +60,26 @@ class _HomeCategories extends StatelessWidget {
  const _HomeCategories({required this.categories});
  final List<dynamic> categories;
  @override Widget build(BuildContext context){
-  final visible=categories.take(8).toList();
-  final height=68+MediaQuery.textScalerOf(context).scale(10.5)*2.4;
-  return Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-   Row(children:[
-    const Expanded(child:PrimeText('Categorias',style:TextStyle(fontSize:16,fontWeight:FontWeight.w800,color:AppColors.ink))),
-    TextButton(onPressed:(){
-     Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const AllCategoriesPage()));
-    },child:const PrimeText('Ver todas')),
-   ]),
-   const SizedBox(height:4),
-   GridView.builder(
-    padding:EdgeInsets.zero,shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),
-    itemCount:visible.length,
-    gridDelegate:SliverGridDelegateWithFixedCrossAxisCount(
-     crossAxisCount:4,crossAxisSpacing:6,mainAxisSpacing:10,mainAxisExtent:height),
-    itemBuilder:(context,index){
-     final category=visible[index],name=(category['name']??'').toString().trim();
-     return ReferenceCategoryTile(name:name,iconKey:category['iconKey']?.toString(),
-      selected:AppState.instance.catalogCategory==name,onTap:(){
-       openProductCatalogue(context,category:name);
-      });
-    }),
+  final visible=categories.take(9).toList();
+  final scale=MediaQuery.textScalerOf(context);
+  Widget row(List<dynamic> entries) => LayoutBuilder(builder:(context,box){
+   final cellWidth=(box.maxWidth-(entries.length-1)*8)/entries.length;
+   final height=cellWidth*.78+scale.scale(11)*2.5+6;
+   return SizedBox(height:height,child:Row(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+    for(var i=0;i<entries.length;i++)...[
+     if(i>0)const SizedBox(width:8),
+     Expanded(child:ReferenceCategoryTile(name:'${entries[i]['name']}',iconKey:entries[i]['iconKey']?.toString(),
+      selected:AppState.instance.catalogCategory==entries[i]['name'],
+      onTap:()=>openProductCatalogue(context,category:'${entries[i]['name']}'))),
+    ],
+   ]));
+  });
+  return Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+   row(visible.take(4).toList()),
+   if(visible.length>4)...[const SizedBox(height:12),row(visible.skip(4).toList())],
+   if(categories.length>9)Align(alignment:Alignment.centerRight,child:TextButton(
+    onPressed:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const AllCategoriesPage())),
+    child:const PrimeText('Ver todas'))),
   ]);
  }
 }

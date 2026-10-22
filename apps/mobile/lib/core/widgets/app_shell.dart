@@ -1,3 +1,4 @@
+import 'product_showcase.dart';
 import '../state/customer_activity.dart';
 import '../../features/orders/presentation/pages/order_tracking_page.dart';
 import '../../features/orders/presentation/pages/orders_page.dart';
@@ -102,6 +103,7 @@ class _AppShellState extends State<AppShell> {
           cartCount: state.cartCount,
           orderCount: customerLiveOrder(state)==null?0:1,
           onSelect: (value) async {
+            if(value==4){Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const ShowcaseProductsPage(offersOnly:true)));return;}
             if(value!=1){AppNav.instance.go(value);return;}
             try{await Future.wait([state.loadOrders(),state.loadActiveOrder()]);}catch(_){}
             if(!context.mounted)return;

@@ -17,6 +17,12 @@ class AppLanguage extends ChangeNotifier {
   SharedPreferences? _preferences;
 
   static const Map<String, Map<String, String>> _curated = {
+'Ver ofertas': {'es': 'Ver ofertas', 'en': 'View offers'},
+'Ofertas': {'es': 'Ofertas', 'en': 'Offers'},
+'Novas ofertas em breve': {'es': 'Nuevas ofertas pronto', 'en': 'New offers coming soon'},
+'Salvar produto': {'es': 'Guardar producto', 'en': 'Save product'},
+'Remover dos favoritos': {'es': 'Quitar de favoritos', 'en': 'Remove from favorites'},
+
 'Produtos que combinam com o seu pedido': {'es': 'Productos que combinan con tu pedido', 'en': 'Great additions to your order'},
 'Complete o seu pedido': {'es': 'Completa tu pedido', 'en': 'Complete your order'},
 'Buscar produtos': {'es': 'Buscar productos', 'en': 'Search products'},
@@ -233,10 +239,12 @@ class LanguagePicker extends StatelessWidget {
           if (entry.key == AppLanguage.instance.locale.languageCode)
             const Icon(Icons.check_rounded, size: 20)]))).toList(),
       child: Container(height: 46, padding: const EdgeInsets.symmetric(horizontal: 9),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFD8E1E3))),
+        decoration: BoxDecoration(color: const Color(0xFF004A50), borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFC4D4D6), width: 1.5)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Text(flags[AppLanguage.instance.locale.languageCode]!, style: const TextStyle(fontSize: 22)),
-          const Icon(Icons.expand_more_rounded, size: 16)])),
+          const SizedBox(width: 6),
+          Text(AppLanguage.instance.locale.languageCode.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+          const SizedBox(width: 4), const Icon(Icons.expand_more_rounded, size: 16, color: Colors.white)])),
     ));
 }

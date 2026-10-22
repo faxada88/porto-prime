@@ -1,3 +1,4 @@
+import 'package:porto_prime/core/widgets/home_reference_artwork.dart';
 import 'package:porto_prime/core/widgets/product_showcase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -68,12 +69,13 @@ void main() {
   expect(state.cart['reference-test'],1);
  });
 
- testWidgets('Single brand artwork has no redundant catalogue action', (tester) async {
+ testWidgets('Horizontal campaign opens offers without redundant catalogue action', (tester) async {
   var opened=0;
   await tester.pumpWidget(MaterialApp(home:Scaffold(body:SingleChildScrollView(child:Padding(padding:const EdgeInsets.all(18),child:ReferenceCoastHero(onTap:()=>opened++))))));
-  expect(find.descendant(of:find.byType(ReferenceCoastHero),matching:find.byType(Image)),findsOneWidget);
+  expect(find.descendant(of:find.byType(ReferenceCoastHero),matching:find.byType(HomeReferenceArtwork)),findsOneWidget);
   expect(find.text('Explorar catálogo'), findsNothing);
-  expect(opened,0);
+  await tester.tap(find.descendant(of:find.byType(ReferenceCoastHero),matching:find.byType(InkWell)));
+  expect(opened,1);
   expect(tester.takeException(),isNull);
  });
 
