@@ -66,14 +66,34 @@ export function updateDatabaseUrl(text, oldPort, newPort) {
   return text.replace(pattern, () => matches[0][1] + quote + url.toString() + quote);
 }
 
+
+// A port repair creates the replacement with the original image ID. Docker then
+// records Config.Image as sha256:..., rather than the original postgres:16 tag.
+// Resolve that exact ID and verify its version and PostgreSQL image provenance.
+export function isKnownPostgres16Image(container, image) {
+  const id = container?.Image;
+  if (typeof id !== 'string' || !/^sha256:[a-f0-9]{64}$/i.test(id) || image?.Id !== id) return false;
+  const reference = container.Config?.Image;
+  if (!['postgres:16', 'docker.io/library/postgres:16', id, id.slice(7)].includes(reference)) return false;
+  if (!(image.Config?.Env ?? []).includes('PG_MAJOR=16')) return false;
+  const tags = image.RepoTags ?? [];
+  const knownTag = tags.some((tag) => ['postgres:16', 'docker.io/library/postgres:16'].includes(tag));
+  const officialDigest = (image.RepoDigests ?? []).some((digest) =>
+    /^(?:(?:docker\.io\/)?library\/)?postgres@sha256:[a-f0-9]{64}$/i.test(digest));
+  return knownTag || officialDigest;
+}
+
 async function main() {
   if (!existsSync(envPath)) throw new Error('apps/api/.env nao encontrado.');
   const original = inspect(name);
   const mounts = original.Mounts ?? [];
-  if (original.Config.Image !== 'postgres:16' ||
-      mounts.length !== 1 || mounts[0].Type !== 'volume' ||
+  const image = JSON.parse(docker('image', 'inspect', original.Image))[0];
+  if (!isKnownPostgres16Image(original, image)) {
+    throw new Error('A imagem existente nao foi reconhecida como PostgreSQL 16 oficial. Nada foi alterado.');
+  }
+  if (mounts.length !== 1 || mounts[0].Type !== 'volume' ||
       mounts[0].Name !== volume || mounts[0].Destination !== destination) {
-    throw new Error('Configuracao diferente do PostgreSQL 16 e volume conhecidos. Nada foi alterado.');
+    throw new Error('O volume ou diretorio do banco e diferente do porto-prime-github-pgdata esperado. Nada foi alterado.');
   }
   const variables = original.Config.Env ?? [];
   const findVariable = (key, fallback) => variables.find((entry) => entry.startsWith(key + '='))?.slice(key.length + 1) || fallback;
