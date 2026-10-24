@@ -20,6 +20,7 @@ import { validateProfilePhoto } from '../couriers/profile-photo.js';
 import { normalizePix } from '../wallet/pix-key.js';
 import { CpfHubService } from './cpfhub.service.js';
 import type { VerifiedCpf } from './cpfhub.service.js';
+import { normalizeRegistrationPhone } from './international-phone.js';
 import { LoginDto } from './dto/login.dto.js';
 import { BootstrapAdminDto } from './dto/bootstrap-admin.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
@@ -144,12 +145,11 @@ export class AuthService {
     }
 
     if (field === 'phone') {
-      const phone = this.digits(value);
-      const valid = phone.length === 11;
-      if (!valid) return { valid: false, available: false };
+      const phone = normalizeRegistrationPhone(value);
+      if (!phone) return { valid: false, available: false };
 
-      const exists = await this.prisma.user.findUnique({
-        where: { phone },
+      const exists = await this.prisma.user.findFirst({
+        where: { phone: { in: phone.aliases } },
         select: { id: true },
       });
 
@@ -354,17 +354,17 @@ export class AuthService {
       await this.assertPortoSeguroAddress({postalCode:data.profileData.cep,city:'Porto Seguro',state:'BA'});
     }
     const email = data.email.trim().toLowerCase();
-    const phone = this.digits(data.phone) || null;
-
-    if (phone && phone.length !== 11) {
-      throw new BadRequestException('Telefone inválido');
+    const normalizedPhone = normalizeRegistrationPhone(data.phone);
+    if (data.phone?.trim() && !normalizedPhone) {
+      throw new BadRequestException('Informe um telefone válido com o código do país');
     }
+    const phone = normalizedPhone?.stored ?? null;
 
     const existingIdentity = await this.prisma.user.findFirst({
       where: {
         OR: [
           { email },
-          ...(phone ? [{ phone }] : []),
+          ...(normalizedPhone ? [{ phone: { in: normalizedPhone.aliases } }] : []),
         ],
       },
       select: {
@@ -377,7 +377,7 @@ export class AuthService {
       throw new ConflictException('E-mail já cadastrado');
     }
 
-    if (phone && existingIdentity?.phone === phone) {
+    if (normalizedPhone && existingIdentity?.phone && normalizedPhone.aliases.includes(existingIdentity.phone)) {
       throw new ConflictException('Telefone já cadastrado');
     }
 

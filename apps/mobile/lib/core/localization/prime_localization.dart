@@ -17,6 +17,14 @@ class AppLanguage extends ChangeNotifier {
   SharedPreferences? _preferences;
 
   static const Map<String, Map<String, String>> _curated = {
+"Informe um telefone válido com o código do país": {"es":"Introduce un teléfono válido con el código del país","en":"Enter a valid phone number with its country calling code"},
+"Confira seu telefone": {"es":"Revisa tu teléfono","en":"Check your phone number"},
+"Confira o número e o código do país": {"es":"Revisa el número y el código del país","en":"Check the number and country calling code"},
+"Número com código de área": {"es":"Número con código de área","en":"Number with area code"},
+"País / código": {"es":"País / código","en":"Country / calling code"},
+"País ou código, como +55": {"es":"País o código, como +55","en":"Country or calling code, such as +55"},
+"Busque pelo nome ou código do país.": {"es":"Busca por nombre o código de país.","en":"Search by country name or calling code."},
+"Escolha seu país": {"es":"Elige tu país","en":"Choose your country"},
 "Selecione o peso": {"es":"Selecciona el peso","en":"Choose a weight"},
 "Peso não informado": {"es":"Peso no especificado","en":"Weight not specified"},
 "Aguarde um instante": {"es":"Espera un momento","en":"Please wait a moment"},

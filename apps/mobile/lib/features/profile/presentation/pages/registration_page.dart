@@ -1,4 +1,6 @@
 import '../../../../core/localization/prime_localization.dart';
+import '../../../../core/phone/international_phone.dart';
+import '../../../../core/widgets/international_phone_field.dart';
 import '../../../addresses/presentation/widgets/registration_place_search.dart';
 import '../../../../core/widgets/prime_registration_widgets.dart';
 import 'dart:async';
@@ -26,6 +28,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
   String? cpfSituation;
   String? profilePhoto;
   String? registrationLocationRef;
+  String phoneCountry = 'BR';
+  String? get internationalPhone => parseInternationalPhone(ctl('phone').text, phoneCountry)?.international;
   GlobalKey<FormState> get form=>forms[step];
   final Map<String,TextEditingController> c={};
   TextEditingController ctl(String k)=>c.putIfAbsent(k,()=>TextEditingController());
@@ -316,7 +320,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         ['Nome completo',ctl('name').text],['CPF',ctl('cpf').text],['Data de nascimento',ctl('birthDate').text],
       ]},
       {'title':'Contato e endereço','icon':AppIcons.location_on_rounded,'step':1,'rows':[
-        ['Celular / WhatsApp',ctl('phone').text],['CEP',ctl('cep').text],
+        ['Celular / WhatsApp',internationalPhone ?? ctl('phone').text],['CEP',ctl('cep').text],
         ['Endereço','${ctl('street').text}, ${ctl('number').text}'],
         ['Bairro',ctl('neighborhood').text],['Cidade / UF','${ctl('city').text} / ${ctl('state').text}'],
       ]},
@@ -386,6 +390,18 @@ class _RegistrationPageState extends State<RegistrationPage> {
     ]);
   }
   Widget field(_F f) {
+    if (f.key == 'phone') return Padding(padding: const EdgeInsets.only(bottom: 13), child: InternationalPhoneField(
+      controller: ctl('phone'), countryCode: phoneCountry,
+      checking: checking['phone'] == true, available: remoteError['phone'] == '',
+      onCountryChanged: (code) { setState(() => phoneCountry = code); _queueRemoteCheck('phone', ctl('phone').text); },
+      onChanged: (value) => _queueRemoteCheck('phone', value),
+      validator: localizeValidator((value) {
+        if (value == null || value.trim().isEmpty) return 'Preencha este campo';
+        if (internationalPhone == null) return 'Confira o número e o código do país';
+        final remote = remoteError['phone'];
+        return remote != null && remote.isNotEmpty ? remote : null;
+      })!,
+    ));
     if ((!customer&&!courier&&const ['documentType','businessType','pixKeyType'].contains(f.key)) || courier && const ['cnhCategory','vehicleType','vehicleBrand','vehicleModel','state','pixKeyType'].contains(f.key)) return choiceField(f);
     final accent = customer
         ? AppColors.ocean
@@ -426,8 +442,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
         }
         if (f.key == 'password' && (value.length < 8 || !RegExp(r'[A-Z]').hasMatch(value) || !RegExp(r'[a-z]').hasMatch(value) || !RegExp(r'[0-9]').hasMatch(value))) return 'Use 8+ caracteres, maiúscula, minúscula e número';
         if (f.key == 'confirmPassword' && value != ctl('password').text) return 'As senhas não coincidem';
-        if (f.key == 'phone' && digits.length != 11) {
-          return 'Informe um celular com DDD';
+        if (f.key == 'phone' && internationalPhone == null) {
+          return 'Confira o número e o código do país';
         }
         if ((f.key == 'cpf'||f.key=='partnerCpf') && digits.length != 11) return 'CPF incompleto';
         if (courier && f.key == 'cpf' && (remoteError['cpfLookup']?.isNotEmpty ?? false)) return remoteError['cpfLookup'];
@@ -705,12 +721,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
     final ticket = (validationTicket[key] ?? 0) + 1;
     validationTicket[key] = ticket;
 
-    final trimmed = value.trim();
+    final trimmed = field == 'phone' ? internationalPhone ?? '' : value.trim();
     final digits = trimmed.replaceAll(RegExp(r'\D'), '');
     final ready = switch (field) {
       'cpf' || 'partnerCpf' => digits.length == 11,
       'cnpj' => digits.length == 14,
-      'phone' => digits.length == 11,
+      'phone' => internationalPhone != null,
       'email' => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(trimmed),
       _ => false,
     };
@@ -793,8 +809,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       case _Format.phone:
         return [
           FilteringTextInputFormatter.digitsOnly,
-          LengthLimitingTextInputFormatter(11),
-          _MaskFormatter('(##) #####-####'),
+          LengthLimitingTextInputFormatter(40),
         ];
       case _Format.cep:
         return [
@@ -848,8 +863,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
       return;
     }
 
+    final phone = internationalPhone;
+    if (phone == null) {
+      await _showInfo('Confira seu telefone', 'Confira o número e o código do país', AppIcons.phone_outlined);
+      return;
+    }
     final data = <String, dynamic>{
       for (final e in c.entries) e.key: e.value.text.trim(),
+      'phone': phone,
+      'phoneCountry': phoneCountry,
     };
 
     try {

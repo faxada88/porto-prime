@@ -1,4 +1,5 @@
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:country_picker/country_picker.dart';
 import 'core/localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -23,7 +24,7 @@ class PortoPrimeApp extends StatelessWidget {
     builder: (context, _) => MaterialApp(
     locale: AppLanguage.instance.locale,
     supportedLocales: AppLanguage.supported,
-    localizationsDelegates: GlobalMaterialLocalizations.delegates,
+    localizationsDelegates: [CountryLocalizations.delegate, ...GlobalMaterialLocalizations.delegates],
     debugShowCheckedModeBanner: false,
     title: 'Porto Prime',
     theme: AppTheme.light,
