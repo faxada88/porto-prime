@@ -53,7 +53,8 @@ class _IceOrderPanelState extends State<IceOrderPanel> {
    final match = preferred(products.where((p) => IceProductOption.fromProduct(p)?.type == widget.initialType));
    if (match != null) return match;
   }
-  return preferred(products);
+  return preferred(products.where((p) => icePackageKilograms(p) != null
+   && AppState.instance.canIncreaseQuantity(p['id'].toString()))) ?? preferred(products);
  }
  void choose(Map<dynamic, dynamic> product) => setState(() {
   selectedId = product['id'].toString(); quantity = 1;
@@ -94,15 +95,17 @@ class _IceOrderPanelState extends State<IceOrderPanel> {
    final option = IceProductOption.fromProduct(product);
    final options = iceOptionsFor(products, widget.categoryName);
    final other = products.where((p) => IceProductOption.fromProduct(p) == null).toList();
-   final candidates = option == null ? other : options
-    .where((o) => o.type == option.type && o.kilograms == option.kilograms).map((o) => o.product).toList();
+   final selectedWeight = icePackageKilograms(product);
+   final weightPool = option == null ? other : options
+    .where((o) => o.type == option.type).map((o) => o.product).toList();
+   final candidates = weightPool.where((p) => icePackageKilograms(p) == selectedWeight).toList();
    final id = product['id'].toString();
    final rawRemaining = state.stockLimit(id) - (state.cart[id] ?? 0);
    final remaining = rawRemaining < 0 ? 0 : rawRemaining;
    final count = remaining == 0 ? 1 : quantity > remaining ? remaining : quantity;
    final canAdd = state.canIncreaseQuantity(id) && count <= remaining;
    final price = double.tryParse(product['price'].toString()) ?? 0.0;
-   final weights = <int>{3, 6, 15, 20, ...options.map((o) => o.kilograms)}.toList()..sort();
+   final weights = <int>{3, 6, 10, 20, ...weightPool.map(icePackageKilograms).whereType<int>()}.toList()..sort();
    final url = (product['imageUrl'] ?? '').toString().trim();
    final availability = state.stockLimit(id) > 0 ? 'Em estoque' : 'Indisponível';
    return Container(padding: const EdgeInsets.all(18),
@@ -133,7 +136,7 @@ class _IceOrderPanelState extends State<IceOrderPanel> {
         selected: option?.type == type,
         icon: type == IceType.cubes ? Icons.ac_unit_rounded : Icons.grain_rounded,
         onTap: options.any((o) => o.type == type) ? () {
-         final sameWeight = options.where((o) => o.type == type && o.kilograms == option?.kilograms);
+         final sameWeight = options.where((o) => o.type == type && o.kilograms == selectedWeight);
          final next = preferred(sameWeight.where((o) => state.canIncreaseQuantity(o.id)).map((o) => o.product))
           ?? preferred(options.where((o) => o.type == type).map((o) => o.product));
          if (next != null) choose(next);
@@ -142,23 +145,43 @@ class _IceOrderPanelState extends State<IceOrderPanel> {
         onTap: () { final next = preferred(other); if (next != null) choose(next); }),
       ]),
      ],
-     if (option != null) ...[
-      const SizedBox(height: 18),
-      const _IceLabel('Peso do pacote'),
-      const SizedBox(height: 9),
-      LayoutBuilder(builder: (context, box) {
-       final columns = box.maxWidth >= 300 && MediaQuery.textScalerOf(context).scale(14) <= 20 ? 4 : 2;
-       final width = (box.maxWidth - (columns - 1) * 8) / columns;
-       return Wrap(spacing: 8, runSpacing: 8, children: [
-        for (final weight in weights) SizedBox(width: width, child: _IceChoice(label: weight.toString() + ' kg',
-         translate: false, selected: option.kilograms == weight,
-         onTap: options.any((o) => o.type == option.type && o.kilograms == weight) ? () {
-          final next = preferred(options.where((o) => o.type == option.type && o.kilograms == weight).map((o) => o.product));
-          if (next != null) choose(next);
-         } : null)),
-       ]);
-      }),
-     ],
+     const SizedBox(height: 18),
+     InputDecorator(
+      decoration: PrimeInputDecoration(labelText: 'Peso do pacote',
+       prefixIcon: const Icon(Icons.inventory_2_outlined, size: 21, color: Color(0xFF397B97)),
+       filled: true, fillColor: const Color(0xFFF1F8FC),
+       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+       border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFAFCDD9))),
+       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFAFCDD9)))),
+      child: DropdownButtonHideUnderline(child: DropdownButton<int>(
+       key: const ValueKey('ice-weight-dropdown'),
+       isExpanded: true, value: selectedWeight, borderRadius: BorderRadius.circular(18),
+       dropdownColor: Colors.white, menuMaxHeight: 360,
+       icon: const Icon(Icons.expand_more_rounded, color: Color(0xFF245D6B)),
+       hint: PrimeText(selectedWeight == null && weightPool.every((p) => icePackageKilograms(p) == null)
+        ? 'Peso não informado' : 'Selecione o peso',
+        style: const TextStyle(fontSize: 14, color: Color(0xFF527582))),
+       selectedItemBuilder: (context) => [
+        for (final weight in weights) Align(alignment: Alignment.centerLeft,
+         child: Text(weight.toString() + ' kg', style: const TextStyle(fontSize: 16,
+          fontWeight: FontWeight.w800, color: Color(0xFF123F49)))),
+       ],
+       items: [
+        for (final weight in weights) DropdownMenuItem<int>(
+         value: weight, enabled: weightPool.any((p) => icePackageKilograms(p) == weight),
+         child: Row(children: [
+          Text(weight.toString() + ' kg', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+          const SizedBox(width: 12),
+          if (!weightPool.any((p) => icePackageKilograms(p) == weight))
+           const Expanded(child: PrimeText('Indisponível', maxLines: 1, overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.end, style: TextStyle(fontSize: 11, color: AppColors.muted))),
+         ])),
+       ],
+       onChanged: (weight) {
+        final next = preferred(weightPool.where((p) => icePackageKilograms(p) == weight));
+        if (next != null) choose(next);
+       },
+      ))),
      const SizedBox(height: 20),
      if (candidates.length > 1) InputDecorator(
       decoration: PrimeInputDecoration(labelText: 'Produto', contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),

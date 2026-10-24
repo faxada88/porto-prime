@@ -5,7 +5,7 @@ import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/catalogue_cart_shortcut.dart';
-import '../../../../core/widgets/home_reference_artwork.dart';
+import '../../../../core/widgets/category_cover_artwork.dart';
 import '../../../../core/widgets/prime_product_card.dart';
 import '../../../../core/widgets/ice_selector_sheet.dart';
 
@@ -92,25 +92,20 @@ class _CategoriesPageState extends State<CategoriesPage>{
     final visual=AppIcons.categoryVisual(category,iconKey:metadata['iconKey']?.toString());
     // Every control filters only this category, even if the Home selection changes.
     final scoped=state.products.where((p)=>p['category']?['name']==category&&p['archived']!=true).toList();
+    final heroUrl=(metadata['imageUrl']??'').toString().trim();
+    final firstPhoto=scoped.where((p)=>(p['imageUrl']??'').toString().trim().isNotEmpty);
+    final productPhoto=firstPhoto.isEmpty?'':'${firstPhoto.first['imageUrl']}';
     final query=_fold(search.text.trim());
     final isIce=visual.key=='ice';
-    if(isIce)return AnnotatedRegion<SystemUiOverlayStyle>(value:SystemUiOverlayStyle.dark,child:Column(children:[
+    if(isIce)return Column(children:[
      Expanded(child:RefreshIndicator(onRefresh:state.loadProducts,child:CustomScrollView(
       physics:const AlwaysScrollableScrollPhysics(),slivers:[
-       SliverToBoxAdapter(child:SafeArea(bottom:false,child:Padding(
-        padding:const EdgeInsets.fromLTRB(8,6,16,4),child:Row(children:[
-         IconButton(tooltip:translateLabel('Voltar'),onPressed:()=>Navigator.of(context).maybePop(),
-          icon:const Icon(Icons.arrow_back_rounded,color:Color(0xFF123F49))),
-         const SizedBox(width:6),
-         Expanded(child:PrimeText(category,style:const TextStyle(fontSize:24,height:1.2,
-          fontWeight:FontWeight.w800,color:Color(0xFF123F49)))),
-         const Icon(Icons.ac_unit_rounded,size:26,color:Color(0xFF6798AA)),
-        ])))),
+       SliverToBoxAdapter(child:_CategoryHero(name:category,iconKey:visual.key,photo:heroUrl,productPhoto:productPhoto)),
        SliverPadding(padding:const EdgeInsets.fromLTRB(16,12,16,24),
         sliver:SliverToBoxAdapter(child:IceOrderPanel(key:ValueKey(category),categoryName:category))),
       ]))),
      const CatalogueCartShortcut(compact:true),
-    ]));
+    ]);
     final options=_facets[visual.key]??const <_Facet>[];
     final selected=options.where((f)=>f.label==facet);
     final products=scoped.where((p)=>(query.isEmpty||_searchable(p).contains(query))&&
@@ -124,14 +119,12 @@ class _CategoriesPageState extends State<CategoriesPage>{
      final recommended=(b['featuredHome']==true?1:0)-(a['featuredHome']==true?1:0);
      return recommended!=0?recommended:(positions['${a['id']}']??0).compareTo(positions['${b['id']}']??0);
     });
-    final heroUrl=(metadata['imageUrl']??'').toString().trim();
-    final firstPhoto=scoped.where((p)=>(p['imageUrl']??'').toString().trim().isNotEmpty);
-    final photo=heroUrl.isNotEmpty?heroUrl:visual.key=='beer'?'':firstPhoto.isEmpty?'':'${firstPhoto.first['imageUrl']}';
+
     return Column(children:[
      Expanded(child:RefreshIndicator(onRefresh:state.loadProducts,child:CustomScrollView(
       physics:const AlwaysScrollableScrollPhysics(),keyboardDismissBehavior:ScrollViewKeyboardDismissBehavior.onDrag,
       slivers:[
-       SliverToBoxAdapter(child:_CategoryHero(name:category,iconKey:visual.key,photo:photo)),
+       SliverToBoxAdapter(child:_CategoryHero(name:category,iconKey:visual.key,photo:heroUrl,productPhoto:productPhoto)),
        SliverPadding(padding:const EdgeInsets.fromLTRB(16,16,16,0),sliver:SliverToBoxAdapter(child:Row(children:[
         Expanded(child:TextField(controller:search,onChanged:(_)=>setState((){}),textInputAction:TextInputAction.search,
          onSubmitted:(_)=>FocusScope.of(context).unfocus(),
@@ -214,21 +207,14 @@ class _CategoriesPageState extends State<CategoriesPage>{
 }
 
 class _CategoryHero extends StatelessWidget{
- const _CategoryHero({required this.name,required this.iconKey,required this.photo});
- final String name,photo;final String? iconKey;
+ const _CategoryHero({required this.name,required this.iconKey,required this.photo,required this.productPhoto});
+ final String name,photo,productPhoto;final String? iconKey;
  @override Widget build(BuildContext context){
   final inset=MediaQuery.paddingOf(context).top;
   final scale=MediaQuery.textScalerOf(context).scale(14)/14;
-  final source=HomeReferenceArtwork.categories[iconKey];
   return ClipRRect(borderRadius:const BorderRadius.vertical(bottom:Radius.circular(22)),
    child:SizedBox(height:180+inset+(scale-1)*120,child:Stack(fit:StackFit.expand,children:[
-    const ColoredBox(color:Color(0xFF003039)),
-    if(photo.isNotEmpty)Image.network(photo,fit:BoxFit.cover,cacheWidth:1200,errorBuilder:(_,__,___)=>const SizedBox.shrink())
-    else if(iconKey=='beer')Image.asset('assets/reference_home/coast-banner.webp',fit:BoxFit.cover,
-     errorBuilder:(_,__,___)=>const SizedBox.shrink())
-    else Align(alignment:Alignment.centerRight,child:SizedBox(width:150,height:140,child:source==null?
-     Icon(AppIcons.categoryVisual(name,iconKey:iconKey).icon,size:95,color:const Color(0xFF91BCB8)):
-     HomeReferenceArtwork(source:source,fallback:const SizedBox.shrink()))),
+    CategoryCoverArtwork(name:name,iconKey:iconKey,photoUrl:photo,productUrl:productPhoto),
     const DecoratedBox(decoration:BoxDecoration(gradient:LinearGradient(
      colors:[Color(0xEF001A20),Color(0xD900252B),Color(0x2200252B)],stops:[0,.48,1]))),
     Padding(padding:EdgeInsets.fromLTRB(16,inset+9,16,16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[

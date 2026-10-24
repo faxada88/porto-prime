@@ -5,6 +5,19 @@ enum IceType {
  final String label;
 }
 
+
+/// Weight is useful even when the Admin product name does not specify ice type.
+int? icePackageKilograms(dynamic value) {
+ if (value is! Map || value['id'] == null) return null;
+ final name = (value['name'] ?? '').toString().toLowerCase();
+ final matches = RegExp(r'(?:^|[^0-9])(\d+(?:[.,]\d+)?)\s*(?:kg|quilos?|kilogramas?)\b').allMatches(name);
+ final weights = matches.map((m) => double.tryParse(m.group(1)!.replaceAll(',', '.')))
+  .whereType<double>().toSet();
+ if (weights.length != 1) return null;
+ final weight = weights.single;
+ return weight > 0 && weight == weight.roundToDouble() ? weight.toInt() : null;
+}
+
 class IceProductOption {
  const IceProductOption({required this.product, required this.kilograms, required this.type});
  final Map<dynamic, dynamic> product;
@@ -17,18 +30,12 @@ class IceProductOption {
   final name = (value['name'] ?? '').toString().toLowerCase()
    .replaceAll('í', 'i').replaceAll('ó', 'o').replaceAll('ú', 'u')
    .replaceAll('ã', 'a').replaceAll('é', 'e');
-  // Read identity from the product name, never a description listing several packs.
-  final matches = RegExp(r'(?:^|[^0-9])(\d+(?:[.,]\d+)?)\s*(?:kg|quilos?|kilogramas?)\b')
-   .allMatches(name);
-  final weights = matches.map((m) => double.tryParse(m.group(1)!.replaceAll(',', '.')))
-   .whereType<double>().toSet();
-  if (weights.length != 1) return null;
-  final weight = weights.single;
-  if (weight <= 0 || weight != weight.roundToDouble()) return null;
+  final weight = icePackageKilograms(value);
+  if (weight == null) return null;
   final cubes = RegExp(r'\bcubos?\b').hasMatch(name);
   final crushed = RegExp(r'\b(moid[oa]s?|triturad[oa]s?|picad[oa]s?)\b').hasMatch(name);
   if (cubes == crushed) return null;
-  return IceProductOption(product: value, kilograms: weight.toInt(),
+  return IceProductOption(product: value, kilograms: weight,
    type: cubes ? IceType.cubes : IceType.crushed);
  }
 }
