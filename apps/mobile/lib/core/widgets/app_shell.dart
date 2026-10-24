@@ -89,24 +89,30 @@ class _AppShellState extends State<AppShell> {
       final state = AppState.instance;
       if (state.isCourier) return const CourierPage();
 
-      final index = AppNav.instance.index.value;
+      final selectedIndex = AppNav.instance.index.value;
+      final index = !state.loggedIn && selectedIndex == 1 ? 0 : selectedIndex;
 
       return Scaffold(
         // The cart has a fixed checkout action; reserve the navigation height.
         extendBody: false,
         body: Column(children:[
           if(state.publicHighDemand) const CustomerDemandNotice(),
-          Expanded(child:IndexedStack(index:index,children:pages)),
+          Expanded(child:IndexedStack(index:index,children:[
+            pages[0], state.loggedIn ? pages[1] : const SizedBox.shrink(), pages[2], pages[3],
+          ])),
         ]),
         bottomNavigationBar: PrimeBottomNavigation(
           index: index,
+          showOrders: state.loggedIn,
           cartCount: state.cartCount,
           orderCount: customerLiveOrder(state)==null?0:1,
           onSelect: (value) async {
             if(value==4){Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const ShowcaseProductsPage(offersOnly:true)));return;}
             if(value!=1){AppNav.instance.go(value);return;}
+            if(!state.loggedIn)return;
+            final viewer=state.user?['id'];
             try{await Future.wait([state.loadOrders(),state.loadActiveOrder()]);}catch(_){}
-            if(!context.mounted)return;
+            if(!context.mounted||!state.loggedIn||state.user?['id']!=viewer)return;
             final active=customerLiveOrder(state);
             final visible=state.orders.whereType<Map>().where((o)=>o['adminDeletedAt']==null).toList()
               ..sort((a,b)=>'${b['createdAt']}'.compareTo('${a['createdAt']}'));

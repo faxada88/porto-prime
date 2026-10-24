@@ -100,11 +100,6 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
           title: const PrimeText('Acompanhar pedido'),
           actions: [
             IconButton(tooltip: translateLabel('Conversar sobre a entrega'),icon:const Icon(AppIcons.mail),onPressed:()=>Navigator.of(context).push(MaterialPageRoute(settings:RouteSettings(name:'/delivery-chat/${widget.orderId}'),builder:(_)=>DeliveryChatPage(orderId:widget.orderId)))),
-            IconButton(
-              tooltip: translateLabel( 'Início'),
-              onPressed: AppNav.instance.home,
-              icon: const Icon(AppIcons.home),
-            ),
           ],
         ),
         body: SafeArea(
@@ -278,7 +273,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                 const SizedBox(height: 18),
                 OutlinedButton.icon(
                   onPressed: AppNav.instance.home,
-                  icon: const Icon(AppIcons.home, size: 18),
+                  icon: const Icon(AppIcons.arrowLeft, size: 18),
                   label: const PrimeText('Voltar para o início'),
                 ),
               ],

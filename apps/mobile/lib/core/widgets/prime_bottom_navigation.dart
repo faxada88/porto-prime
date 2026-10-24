@@ -6,8 +6,9 @@ import '../theme/app_theme.dart';
 /// Presentation only: selection is owned by the existing shell/router.
 class PrimeBottomNavigation extends StatelessWidget {
   const PrimeBottomNavigation({super.key, required this.index,
-    required this.onSelect, this.orderCount = 0, this.cartCount = 0});
+    required this.onSelect, this.orderCount = 0, this.cartCount = 0, this.showOrders = false});
   final int index, cartCount, orderCount;
+  final bool showOrders;
   final ValueChanged<int> onSelect;
 
   @override
@@ -43,7 +44,7 @@ class PrimeBottomNavigation extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
                 child: Row(children: [
                   _destination(context, 0, 'Início', AppIcons.home),
-                  _destination(context, 1, 'Pedidos', AppIcons.receipt_long_rounded),
+                  if (showOrders) _destination(context, 1, 'Pedidos', AppIcons.receipt_long_rounded),
                   _destination(context, 2, 'Carrinho', AppIcons.cart),
                   _destination(context, 4, 'Ofertas', AppIcons.tag),
                   _destination(context, 3, 'Conta', AppIcons.user),

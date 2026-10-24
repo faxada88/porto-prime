@@ -13,7 +13,7 @@ void main(){
    final calls=<int>[];
    await tester.pumpWidget(MaterialApp(theme:AppTheme.light,home:MediaQuery(
     data:MediaQueryData(size:const Size(320,640),textScaler:TextScaler.linear(scale)),
-    child:Scaffold(bottomNavigationBar:PrimeBottomNavigation(index:0,cartCount:3,onSelect:calls.add)))));
+    child:Scaffold(bottomNavigationBar:PrimeBottomNavigation(index:0,cartCount:3,showOrders:true,onSelect:calls.add)))));
    for(final label in ['Início','Pedidos','Carrinho','Ofertas','Conta']){
     await tester.tap(find.text(label));
    }
@@ -22,4 +22,18 @@ void main(){
    expect(tester.takeException(),isNull);
   });
  }
+ testWidgets('Guests never see Orders and the other menu destinations retain their indices', (tester) async {
+  final calls=<int>[];
+  await tester.pumpWidget(MaterialApp(theme:AppTheme.light,home:Scaffold(
+   bottomNavigationBar:PrimeBottomNavigation(index:0,cartCount:3,orderCount:8,
+    showOrders:false,onSelect:calls.add))));
+  expect(find.text('Pedidos'),findsNothing);
+  expect(find.text('8'),findsNothing);
+  for(final label in ['Início','Carrinho','Ofertas','Conta']) {
+   await tester.tap(find.text(label));
+  }
+  expect(calls,[0,2,4,3]);
+  expect(tester.takeException(),isNull);
+ });
+
 }

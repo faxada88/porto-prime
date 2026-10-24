@@ -1,4 +1,4 @@
-import 'package:porto_prime/core/widgets/home_reference_artwork.dart';
+import 'package:porto_prime/core/widgets/prime_brand_banner.dart';
 import 'package:porto_prime/core/widgets/product_showcase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,7 +28,7 @@ void main() {
       ReferenceHomeHeader(address:'Avenida dos Navegantes, 123',region:'Centro • Porto Seguro, BA',cartCount:12,onAddress:(){},onCart:(){},onProfile:(){}),
       const SizedBox(height:16),ReferenceHomeSearch(onTap:(){}),
       const SizedBox(height:16),SizedBox(height:100+scale*26,child:Row(children:[for(final name in ['Cervejas','Refrigerantes','Conveniência'])Expanded(child:ReferenceCategoryTile(name:name,onTap:(){}))])),
-      const SizedBox(height:16),ReferenceCoastHero(onTap:(){}),
+      const SizedBox(height:16),const ReferenceCoastHero(),
       const SizedBox(height:16),SizedBox(height:300+scale*120,child:Row(children:[for(var i=0;i<2;i++)Expanded(child:ReferenceProductSurface(name:'Produto do catálogo',description:'Descrição original',price:r'R$ 42,00',available:true,image:const Icon(Icons.local_drink),control:IconButton(onPressed:(){},icon:const Icon(Icons.shopping_cart))))])),
      ]))))));
     await tester.pump();
@@ -69,13 +69,12 @@ void main() {
   expect(state.cart['reference-test'],1);
  });
 
- testWidgets('Horizontal campaign opens offers without redundant catalogue action', (tester) async {
-  var opened=0;
-  await tester.pumpWidget(MaterialApp(home:Scaffold(body:SingleChildScrollView(child:Padding(padding:const EdgeInsets.all(18),child:ReferenceCoastHero(onTap:()=>opened++))))));
-  expect(find.descendant(of:find.byType(ReferenceCoastHero),matching:find.byType(HomeReferenceArtwork)),findsOneWidget);
-  expect(find.text('Explorar catálogo'), findsNothing);
-  await tester.tap(find.descendant(of:find.byType(ReferenceCoastHero),matching:find.byType(InkWell)));
-  expect(opened,1);
+ testWidgets('Campaign stays informational and has no redundant offers destination', (tester) async {
+  await tester.pumpWidget(MaterialApp(home:const Scaffold(body:SingleChildScrollView(
+   child:Padding(padding:EdgeInsets.all(18),child:ReferenceCoastHero())))));
+  expect(find.byType(PrimeBrandBanner),findsOneWidget);
+  expect(find.text('Ver ofertas'),findsNothing);
+  expect(find.descendant(of:find.byType(ReferenceCoastHero),matching:find.byType(InkWell)),findsNothing);
   expect(tester.takeException(),isNull);
  });
 

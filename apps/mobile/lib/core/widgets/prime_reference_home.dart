@@ -71,8 +71,8 @@ class ReferenceHomeSearch extends StatelessWidget {
     ]))));
 }
 class ReferenceCoastHero extends StatelessWidget {
- const ReferenceCoastHero({super.key,this.onTap});final VoidCallback? onTap;
- @override Widget build(BuildContext context)=>PrimeBrandBanner(onExplore:onTap);
+ const ReferenceCoastHero({super.key});
+ @override Widget build(BuildContext context)=>const PrimeBrandBanner();
 }
 
 class ReferenceCategoryTile extends StatelessWidget {

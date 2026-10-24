@@ -43,15 +43,11 @@ class _OrdersPageState extends State<OrdersPage> {
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: AppColors.canvas,
         appBar: AppBar(
-          leading: Navigator.of(context).canPop() ? const PrimeBackButton() : null,
+          leading: BackButton(onPressed: () {
+            if (Navigator.of(context).canPop()) { Navigator.of(context).pop(); }
+            else { AppNav.instance.home(); }
+          }),
           title: const PrimeText('Pedidos'),
-          actions: [
-            IconButton(
-              tooltip: translateLabel( 'Início'),
-              onPressed: AppNav.instance.home,
-              icon: const Icon(AppIcons.home),
-            ),
-          ],
         ),
         body: AnimatedBuilder(
           animation: AppState.instance,

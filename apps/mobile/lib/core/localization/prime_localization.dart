@@ -17,6 +17,9 @@ class AppLanguage extends ChangeNotifier {
   SharedPreferences? _preferences;
 
   static const Map<String, Map<String, String>> _curated = {
+"Bebidas para o seu momento": {"es":"Bebidas para tu momento","en":"Drinks for your moment"},
+"Seus itens continuam no carrinho.": {"es":"Tus productos siguen en el carrito.","en":"Your items stay in your cart."},
+"Continuar comprando": {"es":"Seguir comprando","en":"Continue shopping"},
 "Informe um telefone válido com o código do país": {"es":"Introduce un teléfono válido con el código del país","en":"Enter a valid phone number with its country calling code"},
 "Confira seu telefone": {"es":"Revisa tu teléfono","en":"Check your phone number"},
 "Confira o número e o código do país": {"es":"Revisa el número y el código del país","en":"Check the number and country calling code"},

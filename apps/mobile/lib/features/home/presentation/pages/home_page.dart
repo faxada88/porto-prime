@@ -47,7 +47,7 @@ class HomePage extends StatelessWidget {
        onAddress:(){if(state.isCustomer){showDeliveryAddressSheet(context);}else{AppNav.instance.go(3);}},onCart:()=>AppNav.instance.go(2),onProfile:(){if(!state.isCustomer){AppNav.instance.go(3);return;}Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const CustomerActivityPage()));})),top:12),
       _section(ReferenceHomeSearch(onTap:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const AllCategoriesPage())))),
       if(categories.isNotEmpty)_section(_HomeCategories(categories:categories),top:12),
-      _section(ReferenceCoastHero(onTap:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const ShowcaseProductsPage(offersOnly:true)))),top:14),
+      _section(const ReferenceCoastHero(),top:14),
       if(products.isNotEmpty)...[
        _section(ProductShowcase(products:products),top:20),
       ],

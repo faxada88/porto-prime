@@ -54,30 +54,26 @@ class _CartPageState extends State<CartPage> {
           Widget contents({bool showSummary = false}) => CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.fromLTRB(4, 22, 4, 24),
-                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const PrimeText('QUASE LÁ', style: TextStyle(fontSize: 10, letterSpacing: 1.4,
-                      fontWeight: FontWeight.w800, color: AppColors.ocean700)),
-                    const SizedBox(height: 7),
-                    const PrimeText('Seu carrinho', style: TextStyle(fontSize: 30, height: 1.1,
-                      fontWeight: FontWeight.w800, letterSpacing: -1, color: AppColors.ocean900)),
-                    const SizedBox(height: 10),
-                    PrimeText(entries.isEmpty ? 'Seu próximo pedido começa aqui.'
-                      : '${app.cartCount} ${app.cartCount == 1 ? 'item escolhido' : 'itens escolhidos'} por você.',
-                      style: const TextStyle(fontSize: 12, height: 1.5, color: AppColors.muted)),
-                  ])),
-                  const SizedBox(width: 12),
-                  IconButton.filledTonal(tooltip: translateLabel( 'Adicionar produtos'),
-                    onPressed: AppNav.instance.home,
-                    style: IconButton.styleFrom(backgroundColor: AppColors.ocean100,
-                      foregroundColor: AppColors.ocean900, minimumSize: const Size(48, 48)),
-                    icon: const Icon(AppIcons.plus, size: 22)),
+              SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.fromLTRB(4, 22, 4, 20),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  const PrimeText('QUASE LÁ', style: TextStyle(fontSize: 10, letterSpacing: 1.4,
+                    fontWeight: FontWeight.w800, color: AppColors.ocean700)),
+                  const SizedBox(height: 7),
+                  const PrimeText('Seu carrinho', style: TextStyle(fontSize: 30, height: 1.1,
+                    fontWeight: FontWeight.w800, letterSpacing: -1, color: AppColors.ocean900)),
+                  const SizedBox(height: 10),
+                  PrimeText(entries.isEmpty ? 'Seu próximo pedido começa aqui.'
+                    : '${app.cartCount} ${app.cartCount == 1 ? 'item escolhido' : 'itens escolhidos'} por você.',
+                    style: const TextStyle(fontSize: 12, height: 1.5, color: AppColors.muted)),
+                  if (entries.isNotEmpty) ...[
+                    const SizedBox(height: 18),
+                    _ContinueShoppingAction(onTap: working ? null : AppNav.instance.home),
+                  ],
                 ]))),
               if (entries.isEmpty)
                 SliverFillRemaining(hasScrollBody: false,
                   child: Padding(padding: const EdgeInsets.only(bottom: 24),
-                    child: PrimeCartEmpty(onExplore: () => AppNav.instance.go(1))))
+                    child: PrimeCartEmpty(onExplore: AppNav.instance.home)))
               else ...[
                 const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.only(bottom: 16),
                   child: CheckoutProgress(step: 0))),
@@ -116,6 +112,33 @@ class _CartPageState extends State<CartPage> {
   });
 }
 String _brl(double value)=>'R\$ ${value.toStringAsFixed(2).replaceAll('.',',')}';
+
+
+class _ContinueShoppingAction extends StatelessWidget {
+ const _ContinueShoppingAction({required this.onTap});
+ final VoidCallback? onTap;
+ @override Widget build(BuildContext context) => Material(
+  color: const Color(0xFFF0F8FA), borderRadius: BorderRadius.circular(18),
+  child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(18),
+   child: Container(padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(borderRadius: BorderRadius.circular(18),
+     border: Border.all(color: const Color(0xFFA7CBD5), width: 1.2)),
+    child: Row(children: [
+     Container(width: 42, height: 42, decoration: BoxDecoration(color: Colors.white,
+      borderRadius: BorderRadius.circular(13)), child: const Icon(Icons.add_shopping_cart_rounded,
+       size: 23, color: Color(0xFF2C6E7B))),
+     const SizedBox(width: 12),
+     const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      PrimeText('Continuar comprando', style: TextStyle(fontSize: 15, height: 1.25,
+       fontWeight: FontWeight.w800, color: Color(0xFF173E49))),
+      SizedBox(height: 4),
+      PrimeText('Seus itens continuam no carrinho.', style: TextStyle(fontSize: 11.5,
+       height: 1.4, color: Color(0xFF527582))),
+     ])),
+     const SizedBox(width: 8),
+     const Icon(Icons.arrow_forward_rounded, size: 20, color: Color(0xFF2C6E7B)),
+    ]))));
+}
 
 class _CartItem extends StatelessWidget {
   const _CartItem({required this.id,required this.qty});
