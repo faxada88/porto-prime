@@ -62,6 +62,15 @@ class PrimeCartSummary extends StatelessWidget {
       border: Border(top: BorderSide(color: AppColors.stroke))),
     child: Column(mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Padding(padding: const EdgeInsets.only(bottom: 12),
+          child: Wrap(alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center, spacing: 16, runSpacing: 4,
+            children: [
+              const PrimeText('Subtotal', style: TextStyle(fontSize: 13,
+                fontWeight: FontWeight.w600, color: AppColors.muted)),
+              PrimeText(subtotal, style: const TextStyle(fontSize: 20, height: 1.2,
+                letterSpacing: -.4, fontWeight: FontWeight.w800, color: AppColors.ocean900)),
+            ])),
         if (storeKnown && !storeOpen) Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: PrimeText(storeMessage, style: const TextStyle(
