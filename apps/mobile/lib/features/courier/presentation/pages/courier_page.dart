@@ -6,6 +6,9 @@ import '../widgets/delivery_return_page.dart';
 import '../../../support/presentation/pages/delivery_chat_page.dart';
 import '../../../support/presentation/pages/support_page.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../widgets/courier_dashboard_map.dart';
+import '../widgets/courier_delivery_surface.dart';
 import '../widgets/incoming_delivery_offer_sheet.dart';
 import 'courier_operations_dashboard.dart';
 import 'courier_demand_notice.dart';
@@ -32,6 +35,12 @@ class _CourierPageState extends State<CourierPage> {
   Timer? _refreshTimer;
   int _refreshTicks=0;
   bool _navBusy = false;
+  bool _advancing = false;
+  bool _offerActionBusy = false;
+  int _navIndex = 0;
+  bool _updatesOpen = false;
+  bool _mapHeaderVisible = true;
+  final Set<String> _readUpdateIds = {};
   final _operationsScroll = ScrollController();
   String? _lastPresentedOfferId;
   bool _offerModalOpen = false;
@@ -49,6 +58,8 @@ class _CourierPageState extends State<CourierPage> {
   void initState() {
     super.initState();
     AppState.instance.addListener(_syncOfferSound);
+    unawaited(_loadReadUpdates());
+    _operationsScroll.addListener(_updateStatusBar);
     Future<void>(() async {
       try {
         await AppState.instance.heartbeatCourier();
@@ -83,36 +94,41 @@ class _CourierPageState extends State<CourierPage> {
     stopDeliveryOfferSound();
     _heartbeatTimer?.cancel();
     _refreshTimer?.cancel();
+    _operationsScroll.removeListener(_updateStatusBar);
     _operationsScroll.dispose();
     super.dispose();
   }
 
-  void _presentIncomingOfferIfNeeded(
-    BuildContext context,
-    AppState state,
-  ) {
-    if (_offerModalOpen ||
-        state.courierDelivery != null ||
-        !state.courierOnline ||
-        state.courierOffers.isEmpty) {
-      return;
-    }
-
+  void _presentIncomingOfferIfNeeded(BuildContext context, AppState state) {
+    if (_offerModalOpen || state.courierDelivery != null || !state.courierOnline ||
+        state.courierOffers.isEmpty) return;
     final offer = Map<String, dynamic>.from(state.courierOffers.first);
-    final id =
-        offer['offerId']?.toString() ?? offer['orderId']?.toString();
-    if (id == null || id == _lastPresentedOfferId) return;
-
+    final id = (offer['offerId'] ?? offer['orderId'])?.toString();
+    final expiry = DateTime.tryParse(offer['expiresAt']?.toString() ?? '');
+    if (id == null || id == _lastPresentedOfferId || expiry == null ||
+        !expiry.isAfter(DateTime.now())) return;
     _lastPresentedOfferId = id;
-    _offerModalOpen = true;
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
-      try {
-        await _showDeliverySheet(context,order:offer,incoming:true);
-      } finally {
-        if(mounted)setState(()=>_offerModalOpen=false);
-        else _offerModalOpen=false;
+      if (!mounted || !state.isCourier || !state.courierOnline ||
+          state.courierDelivery != null ||
+          !state.courierOffers.any((o) => (o['offerId'] ?? o['orderId']).toString() == id)) return;
+      _soundingOfferId = id;
+      startDeliveryOfferSound(expiry);
+      HapticFeedback.heavyImpact();
+      // On Home, the same guarded offer component is inline and directly actionable.
+      // While another section is open, retain the existing interrupting offer sheet.
+      if (ModalRoute.of(context)?.isCurrent == false) {
+        _offerModalOpen = true;
+        try { await _showDeliverySheet(context, order: offer, incoming: true); }
+        finally { _offerModalOpen = false; }
+      } else if (_operationsScroll.hasClients) {
+        final offset = 260.0.clamp(0.0, _operationsScroll.position.maxScrollExtent).toDouble();
+        if (MediaQuery.disableAnimationsOf(context)) {
+          _operationsScroll.jumpTo(offset);
+        } else {
+          await _operationsScroll.animateTo(offset,
+            duration: const Duration(milliseconds: 260), curve: Curves.easeOutCubic);
+        }
       }
     });
   }
@@ -350,7 +366,7 @@ class _CourierPageState extends State<CourierPage> {
                                   if (dialogContext.mounted) {
                                     Navigator.pop(dialogContext);
                                   }
-                                  if (context.mounted) {
+                                  if (context.mounted && Navigator.of(context).canPop()) {
                                     Navigator.pop(context);
                                   }
                                 } catch (e) {
@@ -392,7 +408,7 @@ class _CourierPageState extends State<CourierPage> {
   }
 
   Future<void> _openDriverMenu(BuildContext context) async {
-    await AppState.instance.loadWallet();
+    try { await AppState.instance.loadWallet(); } catch (_) {}
     if (!mounted) return;
 
     await showModalBottomSheet<void>(
@@ -432,8 +448,14 @@ class _CourierPageState extends State<CourierPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: .50),
-      builder: (_) => _DriverSectionSheet(
+      builder: (sectionContext) => _DriverSectionSheet(
         section: section,
+        onMenu: () {
+          Navigator.pop(sectionContext);
+          Future<void>.delayed(const Duration(milliseconds: 150), () {
+            if (mounted) _openDriverMenu(context);
+          });
+        },
         onWithdraw: () => _requestWithdrawal(context),
         onOpenDelivery: (order) => _showDeliverySheet(
           context,
@@ -613,145 +635,273 @@ class _CourierPageState extends State<CourierPage> {
     pixController.dispose();
   }
 
+  Future<void> _loadReadUpdates() async {
+    final account = AppState.instance.user?['id']?.toString();
+    if (account == null) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getStringList('courier-dashboard-read-' + account) ?? [];
+      if (mounted && AppState.instance.user?['id']?.toString() == account) {
+        setState(() => _readUpdateIds.addAll(saved));
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveReadUpdates() async {
+    final account = AppState.instance.user?['id']?.toString();
+    if (account == null) return;
+    final ids = _readUpdateIds.toList().reversed.take(200).toList();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('courier-dashboard-read-' + account, ids);
+    } catch (_) {}
+  }
+
+  void _updateStatusBar() {
+    if (!mounted || !_operationsScroll.hasClients) return;
+    final large = MediaQuery.textScalerOf(context).scale(14) > 19;
+    final height = large ? 480.0 : MediaQuery.sizeOf(context).width < 350 ? 400.0 : 320.0;
+    final visible = _operationsScroll.offset < height;
+    if (visible != _mapHeaderVisible) setState(() => _mapHeaderVisible = visible);
+  }
+
+  void _scrollHome() {
+    HapticFeedback.selectionClick();
+    if (!_operationsScroll.hasClients) return;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _operationsScroll.jumpTo(0);
+    } else {
+      _operationsScroll.animateTo(0, duration: const Duration(milliseconds: 220), curve: Curves.easeOut);
+    }
+  }
+
+  Future<void> _dashboardSection(int index, String section) async {
+    if (_navBusy || _advancing || (_offerActionBusy && AppState.instance.courierDelivery == null)) return;
+    setState(() { _navBusy = true; _navIndex = index; });
+    try { await _openDriverSection(context, section); }
+    catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: PrimeText(PrimeMessages.friendly(error))));
+    } finally {
+      if (mounted) setState(() { _navBusy = false; _navIndex = 0; });
+    }
+  }
+
+  Future<void> _dashboardDeliveries() async {
+    final current = AppState.instance.courierDelivery;
+    if (current == null) { await _dashboardSection(1, 'deliveries'); return; }
+    if (_navBusy || _advancing || (_offerActionBusy && AppState.instance.courierDelivery == null)) return;
+    setState(() { _navBusy = true; _navIndex = 1; });
+    try { await _showDeliverySheet(context, order: Map<String, dynamic>.from(current), incoming: false); }
+    finally { if (mounted) setState(() { _navBusy = false; _navIndex = 0; }); }
+  }
+
+  Future<void> _advanceCurrent(Map<String, dynamic> current) async {
+    if (_advancing) return;
+    final next = _nextStatus(current['status']?.toString());
+    if (next == null) return;
+    setState(() => _advancing = true);
+    try {
+      if (next == 'DELIVERED') {
+        await _confirmDeliveryWithPin(context, current['id'].toString());
+      } else {
+        await AppState.instance.advanceDelivery(current['id'].toString(), next);
+      }
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: PrimeText(PrimeMessages.friendly(error))));
+    } finally { if (mounted) setState(() => _advancing = false); }
+  }
+
+  Future<void> _refreshDashboard() async {
+    try { await AppState.instance.refreshCourier(); }
+    catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: PrimeText(PrimeMessages.friendly(error))));
+    }
+  }
+
+  void _offerResolved() {
+    stopDeliveryOfferSound(); _soundingOfferId = null;
+    if (mounted) setState(() {});
+    unawaited(AppState.instance.refreshCourierOperations().catchError((_) {}));
+  }
+
+  List<CourierDashboardUpdate> _dashboardUpdates(AppState state) {
+    final rows = <CourierDashboardUpdate>[];
+    for (final raw in state.courierOffers.whereType<Map>()) {
+      final offer = Map<String, dynamic>.from(raw);
+      final expiry = DateTime.tryParse(offer['expiresAt']?.toString() ?? '');
+      if (expiry == null || !expiry.isAfter(DateTime.now())) continue;
+      rows.add(CourierDashboardUpdate(
+        id: 'offer:' + (offer['offerId'] ?? offer['orderId']).toString(),
+        title: 'Nova entrega', detail: _money(offer['courierEarnings'] ?? offer['deliveryFee']),
+        icon: AppIcons.bike,
+        onTap: () => _showDeliverySheet(context, order: offer, incoming: true)));
+    }
+    final current = state.courierDelivery;
+    if (current != null) {
+      rows.add(CourierDashboardUpdate(
+        id: 'delivery:' + current['id'].toString() + ':' + current['status'].toString(),
+        title: 'Entrega em andamento', detail: _statusLabel(current['status']?.toString() ?? ''),
+        icon: AppIcons.route, onTap: _dashboardDeliveries));
+    }
+    final entries = state.walletLedger.isEmpty ? state.walletSummary['recentEntries'] : state.walletLedger;
+    if (entries is List) {
+      for (final raw in entries.whereType<Map>().take(6)) {
+        if (raw['id'] == null) continue;
+        final amount = double.tryParse(raw['amount']?.toString() ?? '') ?? 0;
+        rows.add(CourierDashboardUpdate(
+          id: 'wallet:' + raw['id'].toString(),
+          title: amount > 0 ? 'Crédito recebido' : 'Movimentação na carteira',
+          detail: _money(amount) + ' • ' + (raw['description'] ?? 'Carteira').toString(),
+          icon: AppIcons.wallet, onTap: () => _dashboardSection(2, 'wallet')));
+      }
+    }
+    for (final raw in state.withdrawals.whereType<Map>().take(4)) {
+      if (raw['id'] == null) continue;
+      rows.add(CourierDashboardUpdate(
+        id: 'withdrawal:' + raw['id'].toString() + ':' + raw['status'].toString(),
+        title: 'Saque atualizado',
+        detail: _money(raw['amount']) + ' • ' + _withdrawalStatus(raw['status']?.toString() ?? ''),
+        icon: AppIcons.money, onTap: () => _dashboardSection(2, 'withdrawals')));
+    }
+    return rows;
+  }
+
+  Future<void> _openUpdates() async {
+    if (_updatesOpen || (_offerActionBusy && AppState.instance.courierDelivery == null)) return;
+    _updatesOpen = true;
+    unawaited(AppState.instance.refreshCourier().catchError((_) {}));
+    if (!mounted) { _updatesOpen = false; return; }
+    try {
+    await showModalBottomSheet<void>(context: context, isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => StatefulBuilder(builder: (sheetContext, setSheetState) =>
+        AnimatedBuilder(animation: AppState.instance, builder: (_, __) {
+          final rows = _dashboardUpdates(AppState.instance);
+          return CourierUpdatesSheet(rows: rows, readIds: _readUpdateIds,
+            onReadAll: () {
+              setState(() => _readUpdateIds.addAll(rows.map((r) => r.id)));
+              setSheetState(() {});
+              unawaited(_saveReadUpdates());
+            },
+            onSelect: (row) {
+              setState(() => _readUpdateIds.add(row.id));
+              unawaited(_saveReadUpdates());
+              Navigator.pop(sheetContext);
+              Future<void>.delayed(const Duration(milliseconds: 150), () {
+                if (mounted) row.onTap();
+              });
+            });
+        })));
+    } finally { _updatesOpen = false; }
+  }
+
+  Future<void> _showRating() async {
+    final profile = AppState.instance.courierProfile;
+    final rating = double.tryParse((profile['ratingAverage'] ??
+      profile['averageRating'] ?? profile['rating'] ?? '').toString());
+    await showDialog<void>(context: context, builder: (dialogContext) => AlertDialog(
+      icon: const Icon(Icons.star_border_rounded, size: 32, color: courierGreen),
+      title: const PrimeText('Avaliação'),
+      content: rating != null && rating > 0 && rating <= 5
+        ? PrimeText(rating.toStringAsFixed(1).replaceAll('.', ','),
+            textAlign: TextAlign.center, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800))
+        : const PrimeText('Suas avaliações aparecerão aqui quando disponíveis.'),
+      actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const PrimeText('Entendi'))],
+    ));
+  }
+
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
-        animation: AppState.instance,
-        builder: (_, __) {
-          final state = AppState.instance;
-          final current = state.courierDelivery == null
-              ? null
-              : Map<String, dynamic>.from(state.courierDelivery!);
-          if(current?['cancellation'] is Map && ['REQUIRED','IN_TRANSIT','ARRIVED'].contains(current!['cancellation']['returnStatus'])) return DeliveryReturnPage(order:current);
-          final offers = state.courierOffers
-              .map((x) => Map<String, dynamic>.from(x))
-              .toList();
-          final first = (state.user?['name'] ?? 'Motoboy')
-              .toString()
-              .split(' ')
-              .first;
-
-          _presentIncomingOfferIfNeeded(context, state);
-
-          return Scaffold(
-            backgroundColor: AppColors.canvas,
-            bottomNavigationBar: CourierOperationsNav(online:state.courierOnline,active:current!=null,busy:_navBusy,onHome:(){HapticFeedback.selectionClick();if(_operationsScroll.hasClients)_operationsScroll.animateTo(0,duration:Duration(milliseconds:MediaQuery.disableAnimationsOf(context)?0:220),curve:Curves.easeOut);},onWallet:()=>_openDriverSection(context,'wallet'),onHistory:()=>_openDriverSection(context,'history'),onProfile:()=>_openDriverSection(context,'profile'),onAction:() async {
-              if(_navBusy)return;
-              setState(()=>_navBusy=true);
-              try { if(current!=null){await _showDeliverySheet(context,order:current,incoming:false);}else if(!state.courierOnline){await state.setCourierOnline(true);}else{await state.refreshCourier();} }
-              catch(e){if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:PrimeText(PrimeMessages.friendly(e))));}
-              finally{if(mounted)setState(()=>_navBusy=false);}
-            }),
-            body: SafeArea(
-              child: RefreshIndicator(
-                onRefresh: state.refreshCourier,
-                child: PrimePageViewport(child: ListView(
-                  controller: _operationsScroll,
-                  physics: const AlwaysScrollableScrollPhysics(
-                    parent: BouncingScrollPhysics(),
-                  ),
-                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 34),
-                  children: [
-                    Row(children:[const Expanded(child:PrimeText('Porto Prime / Driver',style:TextStyle(fontSize:13,fontWeight:FontWeight.w800,color:AppColors.ocean800))),IconButton(tooltip: translateLabel('Menu do motoboy'),onPressed:()=>_openDriverMenu(context),icon:const Icon(AppIcons.grid_view_rounded)),IconButton(tooltip: translateLabel('Sair'),onPressed:state.logout,icon:const Icon(AppIcons.logout_rounded))]),
-                    const SizedBox(height:14),
-                    if(state.courierHighDemand) ...[CourierDemandNotice(online:state.courierOnline,bonusAmount:state.courierDemandBonus),const SizedBox(height:14)],
-                    CourierOperationsHero(name:first,online:state.courierOnline,active:current!=null,onChanged:current==null?state.setCourierOnline:null),
-                    const SizedBox(height: 12),
-                    _CourierSnapshot(
-                      summary: state.walletSummary,
-                      presence: state.courierPresenceStatus,
-                    ),
-                    if (current != null) ...[
-                      if(liveRouteMode(current)!=null) const CourierTrackingNotice(),
-                      const SizedBox(height: 22),
-                      const _SectionTitle(
-                        eyebrow: 'MISSÃO ATUAL',
-                        title: 'Entrega em andamento',
-                        subtitle:
-                            'Uma rota por vez. Todos os detalhes ficam reunidos aqui.',
-                      ),
-                      const SizedBox(height: 12),
-                      _ActiveDeliveryCard(
-                        order: current,
-                        onOpen: () => _showDeliverySheet(
-                          context,
-                          order: current,
-                          incoming: false,
-                        ),
-                        onPrimaryAction: () async {
-                          final next =
-                              _nextStatus(current['status']?.toString());
-                          if (next == null) return;
-                          if (next == 'DELIVERED') {
-                            await _confirmDeliveryWithPin(
-                              context,
-                              current['id'].toString(),
-                            );
-                          } else {
-                            try {
-                              await state.advanceDelivery(
-                                current['id'].toString(),
-                                next,
-                              );
-                            } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: PrimeText(PrimeMessages.friendly(e)),
-                                  ),
-                                );
-                              }
-                            }
-                          }
-                        },
-                      ),
-                    ] else ...[
-                      const SizedBox(height: 22),
-                      _SectionTitle(
-                        eyebrow: 'RADAR DE ENTREGAS',
-                        title: state.courierOnline
-                            ? 'Chamadas disponíveis'
-                            : 'Entre online para receber',
-                        subtitle: state.courierOnline
-                            ? 'Novos pedidos liberados aparecem automaticamente.'
-                            : 'Quando estiver pronto para rodar, ative sua disponibilidade.',
-                      ),
-                      const SizedBox(height: 12),
-                      if (!state.courierOnline)
-                        const _DriverEmpty(
-                          icon: AppIcons.power_settings_new_rounded,
-                          title: 'Você está offline',
-                          subtitle:
-                              'Ative o modo online acima para começar a receber chamadas de entrega.',
-                        )
-                      else if (offers.isEmpty)
-                        const _DriverEmpty(
-                          icon: AppIcons.radar_rounded,
-                          title: 'Radar ativo',
-                          subtitle:
-                              'Estamos procurando pedidos liberados pela operação. Assim que uma entrega chegar, você verá a chamada na tela.',
-                        )
-                      else
-                        ...offers.map(
-                          (offer) => Padding(
-                            padding: const EdgeInsets.only(bottom: 11),
-                            child: _OfferCard(
-                              order: offer,
-                              onTap: () => _showDeliverySheet(
-                                context,
-                                order: offer,
-                                incoming: true,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ],
-                )),
-              ),
-            ),
-          );
-        },
-      );
+    animation: AppState.instance,
+    builder: (_, __) {
+      final state = AppState.instance;
+      final current = state.courierDelivery == null ? null
+        : Map<String, dynamic>.from(state.courierDelivery!);
+      if (current?['cancellation'] is Map &&
+          ['REQUIRED', 'IN_TRANSIT', 'ARRIVED'].contains(current!['cancellation']['returnStatus'])) {
+        return DeliveryReturnPage(order: current);
+      }
+      final offers = state.courierOffers.whereType<Map>()
+        .map((x) => Map<String, dynamic>.from(x))
+        .where((x) => DateTime.tryParse(x['expiresAt']?.toString() ?? '')?.isAfter(DateTime.now()) == true)
+        .toList();
+      final updates = _dashboardUpdates(state);
+      _presentIncomingOfferIfNeeded(context, state);
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: (_mapHeaderVisible ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark).copyWith(
+          statusBarColor: _mapHeaderVisible ? Colors.transparent : const Color(0xFFF5F9FA),
+          systemNavigationBarColor: const Color(0xFFF5F9FA), systemNavigationBarIconBrightness: Brightness.dark),
+        child: Scaffold(backgroundColor: const Color(0xFFF5F9FA),
+          bottomNavigationBar: Center(heightFactor: 1, child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: CourierOperationsNav(index: _navIndex, online: state.courierOnline,
+              active: current != null, busy: _navBusy || _advancing || (_offerActionBusy && current == null),
+              onHome: _scrollHome, onAction: _dashboardDeliveries,
+              onWallet: () => _dashboardSection(2, 'wallet'),
+              onHistory: () => _dashboardSection(3, 'history'),
+              onProfile: () => _dashboardSection(4, 'profile')))),
+          body: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 760),
+            child: RefreshIndicator(onRefresh: _refreshDashboard,
+              edgeOffset: MediaQuery.paddingOf(context).top + 70,
+              child: CustomScrollView(controller: _operationsScroll,
+                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                slivers: [
+                  SliverToBoxAdapter(child: CourierDashboardMap(
+                    online: state.courierOnline, active: current != null,
+                    photo: state.courierProfile['profilePhoto']?.toString(), order: current,
+                    unreadCount: updates.where((r) => !_readUpdateIds.contains(r.id)).length,
+                    onNotifications: _openUpdates,
+                    onProfile: () => _dashboardSection(4, 'profile'),
+                    onRoute: _dashboardDeliveries,
+                    onChanged: current == null && !_offerActionBusy ? state.setCourierOnline : null)),
+                  SliverPadding(padding: const EdgeInsets.fromLTRB(14, 10, 14, 24),
+                    sliver: SliverList(delegate: SliverChildListDelegate([
+                      CourierDailyMetrics(summary: state.walletSummary, profile: state.courierProfile,
+                        online: state.courierOnline,
+                        onEarnings: () => _dashboardSection(2, 'earnings'),
+                        onDeliveries: () => _dashboardSection(1, 'deliveries'),
+                        onRating: _showRating),
+                      if (state.courierHighDemand) ...[
+                        const SizedBox(height: 14),
+                        CourierDemandNotice(online: state.courierOnline, bonusAmount: state.courierDemandBonus),
+                      ],
+                      const SizedBox(height: 14),
+                      if (current != null) ...[
+                        if (liveRouteMode(current) != null) const CourierTrackingNotice(),
+                        CourierDeliverySurface(order: current, incoming: false,
+                          statusLabel: _statusLabel(current['status']?.toString() ?? ''),
+                          busy: _advancing,
+                          primaryLabel: _nextStatus(current['status']?.toString()) == null
+                            ? 'Ver detalhes' : _nextLabel(_nextStatus(current['status']?.toString())!),
+                          primaryIcon: _nextStatus(current['status']?.toString()) == null
+                            ? AppIcons.list : _nextIcon(_nextStatus(current['status']?.toString())!),
+                          onDetails: _dashboardDeliveries,
+                          onAdvance: _nextStatus(current['status']?.toString()) == null
+                            ? _dashboardDeliveries : () => _advanceCurrent(current)),
+                      ] else if (state.courierOnline && offers.isNotEmpty)
+                        IncomingDeliveryOfferSheet(
+                          key: ValueKey(offers.first['offerId'] ?? offers.first['orderId']),
+                          order: offers.first, embedded: true, updates: state,
+                          isAvailable: () => state.courierOffers.any((o) =>
+                            o['offerId']?.toString() == offers.first['offerId']?.toString()),
+                          onResolved: _offerResolved,
+                          onBusyChanged: (busy) { if (mounted) setState(() => _offerActionBusy = busy); },
+                          onAccept: () => state.acceptDelivery(offers.first['orderId'].toString()),
+                          onReject: () => state.rejectDelivery(offers.first['orderId'].toString()))
+                      else CourierDashboardEmpty(online: state.courierOnline, onRefresh: _refreshDashboard),
+                      const SizedBox(height: 20),
+                      CourierOpportunities(offers: state.courierOnline && current == null
+                        ? offers.skip(1).toList() : const [],
+                        onOpen: (offer) => _showDeliverySheet(context, order: offer, incoming: true),
+                        onAll: () => _dashboardSection(1, 'deliveries')),
+                    ]))),
+                ])))),
+        ));
+    },
+  );
 }
 
 class _SectionTitle extends StatelessWidget {
@@ -2229,9 +2379,11 @@ class _DriverSectionSheet extends StatelessWidget {
     required this.section,
     required this.onWithdraw,
     required this.onOpenDelivery,
+    this.onMenu,
   });
 
   final String section;
+  final VoidCallback? onMenu;
   final VoidCallback onWithdraw;
   final ValueChanged<Map<String, dynamic>> onOpenDelivery;
 
@@ -2426,6 +2578,11 @@ class _DriverSectionSheet extends StatelessWidget {
     if (section == 'profile') {
       final user = state.user ?? {};
       return [
+        if (onMenu != null) ...[
+          OutlinedButton.icon(onPressed: onMenu, icon: const Icon(AppIcons.settings, size: 19),
+            label: const PrimeText('Mais opções da conta')),
+          const SizedBox(height: 10),
+        ],
         OutlinedButton.icon(onPressed:()=>Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const SupportPage())),icon:const Icon(AppIcons.help,size:19),label:const PrimeText('Ajuda e suporte')),
         const SizedBox(height:16),
         const CourierPhotoCard(),
