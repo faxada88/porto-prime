@@ -62,10 +62,10 @@ class CourierDeliverySurface extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20)),
               child: PrimeText(incoming ? 'NOVA ENTREGA' : statusLabel ?? 'ENTREGA EM ANDAMENTO',
                 style: const TextStyle(fontSize: 10, height: 1.25, fontWeight: FontWeight.w800, color: Colors.white))),
-            Row(mainAxisSize: MainAxisSize.min, children: [
+            Wrap(spacing: 8, runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center, children: [
               PrimeText('#' + shortId, style: const TextStyle(fontSize: 11, color: Color(0xFF5B7380), fontWeight: FontWeight.w600)),
               if (seconds != null) ...[
-                const SizedBox(width: 8),
                 Semantics(label: translateLabel('Tempo para aceitar'), child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
                   decoration: BoxDecoration(color: seconds! <= 8 ? AppColors.coral100 : const Color(0xFFEDF6F2),
@@ -101,15 +101,19 @@ class CourierDeliverySurface extends StatelessWidget {
               : incoming ? 'Aceitar entrega' : primaryLabel ?? 'Ver detalhes',
               textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, height: 1.3, fontWeight: FontWeight.w800))),
           ]));
-        final secondary = OutlinedButton.icon(
+        final secondary = OutlinedButton(
           onPressed: busy ? null : incoming ? onReject : onDetails,
           style: OutlinedButton.styleFrom(foregroundColor: courierInk,
             backgroundColor: const Color(0xFFF2F6F8), side: const BorderSide(color: Color(0xFFE2EBEE)),
             minimumSize: const Size(44, 52), padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
-          icon: Icon(incoming ? AppIcons.close : AppIcons.list, size: 20),
-          label: PrimeText(busy && action == 'reject' ? 'Enviando…' : incoming ? 'Recusar' : 'Detalhes',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)));
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(incoming ? AppIcons.close : AppIcons.list, size: 20),
+            const SizedBox(width: 8),
+            Flexible(child: PrimeText(busy && action == 'reject' ? 'Enviando…' : incoming ? 'Recusar' : 'Detalhes',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, height: 1.3, fontWeight: FontWeight.w700))),
+          ]));
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           header, const SizedBox(height: 12),
           Row(crossAxisAlignment: CrossAxisAlignment.center, children: [

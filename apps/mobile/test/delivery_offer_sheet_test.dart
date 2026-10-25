@@ -21,6 +21,30 @@ void main(){
    });
   }
  }
+ testWidgets('Offer metadata and pending rejection fit 320px with large text',(tester)async{
+  tester.view.devicePixelRatio=1;tester.view.physicalSize=const Size(320,800);
+  addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+  final response=Completer<void>();var rejections=0;
+  final data=offer()
+   ..['orderId']='a18f8349-2211-4d1a-8d2a-221122ab11ef'
+   ..['expiresAt']=DateTime.now().add(const Duration(hours:1)).toIso8601String();
+  await tester.pumpWidget(MaterialApp(theme:AppTheme.light,builder:(context,child)=>MediaQuery(
+   data:MediaQuery.of(context).copyWith(textScaler:TextScaler.linear(2)),child:child!),
+   home:Scaffold(body:IncomingDeliveryOfferSheet(order:data,onAccept:()async{},
+    onReject:(){rejections++;return response.future;}))));
+  await tester.pump();
+  expect(tester.takeException(),isNull);
+  expect(find.text('#22AB11EF'),findsOneWidget);
+  final closeBounds=tester.getRect(find.byTooltip('Recusar entrega'));
+  expect(closeBounds.left,greaterThanOrEqualTo(0));
+  expect(closeBounds.right,lessThanOrEqualTo(320));
+  await tester.ensureVisible(find.text('Recusar'));
+  await tester.tap(find.text('Recusar'));await tester.pump();
+  expect(rejections,1);expect(find.text('Enviando…'),findsOneWidget);
+  expect(tester.takeException(),isNull);
+  await tester.pumpWidget(const SizedBox.shrink());
+  response.complete();await tester.pump();
+ });
  testWidgets('Only one accept request, and closing event waits for response',(tester)async{
   final response=Completer<void>();var calls=0;
   final available=ValueNotifier(true);addTearDown(available.dispose);
