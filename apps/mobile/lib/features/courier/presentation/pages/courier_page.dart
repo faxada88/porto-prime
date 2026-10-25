@@ -40,6 +40,8 @@ class _CourierPageState extends State<CourierPage> {
   int _navIndex = 0;
   bool _updatesOpen = false;
   bool _mapHeaderVisible = true;
+  bool _logoutDialogOpen = false;
+  bool _signingOut = false;
   final Set<String> _readUpdateIds = {};
   final _operationsScroll = ScrollController();
   String? _lastPresentedOfferId;
@@ -100,7 +102,7 @@ class _CourierPageState extends State<CourierPage> {
   }
 
   void _presentIncomingOfferIfNeeded(BuildContext context, AppState state) {
-    if (_offerModalOpen || state.courierDelivery != null || !state.courierOnline ||
+    if (_logoutDialogOpen || _signingOut || _offerModalOpen || state.courierDelivery != null || !state.courierOnline ||
         state.courierOffers.isEmpty) return;
     final offer = Map<String, dynamic>.from(state.courierOffers.first);
     final id = (offer['offerId'] ?? offer['orderId'])?.toString();
@@ -456,6 +458,12 @@ class _CourierPageState extends State<CourierPage> {
             if (mounted) _openDriverMenu(context);
           });
         },
+        onLogout: () {
+          Navigator.pop(sectionContext);
+          Future<void>.delayed(const Duration(milliseconds: 150), () {
+            if (mounted) _confirmLogout();
+          });
+        },
         onWithdraw: () => _requestWithdrawal(context),
         onOpenDelivery: (order) => _showDeliverySheet(
           context,
@@ -659,8 +667,7 @@ class _CourierPageState extends State<CourierPage> {
 
   void _updateStatusBar() {
     if (!mounted || !_operationsScroll.hasClients) return;
-    final large = MediaQuery.textScalerOf(context).scale(14) > 19;
-    final height = large ? 480.0 : MediaQuery.sizeOf(context).width < 350 ? 400.0 : 320.0;
+    final height = courierDashboardMapHeight(context);
     final visible = _operationsScroll.offset < height;
     if (visible != _mapHeaderVisible) setState(() => _mapHeaderVisible = visible);
   }
@@ -676,7 +683,7 @@ class _CourierPageState extends State<CourierPage> {
   }
 
   Future<void> _dashboardSection(int index, String section) async {
-    if (_navBusy || _advancing || (_offerActionBusy && AppState.instance.courierDelivery == null)) return;
+    if (_signingOut || _navBusy || _advancing || (_offerActionBusy && AppState.instance.courierDelivery == null)) return;
     setState(() { _navBusy = true; _navIndex = index; });
     try { await _openDriverSection(context, section); }
     catch (error) {
@@ -690,7 +697,7 @@ class _CourierPageState extends State<CourierPage> {
   Future<void> _dashboardDeliveries() async {
     final current = AppState.instance.courierDelivery;
     if (current == null) { await _dashboardSection(1, 'deliveries'); return; }
-    if (_navBusy || _advancing || (_offerActionBusy && AppState.instance.courierDelivery == null)) return;
+    if (_signingOut || _navBusy || _advancing || (_offerActionBusy && AppState.instance.courierDelivery == null)) return;
     setState(() { _navBusy = true; _navIndex = 1; });
     try { await _showDeliverySheet(context, order: Map<String, dynamic>.from(current), incoming: false); }
     finally { if (mounted) setState(() { _navBusy = false; _navIndex = 0; }); }
@@ -770,7 +777,7 @@ class _CourierPageState extends State<CourierPage> {
   }
 
   Future<void> _openUpdates() async {
-    if (_updatesOpen || (_offerActionBusy && AppState.instance.courierDelivery == null)) return;
+    if (_signingOut || _updatesOpen || (_offerActionBusy && AppState.instance.courierDelivery == null)) return;
     _updatesOpen = true;
     unawaited(AppState.instance.refreshCourier().catchError((_) {}));
     if (!mounted) { _updatesOpen = false; return; }
@@ -798,19 +805,37 @@ class _CourierPageState extends State<CourierPage> {
     } finally { _updatesOpen = false; }
   }
 
-  Future<void> _showRating() async {
-    final profile = AppState.instance.courierProfile;
-    final rating = double.tryParse((profile['ratingAverage'] ??
-      profile['averageRating'] ?? profile['rating'] ?? '').toString());
-    await showDialog<void>(context: context, builder: (dialogContext) => AlertDialog(
-      icon: const Icon(Icons.star_border_rounded, size: 32, color: courierGreen),
-      title: const PrimeText('Avaliação'),
-      content: rating != null && rating > 0 && rating <= 5
-        ? PrimeText(rating.toStringAsFixed(1).replaceAll('.', ','),
-            textAlign: TextAlign.center, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800))
-        : const PrimeText('Suas avaliações aparecerão aqui quando disponíveis.'),
-      actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const PrimeText('Entendi'))],
-    ));
+  Future<void> _confirmLogout() async {
+    if (_logoutDialogOpen || _signingOut || _navBusy || _advancing || _offerActionBusy) return;
+    final state = AppState.instance;
+    final account = state.user?['id'];
+    _logoutDialogOpen = true;
+    try {
+      final confirmed = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        icon: const Icon(AppIcons.logout, color: courierGreen, size: 29),
+        title: const PrimeText('Sair da conta?'),
+        content: PrimeText(liveRouteMode(state.courierDelivery) != null
+          ? 'Você está em uma rota. Ao sair, o envio da localização será pausado até você entrar novamente.'
+          : 'Você poderá entrar novamente quando quiser.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const PrimeText('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true),
+            style: FilledButton.styleFrom(backgroundColor: courierGreen),
+            child: const PrimeText('Sair da conta')),
+        ],
+      ));
+      if (!mounted || confirmed != true || state.user?['id'] != account) return;
+      setState(() => _signingOut = true);
+      // Reuse the current-device logout; other accounts and sessions are untouched.
+      await state.logout();
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: PrimeText(PrimeMessages.friendly(error))));
+    } finally {
+      _logoutDialogOpen = false;
+      if (mounted) setState(() => _signingOut = false);
+    }
   }
 
   @override
@@ -838,7 +863,7 @@ class _CourierPageState extends State<CourierPage> {
           bottomNavigationBar: Center(heightFactor: 1, child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 760),
             child: CourierOperationsNav(index: _navIndex, online: state.courierOnline,
-              active: current != null, busy: _navBusy || _advancing || (_offerActionBusy && current == null),
+              active: current != null, busy: _signingOut || _navBusy || _advancing || (_offerActionBusy && current == null),
               onHome: _scrollHome, onAction: _dashboardDeliveries,
               onWallet: () => _dashboardSection(2, 'wallet'),
               onHistory: () => _dashboardSection(3, 'history'),
@@ -851,22 +876,20 @@ class _CourierPageState extends State<CourierPage> {
                 slivers: [
                   SliverToBoxAdapter(child: CourierDashboardMap(
                     online: state.courierOnline, active: current != null,
-                    photo: state.courierProfile['profilePhoto']?.toString(), order: current,
+                    order: current,
                     unreadCount: updates.where((r) => !_readUpdateIds.contains(r.id)).length,
                     onNotifications: _openUpdates,
-                    onProfile: () => _dashboardSection(4, 'profile'),
+                    onLogout: _signingOut || _navBusy || _advancing || _offerActionBusy ? null : _confirmLogout,
                     onRoute: _dashboardDeliveries,
-                    onChanged: current == null && !_offerActionBusy ? state.setCourierOnline : null)),
+                    onChanged: current == null && !_offerActionBusy && !_signingOut ? state.setCourierOnline : null)),
                   SliverPadding(padding: const EdgeInsets.fromLTRB(14, 10, 14, 24),
                     sliver: SliverList(delegate: SliverChildListDelegate([
-                      CourierDailyMetrics(summary: state.walletSummary, profile: state.courierProfile,
-                        online: state.courierOnline,
+                      CourierDailyMetrics(summary: state.walletSummary,
                         onEarnings: () => _dashboardSection(2, 'earnings'),
-                        onDeliveries: () => _dashboardSection(1, 'deliveries'),
-                        onRating: _showRating),
+                        onDeliveries: () => _dashboardSection(1, 'deliveries')),
                       if (state.courierHighDemand) ...[
                         const SizedBox(height: 14),
-                        CourierDemandNotice(online: state.courierOnline, bonusAmount: state.courierDemandBonus),
+                        CourierDemandNotice(online: state.courierOnline, bonusAmount: state.courierDemandBonus, compact: true),
                       ],
                       const SizedBox(height: 14),
                       if (current != null) ...[
@@ -891,12 +914,13 @@ class _CourierPageState extends State<CourierPage> {
                           onBusyChanged: (busy) { if (mounted) setState(() => _offerActionBusy = busy); },
                           onAccept: () => state.acceptDelivery(offers.first['orderId'].toString()),
                           onReject: () => state.rejectDelivery(offers.first['orderId'].toString()))
-                      else CourierDashboardEmpty(online: state.courierOnline, onRefresh: _refreshDashboard),
-                      const SizedBox(height: 20),
-                      CourierOpportunities(offers: state.courierOnline && current == null
-                        ? offers.skip(1).toList() : const [],
-                        onOpen: (offer) => _showDeliverySheet(context, order: offer, incoming: true),
-                        onAll: () => _dashboardSection(1, 'deliveries')),
+                      else CourierDashboardEmpty(online: state.courierOnline),
+                      if (state.courierOnline && current == null && offers.length > 1) ...[
+                        const SizedBox(height: 20),
+                        CourierOpportunities(offers: offers.skip(1).toList(),
+                          onOpen: (offer) => _showDeliverySheet(context, order: offer, incoming: true),
+                          onAll: () => _dashboardSection(1, 'deliveries')),
+                      ],
                     ]))),
                 ])))),
         ));
@@ -2380,10 +2404,11 @@ class _DriverSectionSheet extends StatelessWidget {
     required this.onWithdraw,
     required this.onOpenDelivery,
     this.onMenu,
+    this.onLogout,
   });
 
   final String section;
-  final VoidCallback? onMenu;
+  final VoidCallback? onMenu, onLogout;
   final VoidCallback onWithdraw;
   final ValueChanged<Map<String, dynamic>> onOpenDelivery;
 
@@ -2597,6 +2622,13 @@ class _DriverSectionSheet extends StatelessWidget {
             ('Perfil', 'Motoboy'),
           ],
         ),
+        if (onLogout != null) ...[
+          const SizedBox(height: 16),
+          TextButton.icon(onPressed: onLogout, icon: const Icon(AppIcons.logout, size: 19),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger,
+              minimumSize: const Size(44, 48)),
+            label: const PrimeText('Sair da conta')),
+        ],
       ];
     }
 

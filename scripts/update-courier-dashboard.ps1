@@ -31,6 +31,7 @@ try {
  Invoke-Checked -Command flutter -Arguments @('analyze','--no-fatal-infos','--no-fatal-warnings',
   'lib/features/courier/presentation/pages/courier_page.dart',
   'lib/features/courier/presentation/pages/courier_operations_dashboard.dart',
+  'lib/features/courier/presentation/pages/courier_demand_notice.dart',
   'lib/features/courier/presentation/widgets/courier_dashboard_map.dart',
   'lib/features/courier/presentation/widgets/courier_delivery_surface.dart',
   'lib/features/courier/presentation/widgets/incoming_delivery_offer_sheet.dart')
@@ -42,6 +43,6 @@ try {
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'install','-r','build\app\outputs\flutter-apk\app-release.apk')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','am','force-stop','com.portoprime.porto_prime')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','monkey','-p','com.portoprime.porto_prime','-c','android.intent.category.LAUNCHER','1')
- Write-Host 'Painel do motoboy atualizado: mapa, disponibilidade, indicadores, oferta direta, notificacoes e menu completo.'
+ Write-Host 'Painel do motoboy atualizado: controle unico de disponibilidade, Home simplificada e Sair acessivel.'
  Write-Host 'Nest, banco, Admin, rotas e Stripe podem continuar ligados. Dados e sessao do aplicativo preservados.'
 } finally { Pop-Location }

@@ -8,13 +8,17 @@ import '../../../../core/localization/prime_localization.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/tracking/courier_route_tracker.dart';
 import '../../../../core/theme/app_icons.dart';
-import '../../../../core/widgets/courier_portrait.dart';
 import '../../../../core/widgets/prime_ui.dart';
 
 const courierGreen = Color(0xFF008654);
 const courierInk = Color(0xFF102A33);
 const courierTileUrl = String.fromEnvironment('MAP_TILE_URL',
   defaultValue: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png');
+
+double courierDashboardMapHeight(BuildContext context) {
+  if (MediaQuery.textScalerOf(context).scale(14) > 19) return 270;
+  return MediaQuery.sizeOf(context).width < 350 ? 250 : 230;
+}
 
 LatLng? courierMapPoint(dynamic value) {
   if (value is! Map) return null;
@@ -28,13 +32,13 @@ LatLng? courierMapPoint(dynamic value) {
 /// The dashboard reads existing tracking snapshots. It never starts route sharing.
 class CourierDashboardMap extends StatefulWidget {
   const CourierDashboardMap({super.key, required this.online, required this.active,
-    required this.photo, required this.unreadCount, required this.onNotifications,
-    required this.onProfile, required this.onRoute, required this.onChanged, this.order});
+    required this.unreadCount, required this.onNotifications, required this.onLogout,
+    required this.onRoute, required this.onChanged, this.order});
   final bool online, active;
-  final String? photo;
   final int unreadCount;
   final Map<String, dynamic>? order;
-  final VoidCallback onNotifications, onProfile, onRoute;
+  final VoidCallback onNotifications, onRoute;
+  final VoidCallback? onLogout;
   final Future<void> Function(bool)? onChanged;
   @override State<CourierDashboardMap> createState() => _CourierDashboardMapState();
 }
@@ -44,7 +48,7 @@ class _CourierDashboardMapState extends State<CourierDashboardMap> with WidgetsB
   Timer? _trackingTimer;
   LatLng? _position, _origin, _target;
   List<LatLng> _route = [];
-  bool _ready = false, _dark = true, _locating = false, _changing = false, _fetching = false;
+  bool _ready = false, _locating = false, _changing = false, _fetching = false;
   bool _following = true, _foreground = true;
   String? _snapshotOrderId;
 
@@ -150,38 +154,32 @@ class _CourierDashboardMapState extends State<CourierDashboardMap> with WidgetsB
     finally { if (mounted) setState(() => _changing = false); }
   }
   Widget _control(IconData icon, String label, VoidCallback? onTap, {bool busy = false}) =>
-    Padding(padding: const EdgeInsets.only(bottom: 6),
-      child: Material(color: const Color(0xE608202B), shape: const CircleBorder(),
-        child: IconButton(onPressed: onTap, tooltip: translateLabel(label),
-          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-          icon: busy ? const SizedBox(width: 18, height: 18,
-            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-            : Icon(icon, color: Colors.white, size: 22))));
+    Material(color: const Color(0xDF102B36), shape: const CircleBorder(),
+      child: IconButton(onPressed: onTap, tooltip: translateLabel(label),
+        constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+        icon: busy ? const SizedBox(width: 18, height: 18,
+          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+          : Icon(icon, color: Colors.white, size: 21)));
 
   @override Widget build(BuildContext context) {
     final inset = MediaQuery.paddingOf(context).top;
     final expandedText = MediaQuery.textScalerOf(context).scale(14) > 19;
-    final narrow = MediaQuery.sizeOf(context).width < 350;
-    final height = (expandedText ? 480.0 : narrow ? 400.0 : 320.0) + inset;
+    final height = courierDashboardMapHeight(context) + inset;
     final center = _position ?? _target ?? const LatLng(-16.4386, -39.0808);
-    Widget tiles = TileLayer(urlTemplate: courierTileUrl,
-      userAgentPackageName: 'com.portoprime.porto_prime');
-    if (_dark) {
-      tiles = ColorFiltered(colorFilter: const ColorFilter.mode(Color(0xFF16465D), BlendMode.color),
-        child: ColorFiltered(colorFilter: const ColorFilter.matrix([
-          -1,0,0,0,255, 0,-1,0,0,255, 0,0,-1,0,255, 0,0,0,1,0,
-        ]), child: tiles));
-    }
-    final status = widget.active ? 'Entrega em andamento'
-      : widget.online ? 'Você está online' : 'Você está offline';
-    return SizedBox(height: height, child: Stack(fit: StackFit.expand, children: [
+    return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      ClipRRect(borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+        child: SizedBox(height: height, child: Stack(fit: StackFit.expand, children: [
       const ColoredBox(color: Color(0xFF0B2B3C)),
       FlutterMap(mapController: _map,
         options: MapOptions(initialCenter: center, initialZoom: 12.6,
           onMapReady: () => _ready = true,
           onPositionChanged: (_, gesture) { if (gesture) _following = false; }),
         children: [
-          tiles,
+          ColorFiltered(colorFilter: const ColorFilter.matrix([
+            .2126,.7152,.0722,0,0, .2126,.7152,.0722,0,0,
+            .2126,.7152,.0722,0,0, 0,0,0,1,0,
+          ]), child: TileLayer(urlTemplate: courierTileUrl,
+            userAgentPackageName: 'com.portoprime.porto_prime')),
           if (_route.length > 1 && _snapshotOrderId == widget.order?['id']?.toString())
             PolylineLayer(polylines: [Polyline(points: _route,
               color: const Color(0xFF24B5FF), strokeWidth: 5)]),
@@ -200,101 +198,90 @@ class _CourierDashboardMapState extends State<CourierDashboardMap> with WidgetsB
         ]),
       const Positioned.fill(child: IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(
         gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter,
-          stops: [0, .28, .65, 1], colors: [Color(0xD908202B), Color(0x2208202B),
-            Colors.transparent, Color(0xCC08202B)]))))),
+          stops: [0, .35, .65, 1], colors: [Color(0xE6102B36), Color(0x55102B36),
+            Color(0x33102B36), Color(0xDA102B36)]))))),
       Positioned(top: inset + 12, left: 20, right: 16, child: Row(children: [
         const Expanded(child: _CourierWordmark()),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         Badge(isLabelVisible: widget.unreadCount > 0,
           label: Text(widget.unreadCount > 9 ? '9+' : widget.unreadCount.toString()),
           child: _control(AppIcons.bell, 'Atualizações', widget.onNotifications)),
-        const SizedBox(width: 10),
-        Semantics(button: true, label: translateLabel('Meu perfil'),
-          child: InkWell(onTap: widget.onProfile, borderRadius: BorderRadius.circular(30),
-            child: Stack(children: [
-              CourierPortrait(photo: widget.photo, size: 44),
-              Positioned(right: 0, bottom: 0, child: Container(width: 12, height: 12,
-                decoration: BoxDecoration(shape: BoxShape.circle,
-                  color: widget.online ? const Color(0xFF00D77D) : const Color(0xFF81959E),
-                  border: Border.all(color: const Color(0xFF0A2530), width: 2)))),
-            ]))),
+        const SizedBox(width: 8),
+        ConstrainedBox(constraints: const BoxConstraints(maxWidth: 144),
+          child: TextButton(onPressed: widget.onLogout,
+            style: TextButton.styleFrom(foregroundColor: Colors.white,
+              disabledForegroundColor: Colors.white38,
+              minimumSize: const Size(44, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+            child: const PrimeText('Sair', textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)))),
       ])),
-      if (!expandedText) Positioned(top: inset + 84, left: 20, child: Material(
-        color: const Color(0xED071D25), borderRadius: BorderRadius.circular(18),
-        child: InkWell(onTap: widget.active ? widget.onRoute : _toggle,
-          borderRadius: BorderRadius.circular(18),
-          child: Padding(padding: const EdgeInsets.all(12), child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Container(width: 32, height: 36, decoration: BoxDecoration(
-              color: widget.online ? const Color(0xFF005A43) : const Color(0xFF2A424A),
-              borderRadius: BorderRadius.circular(11)),
-              child: Icon(AppIcons.radar, size: 21,
-                color: widget.online ? const Color(0xFF00DD88) : Colors.white70)),
-            const SizedBox(width: 9),
-            SizedBox(width: expandedText ? 160 : 104,
-              child: PrimeText(status, maxLines: 3, style: const TextStyle(color: Colors.white,
-                fontSize: 13, height: 1.3, fontWeight: FontWeight.w700))),
-            const SizedBox(width: 4), const Icon(AppIcons.chevronRight, size: 18, color: Colors.white),
-          ]))))),
-      Positioned(top: inset + 74, right: 14, child: Column(children: [
-        _control(Icons.my_location_rounded, 'Localizar minha posição',
-          _locating ? null : _locate, busy: _locating),
-        _control(AppIcons.layers, _dark ? 'Mapa claro' : 'Mapa escuro',
-          () => setState(() => _dark = !_dark)),
-        _control(AppIcons.navigation, 'Ver rota atual', widget.onRoute),
-      ])),
-      Positioned(left: 20, right: 20, bottom: 25,
-        child: _AvailabilityBar(online: widget.online, active: widget.active,
-          changing: _changing, onTap: widget.active ? widget.onRoute : _toggle)),
+      Positioned(top: inset + (expandedText ? 110 : 74), right: 16,
+        child: _control(Icons.my_location_rounded, 'Localizar minha posição',
+          _locating ? null : _locate, busy: _locating)),
       Positioned(left: 8, bottom: 3, child: InkWell(
         onTap: () => launchUrl(Uri.parse('https://www.openstreetmap.org/copyright')),
         child: const Padding(padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
           child: Text('© OpenStreetMap', style: TextStyle(color: Colors.white70, fontSize: 9))))),
-    ]));
+    ]))),
+
+      // Natural height keeps long translations and larger text clear of the map controls.
+      Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+        child: CourierAvailabilityControl(online: widget.online, active: widget.active,
+          changing: _changing,
+          onTap: widget.active ? widget.onRoute : widget.onChanged == null ? null : _toggle)),
+    ]);
   }
 }
 
-class _AvailabilityBar extends StatelessWidget {
-  const _AvailabilityBar({required this.online, required this.active,
+/// A single touch target owns availability; there are no secondary power buttons.
+class CourierAvailabilityControl extends StatelessWidget {
+  const CourierAvailabilityControl({super.key, required this.online, required this.active,
     required this.changing, required this.onTap});
   final bool online, active, changing;
-  final VoidCallback onTap;
-  @override Widget build(BuildContext context) => Material(
-    color: const Color(0xF0071D25), borderRadius: BorderRadius.circular(24),
-    child: Padding(padding: const EdgeInsets.all(6), child: LayoutBuilder(builder: (context, box) {
-      final large = MediaQuery.textScalerOf(context).scale(14) > 19;
-      final status = Padding(padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
-        child: Row(children: [
-          Icon(active ? AppIcons.route : AppIcons.power, size: 28, color: Colors.white),
-          const SizedBox(width: 12), Expanded(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              PrimeText(active ? 'Entrega em andamento' : online ? 'Você está online' : 'Você está offline',
-                style: const TextStyle(fontSize: 14, height: 1.25,
-                  color: Colors.white, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 3),
-              PrimeText(active ? 'Ver detalhes da rota' : online ? 'Recebendo entregas' : 'Conecte-se para receber',
-                style: const TextStyle(fontSize: 11, height: 1.3, color: Color(0xFFB8F2D8))),
-            ])),
-        ]));
-      final action = TextButton(onPressed: changing ? null : onTap,
-        style: TextButton.styleFrom(foregroundColor: Colors.white,
-          backgroundColor: const Color(0xFF263B40), minimumSize: const Size(44, 44),
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),
-            side: const BorderSide(color: Color(0xFF50646B)))),
-        child: changing ? const SizedBox(width: 18, height: 18,
-          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-          : PrimeText(active ? 'Ver rota' : online ? 'Ficar offline' : 'Ficar online',
-            textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)));
-      final statusPanel = DecoratedBox(decoration: BoxDecoration(
-        gradient: LinearGradient(colors: online
-          ? const [Color(0xFF00854F), Color(0xFF007F50)]
-          : const [Color(0xFF38545C), Color(0xFF203D46)]),
-        borderRadius: BorderRadius.circular(20)), child: status);
-      return large || box.maxWidth < 310
-        ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            statusPanel, const SizedBox(height: 6), action])
-        : Row(children: [Expanded(child: statusPanel), const SizedBox(width: 10), action]);
-    })));
+  final VoidCallback? onTap;
+  @override Widget build(BuildContext context) {
+    final enabled = !changing && onTap != null;
+    final label = active ? 'Ver detalhes da rota' : online ? 'Ficar offline' : 'Ficar online';
+    return Semantics(button: true, toggled: active ? null : online, enabled: enabled,
+      label: translateLabel(label),
+      child: Material(color: Colors.transparent, borderRadius: BorderRadius.circular(22),
+        child: InkWell(onTap: enabled ? onTap : null, borderRadius: BorderRadius.circular(22),
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: MediaQuery.disableAnimationsOf(context) ? 0 : 180),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: online
+                ? const [Color(0xFF008654), Color(0xFF006C50)]
+                : const [Color(0xFF173D48), Color(0xFF102B36)]),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: Colors.white.withValues(alpha: .28)),
+              boxShadow: const [BoxShadow(color: Color(0x23102B36), blurRadius: 18, offset: Offset(0, 5))]),
+            child: Row(children: [
+              Container(width: 40, height: 40,
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha: .14), shape: BoxShape.circle),
+                child: Icon(active ? AppIcons.route : AppIcons.power, color: Colors.white, size: 23)),
+              const SizedBox(width: 12),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min, children: [
+                  PrimeText(changing ? 'Aguarde um instante' : active ? 'Entrega em andamento'
+                    : online ? 'Você está online' : 'Ficar online',
+                    style: const TextStyle(fontSize: 15, height: 1.25,
+                      color: Colors.white, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 4),
+                  PrimeText(active ? 'Ver detalhes da rota' : online
+                    ? 'Toque para ficar offline' : 'Receber novas entregas',
+                    style: const TextStyle(fontSize: 11, height: 1.35, color: Color(0xFFDAEEE7))),
+                ])),
+              const SizedBox(width: 10),
+              if (changing) const SizedBox(width: 18, height: 18,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              else Icon(active ? AppIcons.chevronRight : online ? AppIcons.checkCircle : AppIcons.arrowRight,
+                size: 21, color: Colors.white),
+            ]),
+          ))));
+  }
 }
 
 class _MapPin extends StatelessWidget {

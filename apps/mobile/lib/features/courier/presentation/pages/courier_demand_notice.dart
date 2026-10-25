@@ -5,11 +5,23 @@ import '../../../../core/theme/app_theme.dart';
 
 /// Operational status only. Values remain controlled by the backend.
 class CourierDemandNotice extends StatelessWidget {
- const CourierDemandNotice({super.key,required this.online,required this.bonusAmount});
- final bool online;
+ const CourierDemandNotice({super.key,required this.online,required this.bonusAmount,this.compact=false});
+ final bool online,compact;
  final double bonusAmount;
  @override
- Widget build(BuildContext context) => Semantics(liveRegion:true,container:true,child:Container(
+ Widget build(BuildContext context) {
+  if(compact)return Container(
+   padding:const EdgeInsets.symmetric(horizontal:14,vertical:11),
+   decoration:BoxDecoration(color:const Color(0xFFEAF5EF),borderRadius:BorderRadius.circular(14),
+    border:Border.all(color:const Color(0xFFC8E4D4))),
+   child:Wrap(spacing:9,runSpacing:5,crossAxisAlignment:WrapCrossAlignment.center,children:[
+    const Icon(AppIcons.energy,color:AppColors.ocean700,size:17),
+    const PrimeText('Alta demanda',style:TextStyle(fontSize:12,fontWeight:FontWeight.w800,color:AppColors.ink)),
+    PrimeText('+R\$ '+bonusAmount.toStringAsFixed(2).replaceAll('.',','),
+     style:const TextStyle(fontSize:12,fontWeight:FontWeight.w800,color:AppColors.ocean700)),
+    const PrimeText('por entrega elegível',style:TextStyle(fontSize:11,color:AppColors.inkSoft)),
+   ]));
+  return Semantics(liveRegion:true,container:true,child:Container(
   padding:const EdgeInsets.all(20),
   decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(20),border:Border.all(color:AppColors.stroke),boxShadow:const [BoxShadow(color:Color(0x080F3B2E),blurRadius:16,offset:Offset(0,4))]),
   child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
@@ -32,5 +44,6 @@ class CourierDemandNotice extends StatelessWidget {
    PrimeText(online?'Confira o adicional incluído em cada oferta. O valor do pedido fica garantido até a entrega.':'Fique online quando estiver disponível. Confira o adicional incluído em cada oferta.',style:const TextStyle(color:AppColors.muted,fontSize:11,height:1.5)),
   ]),
  ));
+ }
 }
 

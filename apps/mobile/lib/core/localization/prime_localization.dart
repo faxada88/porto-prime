@@ -17,6 +17,18 @@ class AppLanguage extends ChangeNotifier {
   SharedPreferences? _preferences;
 
   static const Map<String, Map<String, String>> _curated = {
+"Sair": {"es":"Salir","en":"Log out"},
+"Sair da conta": {"es":"Cerrar sesión","en":"Log out"},
+"Sair da conta?": {"es":"¿Cerrar sesión?","en":"Log out?"},
+"Você poderá entrar novamente quando quiser.": {"es":"Puedes volver a iniciar sesión cuando quieras.","en":"You can log in again whenever you like."},
+"Você está em uma rota. Ao sair, o envio da localização será pausado até você entrar novamente.": {"es":"Tienes una ruta en curso. Al salir, el envío de tu ubicación se pausará hasta que vuelvas a iniciar sesión.","en":"You have a route in progress. Logging out will pause location sharing until you log in again."},
+"Toque para ficar offline": {"es":"Toca para desconectarte","en":"Tap to go offline"},
+"Receber novas entregas": {"es":"Recibir nuevas entregas","en":"Receive new deliveries"},
+"Buscando entregas": {"es":"Buscando entregas","en":"Looking for deliveries"},
+"Avisaremos quando uma oferta chegar.": {"es":"Te avisaremos cuando llegue una oferta.","en":"We'll let you know when an offer arrives."},
+"Pronto para rodar?": {"es":"¿Listo para repartir?","en":"Ready to deliver?"},
+"Fique online quando estiver disponível.": {"es":"Conéctate cuando estés disponible.","en":"Go online when you're available."},
+"por entrega elegível": {"es":"por entrega elegible","en":"per eligible delivery"},
 "Tempo online nesta sessão. A contagem pausa quando você fica offline ou sai do aplicativo.": {"es":"Tiempo conectado en esta sesión. El contador se pausa cuando te desconectas o sales de la aplicación.","en":"Online time in this session. The timer pauses when you go offline or leave the app."},
 "Tempo para aceitar": {"es":"Tiempo para aceptar","en":"Time to accept"},
 "Você está online": {"es":"Estás conectado","en":"You're online"},
