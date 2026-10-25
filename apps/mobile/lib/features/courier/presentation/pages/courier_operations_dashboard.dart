@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/localization/prime_localization.dart';
 import '../../../../core/theme/app_icons.dart';
@@ -65,14 +66,13 @@ class CourierWaitingPanel extends StatelessWidget {
           Padding(padding: const EdgeInsets.symmetric(vertical: 20), child: Column(children: [
             CourierSearchingRadar(online: online, size: radarSize),
             const SizedBox(height: 14),
-            PrimeText(online ? 'Buscando sua próxima entrega...' : 'Pronto quando você estiver',
+            PrimeText(online ? 'Buscando entregas' : 'Pronto para rodar?',
               textAlign: TextAlign.center, style: const TextStyle(fontSize: 20,
                 height: 1.3, letterSpacing: -.5, fontWeight: FontWeight.w800, color: courierInk)),
-            const SizedBox(height: 8),
-            PrimeText(online ? 'Avisaremos assim que surgir uma oportunidade na sua região.'
-              : 'Fique online para receber novas entregas.',
+            if (!online) ...[const SizedBox(height: 8),
+            const PrimeText('Fique online para receber novas entregas.',
               textAlign: TextAlign.center, style: const TextStyle(fontSize: 12.5,
-                height: 1.6, color: Color(0xFF66818C))),
+                height: 1.6, color: Color(0xFF66818C)))],
           ])),
           const SizedBox(height: 18),
           _WaitingSummary(summary: summary, onlineTime: onlineTime,
@@ -139,14 +139,19 @@ class CourierSearchingRadar extends StatefulWidget {
   @override State<CourierSearchingRadar> createState() => _CourierSearchingRadarState();
 }
 class _CourierSearchingRadarState extends State<CourierSearchingRadar> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  late final AnimationController _pulse = AnimationController(vsync: this,
-    duration: const Duration(milliseconds: 4200));
+  late final AnimationController _orbit = AnimationController(vsync: this,
+    duration: const Duration(seconds: 16));
   bool _foreground = true, _reduceMotion = false, _tickerEnabled = true;
-  @override void initState() { super.initState(); WidgetsBinding.instance.addObserver(this); }
+  @override void initState() {
+    super.initState();
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    _foreground = lifecycle == null || lifecycle == AppLifecycleState.resumed;
+    WidgetsBinding.instance.addObserver(this);
+  }
   void _sync() {
     if (widget.online && _foreground && !_reduceMotion && _tickerEnabled) {
-      if (!_pulse.isAnimating) _pulse.repeat(reverse: true);
-    } else { _pulse.stop(); _pulse.value = 0; }
+      if (!_orbit.isAnimating) _orbit.repeat();
+    } else { _orbit.stop(); }
   }
   @override void didChangeDependencies() {
     super.didChangeDependencies();
@@ -157,11 +162,11 @@ class _CourierSearchingRadarState extends State<CourierSearchingRadar> with Sing
   @override void didChangeAppLifecycleState(AppLifecycleState state) {
     _foreground = state == AppLifecycleState.resumed; _sync();
   }
-  @override void dispose() { WidgetsBinding.instance.removeObserver(this); _pulse.dispose(); super.dispose(); }
-  @override Widget build(BuildContext context) => ExcludeSemantics(child: SizedBox(
-    width: widget.size, height: widget.size, child: AnimatedBuilder(animation: _pulse,
-      builder: (context, _) => CustomPaint(painter: _RadarPainter(
-        online: widget.online, pulse: _pulse.value),
+  @override void dispose() { WidgetsBinding.instance.removeObserver(this); _orbit.dispose(); super.dispose(); }
+  @override Widget build(BuildContext context) => ExcludeSemantics(child: RepaintBoundary(child: SizedBox(
+    width: widget.size, height: widget.size,
+      child: CustomPaint(painter: _RadarPainter(
+        online: widget.online, orbit: _orbit),
         child: Center(child: Container(width: widget.size * .34, height: widget.size * .34,
           decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFFF9FDFD),
             border: Border.all(color: const Color(0xFFC2E8E2), width: 1.5),
@@ -170,30 +175,45 @@ class _CourierSearchingRadarState extends State<CourierSearchingRadar> with Sing
             size: widget.size * .17)))))));
 }
 class _RadarPainter extends CustomPainter {
-  const _RadarPainter({required this.online, required this.pulse});
+  _RadarPainter({required this.online, required this.orbit}) : super(repaint: orbit);
   final bool online;
-  final double pulse;
+  final Animation<double> orbit;
   @override void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
     final tint = online ? const Color(0xFF31B6A4) : const Color(0xFF9AB9BC);
+    final pulse = online ? (math.sin(orbit.value * math.pi * 4) + 1) / 2 : 0.0;
     for (var i = 5; i >= 1; i--) {
       final ring = radius * (.23 + i * .125);
       canvas.drawCircle(center, ring + pulse * 2,
         Paint()..color = tint.withValues(alpha: .027 + (5 - i) * .019));
     }
-    canvas.drawCircle(center, radius * .95,
-      Paint()..color = tint.withValues(alpha: .17)..style = PaintingStyle.stroke..strokeWidth = .8);
-    final points = [Offset(size.width * .13, size.height * .64),
-      Offset(size.width * .27, size.height * .24), Offset(size.width * .78, size.height * .12),
-      Offset(size.width * .95, size.height * .42), Offset(size.width * .31, size.height * .91)];
-    for (var i = 0; i < points.length; i++) {
-      canvas.drawCircle(points[i], i.isEven ? 4 : 6, Paint()..color = online ? courierGreen : tint);
-      canvas.drawCircle(points[i], 1.7, Paint()..color = Colors.white);
+    const rings = [(radius: .49, direction: 1.0, offset: .4, dots: 1),
+      (radius: .72, direction: -1.0, offset: 2.4, dots: 2),
+      (radius: .94, direction: 1.0, offset: -.8, dots: 2)];
+    for (final ring in rings) {
+      final orbitRadius = radius * ring.radius;
+      canvas.drawCircle(center, orbitRadius, Paint()..color = tint.withValues(alpha: .14)
+        ..style = PaintingStyle.stroke..strokeWidth = .8);
+      for (var dot = 0; dot < ring.dots; dot++) {
+        final angle = orbit.value * math.pi * 2 * ring.direction + ring.offset + dot * math.pi;
+        final dotSize = radius * (ring.dots == 1 ? .020 : dot == 0 ? .030 : .019);
+        final point = center + Offset(math.cos(angle), math.sin(angle)) * orbitRadius;
+        if (online) {
+          canvas.drawArc(Rect.fromCircle(center: center, radius: orbitRadius),
+            angle - ring.direction * .35, ring.direction * .35, false,
+            Paint()..color = tint.withValues(alpha: .32)..style = PaintingStyle.stroke
+              ..strokeWidth = 2..strokeCap = StrokeCap.round);
+          canvas.drawCircle(point, dotSize + radius * .025,
+            Paint()..color = tint.withValues(alpha: .10));
+        }
+        canvas.drawCircle(point, dotSize, Paint()..color = online ? courierGreen : tint);
+        canvas.drawCircle(point, dotSize * .32, Paint()..color = Colors.white);
+      }
     }
   }
   @override bool shouldRepaint(covariant _RadarPainter oldDelegate) =>
-    pulse != oldDelegate.pulse || online != oldDelegate.online;
+    orbit != oldDelegate.orbit || online != oldDelegate.online;
 }
 
 class CourierDashboardUpdate {

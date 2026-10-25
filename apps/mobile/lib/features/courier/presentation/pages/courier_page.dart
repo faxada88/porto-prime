@@ -11,6 +11,7 @@ import '../widgets/courier_dashboard_map.dart' show courierGreen, courierInk;
 import '../widgets/courier_dashboard_header.dart';
 import '../widgets/courier_assigned_delivery.dart';
 import '../widgets/courier_workflow_layout.dart';
+import '../widgets/courier_withdrawal_feedback.dart';
 import '../widgets/incoming_delivery_offer_sheet.dart';
 import 'courier_operations_dashboard.dart';
 import 'courier_demand_notice.dart';
@@ -42,6 +43,7 @@ class _CourierPageState extends State<CourierPage> {
   int _navIndex = 0;
   bool _updatesOpen = false;
   bool _logoutDialogOpen = false;
+  bool _withdrawalDialogOpen = false;
   bool _signingOut = false;
   final Set<String> _readUpdateIds = {};
   final _operationsScroll = ScrollController();
@@ -474,6 +476,9 @@ class _CourierPageState extends State<CourierPage> {
   }
 
   Future<void> _requestWithdrawal(BuildContext context) async {
+    if (_withdrawalDialogOpen) return;
+    _withdrawalDialogOpen = true;
+    final accountId = AppState.instance.user?['id'];
     final controller = TextEditingController();
     final pixController = TextEditingController(text: AppState.instance.walletSummary['pixKey']?.toString() ?? '');
     final savedType = AppState.instance.walletSummary['pixKeyType']?.toString();
@@ -481,165 +486,178 @@ class _CourierPageState extends State<CourierPage> {
     String? error;
     bool loading = false;
 
-    await showDialog<void>(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: .55),
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 22),
-          child: Container(
-            padding: const EdgeInsets.all(21),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-              boxShadow: AppShadows.elevated,
-            ),
-            child: SingleChildScrollView(child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const PrimeText(
-                  'Solicitar saque',
-                  style: TextStyle(
-                    fontSize: 21,
-                    fontWeight: AppFontWeight.display,
-                    letterSpacing: -.4,
-                  ),
-                ),
-                const SizedBox(height: 7),
-                PrimeText(
-                  'Disponível: ' +
-                      _money(
-                        AppState.instance
-                            .walletSummary['availableBalance'],
-                      ),
-                  style: const TextStyle(
-                    color: AppColors.muted,
-                    fontSize: AppFontSize.caption,
-                    fontWeight: AppFontWeight.strong,
-                  ),
-                ),
-                const SizedBox(height: 15),
-                TextField(
-                  controller: controller,
-                  autofocus: true,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const PrimeInputDecoration(
-                    labelText: 'Valor',
-                    prefixText: 'R\$ ',
-                    prefixIcon: Icon(AppIcons.payments_rounded),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                DropdownButtonFormField<String>(
-                  initialValue: pixType,
-                  decoration: const PrimeInputDecoration(labelText: 'Tipo de chave PIX'),
-                  items: const [DropdownMenuItem(value:'CPF',child:PrimeText('CPF')),DropdownMenuItem(value:'CNPJ',child:PrimeText('CNPJ')),DropdownMenuItem(value:'EMAIL',child:PrimeText('E-mail')),DropdownMenuItem(value:'PHONE',child:PrimeText('Celular')),DropdownMenuItem(value:'RANDOM',child:PrimeText('Aleatória'))],
-                  onChanged: loading ? null : (value) => setDialogState(() => pixType = value),
-                ),
-                const SizedBox(height: 12),
-                TextField(controller: pixController, enabled: !loading, decoration: const PrimeInputDecoration(labelText: 'Chave PIX de recebimento', helperText: 'Confira a chave antes de solicitar o saque.')),
-                if (error != null) ...[
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.peach,
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                    child: PrimeText(PrimeMessages.friendly(error!),
-                      style: const TextStyle(
-                        color: AppColors.coralStrong,
-                        fontSize: AppFontSize.caption,
-                        fontWeight: AppFontWeight.strong,
-                      ),
+    try {
+      final receipt = await showDialog<Map<String, dynamic>>(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.black.withValues(alpha: .55),
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (dialogContext, setDialogState) => PopScope(canPop: !loading, child: Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 22),
+            child: Container(
+              padding: const EdgeInsets.all(21),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppRadius.xl),
+                boxShadow: AppShadows.elevated,
+              ),
+              child: SingleChildScrollView(child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const PrimeText(
+                    'Solicitar saque',
+                    style: TextStyle(
+                      fontSize: 21,
+                      fontWeight: AppFontWeight.display,
+                      letterSpacing: -.4,
                     ),
                   ),
-                ],
-                const SizedBox(height: 12),
-                const PrimeText(
-                  'Sua solicitação de saque ficará pendente até o processamento.',
-                  style: TextStyle(
-                    color: AppColors.muted,
-                    fontSize: AppFontSize.caption,
-                    height: 1.4,
-                    fontWeight: AppFontWeight.medium,
-                  ),
-                ),
-                const SizedBox(height: 17),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: loading
-                            ? null
-                            : () => Navigator.pop(dialogContext),
-                        child: const PrimeText('Cancelar'),
-                      ),
+                  const SizedBox(height: 7),
+                  PrimeText(
+                    'Disponível: ' +
+                        _money(
+                          AppState.instance
+                              .walletSummary['availableBalance'],
+                        ),
+                    style: const TextStyle(
+                      color: AppColors.muted,
+                      fontSize: AppFontSize.caption,
+                      fontWeight: AppFontWeight.strong,
                     ),
-                    const SizedBox(width: 9),
-                    Expanded(
-                      flex: 2,
-                      child: FilledButton(
-                        onPressed: loading
-                            ? null
-                            : () async {
-                                final raw = controller.text
-                                    .replaceAll(',', '.')
-                                    .trim();
-                                final amount = double.tryParse(raw);
-                                if (amount == null || amount <= 0) {
-                                  setDialogState(
-                                    () => error = 'Informe um valor válido.',
-                                  );
-                                  return;
-                                }
-                                setDialogState(() {
-                                  loading = true;
-                                  error = null;
-                                });
-                                try {
-                                  await AppState.instance
-                                      .requestWithdrawal(amount, pixKey: pixController.text.trim(), pixKeyType: pixType);
-                                  if (dialogContext.mounted) {
-                                    Navigator.pop(dialogContext);
-                                  }
-                                } catch (e) {
-                                  if (dialogContext.mounted) {
-                                    setDialogState(() {
-                                      loading = false;
-                                      error = e
-                                          .toString()
-                                          .replaceFirst('Exception: ', '');
-                                    });
-                                  }
-                                }
-                              },
-                        child: loading
-                            ? const SizedBox(
-                                width: 19,
-                                height: 19,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const PrimeText('Solicitar'),
+                  ),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: controller,
+                    enabled: !loading,
+                    autofocus: true,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const PrimeInputDecoration(
+                      labelText: 'Valor',
+                      prefixText: 'R\$ ',
+                      prefixIcon: Icon(AppIcons.payments_rounded),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<String>(
+                    initialValue: pixType,
+                    decoration: const PrimeInputDecoration(labelText: 'Tipo de chave PIX'),
+                    items: const [DropdownMenuItem(value:'CPF',child:PrimeText('CPF')),DropdownMenuItem(value:'CNPJ',child:PrimeText('CNPJ')),DropdownMenuItem(value:'EMAIL',child:PrimeText('E-mail')),DropdownMenuItem(value:'PHONE',child:PrimeText('Celular')),DropdownMenuItem(value:'RANDOM',child:PrimeText('Aleatória'))],
+                    onChanged: loading ? null : (value) => setDialogState(() => pixType = value),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(controller: pixController, enabled: !loading, decoration: const PrimeInputDecoration(labelText: 'Chave PIX de recebimento', helperText: 'Confira a chave antes de solicitar o saque.')),
+                  if (error != null) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.peach,
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                      ),
+                      child: PrimeText(PrimeMessages.friendly(error!),
+                        style: const TextStyle(
+                          color: AppColors.coralStrong,
+                          fontSize: AppFontSize.caption,
+                          fontWeight: AppFontWeight.strong,
+                        ),
                       ),
                     ),
                   ],
-                ),
-              ],
-            )),
-          ),
+                  const SizedBox(height: 12),
+                  const PrimeText(
+                    'Sua solicitação de saque ficará pendente até o processamento.',
+                    style: TextStyle(
+                      color: AppColors.muted,
+                      fontSize: AppFontSize.caption,
+                      height: 1.4,
+                      fontWeight: AppFontWeight.medium,
+                    ),
+                  ),
+                  const SizedBox(height: 17),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: loading
+                              ? null
+                              : () => Navigator.pop(dialogContext),
+                          child: const PrimeText('Cancelar'),
+                        ),
+                      ),
+                      const SizedBox(width: 9),
+                      Expanded(
+                        flex: 2,
+                        child: FilledButton(
+                          onPressed: loading
+                              ? null
+                              : () async {
+                                  final raw = controller.text
+                                      .replaceAll(',', '.')
+                                      .trim();
+                                  final amount = double.tryParse(raw);
+                                  if (amount == null || amount <= 0) {
+                                    setDialogState(
+                                      () => error = 'Informe um valor válido.',
+                                    );
+                                    return;
+                                  }
+                                  setDialogState(() {
+                                    loading = true;
+                                    error = null;
+                                  });
+                                  try {
+                                    final created = await AppState.instance
+                                        .requestWithdrawal(amount, pixKey: pixController.text.trim(), pixKeyType: pixType);
+                                    if (dialogContext.mounted) {
+                                      Navigator.pop(dialogContext, created);
+                                    }
+                                  } catch (e) {
+                                    if (dialogContext.mounted) {
+                                      setDialogState(() {
+                                        loading = false;
+                                        error = e
+                                            .toString()
+                                            .replaceFirst('Exception: ', '');
+                                      });
+                                    }
+                                  }
+                                },
+                          child: loading
+                              ? const SizedBox(
+                                  width: 19,
+                                  height: 19,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const PrimeText('Solicitar'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              )),
+            ),
+          )),
         ),
-      ),
-    );
-
-    controller.dispose();
-    pixController.dispose();
+      );
+      if (!mounted || !context.mounted || receipt == null ||
+          AppState.instance.user?['id'] != accountId || !AppState.instance.isCourier) return;
+      final status = receipt['status']?.toString() ?? '';
+      if (!courierWithdrawalAcknowledged(status)) return;
+      await showDialog<void>(context: context,
+        barrierColor: Colors.black.withValues(alpha: .35),
+        builder: (_) => CourierWithdrawalFeedback(status: status,
+          amount: double.tryParse(receipt['amount']?.toString() ?? '')));
+    } finally {
+      controller.dispose();
+      pixController.dispose();
+      _withdrawalDialogOpen = false;
+    }
   }
 
   Future<void> _loadReadUpdates() async {

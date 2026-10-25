@@ -17,6 +17,16 @@ class AppLanguage extends ChangeNotifier {
   SharedPreferences? _preferences;
 
   static const Map<String, Map<String, String>> _curated = {
+"Boa! Saque solicitado": {"es":"¡Listo! Retiro solicitado","en":"Great! Withdrawal requested"},
+"Seu saque está em processamento": {"es":"Tu retiro se está procesando","en":"Your withdrawal is being processed"},
+"Saque pago!": {"es":"¡Retiro pagado!","en":"Withdrawal paid!"},
+"Confira seu saque": {"es":"Consulta tu retiro","en":"Check your withdrawal"},
+"Aguardando processamento": {"es":"Pendiente de procesamiento","en":"Awaiting processing"},
+"Em processamento": {"es":"En proceso","en":"Processing"},
+"Pagamento confirmado": {"es":"Pago confirmado","en":"Payment confirmed"},
+"Consulte o status na carteira": {"es":"Consulta el estado en tu cartera","en":"Check the status in your wallet"},
+"Acompanhe as atualizações na carteira.": {"es":"Consulta las actualizaciones en tu cartera.","en":"Follow updates in your wallet."},
+"Voltar à carteira": {"es":"Volver a la cartera","en":"Back to wallet"},
 "Buscando sua próxima entrega...": {"es":"Buscando tu próxima entrega...","en":"Looking for your next delivery..."},
 "Avisaremos assim que surgir uma oportunidade na sua região.": {"es":"Te avisaremos en cuanto haya una oportunidad en tu zona.","en":"We'll let you know as soon as an opportunity appears in your area."},
 "Você está online e pronto para receber entregas.": {"es":"Estás conectado y listo para recibir entregas.","en":"You're online and ready to receive deliveries."},

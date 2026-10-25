@@ -79,29 +79,25 @@ class _CourierDashboardHeaderState extends State<CourierDashboardHeader> {
             color: Color(0xFF56707D)));
           final nameLine = Text('$name 👋', style: const TextStyle(fontSize: 31, height: 1.2,
             fontWeight: FontWeight.w800, letterSpacing: -.9, color: courierInk));
-          final supporting = widget.waiting && widget.online
-            ? const PrimeText('Você está online e pronto para receber entregas.',
-                style: TextStyle(fontSize: 12, height: 1.45, color: Color(0xFF56707D)))
-            : null;
-          Widget control({bool showCaption = true}) => CourierReferenceAvailability(
-            online: widget.online, active: widget.active, changing: _changing, showCaption: showCaption,
+          Widget control() => CourierReferenceAvailability(
+            online: widget.online, active: widget.active, changing: _changing, showCaption: widget.active,
             onTap: widget.active ? widget.onRoute : widget.onChanged == null ? null : _toggle);
           if (stacked) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             hello, const SizedBox(height: 3), nameLine,
-            if (supporting != null) ...[const SizedBox(height: 8), supporting],
             const SizedBox(height: 15), control(),
           ]);
           return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             hello, const SizedBox(height: 3),
             Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
               Expanded(child: nameLine), const SizedBox(width: 16),
-              SizedBox(width: 150, child: control(showCaption: false)),
+              SizedBox(width: 150, child: CourierReferenceAvailability(
+                online: widget.online, active: widget.active, changing: _changing, showCaption: false,
+                onTap: widget.active ? widget.onRoute : widget.onChanged == null ? null : _toggle)),
             ]),
-            const SizedBox(height: 7),
-            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Expanded(child: supporting ?? const SizedBox.shrink()), const SizedBox(width: 16),
+            if (widget.active) ...[const SizedBox(height: 7), Row(children: [
+              const Expanded(child: SizedBox.shrink()), const SizedBox(width: 16),
               SizedBox(width: 150, child: CourierAvailabilityCaption(online: widget.online, active: widget.active)),
-            ]),
+            ])],
           ]);
         }),
       ])));
