@@ -33,6 +33,7 @@ try {
   'lib/features/courier/presentation/pages/courier_page.dart',
   'lib/features/courier/presentation/pages/courier_operations_dashboard.dart',
   'lib/features/courier/presentation/pages/courier_demand_notice.dart',
+  'lib/core/tracking/courier_tracking_notice.dart',
   'lib/features/courier/presentation/widgets/courier_dashboard_map.dart',
   'lib/features/courier/presentation/widgets/courier_dashboard_header.dart',
   'lib/features/courier/presentation/widgets/courier_delivery_surface.dart',
@@ -48,6 +49,6 @@ try {
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'install','-r','build\app\outputs\flutter-apk\app-release.apk')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','am','force-stop','com.portoprime.porto_prime')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','monkey','-p','com.portoprime.porto_prime','-c','android.intent.category.LAUNCHER','1')
- Write-Host 'Painel atualizado: mensagens enxutas, radar com orbitas animadas e confirmacao de saque com confetes.'
+ Write-Host 'Painel atualizado: entrega em um unico card, cabecalho compacto e acoes claras de rota, contato e conclusao.'
  Write-Host 'Nest, banco, Admin, rotas e Stripe podem continuar ligados. Dados e sessao do aplicativo preservados.'
 } finally { Pop-Location }

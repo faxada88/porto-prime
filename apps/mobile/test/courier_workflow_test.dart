@@ -24,9 +24,10 @@ Map<String, dynamic> assigned(String status) => {
     'city': 'Porto Seguro', 'state': 'BA', 'latitude': -16.39, 'longitude': -39.04},
 };
 
-Widget workflow(String phase, double scale) => MaterialApp(theme: AppTheme.light,
+Widget workflow(String phase, double scale, {double topInset = 0}) => MaterialApp(theme: AppTheme.light,
   builder: (context, child) => MediaQuery(data: MediaQuery.of(context).copyWith(
-    textScaler: TextScaler.linear(scale), disableAnimations: true), child: child!),
+    textScaler: TextScaler.linear(scale), disableAnimations: true,
+    padding: EdgeInsets.only(top: topInset), viewPadding: EdgeInsets.only(top: topInset)), child: child!),
   home: Scaffold(bottomNavigationBar: CourierOperationsNav(online: true,
     active: phase == 'assigned', busy: false, onHome: () {}, onWallet: () {},
     onAction: () {}, onHistory: () {}, onProfile: () {}),
@@ -56,7 +57,7 @@ void main() {
           await tester.pumpWidget(workflow(phase, scale));
           await tester.pump();
           expect(tester.takeException(), isNull);
-          expect(find.text('Victor 👋'), findsOneWidget);
+          expect(find.text(phase == 'assigned' ? 'Sua entrega' : 'Victor 👋'), findsOneWidget);
           expect(find.byType(CourierWaitingPanel), phase == 'waiting' ? findsOneWidget : findsNothing);
           expect(find.byType(IncomingDeliveryOfferSheet), phase == 'offer' ? findsOneWidget : findsNothing);
           expect(find.byType(CourierAssignedDelivery), phase == 'assigned' ? findsOneWidget : findsNothing);
@@ -85,6 +86,24 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     });
   }
+
+  testWidgets('Courier scroll viewport remains below the phone status bar', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 850);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(workflow('assigned', 1, topInset: 34));
+    await tester.pump();
+    final scroll = find.byType(CustomScrollView);
+    expect(tester.getRect(scroll).top, greaterThanOrEqualTo(34));
+    expect(find.text('ONLINE'), findsNothing);
+    expect(find.text('Sua entrega'), findsOneWidget);
+    await tester.drag(scroll, const Offset(0, -180));
+    await tester.pumpAndSettle();
+    expect(tester.getRect(scroll).top, greaterThanOrEqualTo(34));
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 
   test('Navigation uses pickup before collection and customer after collection', () {
     expect(courierNavigationUri(assigned('COURIER_ASSIGNED'))!.queryParameters['q'], '-16.44,-39.08');

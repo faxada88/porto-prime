@@ -901,7 +901,7 @@ class _CourierPageState extends State<CourierPage> {
                 onEarnings: () => _dashboardSection(2, 'earnings'),
                 onDeliveries: () => _dashboardSection(1, 'deliveries')),
               delivery: current != null ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                if (liveRouteMode(current) != null) const CourierTrackingNotice(),
+                if (liveRouteMode(current) != null) const CourierTrackingNotice(hideWhenSharing: true),
                 CourierAssignedDelivery(order: current, busy: _advancing,
                   primaryLabel: _nextStatus(current['status']?.toString()) == null
                     ? 'Ver detalhes' : _nextLabel(_nextStatus(current['status']?.toString())!),

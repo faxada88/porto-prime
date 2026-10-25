@@ -37,7 +37,7 @@ class _CourierDashboardHeaderState extends State<CourierDashboardHeader> {
     final names = widget.name.trim().split(RegExp(r'\s+'));
     final name = names.first.isEmpty ? 'Motoboy' : names.first;
     return SafeArea(bottom: false, child: Padding(
-      padding: const EdgeInsets.fromLTRB(20, 15, 20, 18),
+      padding: EdgeInsets.fromLTRB(20, 15, 20, widget.active ? 10 : 18),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Row(children: [
           const Expanded(child: _CourierBrand()),
@@ -72,34 +72,46 @@ class _CourierDashboardHeaderState extends State<CourierDashboardHeader> {
                   border: Border.all(color: Colors.white, width: 2.5)))),
             ]))),
         ]),
-        const SizedBox(height: 24),
-        LayoutBuilder(builder: (context, box) {
-          final stacked = box.maxWidth < 330 || MediaQuery.textScalerOf(context).scale(14) > 19;
-          const hello = PrimeText('Olá,', style: TextStyle(fontSize: 14, height: 1.3,
-            color: Color(0xFF56707D)));
-          final nameLine = Text('$name 👋', style: const TextStyle(fontSize: 31, height: 1.2,
-            fontWeight: FontWeight.w800, letterSpacing: -.9, color: courierInk));
-          Widget control() => CourierReferenceAvailability(
-            online: widget.online, active: widget.active, changing: _changing, showCaption: widget.active,
-            onTap: widget.active ? widget.onRoute : widget.onChanged == null ? null : _toggle);
-          if (stacked) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            hello, const SizedBox(height: 3), nameLine,
-            const SizedBox(height: 15), control(),
-          ]);
-          return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            hello, const SizedBox(height: 3),
-            Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-              Expanded(child: nameLine), const SizedBox(width: 16),
-              SizedBox(width: 150, child: CourierReferenceAvailability(
-                online: widget.online, active: widget.active, changing: _changing, showCaption: false,
-                onTap: widget.active ? widget.onRoute : widget.onChanged == null ? null : _toggle)),
-            ]),
-            if (widget.active) ...[const SizedBox(height: 7), Row(children: [
-              const Expanded(child: SizedBox.shrink()), const SizedBox(width: 16),
-              SizedBox(width: 150, child: CourierAvailabilityCaption(online: widget.online, active: widget.active)),
-            ])],
-          ]);
-        }),
+        if (widget.active) ...[
+          const SizedBox(height: 14),
+          LayoutBuilder(builder: (context, box) {
+            const title = PrimeText('Sua entrega', style: TextStyle(fontSize: 21,
+              height: 1.3, fontWeight: FontWeight.w800, letterSpacing: -.5, color: courierInk));
+            final details = TextButton(onPressed: widget.onRoute,
+              style: TextButton.styleFrom(foregroundColor: courierGreen,
+                minimumSize: const Size(44, 44), padding: const EdgeInsets.symmetric(horizontal: 10)),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                const PrimeText('Detalhes', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                const SizedBox(width: 5), const Icon(AppIcons.chevronRight, size: 17),
+              ]));
+            return box.maxWidth < 300 || MediaQuery.textScalerOf(context).scale(13) > 19
+              ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [title, details])
+              : Row(children: [const Expanded(child: title), details]);
+          }),
+        ] else ...[
+          const SizedBox(height: 24),
+          LayoutBuilder(builder: (context, box) {
+            final stacked = box.maxWidth < 330 || MediaQuery.textScalerOf(context).scale(14) > 19;
+            const hello = PrimeText('Olá,', style: TextStyle(fontSize: 14, height: 1.3,
+              color: Color(0xFF56707D)));
+            final nameLine = Text('$name 👋', style: const TextStyle(fontSize: 31, height: 1.2,
+              fontWeight: FontWeight.w800, letterSpacing: -.9, color: courierInk));
+            Widget control() => CourierReferenceAvailability(
+              online: widget.online, active: false, changing: _changing, showCaption: false,
+              onTap: widget.onChanged == null ? null : _toggle);
+            if (stacked) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              hello, const SizedBox(height: 3), nameLine,
+              const SizedBox(height: 15), control(),
+            ]);
+            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              hello, const SizedBox(height: 3),
+              Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                Expanded(child: nameLine), const SizedBox(width: 16),
+                SizedBox(width: 150, child: control()),
+              ]),
+            ]);
+          }),
+        ],
       ])));
   }
 }

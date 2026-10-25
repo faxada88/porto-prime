@@ -52,8 +52,8 @@ class _CourierWorkflowLayoutState extends State<CourierWorkflowLayout> with Widg
     WidgetsBinding.instance.removeObserver(this);
     _clockTick?.cancel(); _clock.stop(); super.dispose();
   }
-  @override Widget build(BuildContext context) => RefreshIndicator(
-    onRefresh: widget.onRefresh, edgeOffset: MediaQuery.paddingOf(context).top + 70,
+  @override Widget build(BuildContext context) => SafeArea(bottom: false, child: RefreshIndicator(
+    onRefresh: widget.onRefresh, edgeOffset: 62,
     child: CustomScrollView(controller: widget.controller,
       physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
       slivers: [
@@ -69,5 +69,5 @@ class _CourierWorkflowLayoutState extends State<CourierWorkflowLayout> with Widg
           })
         else SliverPadding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 22),
           sliver: SliverToBoxAdapter(child: widget.delivery)),
-      ]));
+      ])));
 }

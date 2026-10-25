@@ -94,116 +94,121 @@ class _CourierAssignedDeliveryState extends State<CourierAssignedDelivery> {
     }
     final amount = earnings == null ? '—' : 'R\$ ' + earnings.toStringAsFixed(2).replaceAll('.', ',');
     final busy = widget.busy || _opening;
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Container(padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFFE0ECEE)),
-          boxShadow: const [BoxShadow(color: Color(0x070B4147), blurRadius: 20, offset: Offset(0, 7))]),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          _DeliveryProgress(status: status), const SizedBox(height: 19),
-          Material(color: const Color(0xFFFCFEFE),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18),
-              side: const BorderSide(color: Color(0xFFE4EDEF))),
-            child: Padding(padding: const EdgeInsets.all(15), child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Expanded(child: InkWell(onTap: busy ? null : widget.onDetails,
-                  borderRadius: BorderRadius.circular(10), child: Padding(padding: const EdgeInsets.symmetric(vertical: 3),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    PrimeText(pickup ? 'Retirada em' : moving ? 'Entregando para' : 'Destino da entrega',
-                      style: const TextStyle(fontSize: 12, height: 1.4, color: Color(0xFF506C7A))),
-                    const SizedBox(height: 4),
-                    Text(title, style: const TextStyle(fontSize: 20, height: 1.25,
-                      fontWeight: FontWeight.w800, letterSpacing: -.5, color: courierInk)),
-                    const SizedBox(height: 10),
-                    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      const Icon(AppIcons.mapPin, size: 19, color: courierGreen), const SizedBox(width: 7),
-                      Expanded(child: PrimeText(detail, style: const TextStyle(fontSize: 11.5,
-                        height: 1.55, color: Color(0xFF617D8A)))),
-                    ]),
-                  ])))),
-                const SizedBox(width: 10),
-                Column(children: [
-                  IconButton.filledTonal(onPressed: busy || !canCall ? null : () => _open(phone: true),
-                    tooltip: translateLabel('Ligar para o cliente'),
-                    style: IconButton.styleFrom(backgroundColor: const Color(0xFFF0F5F6), foregroundColor: courierInk),
-                    icon: const Icon(AppIcons.phone, size: 20)),
-                  const SizedBox(height: 5),
-                  IconButton.filledTonal(onPressed: busy || !canNavigate ? null : () => _open(),
-                    tooltip: translateLabel('Abrir rota'),
-                    style: IconButton.styleFrom(backgroundColor: const Color(0xFFF0F5F6), foregroundColor: courierInk),
-                    icon: const Icon(AppIcons.navigation, size: 20)),
-                ]),
-              ]),
-              const Padding(padding: EdgeInsets.symmetric(vertical: 15),
-                child: Divider(height: 1, color: Color(0xFFE7EFF1))),
-              LayoutBuilder(builder: (context, box) {
-                final large = MediaQuery.textScalerOf(context).scale(12) > 18;
-                Widget item(IconData icon, String value, String label) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Icon(icon, size: 20, color: courierInk), const SizedBox(height: 6),
-                    PrimeText(value, style: const TextStyle(fontSize: 13, height: 1.35,
-                      fontWeight: FontWeight.w800, color: courierInk)),
-                    const SizedBox(height: 3),
-                    PrimeText(label, style: const TextStyle(fontSize: 9, height: 1.4, color: Color(0xFF66818E))),
-                  ]));
-                final items = [item(AppIcons.route, metric(widget.order['routeDistanceKm'], 'km'), 'Distância'),
-                  item(AppIcons.clock, metric(widget.order['routeDurationMinutes'], 'min'), 'Tempo estimado'),
-                  item(AppIcons.money, amount, 'Valor da entrega')];
-                return large ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: items)
-                  : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    for (var i = 0; i < items.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 8), Expanded(child: items[i]),
-                    ],
-                  ]);
-              }),
-              const SizedBox(height: 14),
-              FilledButton(onPressed: busy ? null : canNavigate ? () => _open() : widget.onDetails,
-                style: FilledButton.styleFrom(backgroundColor: const Color(0xFF008574), foregroundColor: Colors.white,
-                  minimumSize: const Size(44, 50), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
-                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  if (_opening) const SizedBox(width: 17, height: 17,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  else Icon(canNavigate ? AppIcons.navigation : AppIcons.list, size: 19),
-                  const SizedBox(width: 9),
-                  Flexible(child: PrimeText(canNavigate ? 'Abrir no app de mapas'
-                    : pickup ? 'Ver detalhes da retirada' : 'Ver detalhes', textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 12.5, height: 1.4, fontWeight: FontWeight.w700))),
-                ])),
+    final helper = pickup ? 'Confira os produtos antes de confirmar.' : moving
+      ? 'Peça o PIN ao cliente para finalizar.' : 'Inicie a rota para o cliente acompanhar.';
+
+    Widget routeButton() => OutlinedButton(
+      onPressed: busy ? null : canNavigate ? () => _open() : widget.onDetails,
+      style: OutlinedButton.styleFrom(foregroundColor: courierGreen,
+        backgroundColor: const Color(0xFFF0F8F6), side: const BorderSide(color: Color(0xFFD4E8E3)),
+        minimumSize: const Size(44, 50), padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        if (_opening) const SizedBox(width: 17, height: 17,
+          child: CircularProgressIndicator(color: courierGreen, strokeWidth: 2))
+        else Icon(canNavigate ? AppIcons.navigation : AppIcons.list, size: 19),
+        const SizedBox(width: 8),
+        Flexible(child: PrimeText(canNavigate ? 'Ver rota' : pickup ? 'Ver detalhes da retirada' : 'Ver detalhes',
+          textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, height: 1.4,
+            fontWeight: FontWeight.w700))),
+      ]));
+    Widget phoneButton() => OutlinedButton(
+      onPressed: busy ? null : () => _open(phone: true),
+      style: OutlinedButton.styleFrom(foregroundColor: courierInk,
+        side: const BorderSide(color: Color(0xFFD9E4E7)),
+        minimumSize: const Size(44, 50), padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        const Icon(AppIcons.phone, size: 18), const SizedBox(width: 8),
+        const Flexible(child: PrimeText('Ligar', textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13, height: 1.4, fontWeight: FontWeight.w700))),
+      ]));
+
+    return Container(padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: const Color(0xFFDCE8EB)),
+        boxShadow: const [BoxShadow(color: Color(0x060B4147), blurRadius: 20, offset: Offset(0, 6))]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        _DeliveryProgress(status: status),
+        const SizedBox(height: 24),
+        InkWell(onTap: busy ? null : widget.onDetails,
+          borderRadius: BorderRadius.circular(10), child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              PrimeText(pickup ? 'Retirada em' : moving ? 'Entregando para' : 'Destino da entrega',
+                style: const TextStyle(fontSize: 12, height: 1.4, color: Color(0xFF5B7580))),
+              const SizedBox(height: 6),
+              Text(title, style: const TextStyle(fontSize: 23, height: 1.25,
+                fontWeight: FontWeight.w800, letterSpacing: -.6, color: courierInk)),
+              const SizedBox(height: 10),
+              PrimeText(detail, style: const TextStyle(fontSize: 14, height: 1.55, color: Color(0xFF4E6875))),
             ]))),
-          const SizedBox(height: 12),
-          Container(padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: const Color(0xFFEAF8F1), borderRadius: BorderRadius.circular(15)),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Icon(AppIcons.package, size: 27, color: Color(0xFF1C9774)), const SizedBox(width: 11),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                PrimeText(pickup ? 'Retire o pedido na distribuidora' : moving ? 'Entregue o pedido para o cliente' : 'Tudo pronto para sair',
-                  style: const TextStyle(fontSize: 12, height: 1.4, color: courierGreen, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 4),
-                PrimeText(pickup ? 'Confira os produtos antes de confirmar.' : moving
-                  ? 'Confirme a entrega com o PIN do cliente.' : 'Inicie a rota para o cliente acompanhar.',
-                  style: const TextStyle(fontSize: 11, height: 1.5, color: Color(0xFF5C8188))),
-              ])),
-            ])),
+        const SizedBox(height: 20),
+        LayoutBuilder(builder: (context, box) {
+          final stacked = box.maxWidth < 280 || MediaQuery.textScalerOf(context).scale(13) > 18;
+          if (!canCall) return routeButton();
+          return stacked
+            ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                routeButton(), const SizedBox(height: 9), phoneButton()])
+            : Row(children: [
+                Expanded(child: phoneButton()), const SizedBox(width: 10),
+                Expanded(flex: 2, child: routeButton()),
+              ]);
+        }),
+        const Padding(padding: EdgeInsets.symmetric(vertical: 21),
+          child: Divider(height: 1, color: Color(0xFFE8EFF1))),
+        _DeliveryMetrics(distance: metric(widget.order['routeDistanceKm'], 'km'),
+          duration: metric(widget.order['routeDurationMinutes'], 'min'), amount: amount),
+        const SizedBox(height: 22),
+        FilledButton(onPressed: busy ? null : widget.onAdvance,
+          style: FilledButton.styleFrom(backgroundColor: courierGreen, foregroundColor: Colors.white,
+            minimumSize: const Size(44, 55), padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            if (widget.busy) const SizedBox(width: 18, height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            else Icon(moving ? AppIcons.check : widget.primaryIcon, size: 21),
+            const SizedBox(width: 10),
+            Flexible(child: PrimeText(widget.busy ? 'Confirmando…' : moving ? 'Finalizar entrega' : widget.primaryLabel,
+              textAlign: TextAlign.center, style: const TextStyle(fontSize: 14.5,
+                height: 1.4, fontWeight: FontWeight.w800))),
+          ])),
+        if (status != 'DELIVERED') ...[
           const SizedBox(height: 11),
-          OutlinedButton(onPressed: busy ? null : widget.onAdvance,
-            style: OutlinedButton.styleFrom(foregroundColor: courierInk,
-              minimumSize: const Size(44, 53), padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-              side: const BorderSide(color: Color(0xFF148C7F)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              if (widget.busy) const SizedBox(width: 18, height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2, color: courierGreen))
-              else Icon(moving ? AppIcons.check : widget.primaryIcon, size: 23),
-              const SizedBox(width: 10),
-              Flexible(child: PrimeText(widget.busy ? 'Confirmando…' : moving ? 'Finalizar entrega' : widget.primaryLabel,
-                textAlign: TextAlign.center, style: const TextStyle(fontSize: 13.5,
-                  height: 1.4, fontWeight: FontWeight.w800))),
-            ])),
-        ])),
-    ]);
+          PrimeText(helper, textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 11.5, height: 1.5, color: Color(0xFF67808B))),
+        ],
+      ]));
+  }
+}
+
+class _DeliveryMetrics extends StatelessWidget {
+  const _DeliveryMetrics({required this.distance, required this.duration, required this.amount});
+  final String distance, duration, amount;
+  @override Widget build(BuildContext context) {
+    final large = MediaQuery.textScalerOf(context).scale(12) > 17;
+    Widget item(String value, String label, {bool earnings = false}) => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        PrimeText(value, style: TextStyle(fontSize: 16, height: 1.35,
+          fontWeight: FontWeight.w800, color: earnings ? courierGreen : courierInk)),
+        const SizedBox(height: 5),
+        PrimeText(label, style: const TextStyle(fontSize: 10.5, height: 1.4, color: Color(0xFF67808B))),
+      ]));
+    final items = [item(distance, 'Distância'), item(duration, 'Tempo estimado'),
+      item(amount, 'Valor da entrega', earnings: true)];
+    return Container(padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: const Color(0xFFF5F8F9), borderRadius: BorderRadius.circular(16)),
+      child: large ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (var i = 0; i < items.length; i++) ...[
+          if (i > 0) const Padding(padding: EdgeInsets.symmetric(vertical: 8),
+            child: Divider(height: 1, color: Color(0xFFE4ECEF))), items[i],
+        ],
+      ]) : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        for (var i = 0; i < items.length; i++) ...[
+          if (i > 0) const SizedBox(width: 8), Expanded(child: items[i]),
+        ],
+      ]));
   }
 }
 
@@ -213,26 +218,20 @@ class _DeliveryProgress extends StatelessWidget {
   @override Widget build(BuildContext context) {
     final stage = status == 'DELIVERED' ? 2 : ['PICKED_UP', 'OUT_FOR_DELIVERY'].contains(status) ? 1 : 0;
     const labels = ['Retirar', 'Em entrega', 'Concluir'];
-    const icons = [AppIcons.package, AppIcons.truck, AppIcons.check];
-    return Stack(children: [
-      Positioned(left: 25, right: 25, top: 15, child: Row(children: [
-        Expanded(child: Container(height: 2, color: stage > 0 ? const Color(0xFF00AE7C) : const Color(0xFFD5E1E5))),
-        Expanded(child: Container(height: 2, color: stage > 1 ? const Color(0xFF00AE7C) : const Color(0xFFD5E1E5))),
-      ])),
-      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        for (var i = 0; i < 3; i++) Expanded(child: Column(children: [
-          Container(width: 32, height: 32,
-            decoration: BoxDecoration(shape: BoxShape.circle,
-              color: i < stage ? const Color(0xFF00A77B) : i == stage ? const Color(0xFFE0F7EC) : const Color(0xFFD4DFE4),
-              border: Border.all(color: Colors.white, width: 2)),
-            child: Icon(i < stage ? AppIcons.check : icons[i], size: 18,
-              color: i < stage ? Colors.white : i == stage ? const Color(0xFF00A77B) : Colors.white)),
-          const SizedBox(height: 7),
-          PrimeText(labels[i], textAlign: TextAlign.center, style: TextStyle(fontSize: 10.5,
-            height: 1.4, fontWeight: i == stage ? FontWeight.w800 : FontWeight.w500,
-            color: i <= stage ? courierInk : const Color(0xFF76909D))),
-        ])),
-      ]),
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      for (var i = 0; i < labels.length; i++) ...[
+        if (i > 0) const SizedBox(width: 8),
+        Expanded(child: Semantics(selected: i == stage, child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Container(height: 4, decoration: BoxDecoration(borderRadius: BorderRadius.circular(3),
+            color: i <= stage ? const Color(0xFF079580) : const Color(0xFFE1EAED))),
+          const SizedBox(height: 9),
+          PrimeText(labels[i], textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 10.5, height: 1.4,
+              fontWeight: i == stage ? FontWeight.w800 : FontWeight.w500,
+              color: i == stage ? courierGreen : const Color(0xFF718690))),
+        ]))),
+      ],
     ]);
   }
 }

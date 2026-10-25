@@ -17,12 +17,18 @@ O servidor fornece somente a região antes do aceite. A prévia indica que a rot
 ## Com entrega
 O progresso mostra Retirar, Em entrega e Concluir conforme o status real. A ação principal continua sendo Confirmar coleta, Iniciar rota e Finalizar entrega, nessa ordem. Finalizar entrega chama a mesma confirmação com PIN.
 
+A entrega ativa tem cabeçalho compacto “Sua entrega”, acesso aos detalhes e um único card branco. As etapas usam linhas discretas; nome e endereço têm mais espaço e texto maior. Há uma única ação de mapas, acompanhada do botão Ligar quando existe telefone válido. Distância, tempo e remuneração ficam juntos em uma faixa sem ícones repetidos. A ação principal é preenchida e a instrução do PIN fica logo abaixo, sem um segundo card de orientação.
+
+O controle ONLINE e a saudação grande ficam na espera; durante uma entrega, o cabeçalho dá lugar ao título e aos detalhes. O aviso saudável de rota compartilhada não ocupa um card adicional. Alertas de GPS, permissões e conexão continuam aparecendo com as mesmas ações de recuperação.
+
 O contato abre o discador com o telefone real do cliente. O botão de mapas usa o destino da etapa e o aplicativo disponível; não inicia compartilhamento GPS nem modifica taxas ou estado do pedido. Sem um endereço preciso da retirada, o botão abre os detalhes existentes. Se não há aplicativo de mapas, há alternativa pelo OpenStreetMap.
 
 Distância e duração exibidas são as mesmas fornecidas no pedido. Não são rotuladas como distância restante quando não existe essa medida.
 
 ## Layout e verificação
 Substituído o preenchimento da espera com SliverFillRemaining por SliverLayoutBuilder e altura mínima explícita, sem solicitação de medidas intrínsecas a um LayoutBuilder. Textos mantêm escala de acessibilidade; os estados podem rolar naturalmente.
+
+SafeArea agora protege o viewport inteiro, incluindo durante a rolagem, para o cabeçalho não passar por baixo da barra de status. Adicionada uma verificação com recuo superior de 34 px, além dos cenários existentes de telas estreitas e fonte ampliada.
 
 Adicionados 12 cenários de renderização dos três estados em 320/390 px e escala 1/2, três verificações da ação por etapa e duas de navegação/privacidade. Os sete testes existentes de ofertas permanecem. Sintaxe, imports relativos, escopo e preservação das ações conferidos neste ambiente. Flutter/Android SDK não estão instalados aqui; o comando abaixo executa análise, os testes e compilação no PC.
 

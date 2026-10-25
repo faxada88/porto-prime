@@ -17,6 +17,8 @@ class AppLanguage extends ChangeNotifier {
   SharedPreferences? _preferences;
 
   static const Map<String, Map<String, String>> _curated = {
+"Ligar": {"es":"Llamar","en":"Call"},
+"Peça o PIN ao cliente para finalizar.": {"es":"Pide el PIN al cliente para finalizar.","en":"Ask the customer for the PIN to complete delivery."},
 "Boa! Saque solicitado": {"es":"¡Listo! Retiro solicitado","en":"Great! Withdrawal requested"},
 "Seu saque está em processamento": {"es":"Tu retiro se está procesando","en":"Your withdrawal is being processed"},
 "Saque pago!": {"es":"¡Retiro pagado!","en":"Withdrawal paid!"},
