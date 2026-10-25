@@ -75,26 +75,33 @@ class _CourierDashboardHeaderState extends State<CourierDashboardHeader> {
         const SizedBox(height: 24),
         LayoutBuilder(builder: (context, box) {
           final stacked = box.maxWidth < 330 || MediaQuery.textScalerOf(context).scale(14) > 19;
-          final greeting = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const PrimeText('Olá,', style: TextStyle(fontSize: 14, height: 1.3,
-              color: Color(0xFF56707D))),
-            const SizedBox(height: 3),
-            Text('$name 👋', style: const TextStyle(fontSize: 31, height: 1.2,
-              fontWeight: FontWeight.w800, letterSpacing: -.9, color: courierInk)),
-            if (widget.waiting && widget.online) ...[
-              const SizedBox(height: 8),
-              const PrimeText('Você está online e pronto para receber entregas.',
-                style: TextStyle(fontSize: 12, height: 1.45, color: Color(0xFF56707D))),
-            ],
-          ]);
-          final control = CourierReferenceAvailability(
-            online: widget.online, active: widget.active, changing: _changing,
+          const hello = PrimeText('Olá,', style: TextStyle(fontSize: 14, height: 1.3,
+            color: Color(0xFF56707D)));
+          final nameLine = Text('$name 👋', style: const TextStyle(fontSize: 31, height: 1.2,
+            fontWeight: FontWeight.w800, letterSpacing: -.9, color: courierInk));
+          final supporting = widget.waiting && widget.online
+            ? const PrimeText('Você está online e pronto para receber entregas.',
+                style: TextStyle(fontSize: 12, height: 1.45, color: Color(0xFF56707D)))
+            : null;
+          Widget control({bool showCaption = true}) => CourierReferenceAvailability(
+            online: widget.online, active: widget.active, changing: _changing, showCaption: showCaption,
             onTap: widget.active ? widget.onRoute : widget.onChanged == null ? null : _toggle);
-          if (stacked) return Column(crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [greeting, const SizedBox(height: 15), control]);
-          return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            Expanded(child: greeting), const SizedBox(width: 16),
-            SizedBox(width: 150, child: control),
+          if (stacked) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            hello, const SizedBox(height: 3), nameLine,
+            if (supporting != null) ...[const SizedBox(height: 8), supporting],
+            const SizedBox(height: 15), control(),
+          ]);
+          return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            hello, const SizedBox(height: 3),
+            Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+              Expanded(child: nameLine), const SizedBox(width: 16),
+              SizedBox(width: 150, child: control(showCaption: false)),
+            ]),
+            const SizedBox(height: 7),
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(child: supporting ?? const SizedBox.shrink()), const SizedBox(width: 16),
+              SizedBox(width: 150, child: CourierAvailabilityCaption(online: widget.online, active: widget.active)),
+            ]),
           ]);
         }),
       ])));
@@ -103,8 +110,8 @@ class _CourierDashboardHeaderState extends State<CourierDashboardHeader> {
 
 class CourierReferenceAvailability extends StatelessWidget {
   const CourierReferenceAvailability({super.key, required this.online,
-    required this.active, required this.changing, required this.onTap});
-  final bool online, active, changing;
+    required this.active, required this.changing, required this.onTap, this.showCaption = true});
+  final bool online, active, changing, showCaption;
   final VoidCallback? onTap;
   @override Widget build(BuildContext context) {
     final enabled = !changing && onTap != null;
@@ -135,16 +142,25 @@ class CourierReferenceAvailability extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2, color: courierGreen))
                     : active || online ? null : const Icon(AppIcons.power, color: Color(0xFF59717C), size: 19)),
               ])))))),
-      const SizedBox(height: 7),
-      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+      if (showCaption) ...[
+        const SizedBox(height: 7),
+        CourierAvailabilityCaption(online: online, active: active),
+      ],
+    ]);
+  }
+}
+
+/// Caption height never participates in the horizontal alignment of the pill.
+class CourierAvailabilityCaption extends StatelessWidget {
+  const CourierAvailabilityCaption({super.key, required this.online, required this.active});
+  final bool online, active;
+  @override Widget build(BuildContext context) => Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle,
           color: online || active ? const Color(0xFF00B184) : const Color(0xFF8CA1AA))),
         const SizedBox(width: 5),
         Flexible(child: PrimeText(active ? 'Em entrega' : online ? 'Recebendo entregas' : 'Toque para ficar online',
           textAlign: TextAlign.center, style: const TextStyle(fontSize: 9, height: 1.4, color: Color(0xFF456E73)))),
-      ]),
-    ]);
-  }
+      ]);
 }
 
 class _CourierBrand extends StatelessWidget {
