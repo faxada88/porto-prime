@@ -4,42 +4,125 @@ import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../widgets/courier_dashboard_map.dart';
 
-/// Only the two daily totals belong on Home; the remaining details live in their tabs.
+String courierDashboardMoney(dynamic value) {
+  final amount = double.tryParse(value?.toString() ?? '');
+  return amount == null ? '—' : 'R\$ ' + amount.toStringAsFixed(2).replaceAll('.', ',');
+}
+
 class CourierDailyMetrics extends StatelessWidget {
   const CourierDailyMetrics({super.key, required this.summary,
-    required this.onEarnings, required this.onDeliveries});
+    required this.onEarnings, required this.onDeliveries, required this.onWallet});
   final Map<String, dynamic> summary;
-  final VoidCallback onEarnings, onDeliveries;
+  final VoidCallback onEarnings, onDeliveries, onWallet;
+  @override Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
+    final large = MediaQuery.textScalerOf(context).scale(14) > 19;
+    final cards = [
+      _MetricCard(icon: AppIcons.wallet, label: 'Ganhos de hoje',
+        value: courierDashboardMoney(summary['earningsToday']), onTap: onEarnings),
+      _MetricCard(icon: AppIcons.package, label: 'Entregas hoje',
+        value: (summary['deliveriesToday'] ?? '—').toString(), onTap: onDeliveries),
+      _MetricCard(icon: Icons.bar_chart_rounded, label: 'Saldo disponível',
+        value: courierDashboardMoney(summary['availableBalance']), onTap: onWallet),
+    ];
+    if (large) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      for (var i = 0; i < cards.length; i++) ...[
+        if (i > 0) const SizedBox(height: 10), cards[i],
+      ],
+    ]);
+    return IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      for (var i = 0; i < cards.length; i++) ...[
+        if (i > 0) const SizedBox(width: 8), Expanded(child: cards[i]),
+      ],
+    ]));
+  });
+}
 
-  @override Widget build(BuildContext context) {
-    final earnings = summary.containsKey('earningsToday')
-      ? 'R\$ ' + (double.tryParse(summary['earningsToday'].toString()) ?? 0)
-          .toStringAsFixed(2).replaceAll('.', ',')
-      : '—';
-    Widget cell(IconData icon, String label, String value, VoidCallback onTap) =>
-      Material(color: Colors.transparent, child: InkWell(onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(padding: const EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+class _MetricCard extends StatelessWidget {
+  const _MetricCard({required this.icon, required this.label, required this.value, required this.onTap});
+  final IconData icon;
+  final String label, value;
+  final VoidCallback onTap;
+  @override Widget build(BuildContext context) => Material(color: Colors.white,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17),
+      side: const BorderSide(color: Color(0xFFE4EDF0))),
+    child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(17),
+      child: Padding(padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 13),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(width: 31, height: 31, alignment: Alignment.center,
+            decoration: BoxDecoration(color: const Color(0xFFF0F5F6),
+              borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, size: 19, color: courierGreen)),
+          const SizedBox(height: 11),
+          PrimeText(value, style: const TextStyle(fontSize: 17, height: 1.25,
+            fontWeight: FontWeight.w800, letterSpacing: -.5, color: courierInk)),
+          const SizedBox(height: 5),
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(child: PrimeText(label, style: const TextStyle(fontSize: 10, height: 1.35,
+              color: Color(0xFF6A8390)))),
+            const SizedBox(width: 2), const Icon(AppIcons.chevronRight, size: 12, color: courierGreen),
+          ]),
+        ]))));
+}
+
+/// Only server totals are shown; a limited ledger is never treated as a monthly total.
+class CourierEarningsOverview extends StatelessWidget {
+  const CourierEarningsOverview({super.key, required this.summary, required this.onWallet});
+  final Map<String, dynamic> summary;
+  final VoidCallback onWallet;
+  @override Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    Row(children: [
+      const Expanded(child: PrimeText('Seus ganhos', style: TextStyle(fontSize: 20,
+        height: 1.3, fontWeight: FontWeight.w800, letterSpacing: -.5, color: courierInk))),
+      TextButton(onPressed: onWallet, style: TextButton.styleFrom(foregroundColor: courierGreen,
+        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 12)),
+        child: const Row(mainAxisSize: MainAxisSize.min, children: [
+          PrimeText('Ver carteira', style: TextStyle(fontSize: 12)),
+          SizedBox(width: 2), Icon(AppIcons.chevronRight, size: 16),
+        ])),
+    ]),
+    const SizedBox(height: 8),
+    LayoutBuilder(builder: (context, box) {
+      final large = MediaQuery.textScalerOf(context).scale(14) > 19;
+      Widget card(String label, dynamic value, String? count) => Material(color: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17),
+          side: const BorderSide(color: Color(0xFFE4EDF0))),
+        child: InkWell(onTap: onWallet, borderRadius: BorderRadius.circular(17),
+          child: Padding(padding: const EdgeInsets.all(12), child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Icon(icon, size: 17, color: const Color(0xFF617985)),
-              const SizedBox(width: 7),
-              Expanded(child: PrimeText(label, style: const TextStyle(fontSize: 11, height: 1.3,
-                color: Color(0xFF617985), fontWeight: FontWeight.w500))),
+              Expanded(child: PrimeText(label, style: const TextStyle(fontSize: 11,
+                height: 1.3, color: Color(0xFF56707D)))),
+              const SizedBox(width: 3), const Icon(Icons.bar_chart_rounded,
+                size: 18, color: courierGreen),
             ]),
-            const SizedBox(height: 8),
-            PrimeText(value, style: const TextStyle(fontSize: 21, height: 1.2,
-              letterSpacing: -.5, fontWeight: FontWeight.w800, color: courierInk)),
+            const SizedBox(height: 10),
+            PrimeText(courierDashboardMoney(value), style: const TextStyle(fontSize: 16,
+              height: 1.3, letterSpacing: -.4, fontWeight: FontWeight.w800, color: courierInk)),
+            const SizedBox(height: 5),
+            PrimeText(count ?? 'Disponível para saque', style: const TextStyle(fontSize: 10,
+              height: 1.35, color: Color(0xFF6A8390))),
           ]))));
-    return Container(decoration: BoxDecoration(color: Colors.white,
-      borderRadius: BorderRadius.circular(23), border: Border.all(color: const Color(0xFFE0EAEE))),
-      child: IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Expanded(child: cell(AppIcons.wallet, 'Ganhos hoje', earnings, onEarnings)),
-        const VerticalDivider(width: 1, thickness: 1, color: Color(0xFFE8EFF1)),
-        Expanded(child: cell(AppIcons.package, 'Entregas hoje',
-          (summary['deliveriesToday'] ?? '—').toString(), onDeliveries)),
-      ])));
-  }
+      String? deliveries(String key) {
+        final count = summary[key];
+        return count == null ? '—' : count == 1 ? '$count entrega' : '$count entregas';
+      }
+      final cards = [
+        card('Hoje', summary['earningsToday'], deliveries('deliveriesToday')),
+        card('Semana', summary['earningsWeek'], deliveries('deliveriesWeek')),
+        card('Carteira', summary['availableBalance'], null),
+      ];
+      if (large) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (var i = 0; i < cards.length; i++) ...[
+          if (i > 0) const SizedBox(height: 10), cards[i],
+        ],
+      ]);
+      return IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (var i = 0; i < cards.length; i++) ...[
+          if (i > 0) const SizedBox(width: 8), Expanded(child: cards[i]),
+        ],
+      ]));
+    }),
+  ]);
 }
 
 class CourierOperationsNav extends StatelessWidget {
@@ -49,36 +132,37 @@ class CourierOperationsNav extends StatelessWidget {
   final bool online, active, busy;
   final int index;
   final VoidCallback onHome, onWallet, onAction, onHistory, onProfile;
-  @override Widget build(BuildContext context) => ColoredBox(color: const Color(0xFFF5F9FA),
-    child: SafeArea(top: false, minimum: const EdgeInsets.fromLTRB(10, 6, 10, 6),
-      child: Container(padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 7),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(26),
-          border: Border.all(color: const Color(0xFF9AB5BF), width: 1.2),
-          boxShadow: const [BoxShadow(color: Color(0x0C16434D), blurRadius: 22, offset: Offset(0, -4))]),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          _item(0, AppIcons.home, 'Início', onHome),
-          _item(1, AppIcons.package, 'Entregas', onAction),
-          _item(2, AppIcons.wallet, 'Carteira', onWallet),
-          _item(3, Icons.bar_chart_rounded, 'Histórico', onHistory),
-          _item(4, AppIcons.user, 'Perfil', onProfile),
-        ]))));
+  @override Widget build(BuildContext context) => Container(
+    decoration: const BoxDecoration(color: Colors.white,
+      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      border: Border.fromBorderSide(BorderSide(color: Color(0xFFD9E7EB), width: 1)),
+      boxShadow: [BoxShadow(color: Color(0x0C16434D), blurRadius: 24, offset: Offset(0, -5))]),
+    child: SafeArea(top: false, minimum: const EdgeInsets.fromLTRB(12, 8, 12, 5),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _item(0, AppIcons.home, 'Início', onHome),
+        _item(1, AppIcons.package, 'Entregas', onAction),
+        _item(2, AppIcons.wallet, 'Carteira', onWallet),
+        _item(3, Icons.bar_chart_rounded, 'Histórico', onHistory),
+        _item(4, AppIcons.user, 'Perfil', onProfile),
+      ])));
   Widget _item(int value, IconData icon, String label, VoidCallback tap) {
     final selected = index == value;
     return Expanded(child: Semantics(selected: selected, button: true,
       child: Tooltip(message: translateLabel(label), child: InkWell(onTap: busy ? null : tap,
-        borderRadius: BorderRadius.circular(18),
-        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 7),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(selected && value == 0 ? Icons.home_rounded : icon, size: 23, color: selected ? courierGreen : const Color(0xFF5B7380)),
+            Icon(selected && value == 0 ? Icons.home_rounded : icon, size: 25,
+              color: selected ? courierGreen : const Color(0xFF5B7380)),
             const SizedBox(height: 6),
             PrimeText(label, maxLines: 2, textAlign: TextAlign.center,
               style: TextStyle(fontSize: 10, height: 1.25,
                 color: selected ? courierGreen : const Color(0xFF5B7380),
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w500)),
             const SizedBox(height: 6),
-            Container(height: 2, width: 22, decoration: BoxDecoration(
+            Container(height: 2.5, width: 24, decoration: BoxDecoration(
               color: selected ? courierGreen : Colors.transparent,
-              borderRadius: BorderRadius.circular(2))),
+              borderRadius: BorderRadius.circular(3))),
           ]))))));
   }
 }

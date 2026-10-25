@@ -7,7 +7,8 @@ import '../../../support/presentation/pages/delivery_chat_page.dart';
 import '../../../support/presentation/pages/support_page.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widgets/courier_dashboard_map.dart';
+import '../widgets/courier_dashboard_map.dart' show courierGreen, courierInk;
+import '../widgets/courier_dashboard_header.dart';
 import '../widgets/courier_delivery_surface.dart';
 import '../widgets/incoming_delivery_offer_sheet.dart';
 import 'courier_operations_dashboard.dart';
@@ -39,7 +40,6 @@ class _CourierPageState extends State<CourierPage> {
   bool _offerActionBusy = false;
   int _navIndex = 0;
   bool _updatesOpen = false;
-  bool _mapHeaderVisible = true;
   bool _logoutDialogOpen = false;
   bool _signingOut = false;
   final Set<String> _readUpdateIds = {};
@@ -61,7 +61,6 @@ class _CourierPageState extends State<CourierPage> {
     super.initState();
     AppState.instance.addListener(_syncOfferSound);
     unawaited(_loadReadUpdates());
-    _operationsScroll.addListener(_updateStatusBar);
     Future<void>(() async {
       try {
         await AppState.instance.heartbeatCourier();
@@ -96,7 +95,6 @@ class _CourierPageState extends State<CourierPage> {
     stopDeliveryOfferSound();
     _heartbeatTimer?.cancel();
     _refreshTimer?.cancel();
-    _operationsScroll.removeListener(_updateStatusBar);
     _operationsScroll.dispose();
     super.dispose();
   }
@@ -665,13 +663,6 @@ class _CourierPageState extends State<CourierPage> {
     } catch (_) {}
   }
 
-  void _updateStatusBar() {
-    if (!mounted || !_operationsScroll.hasClients) return;
-    final height = courierDashboardMapHeight(context);
-    final visible = _operationsScroll.offset < height;
-    if (visible != _mapHeaderVisible) setState(() => _mapHeaderVisible = visible);
-  }
-
   void _scrollHome() {
     HapticFeedback.selectionClick();
     if (!_operationsScroll.hasClients) return;
@@ -856,8 +847,8 @@ class _CourierPageState extends State<CourierPage> {
       final updates = _dashboardUpdates(state);
       _presentIncomingOfferIfNeeded(context, state);
       return AnnotatedRegion<SystemUiOverlayStyle>(
-        value: (_mapHeaderVisible ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark).copyWith(
-          statusBarColor: _mapHeaderVisible ? Colors.transparent : const Color(0xFFF5F9FA),
+        value: SystemUiOverlayStyle.dark.copyWith(
+          statusBarColor: const Color(0xFFF5F9FA),
           systemNavigationBarColor: const Color(0xFFF5F9FA), systemNavigationBarIconBrightness: Brightness.dark),
         child: Scaffold(backgroundColor: const Color(0xFFF5F9FA),
           bottomNavigationBar: Center(heightFactor: 1, child: ConstrainedBox(
@@ -874,24 +865,27 @@ class _CourierPageState extends State<CourierPage> {
               child: CustomScrollView(controller: _operationsScroll,
                 physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                 slivers: [
-                  SliverToBoxAdapter(child: CourierDashboardMap(
+                  SliverToBoxAdapter(child: CourierDashboardHeader(
+                    name: (state.user?['name'] ?? 'Motoboy').toString(),
+                    photo: state.courierProfile['profilePhoto']?.toString(),
+                    onProfile: () => _dashboardSection(4, 'profile'),
                     online: state.courierOnline, active: current != null,
-                    order: current,
                     unreadCount: updates.where((r) => !_readUpdateIds.contains(r.id)).length,
                     onNotifications: _openUpdates,
                     onLogout: _signingOut || _navBusy || _advancing || _offerActionBusy ? null : _confirmLogout,
                     onRoute: _dashboardDeliveries,
                     onChanged: current == null && !_offerActionBusy && !_signingOut ? state.setCourierOnline : null)),
-                  SliverPadding(padding: const EdgeInsets.fromLTRB(14, 10, 14, 24),
+                  SliverPadding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 26),
                     sliver: SliverList(delegate: SliverChildListDelegate([
                       CourierDailyMetrics(summary: state.walletSummary,
                         onEarnings: () => _dashboardSection(2, 'earnings'),
-                        onDeliveries: () => _dashboardSection(1, 'deliveries')),
+                        onDeliveries: () => _dashboardSection(1, 'deliveries'),
+                        onWallet: () => _dashboardSection(2, 'wallet')),
                       if (state.courierHighDemand) ...[
                         const SizedBox(height: 14),
                         CourierDemandNotice(online: state.courierOnline, bonusAmount: state.courierDemandBonus, compact: true),
                       ],
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 23),
                       if (current != null) ...[
                         if (liveRouteMode(current) != null) const CourierTrackingNotice(),
                         CourierDeliverySurface(order: current, incoming: false,
@@ -915,6 +909,9 @@ class _CourierPageState extends State<CourierPage> {
                           onAccept: () => state.acceptDelivery(offers.first['orderId'].toString()),
                           onReject: () => state.rejectDelivery(offers.first['orderId'].toString()))
                       else CourierDashboardEmpty(online: state.courierOnline),
+                      const SizedBox(height: 22),
+                      CourierEarningsOverview(summary: state.walletSummary,
+                        onWallet: () => _dashboardSection(2, 'wallet')),
                       if (state.courierOnline && current == null && offers.length > 1) ...[
                         const SizedBox(height: 20),
                         CourierOpportunities(offers: offers.skip(1).toList(),

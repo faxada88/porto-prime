@@ -10,8 +10,8 @@ import '../../../../core/tracking/courier_route_tracker.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/widgets/prime_ui.dart';
 
-const courierGreen = Color(0xFF008654);
-const courierInk = Color(0xFF102A33);
+const courierGreen = Color(0xFF075A5E);
+const courierInk = Color(0xFF0C202B);
 const courierTileUrl = String.fromEnvironment('MAP_TILE_URL',
   defaultValue: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png');
 

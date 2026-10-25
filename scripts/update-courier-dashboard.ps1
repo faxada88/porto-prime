@@ -1,4 +1,4 @@
-param([string]$DeviceId = '', [string]$AppleMerchantId = $env:STRIPE_APPLE_MERCHANT_ID)
+param([string]$DeviceId = '', [string]$AppleMerchantId = $env:STRIPE_APPLE_MERCHANT_ID, [switch]$CleanBuild)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 function Invoke-Checked {
@@ -27,12 +27,14 @@ function Assert-AndroidReady {
 Assert-AndroidReady
 Push-Location (Join-Path $projectRoot 'apps\mobile')
 try {
+ if($CleanBuild){Invoke-Checked -Command flutter -Arguments @('clean')}
  Invoke-Checked -Command flutter -Arguments @('pub','get')
  Invoke-Checked -Command flutter -Arguments @('analyze','--no-fatal-infos','--no-fatal-warnings',
   'lib/features/courier/presentation/pages/courier_page.dart',
   'lib/features/courier/presentation/pages/courier_operations_dashboard.dart',
   'lib/features/courier/presentation/pages/courier_demand_notice.dart',
   'lib/features/courier/presentation/widgets/courier_dashboard_map.dart',
+  'lib/features/courier/presentation/widgets/courier_dashboard_header.dart',
   'lib/features/courier/presentation/widgets/courier_delivery_surface.dart',
   'lib/features/courier/presentation/widgets/incoming_delivery_offer_sheet.dart')
  Invoke-Checked -Command flutter -Arguments @('test','test/delivery_offer_sheet_test.dart')
@@ -43,6 +45,6 @@ try {
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'install','-r','build\app\outputs\flutter-apk\app-release.apk')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','am','force-stop','com.portoprime.porto_prime')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','monkey','-p','com.portoprime.porto_prime','-c','android.intent.category.LAUNCHER','1')
- Write-Host 'Painel do motoboy atualizado: controle unico de disponibilidade, Home simplificada e Sair acessivel.'
+ Write-Host 'Painel claro instalado: cabecalho de perfil, disponibilidade unica, coleta e entrega, ganhos e menu renovados.'
  Write-Host 'Nest, banco, Admin, rotas e Stripe podem continuar ligados. Dados e sessao do aplicativo preservados.'
 } finally { Pop-Location }

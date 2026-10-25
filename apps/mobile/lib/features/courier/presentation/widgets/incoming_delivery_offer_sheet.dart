@@ -20,9 +20,11 @@ class _IncomingDeliveryOfferSheetState extends State<IncomingDeliveryOfferSheet>
  bool _busy=false,_closing=false;
  String? _action,_error;
  int _seconds=0;
+ int _initialSeconds=0;
  @override void initState(){
   super.initState();
   _seconds=_remaining();
+  _initialSeconds=_seconds;
   widget.updates?.addListener(_sync);
   _timer=Timer.periodic(const Duration(seconds:1),(_)=>_sync());
   WidgetsBinding.instance.addPostFrameCallback((_)=>_sync());
@@ -59,7 +61,7 @@ class _IncomingDeliveryOfferSheetState extends State<IncomingDeliveryOfferSheet>
  }
  @override void dispose(){_timer?.cancel();widget.updates?.removeListener(_sync);super.dispose();}
  @override Widget build(BuildContext context){
-  final card=CourierDeliverySurface(order:widget.order,incoming:true,seconds:_seconds,
+  final card=CourierDeliverySurface(order:widget.order,incoming:true,seconds:_seconds,totalSeconds:_initialSeconds,
    busy:_busy,action:_action,error:_error,
    onAccept:_seconds==0?null:()=>_respond(true),
    onReject:_seconds==0?null:()=>_respond(false));
