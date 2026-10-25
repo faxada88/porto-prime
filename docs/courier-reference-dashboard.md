@@ -1,28 +1,43 @@
-# Área do motoboy: foco em entregas
+# Fluxo claro do motoboy em três estados
 
-A Home foi simplificada após a revisão visual:
-- Removidas as duas grades de indicadores e toda a seção “Seus ganhos”.
-- Um único saldo disponível, no acesso à Carteira, sem repetições de ganhos do dia ou da semana.
-- Cabeçalho com nome, sino, foto e um único controle de disponibilidade. Perfil e saída continuam disponíveis.
-- Quando não existe uma oferta ou entrega atribuída, uma ilustração vetorial discreta ocupa o centro da tela, com texto curto para o estado online ou offline.
-- Ao receber uma oferta real, o card operacional substitui o estado de espera. Os botões, prazo do servidor, remuneração, endereços e proteções de aceitação continuam iguais.
-- A transição visual respeita a preferência de redução de movimento. Não há animação em loop ou nova consulta periódica.
-- Ganhos detalhados e histórico permanecem nas abas existentes.
+Referência visual: Fluxo do App Porto Prime Delivery(1).png.
 
-A ilustração de espera é decorativa: não mostra localização, rota geográfica, posição em fila, metas, promessas de renda ou ofertas simuladas. O aviso de alta demanda só aparece quando fornecido pelo estado real da operação.
+## Aguardando
+Cabeçalho claro com marca, foto real, sino, saudação e um único controle de disponibilidade. Radar com moto e círculos suaves; ao ficar offline ou desativar animações o radar pausa. O aviso diz que a próxima oferta aparecerá ali, sem exibir entregas fictícias.
 
-## Layout
-O estado de espera preenche o espaço disponível e mantém o acesso à Carteira próximo ao menu. Em telas menores e com fontes ampliadas, o conteúdo pode rolar naturalmente. O estado de entrega usa a lista rolável existente. Nenhuma fonte do conteúdo foi reduzida para forçar encaixe.
+Há uma única faixa de resumo na espera: ganhos de hoje, entregas de hoje e tempo online desta sessão. Valores financeiros e quantidade vêm da API. Tempo online é medido localmente nesta abertura da conta e pausa quando offline ou em segundo plano. Não representa um histórico diário fornecido pelo servidor.
 
-## Atualização no Windows
+## Recebendo oferta
+Card único com selo Nova entrega, cronômetro do prazo real, imagem institucional, remuneração, distância e duração, retirada e região de entrega, Recusar e Aceitar entrega. Preservadas as proteções contra aceite duplicado, fechamento durante uma solicitação, expiração e nova tentativa após falha.
+
+O servidor fornece somente a região antes do aceite. A prévia indica que a rota/endereço completo será liberado após aceitar; nenhuma coordenada ou rua é inventada para copiar o mapa da referência.
+
+## Com entrega
+O progresso mostra Retirar, Em entrega e Concluir conforme o status real. A ação principal continua sendo Confirmar coleta, Iniciar rota e Finalizar entrega, nessa ordem. Finalizar entrega chama a mesma confirmação com PIN.
+
+O contato abre o discador com o telefone real do cliente. O botão de mapas usa o destino da etapa e o aplicativo disponível; não inicia compartilhamento GPS nem modifica taxas ou estado do pedido. Sem um endereço preciso da retirada, o botão abre os detalhes existentes. Se não há aplicativo de mapas, há alternativa pelo OpenStreetMap.
+
+Distância e duração exibidas são as mesmas fornecidas no pedido. Não são rotuladas como distância restante quando não existe essa medida.
+
+## Layout e verificação
+Substituído o preenchimento da espera com SliverFillRemaining por SliverLayoutBuilder e altura mínima explícita, sem solicitação de medidas intrínsecas a um LayoutBuilder. Textos mantêm escala de acessibilidade; os estados podem rolar naturalmente.
+
+Adicionados 12 cenários de renderização dos três estados em 320/390 px e escala 1/2, três verificações da ação por etapa e duas de navegação/privacidade. Os sete testes existentes de ofertas permanecem. Sintaxe, imports relativos, escopo e preservação das ações conferidos neste ambiente. Flutter/Android SDK não estão instalados aqui; o comando abaixo executa análise, os testes e compilação no PC.
+
+A causa exata de uma tela preta só pode ser confirmada pelos logs do dispositivo. A alteração remove a dependência de layout intrínseco e os cenários novos verificam a composição completa de cada estado.
+
+## Atualização
 Com o Android completamente iniciado:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\update-courier-dashboard.ps1 -DeviceId emulator-5554
 
-O script executa análise, testes existentes de oferta, compilação e instalação com adb install -r. Nest, Admin, banco, rotas e Stripe podem continuar ligados. A opção CleanBuild continua disponível para reconstruir os arquivos gerados quando necessário.
+Nest, Admin, banco, rotas e Stripe podem continuar ligados. Instalador mantém adb install -r e não limpa os dados do app. CleanBuild continua opcional.
 
-## Escopo e validação
-Somente apresentação, textos e mensagem final do instalador foram alterados. Nenhuma mudança na API, autenticação, carteira, despacho, pagamentos, aceite/recusa, confirmação por PIN ou localização.
-Sintaxe Dart, imports, chaves de tradução e preservação das ações existentes verificados no ambiente de edição. Não há Flutter/Android SDK neste ambiente; análise semântica, testes de widgets e compilação serão executados pelo script no Windows. A conferência visual final deve ocorrer no emulador.
+## Limites preservados
+Sem mudanças na API, banco, autenticação, despacho, taxas, remuneração, saques ou pagamentos. O GPS continua sendo ativado pelo serviço existente somente quando a ação Iniciar rota é confirmada no servidor. Cancelamentos com devolução continuam no fluxo próprio.
+
+## Referências técnicas
+- Android, ações comuns para mapas: https://developer.android.com/guide/components/intents-common#Maps
+- Flutter url_launcher, esquemas, aplicativos disponíveis e alternativa após falha: https://pub.dev/packages/url_launcher
 
 ## Imagem incorporada
 Arquivo: apps/mobile/assets/reference_home/courier-pickup-bag.webp (640 × 640, WebP).

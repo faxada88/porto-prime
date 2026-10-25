@@ -4,39 +4,6 @@ import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../widgets/courier_dashboard_map.dart';
 
-/// The only amount shown on Home. Detailed earnings remain in the wallet.
-class CourierWalletShortcut extends StatelessWidget {
-  const CourierWalletShortcut({super.key, required this.summary, required this.onTap});
-  final Map<String, dynamic> summary;
-  final VoidCallback onTap;
-  @override Widget build(BuildContext context) {
-    final amount = double.tryParse(summary['availableBalance']?.toString() ?? '');
-    final money = amount == null ? '—' : 'R\$ ' + amount.toStringAsFixed(2).replaceAll('.', ',');
-    return Semantics(button: true, label: translateLabel('Abrir carteira'),
-      child: Material(color: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: Color(0xFFDDE9EC))),
-        child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(22),
-          child: Padding(padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-            child: Row(children: [
-              Container(width: 42, height: 42,
-                decoration: BoxDecoration(color: const Color(0xFFEDF5F5),
-                  borderRadius: BorderRadius.circular(15)),
-                child: const Icon(AppIcons.wallet, color: courierGreen, size: 23)),
-              const SizedBox(width: 13),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const PrimeText('Na sua carteira', style: TextStyle(fontSize: 11,
-                  height: 1.4, fontWeight: FontWeight.w500, color: Color(0xFF607B87))),
-                const SizedBox(height: 3),
-                PrimeText(money, style: const TextStyle(fontSize: 22, height: 1.25,
-                  letterSpacing: -.6, fontWeight: FontWeight.w800, color: courierInk)),
-              ])),
-              const SizedBox(width: 14),
-              const Icon(AppIcons.arrowUpRight, color: courierGreen, size: 23),
-            ])))));
-  }
-}
-
 class CourierOperationsNav extends StatelessWidget {
   const CourierOperationsNav({super.key, required this.online, required this.active,
     required this.busy, required this.onHome, required this.onWallet, required this.onAction,
@@ -79,77 +46,154 @@ class CourierOperationsNav extends StatelessWidget {
   }
 }
 
-/// An operational waiting state, with no simulated offers, scores or incentives.
-class CourierStandbySurface extends StatelessWidget {
-  const CourierStandbySurface({super.key, required this.online});
+/// A single compact summary, only while waiting. Session time is measured locally.
+class CourierWaitingPanel extends StatelessWidget {
+  const CourierWaitingPanel({super.key, required this.online, required this.summary,
+    required this.onlineTime, required this.minimumHeight, required this.onEarnings,
+    required this.onDeliveries});
   final bool online;
-  @override Widget build(BuildContext context) => ConstrainedBox(
-    constraints: const BoxConstraints(maxWidth: 420),
-    child: Padding(padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-      child: AnimatedSwitcher(
-        duration: Duration(milliseconds: MediaQuery.disableAnimationsOf(context) ? 0 : 240),
-        child: Column(key: ValueKey(online), mainAxisSize: MainAxisSize.min, children: [
-          _CourierStandbyArtwork(online: online),
-          const SizedBox(height: 17),
-          PrimeText(online ? 'Sua próxima entrega' : 'Pronto quando você estiver',
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 25, height: 1.2, letterSpacing: -.7,
+  final Map<String, dynamic> summary;
+  final Duration onlineTime;
+  final double minimumHeight;
+  final VoidCallback onEarnings, onDeliveries;
+  @override Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
+    final radarSize = (box.maxWidth * .82).clamp(200.0, 320.0).toDouble();
+    return ConstrainedBox(constraints: BoxConstraints(minHeight: minimumHeight),
+      child: Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Padding(padding: const EdgeInsets.symmetric(vertical: 20), child: Column(children: [
+            CourierSearchingRadar(online: online, size: radarSize),
+            const SizedBox(height: 14),
+            PrimeText(online ? 'Buscando sua próxima entrega...' : 'Pronto quando você estiver',
+              textAlign: TextAlign.center, style: const TextStyle(fontSize: 20,
+                height: 1.3, letterSpacing: -.5, fontWeight: FontWeight.w800, color: courierInk)),
+            const SizedBox(height: 8),
+            PrimeText(online ? 'Avisaremos assim que surgir uma oportunidade na sua região.'
+              : 'Fique online para receber novas entregas.',
+              textAlign: TextAlign.center, style: const TextStyle(fontSize: 12.5,
+                height: 1.6, color: Color(0xFF66818C))),
+          ])),
+          const SizedBox(height: 18),
+          _WaitingSummary(summary: summary, onlineTime: onlineTime,
+            onEarnings: onEarnings, onDeliveries: onDeliveries),
+        ])));
+  });
+}
+
+class _WaitingSummary extends StatelessWidget {
+  const _WaitingSummary({required this.summary, required this.onlineTime,
+    required this.onEarnings, required this.onDeliveries});
+  final Map<String, dynamic> summary;
+  final Duration onlineTime;
+  final VoidCallback onEarnings, onDeliveries;
+  @override Widget build(BuildContext context) {
+    final value = double.tryParse(summary['earningsToday']?.toString() ?? '');
+    final money = value == null ? '—' : 'R\$ ' + value.toStringAsFixed(2).replaceAll('.', ',');
+    final hours = onlineTime.inHours;
+    final minutes = onlineTime.inMinutes.remainder(60);
+    final time = hours == 0 ? '$minutes min' : '$hours h $minutes min';
+    final large = MediaQuery.textScalerOf(context).scale(12) > 18;
+    Widget cell(IconData icon, String value, String label, VoidCallback? onTap) =>
+      Material(color: Colors.transparent, child: InkWell(onTap: onTap,
+        borderRadius: BorderRadius.circular(15),
+        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(width: 30, height: 30,
+              decoration: const BoxDecoration(color: Color(0xFFEEF6F6), shape: BoxShape.circle),
+              child: Icon(icon, color: courierGreen, size: 18)),
+            const SizedBox(height: 10),
+            PrimeText(value, style: const TextStyle(fontSize: 16, height: 1.3,
               fontWeight: FontWeight.w800, color: courierInk)),
-          const SizedBox(height: 10),
-          PrimeText(online ? 'Avisaremos assim que uma oferta chegar.'
-            : 'Fique online para receber novas entregas.',
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF6A818D))),
-        ]))));
+            const SizedBox(height: 4),
+            PrimeText(label, style: const TextStyle(fontSize: 10, height: 1.35,
+              color: Color(0xFF66818C))),
+          ]))));
+    final cells = [
+      cell(AppIcons.wallet, money, 'Ganhos de hoje', onEarnings),
+      cell(AppIcons.package, (summary['deliveriesToday'] ?? '—').toString(), 'Entregas hoje', onDeliveries),
+      Tooltip(message: translateLabel('Tempo online nesta sessão. A contagem pausa quando você fica offline ou sai do aplicativo.'),
+        child: cell(AppIcons.clock, time, 'Tempo online', null)),
+    ];
+    return Container(decoration: BoxDecoration(color: Colors.white,
+      borderRadius: BorderRadius.circular(22), border: Border.all(color: const Color(0xFFE2ECEF))),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      child: large ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (var i = 0; i < cells.length; i++) ...[
+          if (i > 0) const Divider(height: 1, color: Color(0xFFE6EEF0)), cells[i],
+        ],
+      ]) : Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        for (var i = 0; i < cells.length; i++) ...[
+          if (i > 0) const SizedBox(height: 52,
+            child: VerticalDivider(width: 1, thickness: 1, color: Color(0xFFE6EEF0))),
+          Expanded(child: cells[i]),
+        ],
+      ]));
+  }
 }
 
-class _CourierStandbyArtwork extends StatelessWidget {
-  const _CourierStandbyArtwork({required this.online});
+class CourierSearchingRadar extends StatefulWidget {
+  const CourierSearchingRadar({super.key, required this.online, required this.size});
   final bool online;
+  final double size;
+  @override State<CourierSearchingRadar> createState() => _CourierSearchingRadarState();
+}
+class _CourierSearchingRadarState extends State<CourierSearchingRadar> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  late final AnimationController _pulse = AnimationController(vsync: this,
+    duration: const Duration(milliseconds: 4200));
+  bool _foreground = true, _reduceMotion = false, _tickerEnabled = true;
+  @override void initState() { super.initState(); WidgetsBinding.instance.addObserver(this); }
+  void _sync() {
+    if (widget.online && _foreground && !_reduceMotion && _tickerEnabled) {
+      if (!_pulse.isAnimating) _pulse.repeat(reverse: true);
+    } else { _pulse.stop(); _pulse.value = 0; }
+  }
+  @override void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduceMotion = MediaQuery.disableAnimationsOf(context);
+    _tickerEnabled = TickerMode.of(context); _sync();
+  }
+  @override void didUpdateWidget(covariant CourierSearchingRadar oldWidget) { super.didUpdateWidget(oldWidget); _sync(); }
+  @override void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed; _sync();
+  }
+  @override void dispose() { WidgetsBinding.instance.removeObserver(this); _pulse.dispose(); super.dispose(); }
   @override Widget build(BuildContext context) => ExcludeSemantics(child: SizedBox(
-    width: 224, height: 158, child: Stack(alignment: Alignment.center, children: [
-      Positioned.fill(child: CustomPaint(painter: _StandbyRoutePainter(online))),
-      Container(width: 96, height: 96,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-            colors: online ? const [Color(0xFF0B7778), Color(0xFF06494E)]
-              : const [Color(0xFF81959E), Color(0xFF526973)]),
-          borderRadius: BorderRadius.circular(33),
-          border: Border.all(color: Colors.white.withValues(alpha: .65), width: 1.5),
-          boxShadow: [BoxShadow(color: courierGreen.withValues(alpha: online ? .17 : .06),
-            blurRadius: 30, spreadRadius: 1, offset: const Offset(0, 12))]),
-        child: const Icon(AppIcons.bike, color: Colors.white, size: 47)),
-      Positioned(left: 139, top: 101, child: Container(width: 30, height: 30,
-        decoration: BoxDecoration(color: online ? const Color(0xFFE1F4EB) : const Color(0xFFEDF1F3),
-          shape: BoxShape.circle, border: Border.all(color: const Color(0xFFF5F9FA), width: 3)),
-        child: Icon(online ? AppIcons.check : AppIcons.clock,
-          size: 15, color: online ? const Color(0xFF21886D) : const Color(0xFF6B818B)))),
-    ])));
+    width: widget.size, height: widget.size, child: AnimatedBuilder(animation: _pulse,
+      builder: (context, _) => CustomPaint(painter: _RadarPainter(
+        online: widget.online, pulse: _pulse.value),
+        child: Center(child: Container(width: widget.size * .34, height: widget.size * .34,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFFF9FDFD),
+            border: Border.all(color: const Color(0xFFC2E8E2), width: 1.5),
+            boxShadow: const [BoxShadow(color: Color(0x16067469), blurRadius: 14, offset: Offset(0, 6))]),
+          child: Icon(Icons.delivery_dining_rounded, color: widget.online ? courierGreen : const Color(0xFF80989F),
+            size: widget.size * .17)))))));
 }
-
-class _StandbyRoutePainter extends CustomPainter {
-  const _StandbyRoutePainter(this.online);
+class _RadarPainter extends CustomPainter {
+  const _RadarPainter({required this.online, required this.pulse});
   final bool online;
+  final double pulse;
   @override void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    canvas.drawCircle(center, 67, Paint()..color = const Color(0xFFE8F2F3));
-    canvas.drawCircle(center, 75, Paint()..color = const Color(0xFFDDECEF)
-      ..style = PaintingStyle.stroke..strokeWidth = 1);
-    final path = Path()..moveTo(8, 112)..cubicTo(48, 112, 27, 42, 63, 42)
-      ..moveTo(162, 118)..cubicTo(200, 118, 181, 52, 215, 52);
-    final stroke = Paint()..color = const Color(0xFFBBD4D9)
-      ..strokeWidth = 1.5..strokeCap = StrokeCap.round..style = PaintingStyle.stroke;
-    for (final metric in path.computeMetrics()) {
-      for (var distance = 0.0; distance < metric.length; distance += 8) {
-        canvas.drawPath(metric.extractPath(distance, (distance + 3).clamp(0.0, metric.length).toDouble()), stroke);
-      }
+    final radius = size.width / 2;
+    final tint = online ? const Color(0xFF31B6A4) : const Color(0xFF9AB9BC);
+    for (var i = 5; i >= 1; i--) {
+      final ring = radius * (.23 + i * .125);
+      canvas.drawCircle(center, ring + pulse * 2,
+        Paint()..color = tint.withValues(alpha: .027 + (5 - i) * .019));
     }
-    for (final point in [const Offset(8, 112), const Offset(215, 52)]) {
-      canvas.drawCircle(point, 5, Paint()..color = Colors.white);
-      canvas.drawCircle(point, 3, Paint()..color = online ? const Color(0xFF76A7AA) : const Color(0xFFA0B5BE));
+    canvas.drawCircle(center, radius * .95,
+      Paint()..color = tint.withValues(alpha: .17)..style = PaintingStyle.stroke..strokeWidth = .8);
+    final points = [Offset(size.width * .13, size.height * .64),
+      Offset(size.width * .27, size.height * .24), Offset(size.width * .78, size.height * .12),
+      Offset(size.width * .95, size.height * .42), Offset(size.width * .31, size.height * .91)];
+    for (var i = 0; i < points.length; i++) {
+      canvas.drawCircle(points[i], i.isEven ? 4 : 6, Paint()..color = online ? courierGreen : tint);
+      canvas.drawCircle(points[i], 1.7, Paint()..color = Colors.white);
     }
   }
-  @override bool shouldRepaint(covariant _StandbyRoutePainter oldDelegate) => online != oldDelegate.online;
+  @override bool shouldRepaint(covariant _RadarPainter oldDelegate) =>
+    pulse != oldDelegate.pulse || online != oldDelegate.online;
 }
 
 class CourierDashboardUpdate {

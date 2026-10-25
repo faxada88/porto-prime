@@ -10,10 +10,10 @@ class CourierDashboardHeader extends StatefulWidget {
   const CourierDashboardHeader({super.key, required this.name, required this.photo,
     required this.online, required this.active, required this.unreadCount,
     required this.onNotifications, required this.onProfile, required this.onLogout,
-    required this.onRoute, required this.onChanged});
+    required this.onRoute, required this.onChanged, this.waiting = false});
   final String name;
   final String? photo;
-  final bool online, active;
+  final bool online, active, waiting;
   final int unreadCount;
   final VoidCallback onNotifications, onProfile, onRoute;
   final VoidCallback? onLogout;
@@ -81,10 +81,10 @@ class _CourierDashboardHeaderState extends State<CourierDashboardHeader> {
             const SizedBox(height: 3),
             Text('$name 👋', style: const TextStyle(fontSize: 31, height: 1.2,
               fontWeight: FontWeight.w800, letterSpacing: -.9, color: courierInk)),
-            if (widget.active) ...[
-              const SizedBox(height: 7),
-              const PrimeText('Boa entrega!', style: TextStyle(fontSize: 12,
-                height: 1.45, color: Color(0xFF56707D))),
+            if (widget.waiting && widget.online) ...[
+              const SizedBox(height: 8),
+              const PrimeText('Você está online e pronto para receber entregas.',
+                style: TextStyle(fontSize: 12, height: 1.45, color: Color(0xFF56707D))),
             ],
           ]);
           final control = CourierReferenceAvailability(
@@ -120,12 +120,12 @@ class CourierReferenceAvailability extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 7, 7, 7),
               constraints: const BoxConstraints(minHeight: 52),
               decoration: BoxDecoration(borderRadius: BorderRadius.circular(40),
-                gradient: LinearGradient(colors: online
-                  ? const [Color(0xFF075D61), Color(0xFF087D79)]
+                gradient: LinearGradient(colors: online || active
+                  ? const [Color(0xFF008C7D), Color(0xFF006F65)]
                   : const [Color(0xFF59717C), Color(0xFF738991)]),
                 boxShadow: const [BoxShadow(color: Color(0x14075D61), blurRadius: 12, offset: Offset(0, 4))]),
               child: Row(children: [
-                Expanded(child: PrimeText(active ? 'EM ENTREGA' : online ? 'ONLINE' : 'OFFLINE',
+                Expanded(child: PrimeText(active || online ? 'ONLINE' : 'OFFLINE',
                   style: const TextStyle(color: Colors.white, fontSize: 14,
                     height: 1.2, fontWeight: FontWeight.w800, letterSpacing: .5))),
                 const SizedBox(width: 8),
@@ -133,14 +133,16 @@ class CourierReferenceAvailability extends StatelessWidget {
                   decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
                   child: changing ? const Padding(padding: EdgeInsets.all(10),
                     child: CircularProgressIndicator(strokeWidth: 2, color: courierGreen))
-                    : active ? const Icon(AppIcons.route, color: courierGreen, size: 20)
-                    : online ? null : const Icon(AppIcons.power, color: Color(0xFF59717C), size: 19)),
+                    : active || online ? null : const Icon(AppIcons.power, color: Color(0xFF59717C), size: 19)),
               ])))))),
       const SizedBox(height: 7),
-      PrimeText(active ? 'Ver detalhes da rota' : online
-        ? 'Você está recebendo entregas' : 'Toque para ficar online',
-        textAlign: TextAlign.center, style: const TextStyle(fontSize: 9, height: 1.4,
-          color: Color(0xFF456E73))),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle,
+          color: online || active ? const Color(0xFF00B184) : const Color(0xFF8CA1AA))),
+        const SizedBox(width: 5),
+        Flexible(child: PrimeText(active ? 'Em entrega' : online ? 'Recebendo entregas' : 'Toque para ficar online',
+          textAlign: TextAlign.center, style: const TextStyle(fontSize: 9, height: 1.4, color: Color(0xFF456E73)))),
+      ]),
     ]);
   }
 }

@@ -36,8 +36,10 @@ try {
   'lib/features/courier/presentation/widgets/courier_dashboard_map.dart',
   'lib/features/courier/presentation/widgets/courier_dashboard_header.dart',
   'lib/features/courier/presentation/widgets/courier_delivery_surface.dart',
+  'lib/features/courier/presentation/widgets/courier_workflow_layout.dart',
+  'lib/features/courier/presentation/widgets/courier_assigned_delivery.dart',
   'lib/features/courier/presentation/widgets/incoming_delivery_offer_sheet.dart')
- Invoke-Checked -Command flutter -Arguments @('test','test/delivery_offer_sheet_test.dart')
+ Invoke-Checked -Command flutter -Arguments @('test','test/delivery_offer_sheet_test.dart','test/courier_workflow_test.dart')
  $buildArgs = @('build','apk','--release','--dart-define=API_URL=http://10.0.2.2:3000/api')
  if($AppleMerchantId){$buildArgs += '--dart-define=STRIPE_APPLE_MERCHANT_ID=' + $AppleMerchantId}
  Invoke-Checked -Command flutter -Arguments $buildArgs
@@ -45,6 +47,6 @@ try {
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'install','-r','build\app\outputs\flutter-apk\app-release.apk')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','am','force-stop','com.portoprime.porto_prime')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','monkey','-p','com.portoprime.porto_prime','-c','android.intent.category.LAUNCHER','1')
- Write-Host 'Area do motoboy atualizada: foco nas entregas, saldo unico e nenhuma grade de indicadores na Home.'
+ Write-Host 'Fluxo do motoboy atualizado: espera com radar, oferta com cronometro e entrega com etapas.'
  Write-Host 'Nest, banco, Admin, rotas e Stripe podem continuar ligados. Dados e sessao do aplicativo preservados.'
 } finally { Pop-Location }

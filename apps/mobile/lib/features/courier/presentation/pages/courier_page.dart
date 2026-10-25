@@ -9,7 +9,8 @@ import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/courier_dashboard_map.dart' show courierGreen, courierInk;
 import '../widgets/courier_dashboard_header.dart';
-import '../widgets/courier_delivery_surface.dart';
+import '../widgets/courier_assigned_delivery.dart';
+import '../widgets/courier_workflow_layout.dart';
 import '../widgets/incoming_delivery_offer_sheet.dart';
 import 'courier_operations_dashboard.dart';
 import 'courier_demand_notice.dart';
@@ -860,73 +861,47 @@ class _CourierPageState extends State<CourierPage> {
               onHistory: () => _dashboardSection(3, 'history'),
               onProfile: () => _dashboardSection(4, 'profile')))),
           body: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 760),
-            child: RefreshIndicator(onRefresh: _refreshDashboard,
-              edgeOffset: MediaQuery.paddingOf(context).top + 70,
-              child: CustomScrollView(controller: _operationsScroll,
-                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                slivers: [
-                  SliverToBoxAdapter(child: CourierDashboardHeader(
-                    name: (state.user?['name'] ?? 'Motoboy').toString(),
-                    photo: state.courierProfile['profilePhoto']?.toString(),
-                    onProfile: () => _dashboardSection(4, 'profile'),
-                    online: state.courierOnline, active: current != null,
-                    unreadCount: updates.where((r) => !_readUpdateIds.contains(r.id)).length,
-                    onNotifications: _openUpdates,
-                    onLogout: _signingOut || _navBusy || _advancing || _offerActionBusy ? null : _confirmLogout,
-                    onRoute: _dashboardDeliveries,
-                    onChanged: current == null && !_offerActionBusy && !_signingOut ? state.setCourierOnline : null)),
-                  if (current == null && (!state.courierOnline || offers.isEmpty))
-                    SliverFillRemaining(hasScrollBody: false,
-                      child: Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                          if (state.courierHighDemand) CourierDemandNotice(
-                            online: state.courierOnline, bonusAmount: state.courierDemandBonus, compact: true),
-                          Expanded(child: Center(child: CourierStandbySurface(online: state.courierOnline))),
-                          const SizedBox(height: 16),
-                          CourierWalletShortcut(summary: state.walletSummary,
-                            onTap: () => _dashboardSection(2, 'wallet')),
-                        ])))
-                  else
-                    SliverPadding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                      sliver: SliverList(delegate: SliverChildListDelegate([
-                        if (state.courierHighDemand) ...[
-                          CourierDemandNotice(online: state.courierOnline,
-                            bonusAmount: state.courierDemandBonus, compact: true),
-                          const SizedBox(height: 18),
-                        ],
-                      if (current != null) ...[
-                        if (liveRouteMode(current) != null) const CourierTrackingNotice(),
-                        CourierDeliverySurface(order: current, incoming: false,
-                          statusLabel: _statusLabel(current['status']?.toString() ?? ''),
-                          busy: _advancing,
-                          primaryLabel: _nextStatus(current['status']?.toString()) == null
-                            ? 'Ver detalhes' : _nextLabel(_nextStatus(current['status']?.toString())!),
-                          primaryIcon: _nextStatus(current['status']?.toString()) == null
-                            ? AppIcons.list : _nextIcon(_nextStatus(current['status']?.toString())!),
-                          onDetails: _dashboardDeliveries,
-                          onAdvance: _nextStatus(current['status']?.toString()) == null
-                            ? _dashboardDeliveries : () => _advanceCurrent(current)),
-                      ] else if (state.courierOnline && offers.isNotEmpty)
-                        IncomingDeliveryOfferSheet(
-                          key: ValueKey(offers.first['offerId'] ?? offers.first['orderId']),
-                          order: offers.first, embedded: true, updates: state,
-                          isAvailable: () => state.courierOffers.any((o) =>
-                            o['offerId']?.toString() == offers.first['offerId']?.toString()),
-                          onResolved: _offerResolved,
-                          onBusyChanged: (busy) { if (mounted) setState(() => _offerActionBusy = busy); },
-                          onAccept: () => state.acceptDelivery(offers.first['orderId'].toString()),
-                          onReject: () => state.rejectDelivery(offers.first['orderId'].toString())),
-                        if (state.courierOnline && current == null && offers.length > 1) ...[
-                          const SizedBox(height: 20),
-                          CourierOpportunities(offers: offers.skip(1).toList(),
-                            onOpen: (offer) => _showDeliverySheet(context, order: offer, incoming: true),
-                            onAll: () => _dashboardSection(1, 'deliveries')),
-                        ],
-                        const SizedBox(height: 20),
-                        CourierWalletShortcut(summary: state.walletSummary,
-                          onTap: () => _dashboardSection(2, 'wallet')),
-                      ]))),
-                ])))),
+            child: CourierWorkflowLayout(
+              controller: _operationsScroll, online: state.courierOnline,
+              accountId: state.user?['id'], onRefresh: _refreshDashboard,
+              header: CourierDashboardHeader(
+                name: (state.user?['name'] ?? 'Motoboy').toString(),
+                photo: state.courierProfile['profilePhoto']?.toString(),
+                onProfile: () => _dashboardSection(4, 'profile'),
+                online: state.courierOnline, active: current != null,
+                waiting: current == null && offers.isEmpty,
+                unreadCount: updates.where((r) => !_readUpdateIds.contains(r.id)).length,
+                onNotifications: _openUpdates,
+                onLogout: _signingOut || _navBusy || _advancing || _offerActionBusy ? null : _confirmLogout,
+                onRoute: _dashboardDeliveries,
+                onChanged: current == null && !_offerActionBusy && !_signingOut ? state.setCourierOnline : null),
+              notice: state.courierHighDemand ? CourierDemandNotice(
+                online: state.courierOnline, bonusAmount: state.courierDemandBonus, compact: true) : null,
+              waitingBuilder: (available, onlineTime) => CourierWaitingPanel(
+                online: state.courierOnline, summary: state.walletSummary,
+                minimumHeight: available, onlineTime: onlineTime,
+                onEarnings: () => _dashboardSection(2, 'earnings'),
+                onDeliveries: () => _dashboardSection(1, 'deliveries')),
+              delivery: current != null ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                if (liveRouteMode(current) != null) const CourierTrackingNotice(),
+                CourierAssignedDelivery(order: current, busy: _advancing,
+                  primaryLabel: _nextStatus(current['status']?.toString()) == null
+                    ? 'Ver detalhes' : _nextLabel(_nextStatus(current['status']?.toString())!),
+                  primaryIcon: _nextStatus(current['status']?.toString()) == null
+                    ? AppIcons.list : _nextIcon(_nextStatus(current['status']?.toString())!),
+                  onDetails: _dashboardDeliveries,
+                  onAdvance: _nextStatus(current['status']?.toString()) == null
+                    ? _dashboardDeliveries : () => _advanceCurrent(current)),
+              ]) : state.courierOnline && offers.isNotEmpty ? IncomingDeliveryOfferSheet(
+                key: ValueKey(offers.first['offerId'] ?? offers.first['orderId']),
+                order: offers.first, embedded: true, updates: state,
+                isAvailable: () => state.courierOffers.any((o) =>
+                  o['offerId']?.toString() == offers.first['offerId']?.toString()),
+                onResolved: _offerResolved,
+                onBusyChanged: (busy) { if (mounted) setState(() => _offerActionBusy = busy); },
+                onAccept: () => state.acceptDelivery(offers.first['orderId'].toString()),
+                onReject: () => state.rejectDelivery(offers.first['orderId'].toString())) : null,
+            ))),
         ));
     },
   );
