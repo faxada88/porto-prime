@@ -875,17 +875,25 @@ class _CourierPageState extends State<CourierPage> {
                     onLogout: _signingOut || _navBusy || _advancing || _offerActionBusy ? null : _confirmLogout,
                     onRoute: _dashboardDeliveries,
                     onChanged: current == null && !_offerActionBusy && !_signingOut ? state.setCourierOnline : null)),
-                  SliverPadding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 26),
-                    sliver: SliverList(delegate: SliverChildListDelegate([
-                      CourierDailyMetrics(summary: state.walletSummary,
-                        onEarnings: () => _dashboardSection(2, 'earnings'),
-                        onDeliveries: () => _dashboardSection(1, 'deliveries'),
-                        onWallet: () => _dashboardSection(2, 'wallet')),
-                      if (state.courierHighDemand) ...[
-                        const SizedBox(height: 14),
-                        CourierDemandNotice(online: state.courierOnline, bonusAmount: state.courierDemandBonus, compact: true),
-                      ],
-                      const SizedBox(height: 23),
+                  if (current == null && (!state.courierOnline || offers.isEmpty))
+                    SliverFillRemaining(hasScrollBody: false,
+                      child: Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                          if (state.courierHighDemand) CourierDemandNotice(
+                            online: state.courierOnline, bonusAmount: state.courierDemandBonus, compact: true),
+                          Expanded(child: Center(child: CourierStandbySurface(online: state.courierOnline))),
+                          const SizedBox(height: 16),
+                          CourierWalletShortcut(summary: state.walletSummary,
+                            onTap: () => _dashboardSection(2, 'wallet')),
+                        ])))
+                  else
+                    SliverPadding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                      sliver: SliverList(delegate: SliverChildListDelegate([
+                        if (state.courierHighDemand) ...[
+                          CourierDemandNotice(online: state.courierOnline,
+                            bonusAmount: state.courierDemandBonus, compact: true),
+                          const SizedBox(height: 18),
+                        ],
                       if (current != null) ...[
                         if (liveRouteMode(current) != null) const CourierTrackingNotice(),
                         CourierDeliverySurface(order: current, incoming: false,
@@ -907,18 +915,17 @@ class _CourierPageState extends State<CourierPage> {
                           onResolved: _offerResolved,
                           onBusyChanged: (busy) { if (mounted) setState(() => _offerActionBusy = busy); },
                           onAccept: () => state.acceptDelivery(offers.first['orderId'].toString()),
-                          onReject: () => state.rejectDelivery(offers.first['orderId'].toString()))
-                      else CourierDashboardEmpty(online: state.courierOnline),
-                      const SizedBox(height: 22),
-                      CourierEarningsOverview(summary: state.walletSummary,
-                        onWallet: () => _dashboardSection(2, 'wallet')),
-                      if (state.courierOnline && current == null && offers.length > 1) ...[
+                          onReject: () => state.rejectDelivery(offers.first['orderId'].toString())),
+                        if (state.courierOnline && current == null && offers.length > 1) ...[
+                          const SizedBox(height: 20),
+                          CourierOpportunities(offers: offers.skip(1).toList(),
+                            onOpen: (offer) => _showDeliverySheet(context, order: offer, incoming: true),
+                            onAll: () => _dashboardSection(1, 'deliveries')),
+                        ],
                         const SizedBox(height: 20),
-                        CourierOpportunities(offers: offers.skip(1).toList(),
-                          onOpen: (offer) => _showDeliverySheet(context, order: offer, incoming: true),
-                          onAll: () => _dashboardSection(1, 'deliveries')),
-                      ],
-                    ]))),
+                        CourierWalletShortcut(summary: state.walletSummary,
+                          onTap: () => _dashboardSection(2, 'wallet')),
+                      ]))),
                 ])))),
         ));
     },

@@ -81,9 +81,11 @@ class _CourierDashboardHeaderState extends State<CourierDashboardHeader> {
             const SizedBox(height: 3),
             Text('$name 👋', style: const TextStyle(fontSize: 31, height: 1.2,
               fontWeight: FontWeight.w800, letterSpacing: -.9, color: courierInk)),
-            const SizedBox(height: 7),
-            PrimeText(widget.active ? 'Boa entrega!' : 'Pronto para mais entregas?',
-              style: const TextStyle(fontSize: 12, height: 1.45, color: Color(0xFF56707D))),
+            if (widget.active) ...[
+              const SizedBox(height: 7),
+              const PrimeText('Boa entrega!', style: TextStyle(fontSize: 12,
+                height: 1.45, color: Color(0xFF56707D))),
+            ],
           ]);
           final control = CourierReferenceAvailability(
             online: widget.online, active: widget.active, changing: _changing,

@@ -45,6 +45,6 @@ try {
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'install','-r','build\app\outputs\flutter-apk\app-release.apk')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','am','force-stop','com.portoprime.porto_prime')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','monkey','-p','com.portoprime.porto_prime','-c','android.intent.category.LAUNCHER','1')
- Write-Host 'Painel claro instalado: cabecalho de perfil, disponibilidade unica, coleta e entrega, ganhos e menu renovados.'
+ Write-Host 'Area do motoboy atualizada: foco nas entregas, saldo unico e nenhuma grade de indicadores na Home.'
  Write-Host 'Nest, banco, Admin, rotas e Stripe podem continuar ligados. Dados e sessao do aplicativo preservados.'
 } finally { Pop-Location }

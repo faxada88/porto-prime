@@ -4,125 +4,37 @@ import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../widgets/courier_dashboard_map.dart';
 
-String courierDashboardMoney(dynamic value) {
-  final amount = double.tryParse(value?.toString() ?? '');
-  return amount == null ? '—' : 'R\$ ' + amount.toStringAsFixed(2).replaceAll('.', ',');
-}
-
-class CourierDailyMetrics extends StatelessWidget {
-  const CourierDailyMetrics({super.key, required this.summary,
-    required this.onEarnings, required this.onDeliveries, required this.onWallet});
+/// The only amount shown on Home. Detailed earnings remain in the wallet.
+class CourierWalletShortcut extends StatelessWidget {
+  const CourierWalletShortcut({super.key, required this.summary, required this.onTap});
   final Map<String, dynamic> summary;
-  final VoidCallback onEarnings, onDeliveries, onWallet;
-  @override Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
-    final large = MediaQuery.textScalerOf(context).scale(14) > 19;
-    final cards = [
-      _MetricCard(icon: AppIcons.wallet, label: 'Ganhos de hoje',
-        value: courierDashboardMoney(summary['earningsToday']), onTap: onEarnings),
-      _MetricCard(icon: AppIcons.package, label: 'Entregas hoje',
-        value: (summary['deliveriesToday'] ?? '—').toString(), onTap: onDeliveries),
-      _MetricCard(icon: Icons.bar_chart_rounded, label: 'Saldo disponível',
-        value: courierDashboardMoney(summary['availableBalance']), onTap: onWallet),
-    ];
-    if (large) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      for (var i = 0; i < cards.length; i++) ...[
-        if (i > 0) const SizedBox(height: 10), cards[i],
-      ],
-    ]);
-    return IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      for (var i = 0; i < cards.length; i++) ...[
-        if (i > 0) const SizedBox(width: 8), Expanded(child: cards[i]),
-      ],
-    ]));
-  });
-}
-
-class _MetricCard extends StatelessWidget {
-  const _MetricCard({required this.icon, required this.label, required this.value, required this.onTap});
-  final IconData icon;
-  final String label, value;
   final VoidCallback onTap;
-  @override Widget build(BuildContext context) => Material(color: Colors.white,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17),
-      side: const BorderSide(color: Color(0xFFE4EDF0))),
-    child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(17),
-      child: Padding(padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 13),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(width: 31, height: 31, alignment: Alignment.center,
-            decoration: BoxDecoration(color: const Color(0xFFF0F5F6),
-              borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, size: 19, color: courierGreen)),
-          const SizedBox(height: 11),
-          PrimeText(value, style: const TextStyle(fontSize: 17, height: 1.25,
-            fontWeight: FontWeight.w800, letterSpacing: -.5, color: courierInk)),
-          const SizedBox(height: 5),
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(child: PrimeText(label, style: const TextStyle(fontSize: 10, height: 1.35,
-              color: Color(0xFF6A8390)))),
-            const SizedBox(width: 2), const Icon(AppIcons.chevronRight, size: 12, color: courierGreen),
-          ]),
-        ]))));
-}
-
-/// Only server totals are shown; a limited ledger is never treated as a monthly total.
-class CourierEarningsOverview extends StatelessWidget {
-  const CourierEarningsOverview({super.key, required this.summary, required this.onWallet});
-  final Map<String, dynamic> summary;
-  final VoidCallback onWallet;
-  @override Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-    Row(children: [
-      const Expanded(child: PrimeText('Seus ganhos', style: TextStyle(fontSize: 20,
-        height: 1.3, fontWeight: FontWeight.w800, letterSpacing: -.5, color: courierInk))),
-      TextButton(onPressed: onWallet, style: TextButton.styleFrom(foregroundColor: courierGreen,
-        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 12)),
-        child: const Row(mainAxisSize: MainAxisSize.min, children: [
-          PrimeText('Ver carteira', style: TextStyle(fontSize: 12)),
-          SizedBox(width: 2), Icon(AppIcons.chevronRight, size: 16),
-        ])),
-    ]),
-    const SizedBox(height: 8),
-    LayoutBuilder(builder: (context, box) {
-      final large = MediaQuery.textScalerOf(context).scale(14) > 19;
-      Widget card(String label, dynamic value, String? count) => Material(color: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17),
-          side: const BorderSide(color: Color(0xFFE4EDF0))),
-        child: InkWell(onTap: onWallet, borderRadius: BorderRadius.circular(17),
-          child: Padding(padding: const EdgeInsets.all(12), child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Expanded(child: PrimeText(label, style: const TextStyle(fontSize: 11,
-                height: 1.3, color: Color(0xFF56707D)))),
-              const SizedBox(width: 3), const Icon(Icons.bar_chart_rounded,
-                size: 18, color: courierGreen),
-            ]),
-            const SizedBox(height: 10),
-            PrimeText(courierDashboardMoney(value), style: const TextStyle(fontSize: 16,
-              height: 1.3, letterSpacing: -.4, fontWeight: FontWeight.w800, color: courierInk)),
-            const SizedBox(height: 5),
-            PrimeText(count ?? 'Disponível para saque', style: const TextStyle(fontSize: 10,
-              height: 1.35, color: Color(0xFF6A8390))),
-          ]))));
-      String? deliveries(String key) {
-        final count = summary[key];
-        return count == null ? '—' : count == 1 ? '$count entrega' : '$count entregas';
-      }
-      final cards = [
-        card('Hoje', summary['earningsToday'], deliveries('deliveriesToday')),
-        card('Semana', summary['earningsWeek'], deliveries('deliveriesWeek')),
-        card('Carteira', summary['availableBalance'], null),
-      ];
-      if (large) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        for (var i = 0; i < cards.length; i++) ...[
-          if (i > 0) const SizedBox(height: 10), cards[i],
-        ],
-      ]);
-      return IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        for (var i = 0; i < cards.length; i++) ...[
-          if (i > 0) const SizedBox(width: 8), Expanded(child: cards[i]),
-        ],
-      ]));
-    }),
-  ]);
+  @override Widget build(BuildContext context) {
+    final amount = double.tryParse(summary['availableBalance']?.toString() ?? '');
+    final money = amount == null ? '—' : 'R\$ ' + amount.toStringAsFixed(2).replaceAll('.', ',');
+    return Semantics(button: true, label: translateLabel('Abrir carteira'),
+      child: Material(color: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22),
+          side: const BorderSide(color: Color(0xFFDDE9EC))),
+        child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(22),
+          child: Padding(padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            child: Row(children: [
+              Container(width: 42, height: 42,
+                decoration: BoxDecoration(color: const Color(0xFFEDF5F5),
+                  borderRadius: BorderRadius.circular(15)),
+                child: const Icon(AppIcons.wallet, color: courierGreen, size: 23)),
+              const SizedBox(width: 13),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const PrimeText('Na sua carteira', style: TextStyle(fontSize: 11,
+                  height: 1.4, fontWeight: FontWeight.w500, color: Color(0xFF607B87))),
+                const SizedBox(height: 3),
+                PrimeText(money, style: const TextStyle(fontSize: 22, height: 1.25,
+                  letterSpacing: -.6, fontWeight: FontWeight.w800, color: courierInk)),
+              ])),
+              const SizedBox(width: 14),
+              const Icon(AppIcons.arrowUpRight, color: courierGreen, size: 23),
+            ])))));
+  }
 }
 
 class CourierOperationsNav extends StatelessWidget {
@@ -167,26 +79,77 @@ class CourierOperationsNav extends StatelessWidget {
   }
 }
 
-class CourierDashboardEmpty extends StatelessWidget {
-  const CourierDashboardEmpty({super.key, required this.online});
+/// An operational waiting state, with no simulated offers, scores or incentives.
+class CourierStandbySurface extends StatelessWidget {
+  const CourierStandbySurface({super.key, required this.online});
   final bool online;
-  @override Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(23),
-      border: Border.all(color: const Color(0xFFE0EAEE))),
-    child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-      Container(width: 42, height: 42, decoration: BoxDecoration(color: const Color(0xFFEAF5EF),
-        borderRadius: BorderRadius.circular(14)),
-        child: Icon(online ? AppIcons.radar : AppIcons.bike, color: courierGreen, size: 23)),
-      const SizedBox(width: 13),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        PrimeText(online ? 'Buscando entregas' : 'Pronto para rodar?',
-          style: const TextStyle(fontSize: 14, height: 1.3, fontWeight: FontWeight.w800, color: courierInk)),
-        const SizedBox(height: 5),
-        PrimeText(online ? 'Avisaremos quando uma oferta chegar.' : 'Fique online quando estiver disponível.',
-          style: const TextStyle(fontSize: 12, height: 1.4, color: Color(0xFF617985))),
-      ])),
-    ]));
+  @override Widget build(BuildContext context) => ConstrainedBox(
+    constraints: const BoxConstraints(maxWidth: 420),
+    child: Padding(padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+      child: AnimatedSwitcher(
+        duration: Duration(milliseconds: MediaQuery.disableAnimationsOf(context) ? 0 : 240),
+        child: Column(key: ValueKey(online), mainAxisSize: MainAxisSize.min, children: [
+          _CourierStandbyArtwork(online: online),
+          const SizedBox(height: 17),
+          PrimeText(online ? 'Sua próxima entrega' : 'Pronto quando você estiver',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 25, height: 1.2, letterSpacing: -.7,
+              fontWeight: FontWeight.w800, color: courierInk)),
+          const SizedBox(height: 10),
+          PrimeText(online ? 'Avisaremos assim que uma oferta chegar.'
+            : 'Fique online para receber novas entregas.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF6A818D))),
+        ]))));
+}
+
+class _CourierStandbyArtwork extends StatelessWidget {
+  const _CourierStandbyArtwork({required this.online});
+  final bool online;
+  @override Widget build(BuildContext context) => ExcludeSemantics(child: SizedBox(
+    width: 224, height: 158, child: Stack(alignment: Alignment.center, children: [
+      Positioned.fill(child: CustomPaint(painter: _StandbyRoutePainter(online))),
+      Container(width: 96, height: 96,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
+            colors: online ? const [Color(0xFF0B7778), Color(0xFF06494E)]
+              : const [Color(0xFF81959E), Color(0xFF526973)]),
+          borderRadius: BorderRadius.circular(33),
+          border: Border.all(color: Colors.white.withValues(alpha: .65), width: 1.5),
+          boxShadow: [BoxShadow(color: courierGreen.withValues(alpha: online ? .17 : .06),
+            blurRadius: 30, spreadRadius: 1, offset: const Offset(0, 12))]),
+        child: const Icon(AppIcons.bike, color: Colors.white, size: 47)),
+      Positioned(left: 139, top: 101, child: Container(width: 30, height: 30,
+        decoration: BoxDecoration(color: online ? const Color(0xFFE1F4EB) : const Color(0xFFEDF1F3),
+          shape: BoxShape.circle, border: Border.all(color: const Color(0xFFF5F9FA), width: 3)),
+        child: Icon(online ? AppIcons.check : AppIcons.clock,
+          size: 15, color: online ? const Color(0xFF21886D) : const Color(0xFF6B818B)))),
+    ])));
+}
+
+class _StandbyRoutePainter extends CustomPainter {
+  const _StandbyRoutePainter(this.online);
+  final bool online;
+  @override void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    canvas.drawCircle(center, 67, Paint()..color = const Color(0xFFE8F2F3));
+    canvas.drawCircle(center, 75, Paint()..color = const Color(0xFFDDECEF)
+      ..style = PaintingStyle.stroke..strokeWidth = 1);
+    final path = Path()..moveTo(8, 112)..cubicTo(48, 112, 27, 42, 63, 42)
+      ..moveTo(162, 118)..cubicTo(200, 118, 181, 52, 215, 52);
+    final stroke = Paint()..color = const Color(0xFFBBD4D9)
+      ..strokeWidth = 1.5..strokeCap = StrokeCap.round..style = PaintingStyle.stroke;
+    for (final metric in path.computeMetrics()) {
+      for (var distance = 0.0; distance < metric.length; distance += 8) {
+        canvas.drawPath(metric.extractPath(distance, (distance + 3).clamp(0.0, metric.length).toDouble()), stroke);
+      }
+    }
+    for (final point in [const Offset(8, 112), const Offset(215, 52)]) {
+      canvas.drawCircle(point, 5, Paint()..color = Colors.white);
+      canvas.drawCircle(point, 3, Paint()..color = online ? const Color(0xFF76A7AA) : const Color(0xFFA0B5BE));
+    }
+  }
+  @override bool shouldRepaint(covariant _StandbyRoutePainter oldDelegate) => online != oldDelegate.online;
 }
 
 class CourierDashboardUpdate {
