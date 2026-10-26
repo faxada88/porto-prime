@@ -1,0 +1,519 @@
+/*
+ * Porto Prime | Command Center 2026
+ * Presentation layer only: no endpoint, permission, state, handler or workflow changes.
+ * Loaded AFTER the legacy and premium styles so old workflows remain intact.
+ */
+:root{
+  --pp-canvas:#f7f9fb;
+  --pp-stage:#f2f5f8;
+  --pp-surface:#fff;
+  --pp-surface-soft:#fbfcfd;
+  --pp-line:#e3e8ee;
+  --pp-line-strong:#d2dce5;
+  --pp-ink:#1a2937;
+  --pp-ink-soft:#46596b;
+  --pp-muted:#708092;
+  --pp-subtle:#8b9aa8;
+  --pp-ocean-950:#162535;
+  --pp-ocean-900:#1a2c3e;
+  --pp-ocean-800:#263f53;
+  --pp-ocean-700:#16766c;
+  --pp-ocean-600:#13887b;
+  --pp-ocean-500:#14a391;
+  --pp-ocean-100:#e4f5ef;
+  --pp-ocean-50:#effaf5;
+  --pp-action:#107b70;
+  --pp-action-hover:#09675d;
+  --pp-electric:#56d6b1;
+  --pp-focus:#168b83;
+  --pp-shadow-soft:0 3px 16px rgba(25,41,58,.035);
+  --pp-shadow-elevated:0 12px 36px rgba(25,41,58,.07);
+  --pp-shadow-floating:0 24px 76px rgba(10,27,43,.18);
+  --pp-sidebar:232px;
+  --pp-radius-lg:18px;
+  --pp-radius-xl:22px;
+  --green:var(--pp-action);
+  --mint:var(--pp-ocean-50);
+  --line:var(--pp-line);
+  --ink:var(--pp-ink);
+  --muted:var(--pp-muted);
+}
+html{scroll-behavior:smooth}
+body{background:var(--pp-canvas);color:var(--pp-ink)}
+.shell{min-height:100dvh;grid-template-columns:var(--pp-sidebar) minmax(0,1fr);background:var(--pp-canvas)}
+.shell>aside{
+  padding:25px 14px 17px;
+  background:linear-gradient(180deg,#192a3b,#142331);
+  box-shadow:none;
+  border-right:1px solid #253747;
+  color:#dbe5ed;
+  scrollbar-width:thin;
+  scrollbar-color:#506070 transparent;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.shell>aside .logo{padding:1px 10px 26px;gap:11px}
+.shell>aside .logo>b{width:39px;height:39px;flex:none;border-radius:12px;background:#d5fff1;color:#116b61;font-size:20px;box-shadow:none}
+.shell>aside .logo strong{font-size:13px;color:#f3f7fa;letter-spacing:.75px;font-weight:850}
+.shell>aside .logo span{color:#92a7b6;font-size:8px;letter-spacing:1.15px}
+.shell>aside nav{display:grid;align-content:start;gap:21px;margin:4px 0 20px}
+.shell>aside .navGroup{display:grid;gap:3px;min-width:0}
+.shell>aside .navGroupLabel{
+  display:block;padding:0 13px 8px;color:#7993a6;
+  font-size:9px;letter-spacing:1.35px;font-weight:850;line-height:1.3
+}
+.shell>aside nav button{
+  width:100%;min-width:0;min-height:42px;
+  display:flex;align-items:center;gap:11px;
+  padding:10px 12px;border:1px solid transparent;border-radius:10px;
+  color:#adbfcc;background:transparent;box-shadow:none;
+  text-align:left;font-weight:640;font-size:12px;letter-spacing:0;
+}
+.shell>aside nav button>span{flex:1;min-width:0;white-space:normal;line-height:1.25}
+.shell>aside nav button .navIcon{flex:none;color:#829aaa;transition:color 140ms ease}
+.shell>aside nav button:hover{background:#ffffff0b;color:#f8fafb;border-color:#ffffff08}
+.shell>aside nav button:hover .navIcon{color:#ccebe3}
+.shell>aside nav button.active{
+  background:#ffffff15;color:#fff;border:1px solid #ffffff0e;
+  box-shadow:inset 3px 0 #60d5b5;
+  font-weight:790
+}
+.shell>aside nav button.active .navIcon{color:#70e1c1}
+.shell>aside nav em{position:static;margin-left:auto;flex:none;background:#ffe1ba;color:#825018;border-radius:7px;padding:3px 6px;min-width:22px;box-shadow:none}
+.shell>aside .admin{border-top:1px solid #304153;padding:16px 3px 0;margin-top:auto}
+.shell>aside .admin>span{width:36px;height:36px;border-radius:11px;background:#2e4955;color:#cbfae6;border:1px solid #3a5861}
+.shell>aside .admin b{font-size:11px;color:#f1f4f7}
+.shell>aside .admin small{font-size:10px;color:#8ea6b7}
+.shell>aside .admin button{background:transparent;color:#9bb2bf;border-radius:10px}
+.shell>aside .admin button:hover{background:#ffffff12;color:#fff}
+
+/* Context-rich top bar, always displaying the same page information. */
+.shell .content{
+  width:100%;max-width:1780px;margin-inline:auto;
+  padding:22px clamp(22px,2.65vw,44px) 44px;
+  min-width:0
+}
+.shell .content>header.workspaceHeader{
+  position:relative;display:flex;align-items:center;justify-content:space-between;
+  min-height:79px;padding:0 0 19px;margin:0 0 24px;gap:20px;
+  background:transparent;border-bottom:1px solid var(--pp-line);box-shadow:none
+}
+.shell .workspaceHeading{min-width:0}
+.shell .workspaceHeading>small{
+  display:block;color:#7b8e9f;letter-spacing:1.05px;font-size:9px;font-weight:850;
+  margin:0 0 5px
+}
+.shell .workspaceHeading>small span{padding:0 5px;color:#afb8c2}
+.shell .workspaceHeading h1{
+  margin:0;letter-spacing:-.8px;color:#1b2b39;
+  font-size:clamp(24px,2.1vw,30px);font-weight:830;line-height:1.14
+}
+.shell .workspaceSubtitle{
+  color:#6d8090;font-size:12px;line-height:1.5;
+  margin:6px 0 0;font-weight:450
+}
+.shell .headActions{display:flex;align-items:center;justify-content:flex-end;gap:11px;flex-wrap:wrap}
+.shell .headActions .live{
+  display:flex;align-items:center;gap:7px;min-height:39px;
+  padding:8px 12px;border:1px solid var(--pp-line);
+  background:#fff;color:#4b6874;border-radius:11px;box-shadow:none;
+  font-weight:750;font-size:11px;line-height:1.2
+}
+.shell .headActions .live svg{color:#118c77}
+.shell .headActions .live small{color:#8a99a7;font-size:10px;font-weight:650}
+.shell .headActions .live:hover{background:#f2faf6;border-color:#b6ddce}
+.shell .headActions .searchBox{height:42px;min-height:42px;border-radius:11px;background:#fff;border:1px solid var(--pp-line);box-shadow:none}
+.shell .headActions .searchBox input{background:transparent}
+.shell .activityToast{background:#f1faf6;border:1px solid #c2e7d7;border-radius:13px;box-shadow:var(--pp-shadow-elevated)}
+.shell .loading{border-radius:12px}
+.shell :is(.panel,.approvalCard,.customerCard,.courierDirectoryRows,.catalogFlatPanel,.financeSurface,.person,.orderCard,.orderCompact,.tableWrap){
+  background:#fff;border:1px solid var(--pp-line);box-shadow:var(--pp-shadow-soft);
+}
+.shell .panel{border-radius:17px;padding:20px}
+.shell .panelHead{padding-bottom:16px;gap:12px}
+.shell .panelHead h3{font-size:15px;letter-spacing:-.25px;font-weight:800}
+.shell .panelHead span{font-size:10px;color:#8a99a8}
+.shell :is(input,select,textarea){
+  border:1px solid #dce5ed;background:#fff;color:#263a4a;
+  border-radius:10px;box-shadow:none;
+}
+.shell :is(input,select,textarea):focus-visible{border-color:#25a092;outline:2px solid #a7e3d5;outline-offset:1px}
+.shell :is(.secondary,.profileButton){border-radius:10px}
+.shell :is(button,select){transition:background-color 140ms ease,border-color 140ms ease,color 140ms ease}
+.shell button:disabled{opacity:.57;cursor:not-allowed}
+.shell :is(button,input,textarea,select,summary):focus-visible{outline:3px solid #77cebc;outline-offset:2px}
+.shell .tableWrap{border-radius:14px;overflow-x:auto}
+.shell table{background:white}
+.shell table th{font-size:10px;letter-spacing:.55px;color:#607385;background:#f8fafc;padding:14px}
+.shell table td{font-size:12px;padding:14px;border-bottom:1px solid #eaf0f4}
+.shell table tbody tr:hover{background:#f8fbfc}
+.shell :is(.badge,.catalogCleanBadge,.courierDirectoryStatus,.partnerBadge,.financeStatus){
+  letter-spacing:0;box-shadow:none;font-weight:750
+}
+.shell :is(.modalBackdrop,.catalogModalBackdrop,.financeBackdrop,.partnerOverlay){
+  backdrop-filter:blur(3px);background:#102439a3
+}
+.shell :is(.profileModal,.requirementModal,.dangerModal,.financeDrawer,.financeOperation,.catalogEditor,.partnerDialog){
+  border-radius:18px;box-shadow:0 26px 72px #1024392c
+}
+.shell .profileModalHero{background:#1e3547}
+.shell .profileModalHero h2{font-size:23px}
+.shell .profileSummary{background:#f4f7f9}
+.shell :is(.profileDataGrid,.courierRecordFields,.catalogEditorFields){gap:12px}
+
+/* Dashboard: one quiet summary, four priorities; all previous numbers preserved. */
+.overviewWorkspace{display:grid;gap:20px;min-width:0}
+.overviewWelcome{
+  background:white;border:1px solid var(--pp-line);border-radius:18px;
+  padding:23px 27px;display:flex;align-items:center;justify-content:space-between;
+  gap:25px;min-height:132px;box-shadow:var(--pp-shadow-soft)
+}
+.overviewWelcome h2{margin:9px 0 5px;color:#1b3040;font-size:clamp(22px,2vw,28px);line-height:1.15;letter-spacing:-.65px}
+.overviewWelcome p{margin:0;color:var(--pp-muted);font-size:12px;line-height:1.65}
+.overviewKicker{display:inline-flex;align-items:center;gap:7px;font-size:10px;font-weight:850;letter-spacing:1.1px;color:#117d73}
+.overviewActive{
+  display:grid;grid-template-columns:auto auto;align-items:center;
+  gap:2px 9px;padding:13px 17px;border-radius:14px;
+  background:#eff9f4;border:1px solid #d6ede2;min-width:165px
+}
+.overviewActiveDot{width:9px;height:9px;background:#21a675;border-radius:100%;box-shadow:0 0 0 4px #d0efdf}
+.overviewActive strong{font-size:25px;line-height:1;font-variant-numeric:tabular-nums;color:#0f7258;letter-spacing:-1px}
+.overviewActive>span:last-child{grid-column:1/-1;color:#55816c;font-size:10px;margin-top:5px;line-height:1.3}
+.shell .overviewPriority{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin:0
+}
+.shell .overviewPriority article,.shell .overviewSecondary article,.shell .overviewFinance article{
+  display:flex;flex-direction:column;align-items:flex-start;gap:5px;
+  min-width:0;min-height:152px;padding:17px 18px;
+  background:#fff;border:1px solid var(--pp-line);border-radius:16px;box-shadow:none
+}
+.shell .overviewPriority article:before,.shell .overviewSecondary article:before,.shell .overviewFinance article:before{display:none}
+.shell .overviewPriority .metricIcon,.shell .overviewSecondary .metricIcon,.shell .overviewFinance .metricIcon{
+  width:31px;height:31px;display:grid;place-items:center;margin:0 0 5px;
+  background:#eef6f3;color:#168379;border:0;border-radius:9px
+}
+.shell .overviewPriority article:nth-child(2) .metricIcon{background:#fff5e6;color:#a57b2f}
+.shell .overviewPriority article:nth-child(3) .metricIcon{background:#e8f1fb;color:#4878a1}
+.shell .overviewPriority article:nth-child(4) .metricIcon{background:#e9f8ed;color:#268258}
+.shell .overviewPriority article>span,.shell .overviewSecondary article>span,.shell .overviewFinance article>span{font-size:11px;color:#607487;font-weight:720;line-height:1.3}
+.shell .overviewPriority article strong,.shell .overviewSecondary article strong,.shell .overviewFinance article strong{
+  font-size:27px;letter-spacing:-.95px;color:#172d3b;font-weight:840;margin:0;
+  line-height:1.1;font-variant-numeric:tabular-nums;overflow-wrap:anywhere
+}
+.shell .overviewPriority article small,.shell .overviewSecondary article small,.shell .overviewFinance article small{font-size:10px;line-height:1.5;color:#93a1ad;margin-top:auto}
+.shell .overviewPanels{grid-template-columns:minmax(0,1.5fr) minmax(285px,.85fr);gap:15px;align-items:stretch}
+.shell .overviewPanels>.panel{margin:0;min-width:0}
+.shell .overviewPanels .radar{padding:0 3px;gap:15px 12px}
+.shell .overviewPanels .radar b{font-size:22px;color:#203747}
+.shell .overviewPanels .radar span{font-size:11px;color:#718394}
+.shell .overviewPanels .row{padding:12px 0}
+.shell .overviewPanels .row:first-child{border-top:0}
+.shell .overviewPanels .grow b{font-size:12px}
+.shell .overviewPanels .order{background:#f1f6f8;color:#3b586b}
+.overviewAdditional{border:1px solid var(--pp-line);border-radius:16px;background:#fff;overflow:hidden;margin:0}
+.overviewAdditional>summary{
+  display:flex;align-items:center;justify-content:space-between;gap:15px;
+  padding:17px 21px;border:0;cursor:pointer;list-style:none;
+  margin:0;color:#344c5c;font-size:12px;font-weight:790;
+  background:#fff
+}
+.overviewAdditional>summary::-webkit-details-marker{display:none}
+.overviewAdditional>summary>span{display:flex;align-items:center;gap:9px}
+.overviewAdditional>summary>span:last-child{color:#8294a2;font-size:11px;font-weight:550}
+.overviewAdditional[open]>summary{background:#f8fbfc;border-bottom:1px solid var(--pp-line)}
+.overviewAdditional[open]>summary>span:last-child svg{transform:rotate(180deg)}
+.overviewAdditionalContent{padding:16px;display:grid;gap:12px}
+.shell .overviewSecondary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0}
+.shell .overviewFinance{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}
+.shell .overviewSecondary article,.shell .overviewFinance article{min-height:135px}
+
+/* Compact page-intro treatment across all workspaces. */
+.shell :is(
+ .approvalHero,.courierDirectoryHero,.customerDirectoryHero,
+ .partnerHero,.supportHero,.deliveryHero,
+ .catalogControlBar,.financeWorkspaceV2 .financeHeading,
+ .archiveWorkspaceV2>.ledgerHeader,.ppDemandHero
+){
+  background:#fff!important;color:#1b2f3f!important;
+  border:1px solid var(--pp-line)!important;box-shadow:none!important;
+  border-radius:17px!important;min-height:0!important;
+  padding:22px 25px!important;gap:17px!important
+}
+.shell :is(.approvalHero,.courierDirectoryHero,.customerDirectoryHero,.partnerHero,.supportHero,.deliveryHero,.catalogControlBar,.financeWorkspaceV2 .financeHeading,.archiveWorkspaceV2>.ledgerHeader,.ppDemandHero) :is(h2,h3){
+  color:#213748!important;font-size:clamp(20px,2vw,25px)!important;
+  letter-spacing:-.65px!important;line-height:1.2!important;margin:5px 0 7px!important
+}
+.shell :is(.approvalHero,.courierDirectoryHero,.customerDirectoryHero,.partnerHero,.supportHero,.deliveryHero,.catalogControlBar,.financeWorkspaceV2 .financeHeading,.archiveWorkspaceV2>.ledgerHeader,.ppDemandHero) p{
+  color:#718292!important;font-size:12px!important;line-height:1.55!important;
+  margin:0!important;max-width:660px
+}
+.shell :is(.approvalHero,.courierDirectoryHero,.customerDirectoryHero,.partnerHero,.supportHero,.deliveryHero,.catalogControlBar,.financeWorkspaceV2 .financeHeading,.archiveWorkspaceV2>.ledgerHeader,.ppDemandHero) :is(small,.deliveryEyebrow,.partnerEyebrow,.supportEyebrow,.ppDemandEyebrow){
+  color:#138678!important;font-size:10px!important;letter-spacing:.95px!important
+}
+.shell :is(.approvalCount,.deliveryShare,.supportHeroMark,.ledgerHeaderSeal){
+  background:#f2f8f5;color:#2a7468;border:1px solid #dceee6;
+  box-shadow:none;border-radius:12px
+}
+.shell .approvalCount b{color:#126f60;font-size:29px}
+.shell .approvalCount span{color:#5c8577}
+.shell .deliveryShare{padding:12px 17px}
+.shell .deliveryShare b{color:#146e5f}
+.shell .partnerHero>svg{color:#aecfbe;opacity:.65}
+.shell .archiveWorkspaceV2>.ledgerHeader .ledgerHeaderSeal{color:#2c7568!important}
+.shell .archiveWorkspaceV2>.ledgerHeader .ledgerHeaderSeal :is(span,b){color:#4f7d70!important}
+.shell .catalogControlBar{margin-bottom:15px}
+.shell .catalogControlBar :is(h2,h3){margin-top:2px!important}
+.shell .financeWorkspaceV2 .financeHeading button{border-radius:10px;min-height:42px;background:#ebf6f1;color:#1b7262;border:1px solid #d5e9df;box-shadow:none}
+.shell .financeWorkspaceV2 .financeHeading button:hover{background:#daf0e5}
+.shell .ppDemandHero .ppDemandStatus{background:#f0faf4;border:1px solid #d3e7da;color:#237759}
+.shell .ppDemandHero .ppDemandStatus.active{background:#dcf4e7}
+
+/* Orders: compact filters, scan-friendly rows, no overwhelming cards. */
+.shell .orderOperationsV5 .panel{padding:21px}
+.shell .orderOperationsV5 .opFilters{display:flex;flex-wrap:wrap;gap:7px;padding:0 0 17px}
+.shell .orderOperationsV5 .opFilters button{
+  min-height:37px;background:#f3f6f8;border:1px solid #e4ebf0;
+  border-radius:9px;padding:8px 12px;color:#506679;
+  font-size:11px;font-weight:740
+}
+.shell .orderOperationsV5 .opFilters button[aria-pressed=true]{background:#e8f7ef;border-color:#bfe5d1;color:#116e5e}
+.shell .orderOperationsV5 .orderSearchToolbar{padding:0 0 16px;gap:10px}
+.shell .orderOperationsV5 .orderNumberSearch{border-radius:10px;box-shadow:none;min-height:42px}
+.shell .orderOperationsV5 .orderCards{gap:0;border:1px solid #e6edf1;border-radius:13px;overflow:hidden}
+.shell .orderOperationsV5 .opRow{
+  border:0;border-bottom:1px solid #e9eef2;border-radius:0;
+  box-shadow:none;background:#fff;padding:13px 17px;gap:14px
+}
+.shell .orderOperationsV5 .opRow:last-child{border-bottom:0}
+.shell .orderOperationsV5 .opRow:hover{background:#f7fafb}
+.shell .orderOperationsV5 .opIdentity b{color:#243c4e;font-size:12px}
+.shell .orderOperationsV5 .opCustomer b{color:#263b4c;font-size:12px}
+.shell .orderOperationsV5 .opValue{color:#243a4b;font-size:13px;font-variant-numeric:tabular-nums}
+.shell .orderOperationsV5 .opOpen{background:#edf6f3;color:#177664;border:1px solid #d5eae3;border-radius:9px}
+.shell .orderOperationsV5 .orderBulkBar{border-radius:12px;background:#fbfcfd}
+
+/* Approvals & profiles: documents feel like records, not advertising. */
+.shell .approvalHero{margin-bottom:15px}
+.shell .approvalGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.shell .approvalCard{padding:19px;border-radius:15px;box-shadow:none}
+.shell .approvalCardTop{gap:12px}
+.shell .approvalAvatar{width:43px;height:43px;border-radius:12px}
+.shell .approvalFacts{gap:9px}
+.shell .approvalFacts>div{background:#f8fafb;border:1px solid #ebf0f3;border-radius:10px}
+.shell .approvalRequirements{border-radius:11px;background:#f2f8f6}
+.shell .approvalRequirements.hasPending{background:#fff9ed}
+.shell .approvalFooter{border-top:1px solid #edf1f4;padding-top:13px;gap:10px}
+.shell .approvalActions button{border-radius:9px;min-height:39px}
+.shell .requirementModalHead h2{font-size:22px}
+
+/* Courier directory: clean operational roster with realtime statuses. */
+.shell .courierDirectory{gap:15px}
+.shell .courierDirectoryHero{margin:0}
+.shell .courierDirectoryMetrics{gap:12px}
+.shell .courierDirectoryMetrics>div{padding:15px 18px;border-radius:13px;box-shadow:none}
+.shell .courierDirectoryMetrics b{font-size:23px;color:#233a49}
+.shell .courierDirectoryMetrics span{font-size:11px;color:#718496}
+.shell .courierDirectoryTools{gap:10px;background:#fff;padding:14px;border:1px solid var(--pp-line);border-radius:14px}
+.shell .courierDirectorySearch{box-shadow:none}
+.shell .courierDirectoryBulk{border-radius:12px}
+.shell .courierDirectoryRows{border-radius:14px;box-shadow:none}
+.shell .courierDirectoryRow>details>summary{padding:13px 16px;gap:12px}
+.shell .courierDirectoryRow>details>summary:hover{background:#f8fbfc}
+.shell .courierDirectoryName b{font-size:12px}
+.shell .courierDirectoryAvatar{width:37px;height:37px;border-radius:11px}
+.shell .courierDirectoryExpanded{background:#f8fafb}
+.shell .courierDirectoryOnline.isOnline{background:#e9f7ef;color:#19714e}
+.shell .courierDirectoryActions button{min-height:37px;border-radius:9px}
+
+/* Customers & partners: quiet directory and consistent detail drawers. */
+.shell .customerDirectoryMetrics{gap:12px;margin:14px 0}
+.shell .customerDirectoryMetrics>div{background:#fff;border:1px solid var(--pp-line);border-radius:13px;box-shadow:none}
+.shell .customerDirectoryGrid{gap:13px}
+.shell .customerDirectoryCard,.shell .customerCard{border-radius:14px;box-shadow:none}
+.shell .customerDirectoryCard:hover,.shell .customerCard:hover{border-color:#cee5dd}
+.shell .partnerWorkspace{color:var(--pp-ink);display:grid;gap:15px}
+.shell .partnerHero{margin:0}
+.shell .partnerMetrics{margin:0;gap:12px}
+.shell .partnerMetrics article{padding:16px 18px;border-radius:13px;border:1px solid var(--pp-line)}
+.shell .partnerMetrics b{font-size:22px;color:#21394a}
+.shell .partnerToolbar{margin:0;gap:11px}
+.shell .partnerToolbar label{border-radius:10px}
+.shell .partnerList{border:1px solid var(--pp-line);border-radius:14px}
+.shell .partnerRow{padding:14px 18px!important;border-bottom:1px solid #eaf0f3!important;color:#21394a!important}
+.shell .partnerRow:hover{background:#f7faf9!important}
+.shell .partnerAvatar{background:#eef5f2;border-radius:11px;color:#166f64;width:38px;height:38px;font-size:15px}
+.shell .partnerRate{font-size:15px;font-variant-numeric:tabular-nums}
+.shell .partnerPagination{margin:0;padding:8px 0}
+.shell .partnerDialog{background:#f8fafb;border-radius:17px}
+.shell .partnerDialog>header{padding:20px 23px}
+.shell .partnerDialog h2{font-size:22px}
+
+/* Catalog: product management first, promotional color second. */
+.shell .primeCatalog{gap:13px}
+.shell .catalogFlatPanel{border-radius:16px;box-shadow:none}
+.shell .catalogFlatTop{padding:17px 19px}
+.shell .catalogViewTabs{padding:4px;background:#f1f4f6}
+.shell .catalogFilters{padding:12px 18px;gap:11px}
+.shell .catalogCleanList{border-radius:12px;border-color:#e7edf1}
+.shell .catalogCleanRow{padding:12px 17px}
+.shell .catalogCleanRow:hover{background:#f8fbfc}
+.shell .catalogCleanPrice strong{font-variant-numeric:tabular-nums;color:#263e4f}
+.shell .catalogCleanImage{width:46px;height:46px;border-radius:9px;background:#f0f4f6}
+.shell .primeCategoryGrid{gap:13px}
+.shell .primeCategoryCard{border-radius:14px;border:1px solid var(--pp-line);box-shadow:none}
+.shell .catalogStoreControls button{min-height:39px}
+.shell .catalogEditor{border-radius:17px}
+.shell .catalogEditorActions button{border-radius:9px}
+
+/* Archive and payment history, aligned with the rest of the operation. */
+.shell .archiveWorkspaceV2{gap:15px;color:var(--pp-ink)}
+.shell .archiveWorkspaceV2>.ledgerHeader{margin:0}
+.shell .archiveWorkspaceV2 .ledgerMetrics{gap:11px}
+.shell .archiveWorkspaceV2 .ledgerMetrics article{
+  padding:17px;border:1px solid var(--pp-line);border-radius:13px;box-shadow:none;background:#fff
+}
+.shell .archiveWorkspaceV2 .ledgerMetrics .ledgerMetricPrimary{background:#f0f9f4;border-color:#daeee2}
+.shell .archiveWorkspaceV2 .ledgerMetrics strong{color:#243d4b;letter-spacing:-.6px}
+.shell .archiveWorkspaceV2 :is(.ledgerSurface,.archiveLedger,.archiveTable){box-shadow:none}
+
+/* Financial administration: calm and legible, all withdrawal actions retained. */
+.shell .financeWorkspaceV2{gap:15px;color:#263c4d}
+.shell .financeWorkspaceV2>.financeMetrics{gap:11px}
+.shell .financeWorkspaceV2>.financeMetrics>div{padding:17px 19px;border:1px solid var(--pp-line);border-radius:13px;box-shadow:none}
+.shell .financeWorkspaceV2>.financeMetrics>div.primary{
+  background:#f0f8f3;border-color:#d6ebdf;color:#22745b
+}
+.shell .financeWorkspaceV2>.financeMetrics strong{color:#23394a;font-size:23px;margin:8px 0}
+.shell .financeWorkspaceV2 .financeSurface{border-radius:15px;border-color:var(--pp-line);box-shadow:none}
+.shell .financeWorkspaceV2 .financeToolbar{padding:14px 18px;gap:10px}
+.shell .financeWorkspaceV2 .financeCaption{padding:12px 18px;background:#f9fbfc}
+.shell .financeWorkspaceV2 .financeWithdrawalList{padding:0 18px 8px}
+.shell .financeWorkspaceV2 .financeWithdrawalList>article{padding:15px 0}
+.shell .financeWorkspaceV2 .financeAccountList{border-color:#e8eef2}
+.shell .financeWorkspaceV2 .financeBalance{background:#1c5447}
+.shell .financeWorkspaceV2 .financeOperationActions button{border-radius:9px}
+
+/* Support desk: conversation-focused split-pane rather than a hero-heavy page. */
+.shell .supportWorkspace{gap:15px;color:var(--pp-ink)}
+.shell .supportHero{margin:0}
+.shell .supportHeroMark{background:transparent;border:0;color:#587e75;padding:0;box-shadow:none}
+.shell .supportToolbar{gap:9px}
+.shell .supportDesk{border:1px solid var(--pp-line);border-radius:15px;box-shadow:none;height:min(660px,75dvh);max-height:none}
+.shell .supportQueue{border-right:1px solid var(--pp-line)}
+.shell .supportQueueTitle{background:#f8fafb}
+.shell .supportQueueItem{padding:14px 15px}
+.shell .supportQueueItem:hover{background:#f8fbfa}
+.shell .supportQueueItem.selected{background:#eaf7f0;box-shadow:inset 3px 0 #168c78}
+.shell .supportConversation{background:#fff}
+.shell .supportComposer{background:#fafcfd;border-top:1px solid #e9eef2}
+.shell .supportAvatar{border-radius:10px}
+
+/* Operational settings: keep pricing, demand logic and editable controls unchanged. */
+.shell .settingsWorkspace{display:grid;gap:16px}
+.shell .ppDemand{gap:14px}
+.shell .ppDemandHero{margin:0}
+.shell .ppDemandBody{gap:14px}
+.shell :is(.ppDemandOperation,.ppDemandBonus,.deliverySettings>.panel,.deliveryOrigin,.deliverySave){
+  border-radius:15px;border-color:var(--pp-line);box-shadow:none
+}
+.shell .ppDemandModeGrid button{border-radius:11px}
+.shell .deliverySettings{gap:14px}
+.shell .deliveryHero{margin:0}
+.shell .deliveryPrices{gap:12px}
+.shell .deliveryPriceField input{border-radius:10px;min-height:45px}
+.shell .deliveryExamples{border-radius:12px}
+.shell .deliveryOriginStatus{border-radius:8px}
+
+/* Shared form/overlay polish; don't remove or conceal controls. */
+.shell :is(.courierRecordGroup,.customerProfileWorkspace .panel,.partnerEditSection,.partnerCommissionCard,.partnerAccessCard){
+  border-color:var(--pp-line);border-radius:13px
+}
+.shell :is(.courierRecordGroup,.profileDataGrid>div){box-shadow:none}
+.shell .courierRecordGroup>summary{background:#f8fafb;border-radius:11px}
+.shell .modalActions button{border-radius:10px;min-height:43px}
+.shell :is(.approvalCard,.courierDirectoryRows,.partnerList,.financeSurface,.panel,.catalogFlatPanel,.supportDesk) button{font-weight:700}
+
+/* Responsive layouts: laptop, tablet, and narrow/mobile admin. */
+@media(max-width:1399px){
+ .shell .overviewPriority{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .shell .overviewPriority article{min-height:135px}
+ .shell .approvalGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .shell .overviewPanels{grid-template-columns:minmax(0,1.3fr) minmax(280px,.85fr)}
+}
+@media(max-width:1099px){
+ :root{--pp-sidebar:76px}
+ .shell>aside{padding:20px 8px}
+ .shell>aside .logo{padding:0 9px 18px;justify-content:center}
+ .shell>aside .logo div{display:none}
+ .shell>aside nav{gap:14px}
+ .shell>aside .navGroup{gap:4px}
+ .shell>aside .navGroupLabel{display:none}
+ .shell>aside nav button{justify-content:center;padding:11px;min-height:44px}
+ .shell>aside nav button>span{display:none}
+ .shell>aside nav button .navIcon{width:19px;height:19px}
+ .shell>aside nav em{position:absolute;right:0;top:0;font-size:9px;min-width:17px}
+ .shell>aside .admin{display:flex;flex-direction:column;align-items:center;gap:8px}
+ .shell>aside .admin>span{display:none}
+ .shell>aside .admin div{display:none}
+ .shell>aside .admin button{display:flex}
+ .shell .content{padding:22px 24px 36px}
+ .shell .overviewPanels{grid-template-columns:minmax(0,1fr)}
+ .shell .approvalGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .shell .headActions{width:auto;max-width:60%}
+}
+@media(max-width:759px){
+ :root{--pp-sidebar:100%}
+ .shell{display:block}
+ .shell>aside{
+  position:relative;width:100%;height:auto;display:grid;grid-template-columns:1fr auto;
+  gap:12px;padding:12px 15px;border-bottom:1px solid #253747;overflow:visible
+ }
+ .shell>aside .logo{padding:0;justify-content:flex-start}
+ .shell>aside .logo div{display:flex}
+ .shell>aside .logo strong{font-size:12px}
+ .shell>aside .admin{grid-row:1;grid-column:2;border:0;padding:0;margin:0}
+ .shell>aside nav{
+  grid-column:1/-1;display:flex;gap:12px;overflow-x:auto;
+  scrollbar-width:thin;margin:0;padding:0 0 6px
+ }
+ .shell>aside .navGroup{display:flex;gap:4px;flex:0 0 auto;border-right:1px solid #ffffff1a;padding-right:12px}
+ .shell>aside .navGroup:last-child{border-right:0;padding-right:0}
+ .shell>aside .navGroupLabel{display:none}
+ .shell>aside nav button{width:auto;min-height:42px;gap:8px;padding:9px 11px}
+ .shell>aside nav button>span{display:inline;font-size:10px;white-space:nowrap}
+ .shell>aside nav button .navIcon{width:15px;height:15px}
+ .shell>aside nav em{position:static}
+ .shell .content{padding:17px 15px 30px}
+ .shell .content>header.workspaceHeader{align-items:flex-start;flex-wrap:wrap;gap:11px;margin-bottom:17px;padding-bottom:16px}
+ .shell .headActions{max-width:none;width:100%;justify-content:flex-start}
+ .shell .workspaceHeading h1{font-size:24px}
+ .shell .overviewWelcome{padding:20px;min-height:0}
+ .shell .overviewActive{min-width:130px}
+ .shell .overviewPriority{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .shell .overviewSecondary{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .shell .approvalGrid{grid-template-columns:minmax(0,1fr)}
+ .shell .courierDirectoryTools{flex-wrap:wrap}
+ .shell .supportDesk{height:min(650px,78dvh)}
+}
+@media(max-width:520px){
+ .shell .overviewWelcome{align-items:flex-start;flex-direction:column;gap:14px}
+ .shell .overviewActive{width:100%;grid-template-columns:auto auto 1fr;justify-content:flex-start}
+ .shell .overviewActive>span:last-child{grid-column:auto;margin:0}
+ .shell .overviewPriority{gap:9px}
+ .shell .overviewPriority article{padding:13px;min-height:132px}
+ .shell .overviewPriority article strong{font-size:23px}
+ .shell .overviewPriority article>span{font-size:10px}
+ .shell .overviewFinance{grid-template-columns:1fr}
+ .shell .overviewPanels{gap:10px}
+ .shell .panel{padding:15px}
+ .shell :is(.approvalHero,.courierDirectoryHero,.customerDirectoryHero,.partnerHero,.supportHero,.deliveryHero,.catalogControlBar,.financeWorkspaceV2 .financeHeading,.archiveWorkspaceV2>.ledgerHeader,.ppDemandHero){padding:17px!important}
+ .shell .overviewAdditional>summary{flex-wrap:wrap}
+ .shell .overviewAdditional>summary>span:last-child{font-size:10px}
+ .shell .partnerMetrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .shell .financeWorkspaceV2>.financeMetrics{grid-template-columns:1fr}
+ .shell .courierDirectoryMetrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ .shell :is(button,summary,input,select,textarea){transition:none!important;animation:none!important}
+}
