@@ -142,8 +142,8 @@ export default function Home(){
   ["Suporte", Headphones],
   ["Configurações", SettingsIcon],
 ];
- return <div className="shell"><aside><div className="logo"><b>P</b><div><strong>PORTO PRIME</strong><span>CENTRAL DE OPERAÇÕES</span></div></div><nav aria-label="Navegação administrativa">{nav.map(([n,NavIcon])=><button key={n} aria-current={tab===n?"page":undefined} title={n} className={tab===n?"active":""} onClick={()=>{setPartnerFinanceId("");setTab(n);setSearch("")}}><NavIcon className="navIcon" size={17} strokeWidth={2}/><span>{n}</span>{n==="Aprovações"&&pending.length>0&&<em>{pending.length}</em>}</button>)}</nav><div className="admin"><span>{me.name?.[0]}</span><div><b>{me.name}</b><small>Administrador</small></div><button title="Sair" aria-label="Sair" onClick={async()=>{try{await api("/auth/logout",token,"POST")}catch{}localStorage.removeItem("pp_admin_token");localStorage.removeItem("pp_admin_refresh");localStorage.removeItem("pp_admin_session");location.reload()}}><LogOut size={16}/></button></div></aside>
- <main className="content" aria-busy={busy}><SupportAlerts onOpen={()=>setTab("Suporte")}/><header><div><small>CENTRAL PORTO PRIME</small><h1>{tab}</h1></div><div className="headActions">{tab!=="Visão geral"&&tab!=="Configurações"&&tab!=="Catálogo"&&tab!=="Saques"&&tab!=="Suporte"&&tab!=="Pagamentos e Arquivo"&&tab!=="Clientes"&&tab!=="Pedidos"&&<label className="searchBox"><Search size={16}/><input className="search" aria-label="Buscar" placeholder="Buscar na operação..." value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button type="button" aria-label="Limpar busca" onClick={()=>setSearch("")}><X size={14}/></button>}</label>}<button className="live" title="Clique para sincronizar agora" onClick={()=>load()}><RefreshCw size={14}/><span>Sincronização automática</span>{lastSync&&<small>{lastSync.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</small>}</button></div></header>{activityNotice&&<div className="activityToast" role="status"><b>Nova atividade</b><span>{activityNotice}</span></div>}{error&&<div className="error top" role="alert">{displayMessage(error)}</div>}{busy&&<div className="loading" role="status"><span className="loadingSpinner"/><span>Sincronizando dados...</span></div>}
+ return <div className="shell"><aside><div className="logo"><b>P</b><div><strong>PORTO PRIME</strong><span>CENTRAL DE OPERAÇÕES</span></div></div><nav aria-label="Navegação administrativa">{[{label:"OPERAÇÃO",items:nav.slice(0,4)},{label:"PESSOAS E LOJA",items:nav.slice(4,7)},{label:"GESTÃO",items:nav.slice(7)}].map(section=><div className="navGroup" key={section.label}><span className="navGroupLabel">{section.label}</span>{section.items.map(([n,NavIcon])=><button key={n} type="button" aria-current={tab===n?"page":undefined} title={n} className={tab===n?"active":""} onClick={()=>{setPartnerFinanceId("");setTab(n);setSearch("")}}><NavIcon className="navIcon" size={18} strokeWidth={1.8}/><span>{n}</span>{n==="Aprovações"&&pending.length>0&&<em>{pending.length}</em>}</button>)}</div>)}</nav><div className="admin"><span>{me.name?.[0]}</span><div><b>{me.name}</b><small>Administrador</small></div><button title="Sair" aria-label="Sair" onClick={async()=>{try{await api("/auth/logout",token,"POST")}catch{}localStorage.removeItem("pp_admin_token");localStorage.removeItem("pp_admin_refresh");localStorage.removeItem("pp_admin_session");location.reload()}}><LogOut size={16}/></button></div></aside>
+ <main className="content" aria-busy={busy}><SupportAlerts onOpen={()=>setTab("Suporte")}/><header className="workspaceHeader"><div className="workspaceHeading"><small>PORTO PRIME <span aria-hidden="true">/</span> CENTRAL DE OPERAÇÕES</small><h1>{tab}</h1><p className="workspaceSubtitle">{({"Visão geral":"O essencial da operação, em um só lugar.","Pedidos":"Conferência, despacho e entregas sob controle.","Aprovações":"Analise cadastros e pendências com clareza.","Motoboys":"Disponibilidade, perfis e gestão de entregadores.","Clientes":"Consulte perfis, endereços e histórico de pedidos.","Parceiros":"Cadastros, indicações e condições comerciais.","Catálogo":"Organize a vitrine, categorias, estoque e produtos.","Pagamentos e Arquivo":"Histórico de pedidos e operações financeiras.","Saques":"Carteiras, solicitações e repasses.","Suporte":"Atendimentos centralizados por prioridade.","Configurações":"Regras e parâmetros operacionais da plataforma."} as Record<string,string>)[tab]}</p></div><div className="headActions">{tab!=="Visão geral"&&tab!=="Configurações"&&tab!=="Catálogo"&&tab!=="Saques"&&tab!=="Suporte"&&tab!=="Pagamentos e Arquivo"&&tab!=="Clientes"&&tab!=="Pedidos"&&<label className="searchBox"><Search size={16}/><input className="search" aria-label="Buscar" placeholder="Buscar na operação..." value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button type="button" aria-label="Limpar busca" onClick={()=>setSearch("")}><X size={14}/></button>}</label>}<button className="live" title="Clique para sincronizar agora" onClick={()=>load()}><RefreshCw size={14}/><span>Sincronização automática</span>{lastSync&&<small>{lastSync.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</small>}</button></div></header>{activityNotice&&<div className="activityToast" role="status"><b>Nova atividade</b><span>{activityNotice}</span></div>}{error&&<div className="error top" role="alert">{displayMessage(error)}</div>}{busy&&<div className="loading" role="status"><span className="loadingSpinner"/><span>Sincronizando dados...</span></div>}
  {tab==="Visão geral"&&<Dashboard dash={dash} orders={orders} pending={pending} withdrawals={withdrawals}/>} 
  {tab==="Pedidos"&&<Orders rows={orders.filter(o=>!isArchivedOrder(o))} act={act} ask={setConfirmBox} token={token} products={catalog.filter(c=>c.active&&!c.archived).flatMap(c=>c.products||[])}/>} 
  {tab==="Pagamentos e Arquivo"&&<OrderArchive orders={orders} request={(path,method,body)=>api(path,token,method,body)} reload={()=>load()}/>}
@@ -161,28 +161,43 @@ export default function Home(){
 }
 function Card({label,value,note,icon:Icon}:{label:string,value:any,note:string,icon:LucideIcon}){return <article><div className="metricIcon"><Icon size={18} strokeWidth={2}/></div><span>{label}</span><strong>{value}</strong><small>{note}</small></article>}
 function Dashboard({dash,orders,pending,withdrawals}:{dash:Row,orders:Row[],pending:Row[],withdrawals:Row[]}){
- const awaiting=orders.filter(o=>["PENDING","CONFIRMED"].includes(o.status)).length;
- const released=orders.filter(o=>["PREPARING","READY_FOR_PICKUP"].includes(o.status)).length;
- const searching=orders.filter(o=>o.status==="SEARCHING_COURIER").length;
- const active=orders.filter(o=>["COURIER_ASSIGNED","PICKED_UP","OUT_FOR_DELIVERY"].includes(o.status)).length;
- const finished=orders.filter(o=>o.status==="DELIVERED").length;
- const pendingWithdrawals=withdrawals.filter(w=>["PENDING","PROCESSING"].includes(w.status)).length;
- return <><section className="hero"><div><small>OPERAÇÃO EM TEMPO REAL</small><h2>Porto Prime,<br/>em uma visão.</h2><p>Acompanhe pedidos, equipe, pagamentos e catálogo com clareza operacional.</p><div className="heroSignal"><Activity size={15}/><span>Dados sincronizados com a operação</span></div></div><div className="pulse"><b>{active+searching}</b><span>operações ativas</span></div></section>
- <section className="metrics opsMetrics">
-  <Card icon={ClipboardList} label="Aguardando" value={awaiting} note="Pedidos em análise"/>
-  <Card icon={PackageSearch} label="Liberados" value={released} note="Preparação / retirada"/>
-  <Card icon={Search} label="Procurando motoboy" value={searching} note="Despacho automático"/>
-  <Card icon={Bike} label="Entregas ativas" value={active} note="Motoboy em operação"/>
-  <Card icon={Check} label="Finalizados" value={finished} note="Pedidos entregues"/>
-  <Card icon={Activity} label="Motoboys online" value={dash.onlineCouriers||0} note="Disponíveis agora"/>
-  <Card icon={UserCheck} label="Cadastros pendentes" value={pending.length} note="Precisam de análise"/>
-  <Card icon={Wallet} label="Saques pendentes" value={pendingWithdrawals} note="Pendente / processamento"/>
- </section>
- <section className="metrics financeMetrics">
-  <Card icon={Banknote} label="Receita paga" value={brl(dash.revenue)} note="Pedidos confirmados"/>
-  <Card icon={ClipboardList} label="Pedidos registrados" value={dash.orders||0} note="Histórico total"/>
- </section>
- <section className="grid"><Panel title="Pedidos recentes"><MiniOrders rows={orders.slice(0,6)}/></Panel><Panel title="Radar operacional"><div className="radar"><div className="radarIcon"><CircleDollarSign size={18}/></div><b>{dash.users||0}</b><span>usuários cadastrados</span><div className="radarIcon"><PackageSearch size={18}/></div><b>{dash.products||0}</b><span>produtos ativos</span></div></Panel></section></>
+  const awaiting=orders.filter(o=>["PENDING","CONFIRMED"].includes(o.status)).length;
+  const released=orders.filter(o=>["PREPARING","READY_FOR_PICKUP"].includes(o.status)).length;
+  const searching=orders.filter(o=>o.status==="SEARCHING_COURIER").length;
+  const active=orders.filter(o=>["COURIER_ASSIGNED","PICKED_UP","OUT_FOR_DELIVERY"].includes(o.status)).length;
+  const finished=orders.filter(o=>o.status==="DELIVERED").length;
+  const pendingWithdrawals=withdrawals.filter(w=>["PENDING","PROCESSING"].includes(w.status)).length;
+  return <div className="overviewWorkspace">
+    <section className="overviewWelcome">
+      <div><span className="overviewKicker"><Activity size={14}/> VISÃO OPERACIONAL</span><h2>Acompanhe o que importa.</h2><p>Pedidos, entregas e equipe organizados para agir com rapidez.</p></div>
+      <div className="overviewActive"><span className="overviewActiveDot"/><strong>{active+searching}</strong><span>operações em andamento</span></div>
+    </section>
+    <section className="metrics opsMetrics overviewPriority" aria-label="Indicadores principais">
+      <Card icon={ClipboardList} label="Aguardando conferência" value={awaiting} note="Pedidos para analisar"/>
+      <Card icon={Search} label="Buscando motoboy" value={searching} note="Despacho em andamento"/>
+      <Card icon={Bike} label="Entregas ativas" value={active} note="Motoboys em operação"/>
+      <Card icon={Activity} label="Motoboys online" value={dash.onlineCouriers||0} note="Disponíveis na plataforma"/>
+    </section>
+    <section className="grid overviewPanels">
+      <Panel title="Pedidos recentes"><MiniOrders rows={orders.slice(0,6)}/></Panel>
+      <Panel title="Panorama da plataforma"><div className="radar"><div className="radarIcon"><CircleDollarSign size={18}/></div><b>{dash.users||0}</b><span>usuários cadastrados</span><div className="radarIcon"><PackageSearch size={18}/></div><b>{dash.products||0}</b><span>produtos ativos</span></div></Panel>
+    </section>
+    <details className="overviewAdditional">
+      <summary><span><LayoutDashboard size={17}/> Outros indicadores</span><span>Produção, cadastros e financeiro <ChevronDown size={16}/></span></summary>
+      <div className="overviewAdditionalContent">
+        <section className="metrics opsMetrics overviewSecondary" aria-label="Indicadores adicionais">
+          <Card icon={PackageSearch} label="Liberados" value={released} note="Preparação / retirada"/>
+          <Card icon={Check} label="Finalizados" value={finished} note="Pedidos entregues"/>
+          <Card icon={UserCheck} label="Cadastros pendentes" value={pending.length} note="Precisam de análise"/>
+          <Card icon={Wallet} label="Saques pendentes" value={pendingWithdrawals} note="Pendente / processamento"/>
+        </section>
+        <section className="metrics financeMetrics overviewFinance">
+          <Card icon={Banknote} label="Receita paga" value={brl(dash.revenue)} note="Pedidos confirmados"/>
+          <Card icon={ClipboardList} label="Pedidos registrados" value={dash.orders||0} note="Histórico total"/>
+        </section>
+      </div>
+    </details>
+  </div>;
 }
 function Panel({title,children}:{title:string,children:React.ReactNode}){return <section className="panel"><div className="panelHead"><h3>{title}</h3><span>Dados em tempo real</span></div>{children}</section>}
 function Badge({v}:{v:string}){return <span className={"badge b-"+v.toLowerCase()}>{statusLabel[v]||v}</span>}
