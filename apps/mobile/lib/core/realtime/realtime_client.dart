@@ -46,6 +46,7 @@ class RealtimeClient {
       'dispatch.offer.closed',
       'courier.presence',
       'courier.account.updated',
+      'courier.profile.updated',
       'courier.requirement.created',
       'courier.requirement.answered',
       'wallet.updated',
