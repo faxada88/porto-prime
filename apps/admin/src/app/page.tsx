@@ -248,7 +248,8 @@ function CustomerAdminProfile({user,close,act,ask}:{user:Row,close:()=>void,act:
 
 function CancelRequirement({requirement,act}:{requirement:Row;act:(...args:any[])=>Promise<any>}) {
  const [open,setOpen]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState("");
- if(requirement.canceledAt)return <small className="requirementCanceled">Cancelada em {dt(requirement.canceledAt)} · histórico preservado</small>;
+ if(requirement.status==='RESOLVED')return null;
+  if(requirement.canceledAt)return <small className="requirementCanceled">Cancelada em {dt(requirement.canceledAt)} · histórico preservado</small>;
  return <><button className="secondary" onClick={()=>{setError("");setOpen(true)}}><X size={14}/> Cancelar solicitação</button>{open&&<div className="modalBackdrop" onMouseDown={()=>!busy&&setOpen(false)}><section className="requirementCancelDialog" role="dialog" aria-modal="true" aria-labelledby={"cancel-"+requirement.id} onMouseDown={e=>e.stopPropagation()}><small>REVISÃO ADMINISTRATIVA</small><h3 id={"cancel-"+requirement.id}>Cancelar esta pendência?</h3><b>{requirement.title}</b><p>A solicitação deixa de bloquear a aprovação e desaparece das pendências do motoboy. O histórico e a resposta ficam preservados.</p>{error&&<p role="alert" className="error">{error}</p>}<div className="actions"><button autoFocus disabled={busy} className="secondary" onClick={()=>setOpen(false)}>Manter solicitação</button><button disabled={busy} onClick={async()=>{setBusy(true);try{const result=await act("/admin/requirements/"+requirement.id+"/cancel","PATCH");if(!result)throw new Error("Não foi possível cancelar. Tente novamente.");setOpen(false)}catch(e){setError(displayMessage(e))}finally{setBusy(false)}}}>{busy?"Cancelando…":"Cancelar pendência"}</button></div></section></div>}</>;
 }
 
