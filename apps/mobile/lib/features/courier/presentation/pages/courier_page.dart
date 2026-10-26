@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/state/app_state.dart';
+import 'courier_account_review.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -26,8 +27,10 @@ class _CourierPageState extends State<CourierPage> {
     Future<void>(() async {
       try {
         await AppState.instance.refreshCourier();
-        await AppState.instance.loadWallet();
-        await AppState.instance.heartbeatCourier();
+        if (!AppState.instance.courierAccountRestricted) {
+          await AppState.instance.loadWallet();
+          await AppState.instance.heartbeatCourier();
+        }
       } catch (_) {}
     });
     _heartbeatTimer = Timer.periodic(
@@ -39,7 +42,7 @@ class _CourierPageState extends State<CourierPage> {
       },
     );
     _refreshTimer = Timer.periodic(
-      const Duration(seconds: 30),
+      const Duration(seconds: 10),
       (_) async {
         try {
           await AppState.instance.refreshCourier();
@@ -592,6 +595,7 @@ class _CourierPageState extends State<CourierPage> {
         animation: AppState.instance,
         builder: (_, __) {
           final state = AppState.instance;
+          if (state.courierAccountRestricted) return const CourierAccountReview();
           final current = state.courierDelivery == null
               ? null
               : Map<String, dynamic>.from(state.courierDelivery!);
