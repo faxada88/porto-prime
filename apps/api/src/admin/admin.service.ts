@@ -14,6 +14,7 @@ import {
 import { AuthService } from '../auth/auth.service.js';
 import { DispatchService } from '../dispatch/dispatch.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { RealtimeGateway } from '../realtime/realtime.gateway.js';
 import { WalletService } from '../wallet/wallet.service.js';
 
 @Injectable()
@@ -23,6 +24,7 @@ export class AdminService {
     private readonly auth: AuthService,
     private readonly dispatch: DispatchService,
     private readonly wallet: WalletService,
+    private readonly realtime: RealtimeGateway,
   ) {}
 
   private async requireAdmin(authorization?: string) {
@@ -33,19 +35,36 @@ export class AdminService {
     return user;
   }
 
+  private async liveCourierIds(): Promise<Set<string>> {
+    const cfg = await (this.prisma as any).deliveryPricingConfig.findUnique({
+      where: { id: 'default' }, select: { heartbeatTimeoutSeconds: true },
+    });
+    const now = new Date();
+    const cutoff = new Date(now.getTime() - Math.max(20, Number(cfg?.heartbeatTimeoutSeconds ?? 45)) * 1000);
+    const devices = await (this.prisma as any).courierDevicePresence.findMany({
+      where: {
+        onlineRequested: true, lastHeartbeatAt: { gte: cutoff },
+        session: { is: { revokedAt: null, expiresAt: { gt: now }, refreshExpiresAt: { gt: now } } },
+        courier: { is: { approvalStatus: CourierStatus.APPROVED, user: { is: { status: UserStatus.ACTIVE } } } },
+      },
+      select: { courierId: true },
+    });
+    return new Set<string>(devices.map((row: any) => String(row.courierId)));
+  }
+
+  private operationalCourier(row: any, onlineIds: Set<string>) {
+    if (!row) return row;
+    const isOnline = onlineIds.has(row.id) && ['AVAILABLE', 'OFFERED'].includes(String(row.presenceStatus));
+    return { ...row, isOnline, presenceStatus: isOnline ? row.presenceStatus : (row.presenceStatus === 'DELIVERING' ? 'DELIVERING' : 'OFFLINE') };
+  }
+
   async dashboard(authorization?: string) {
     await this.requireAdmin(authorization);
-    const [users, products, orders, onlineCouriers, paid] = await Promise.all([
+    const [users, products, orders, onlineIds, paid] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.product.count({ where: { active: true } }),
       this.prisma.order.count(),
-      (this.prisma as any).courierProfile.count({
-        where: {
-          presenceStatus: { in: ['AVAILABLE', 'OFFERED', 'DELIVERING'] },
-          approvalStatus: CourierStatus.APPROVED,
-          user: { status: UserStatus.ACTIVE },
-        },
-      }),
+      this.liveCourierIds(),
       this.prisma.order.aggregate({
         where: { paymentStatus: PaymentStatus.PAID },
         _sum: { total: true },
@@ -56,7 +75,7 @@ export class AdminService {
       users,
       products,
       orders,
-      onlineCouriers,
+      onlineCouriers: onlineIds.size,
       revenue: Number(paid._sum.total ?? 0),
     };
   }
@@ -85,7 +104,9 @@ export class AdminService {
 
   async couriers(authorization?: string) {
     await this.requireAdmin(authorization);
-    return (this.prisma as any).courierProfile.findMany({
+    const [onlineIds, rows] = await Promise.all([
+      this.liveCourierIds(),
+      (this.prisma as any).courierProfile.findMany({
       include: {
         user: {
           select: {
@@ -99,7 +120,9 @@ export class AdminService {
         requirements: { orderBy: { requestedAt: 'desc' } },
       },
       orderBy: { createdAt: 'desc' },
-    });
+    }),
+    ]);
+    return rows.map((row: any) => this.operationalCourier(row, onlineIds));
   }
 
   async orders(authorization?: string) {
@@ -123,14 +146,18 @@ export class AdminService {
 
   async users(authorization?: string) {
     await this.requireAdmin(authorization);
-    return this.prisma.user.findMany({
+    const [onlineIds, rows] = await Promise.all([
+      this.liveCourierIds(),
+      this.prisma.user.findMany({
       include: {
         courierProfile: true,
         partnerProfile: true,
         _count: { select: { orders: true } },
       },
       orderBy: { createdAt: 'desc' },
-    });
+    }),
+    ]);
+    return rows.map(row => ({ ...row, courierProfile: row.courierProfile ? this.operationalCourier(row.courierProfile, onlineIds) : null }));
   }
 
   async catalog(authorization?: string) {
@@ -143,7 +170,7 @@ export class AdminService {
     });
   }
 
-  async updateUserStatus(userId: string, status: string, authorization?: string) {
+  async updateUserStatus(userId: string, status: string, authorization?: string, reason?: string) {
     await this.requireAdmin(authorization);
     const allowed = ['ACTIVE', 'PENDING', 'SUSPENDED', 'BLOCKED'];
     if (!allowed.includes(status)) {
@@ -156,11 +183,20 @@ export class AdminService {
     });
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       if (user.courierProfile && status !== 'ACTIVE') {
+        await (tx as any).courierDevicePresence.updateMany({
+          where: { courierId: user.courierProfile.id },
+          data: { onlineRequested: false },
+        });
+        if (reason?.trim()) {
+          await (tx as any).courierRequirement.create({
+            data: { courierId: user.courierProfile.id, title: status === 'BLOCKED' ? 'Conta bloqueada' : status === 'SUSPENDED' ? 'Conta suspensa' : 'Revisão cadastral', description: reason.trim().slice(0, 1000) },
+          });
+        }
         await tx.courierProfile.update({
           where: { id: user.courierProfile.id },
-          data: { isOnline: false },
+          data: { isOnline: false, presenceStatus: 'OFFLINE', availableSince: null },
         });
       }
       return tx.user.update({
@@ -176,6 +212,11 @@ export class AdminService {
         },
       });
     });
+    if (user.courierProfile) {
+      this.realtime.emitToUser(userId, 'courier.account.updated', { status, at: new Date().toISOString() });
+      this.realtime.emitToRole('ADMIN', 'courier.presence', { courierId: user.courierProfile.id, presenceStatus: 'OFFLINE', at: new Date().toISOString() });
+    }
+    return result;
   }
 
   private normalizeBulkIds(ids: unknown) {
@@ -410,7 +451,7 @@ export class AdminService {
       throw new NotFoundException('Candidatura do motoboy não encontrada');
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const created = await this.prisma.$transaction(async (tx) => {
       const requirement = await (tx as any).courierRequirement.create({
         data: {
           courierId: profile.id,
@@ -419,11 +460,16 @@ export class AdminService {
         },
       });
 
+      await (tx as any).courierDevicePresence.updateMany({
+        where: { courierId: profile.id }, data: { onlineRequested: false },
+      });
       await (tx as any).courierProfile.update({
         where: { id: profile.id },
         data: {
           approvalStatus: CourierStatus.PENDING,
           isOnline: false,
+          presenceStatus: 'OFFLINE',
+          availableSince: null,
         },
       });
 
@@ -441,6 +487,10 @@ export class AdminService {
         },
       };
     });
+    this.realtime.emitToUser(profile.userId, 'courier.requirement.created', { requirementId: created.id, title, description, at: new Date().toISOString() });
+    this.realtime.emitToUser(profile.userId, 'courier.account.updated', { status: 'PENDING', at: new Date().toISOString() });
+    this.realtime.emitToRole('ADMIN', 'courier.presence', { courierId: profile.id, presenceStatus: 'OFFLINE', at: new Date().toISOString() });
+    return created;
   }
 
   async resolveRequirement(id: string, authorization?: string) {
