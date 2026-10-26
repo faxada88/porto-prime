@@ -1,6 +1,7 @@
 import '../../../../core/localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/network/api_client.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/app_shell.dart';
@@ -20,7 +21,32 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> _go() async {
-    await AppState.instance.bootstrap();
+    // Keep launch visible as a Flutter widget while storage, translations and
+    // the backend initialize. Never block the user on a failed API call.
+    try {
+      await ApiClient.instance.initialize().timeout(
+        const Duration(seconds: 10),
+      );
+    } catch (error) {
+      debugPrint('Porto Prime: session initialization failed: $error');
+    }
+
+    try {
+      await AppLanguage.instance.initialize().timeout(
+        const Duration(seconds: 10),
+      );
+    } catch (error) {
+      debugPrint('Porto Prime: language initialization failed: $error');
+    }
+
+    try {
+      await AppState.instance.bootstrap().timeout(
+        const Duration(seconds: 25),
+      );
+    } catch (error) {
+      debugPrint('Porto Prime: bootstrap unavailable: $error');
+    }
+
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
