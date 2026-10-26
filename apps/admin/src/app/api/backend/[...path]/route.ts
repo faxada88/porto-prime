@@ -36,7 +36,8 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
       status: response.status,
       headers: responseHeaders,
     });
-  } catch {
+  } catch (error) {
+    console.error("[Porto Prime Admin] Falha na conexão com a API NestJS:", error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { message: "API Porto Prime indisponível no momento" },
       { status: 502 },
