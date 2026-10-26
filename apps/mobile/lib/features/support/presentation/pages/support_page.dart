@@ -163,7 +163,7 @@ class _NewSupportPageState extends State<_NewSupportPage> {
   Widget build(BuildContext context) => Scaffold(backgroundColor:AppColors.canvas,appBar:AppBar(title:PrimeText(AppState.instance.isPartner ? 'Novo ticket' : 'Falar com a equipe')),body:SafeArea(child:Form(key:_form,child:ListView(padding:const EdgeInsets.all(20),children:[
     const _SupportHero(title:'Vamos resolver juntos.',subtitle:'Selecione o assunto e conte o que aconteceu. Quanto mais claro, melhor podemos ajudar.'),
     const SizedBox(height:24),
-    DropdownButtonFormField<String>(value:_category,isExpanded:true,decoration:const PrimeInputDecoration(labelText:'Como podemos ajudar?'),items:widget.categories.map((c) => DropdownMenuItem(value:c,child:PrimeText(c))).toList(),onChanged:_sending ? null : (v) => setState(() => _category = v)),
+    DropdownButtonFormField<String>(itemHeight: null, value:_category,isExpanded:true,decoration:const PrimeInputDecoration(labelText:'Como podemos ajudar?'),items:widget.categories.map((c) => DropdownMenuItem(value:c,child:PrimeText(c))).toList(),onChanged:_sending ? null : (v) => setState(() => _category = v)),
     const SizedBox(height:18),
     TextFormField(scrollPadding: const EdgeInsets.all(80), controller:_subject,enabled:!_sending,maxLength:120,decoration:const PrimeInputDecoration(labelText:'Título',hintText:'Um resumo do que você precisa'),validator: localizeValidator((v) => v == null || v.trim().isEmpty ? 'Informe o título do atendimento' : null)),
     const SizedBox(height:8),

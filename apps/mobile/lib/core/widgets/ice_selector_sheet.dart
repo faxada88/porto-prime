@@ -153,7 +153,7 @@ class _IceOrderPanelState extends State<IceOrderPanel> {
        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFAFCDD9))),
        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFAFCDD9)))),
-      child: DropdownButtonHideUnderline(child: DropdownButton<int>(
+      child: DropdownButtonHideUnderline(child: DropdownButton<int>(itemHeight: null, 
        key: const ValueKey('ice-weight-dropdown'),
        isExpanded: true, value: selectedWeight, borderRadius: BorderRadius.circular(18),
        dropdownColor: Colors.white, menuMaxHeight: 360,
@@ -186,7 +186,7 @@ class _IceOrderPanelState extends State<IceOrderPanel> {
      if (candidates.length > 1) InputDecorator(
       decoration: PrimeInputDecoration(labelText: 'Produto', contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFCFDEE5)))),
-      child: DropdownButtonHideUnderline(child: DropdownButton<String>(
+      child: DropdownButtonHideUnderline(child: DropdownButton<String>(itemHeight: null, 
        isExpanded: true, value: id,
        items: candidates.map((p) => DropdownMenuItem<String>(value: p['id'].toString(),
         child: PrimeText(p['name'].toString(), maxLines: 1, overflow: TextOverflow.ellipsis,

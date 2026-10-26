@@ -539,7 +539,7 @@ class _CourierPageState extends State<CourierPage> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  DropdownButtonFormField<String>(
+                  DropdownButtonFormField<String>(isExpanded: true, itemHeight: null, 
                     initialValue: pixType,
                     decoration: const PrimeInputDecoration(labelText: 'Tipo de chave PIX'),
                     items: const [DropdownMenuItem(value:'CPF',child:PrimeText('CPF')),DropdownMenuItem(value:'CNPJ',child:PrimeText('CNPJ')),DropdownMenuItem(value:'EMAIL',child:PrimeText('E-mail')),DropdownMenuItem(value:'PHONE',child:PrimeText('Celular')),DropdownMenuItem(value:'RANDOM',child:PrimeText('Aleatória'))],

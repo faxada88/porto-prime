@@ -108,7 +108,7 @@ class _CancellationSheetState extends State<_CancellationSheet> {
           const PrimeText('Antes de cancelar', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -.7)),
           const SizedBox(height: 8), const PrimeText('A entrega será interrompida. Cada valor retorna à forma de pagamento utilizada.', style: TextStyle(color: AppColors.muted, height: 1.5)),
           const SizedBox(height: 24),
-          DropdownButtonFormField<String>(initialValue: reason, isExpanded: true, decoration: const PrimeInputDecoration(labelText: 'Por que deseja cancelar?'), items: ['Mudei de ideia', 'Endereço incorreto', 'Demora no atendimento', 'Outro motivo'].map((r) => DropdownMenuItem(value: r, child: PrimeText(r, overflow: TextOverflow.ellipsis))).toList(), onChanged: saving ? null : (r) => setState(() => reason = r ?? reason)),
+          DropdownButtonFormField<String>(itemHeight: null, initialValue: reason, isExpanded: true, decoration: const PrimeInputDecoration(labelText: 'Por que deseja cancelar?'), items: ['Mudei de ideia', 'Endereço incorreto', 'Demora no atendimento', 'Outro motivo'].map((r) => DropdownMenuItem(value: r, child: PrimeText(r, overflow: TextOverflow.ellipsis))).toList(), onChanged: saving ? null : (r) => setState(() => reason = r ?? reason)),
           const SizedBox(height: 24),
           Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(color: AppColors.ocean50, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.ocean100)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const PrimeText('VOCÊ RECEBE DE VOLTA', style: TextStyle(fontSize: 10, letterSpacing: 1.2, fontWeight: FontWeight.w800, color: AppColors.ocean700)),
