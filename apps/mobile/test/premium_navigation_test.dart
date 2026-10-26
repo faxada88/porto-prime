@@ -127,18 +127,21 @@ void main() {
   testWidgets('Reduced motion snaps to selection and keeps accessible selected semantics', (tester) async {
     final selected = ValueNotifier(0);
     final semantics = tester.ensureSemantics();
-    addTearDown(semantics.dispose);
-    await tester.pumpWidget(frame(ValueListenableBuilder<int>(valueListenable: selected,
-      builder: (_, index, child) => PrimeBottomNavigation(index: index, showOrders: true,
-        onSelect: (value) => selected.value = value)), reduceMotion: true));
-    await tester.tap(find.byKey(PrimeAnimatedNavigation.destinationKey(2)));
-    await tester.pump();
-    expect(capsule(tester).center.dx, closeTo(target(tester, 2).center.dx, .5));
-    expect(tester.getSemantics(find.byKey(PrimeAnimatedNavigation.destinationKey(2)))
-      .flagsCollection.isSelected, Tristate.isTrue);
-    expect(tester.takeException(), isNull);
-    await tester.pumpWidget(const SizedBox.shrink());
-    selected.dispose();
+    try {
+      await tester.pumpWidget(frame(ValueListenableBuilder<int>(valueListenable: selected,
+        builder: (_, index, child) => PrimeBottomNavigation(index: index, showOrders: true,
+          onSelect: (value) => selected.value = value)), reduceMotion: true));
+      await tester.tap(find.byKey(PrimeAnimatedNavigation.destinationKey(2)));
+      await tester.pump();
+      expect(capsule(tester).center.dx, closeTo(target(tester, 2).center.dx, .5));
+      expect(tester.getSemantics(find.byKey(PrimeAnimatedNavigation.destinationKey(2)))
+        .flagsCollection.isSelected, Tristate.isTrue);
+      expect(tester.takeException(), isNull);
+    } finally {
+      semantics.dispose();
+      await tester.pumpWidget(const SizedBox.shrink());
+      selected.dispose();
+    }
   });
 
   testWidgets('Guest transition preserves destination IDs, hides Orders and aligns Account', (tester) async {
