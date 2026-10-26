@@ -254,6 +254,11 @@ export class OrdersService {
       );
     }
 
+    const unresolved = await (this.prisma as any).courierRequirement.count({
+      where: { courierId: profile.id, status: { not: 'RESOLVED' } },
+    });
+    if (unresolved > 0) throw new ForbiddenException('Existem pendências administrativas no seu cadastro');
+
     return { user, profile };
   }
 
@@ -307,6 +312,11 @@ export class OrdersService {
         'Cadastro de motoboy ainda não está liberado',
       );
     }
+
+    const unresolved = await (this.prisma as any).courierRequirement.count({
+      where: { courierId: profile.id, status: { not: 'RESOLVED' } },
+    });
+    if (unresolved > 0) throw new ForbiddenException('Existem pendências administrativas no seu cadastro');
 
     const now = new Date();
     const latitude =
