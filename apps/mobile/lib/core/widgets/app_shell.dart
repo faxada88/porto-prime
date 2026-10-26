@@ -24,6 +24,7 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
+  final Set<int> _visited = {0};
   static const pages = [
     HomePage(),
     OrdersPage(),
@@ -91,6 +92,7 @@ class _AppShellState extends State<AppShell> {
 
       final selectedIndex = AppNav.instance.index.value;
       final index = !state.loggedIn && selectedIndex == 1 ? 0 : selectedIndex;
+      _visited.add(index);
 
       return Scaffold(
         // The cart has a fixed checkout action; reserve the navigation height.
@@ -98,7 +100,10 @@ class _AppShellState extends State<AppShell> {
         body: Column(children:[
           if(state.publicHighDemand) const CustomerDemandNotice(),
           Expanded(child:IndexedStack(index:index,children:[
-            pages[0], state.loggedIn ? pages[1] : const SizedBox.shrink(), pages[2], pages[3],
+            for (var tab = 0; tab < pages.length; tab++)
+              TickerMode(enabled: tab == index, child: RepaintBoundary(child:
+                _visited.contains(tab) && (tab != 1 || state.loggedIn)
+                  ? pages[tab] : const SizedBox.shrink())),
           ])),
         ]),
         bottomNavigationBar: PrimeBottomNavigation(

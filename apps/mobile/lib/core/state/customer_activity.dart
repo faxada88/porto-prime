@@ -8,6 +8,7 @@ class CustomerActivity extends ChangeNotifier {
  CustomerActivity._(){AppState.instance.addListener(_changed);}
  static final instance=CustomerActivity._();
  String? _owner;
+ String? _lastSaved;
  bool _loading=false;
  List<Map<String,dynamic>> entries=[];
  Map<String,String> _seen={};
@@ -22,7 +23,7 @@ class CustomerActivity extends ChangeNotifier {
     id = customer == null ? null : customer['id']?.toString();
   }
   if(id!=_owner){
-   _owner=id;entries=[];_seen={};_loading=id!=null;notifyListeners();
+   _owner=id;_lastSaved=null;entries=[];_seen={};_loading=id!=null;notifyListeners();
    if(id==null)return;
    final prefs=await SharedPreferences.getInstance();
    if(_owner!=id)return;
@@ -69,7 +70,8 @@ class CustomerActivity extends ChangeNotifier {
   }
   entries.sort((a,b)=>'${b['date']}'.compareTo('${a['date']}'));
   if(entries.length>100)entries=entries.take(100).toList();
-  notifyListeners();await _save();
+  final snapshot=jsonEncode({'entries':entries,'seen':_seen});
+  if(snapshot!=_lastSaved){notifyListeners();await _save();}
  }
  void _add(Map<String,dynamic> entry){if(!entries.any((e)=>e['id']==entry['id']))entries.add({...entry,'read':false});}
  Future<void> openEntry(String id)async{entries=entries.map((e)=>e['id']==id?{...e,'read':true}:e).toList();notifyListeners();await _save();}
@@ -77,6 +79,8 @@ class CustomerActivity extends ChangeNotifier {
  Future<void> _save()async{
   final id=_owner;if(id==null)return;
   final value=jsonEncode({'entries':entries,'seen':_seen});
+  if(value==_lastSaved)return;
   final prefs=await SharedPreferences.getInstance();await prefs.setString(_key(id),value);
+  if(_owner==id)_lastSaved=value;
  }
 }

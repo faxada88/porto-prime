@@ -37,19 +37,38 @@ class PrimeLoginIntro extends StatelessWidget {
   const PrimeLoginIntro({super.key, required this.onClose});
   final VoidCallback onClose;
   @override
-  Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Row(children: [const PrimeBrandMark(size: 42), const SizedBox(width: 12),
-      const Expanded(child: PrimeText('SUA CONTA PORTO PRIME', style: TextStyle(fontSize: 10,
-        height: 1.5, letterSpacing: 1.2, fontWeight: FontWeight.w800, color: AppColors.ocean700))),
-      IconButton(tooltip: translateLabel( 'Fechar entrada'), onPressed: onClose,
-        icon: const Icon(AppIcons.close, color: AppColors.ocean900, size: 21)),
-    ]),
+  Widget build(BuildContext context) => Column(children: [
+    ClipRRect(borderRadius: BorderRadius.circular(22), child: Stack(children: [
+      Positioned.fill(child: Image.asset('assets/reference_home/account-coast.webp',
+        fit: BoxFit.cover, alignment: Alignment.topRight, cacheWidth: 900,
+        excludeFromSemantics: true)),
+      Container(width: double.infinity, padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(gradient: LinearGradient(
+          colors: [Color(0xF5FFFFFF), Color(0xA6FFFFFF), Color(0x22FFFFFF)])),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [const Expanded(child: Text('PORTO PRIME', style: TextStyle(
+            color: Color(0xFF00656C), fontSize: 19, fontWeight: FontWeight.w800))),
+            IconButton(tooltip: translateLabel('Fechar entrada'), onPressed: onClose,
+              icon: const Icon(Icons.close_rounded, color: Color(0xFF073E43)))]),
+          const SizedBox(height: 24),
+          const PrimeText('Seu próximo pedido começa com você.', style: TextStyle(
+            fontSize: 29, height: 1.1, letterSpacing: -.8,
+            fontWeight: FontWeight.w800, color: Color(0xFF073E43))),
+          const SizedBox(height: 12),
+          const PrimeText('Crie sua conta para pedir, acompanhar a entrega e usar todos os benefícios do Porto Prime.',
+            style: TextStyle(fontSize: 12, height: 1.5, color: Color(0xFF657787))),
+        ])),
+    ])),
     const SizedBox(height: 24),
-    const PrimeText('Bom ter você\naqui de novo.', style: TextStyle(fontSize: 30, height: 1.12,
-      letterSpacing: -.9, fontWeight: FontWeight.w800, color: AppColors.ocean900)),
+    const Icon(Icons.workspace_premium_rounded, size: 38, color: Color(0xFFFFBB32)),
+    const SizedBox(height: 14),
+    const PrimeText('Bom ter você\naqui de novo.', textAlign: TextAlign.center,
+      style: TextStyle(fontSize: 30, height: 1.12, letterSpacing: -.9,
+        fontWeight: FontWeight.w800, color: Color(0xFF073E43))),
     const SizedBox(height: 12),
     const PrimeText('Entre com seu e-mail e senha para continuar de onde parou.',
-      style: TextStyle(fontSize: 13, height: 1.6, color: AppColors.muted)),
+      textAlign: TextAlign.center,
+      style: TextStyle(fontSize: 13, height: 1.5, color: Color(0xFF778596))),
   ]);
 }
 

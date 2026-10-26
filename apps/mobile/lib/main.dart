@@ -26,6 +26,7 @@ class PortoPrimeApp extends StatelessWidget {
     supportedLocales: AppLanguage.supported,
     localizationsDelegates: [CountryLocalizations.delegate, ...GlobalMaterialLocalizations.delegates],
     debugShowCheckedModeBanner: false,
+    builder: (context, child) => SafeArea(top: false, bottom: false, child: child ?? const SizedBox.shrink()),
     title: 'Porto Prime',
     theme: AppTheme.light,
     navigatorKey: AppNav.instance.rootNavigatorKey,

@@ -1223,6 +1223,7 @@ Future<void> _auth(BuildContext context) async {
   await showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withValues(alpha: .52),
     builder: (ctx) => PrimeIdentitySheet(
@@ -1268,35 +1269,11 @@ Future<void> _auth(BuildContext context) async {
         const SizedBox(height: 12),
         TextButton.icon(onPressed:(){Navigator.pop(ctx);_publicSupport(context,topic:'ACCESS');},
           icon:const Icon(AppIcons.help,size:17),label:const PrimeText('Preciso de ajuda para entrar')),
-        const SizedBox(height: 15),
-        Container(
-          padding: const EdgeInsets.all(13),
-          decoration: BoxDecoration(
-            color: AppColors.canvas,
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-          ),
-          child: const Row(
-            children: [
-              Icon(
-                AppIcons.shield_rounded,
-                color: AppColors.oceanDeep,
-                size: 18,
-              ),
-              SizedBox(width: 9),
-              Expanded(
-                child: PrimeText(
-                  'Sessão protegida e acesso individual. Nunca compartilhe sua senha.',
-                  style: TextStyle(
-                    color: AppColors.muted,
-                    fontSize: AppFontSize.caption,
-                    height: 1.4,
-                    fontWeight: AppFontWeight.medium,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        TextButton(onPressed: () {
+          Navigator.pop(ctx);
+          _accountMenu(context);
+        }, child: const PrimeText('Ainda não tenho conta • Cadastrar')),
+
       ],
     ),
   );
