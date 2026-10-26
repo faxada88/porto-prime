@@ -32,8 +32,10 @@ class _CourierDashboardHeaderState extends State<CourierDashboardHeader> {
     setState(() => _changing = true);
     try { await widget.onChanged!(!widget.online); }
     catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: PrimeText(PrimeMessages.friendly(error))));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: PrimeText(PrimeMessages.friendly(error))));
+      }
     } finally { if (mounted) setState(() => _changing = false); }
   }
 
@@ -119,22 +121,25 @@ class _CourierDashboardHeaderState extends State<CourierDashboardHeader> {
             }
             final preferred = (box.maxWidth * .40).clamp(128.0, 142.0).toDouble();
             final controlWidth = math.max(preferred, widest + 58).clamp(0.0, box.maxWidth).toDouble();
-            final namePainter = TextPainter(text: TextSpan(text: '$name 👋', style: nameStyle),
+            // Measure the name; the decorative wave can wrap inside its column.
+            final namePainter = TextPainter(text: TextSpan(text: name, style: nameStyle),
               textDirection: direction, textScaler: scaler, locale: locale)..layout();
             final nameWidth = namePainter.width;
             namePainter.dispose();
             final stacked = nameWidth + controlWidth + 12 > box.maxWidth;
             const hello = PrimeText('Olá,', style: TextStyle(fontSize: 13, height: 1.3,
               color: Color(0xFF56707D)));
-            final nameLine = Text('$name 👋', style: nameStyle);
+            final nameLine = Text('$name 👋', softWrap: true, style: nameStyle);
             Widget control({bool caption = false}) => CourierReferenceAvailability(
               online: widget.online, active: false, changing: _changing, showCaption: caption,
               onTap: widget.onChanged == null ? null : _toggle);
-            if (stacked) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              hello, const SizedBox(height: 2), nameLine, const SizedBox(height: 10),
-              Align(alignment: AlignmentDirectional.centerEnd,
-                child: SizedBox(width: controlWidth, child: control(caption: true))),
-            ]);
+            if (stacked) {
+              return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                hello, const SizedBox(height: 2), nameLine, const SizedBox(height: 10),
+                Align(alignment: AlignmentDirectional.centerEnd,
+                  child: SizedBox(width: controlWidth, child: control(caption: true))),
+              ]);
+            }
             return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               hello, const SizedBox(height: 2),
               Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
