@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_icons.dart';
 
 /// Restricted access: the courier can inspect and answer administrative
 /// requirements, but cannot enable availability or receive new deliveries.
@@ -122,7 +123,7 @@ class CourierAccountReview extends StatelessWidget {
                   const CircleAvatar(
                     radius: 24,
                     backgroundColor: Color(0xFFE0F2F1),
-                    child: Icon(Icons.two_wheeler_rounded, color: Color(0xFF00695C)),
+                    child: Icon(AppIcons.bike, color: Color(0xFF00695C)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -138,7 +139,7 @@ class CourierAccountReview extends StatelessWidget {
                   IconButton(
                     tooltip: 'Sair da conta',
                     onPressed: state.logout,
-                    icon: const Icon(Icons.logout_rounded),
+                    icon: const Icon(AppIcons.logout),
                   ),
                 ],
               ),
@@ -153,7 +154,7 @@ class CourierAccountReview extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.admin_panel_settings_outlined, size: 34, color: Color(0xFFB45309)),
+                    const Icon(AppIcons.shield, size: 34, color: Color(0xFFB45309)),
                     const SizedBox(height: 14),
                     Text(_statusLabel(accountStatus), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 10),
@@ -215,7 +216,7 @@ class CourierAccountReview extends StatelessWidget {
                     }
                   }
                 },
-                icon: const Icon(Icons.refresh_rounded),
+                icon: const Icon(AppIcons.refresh),
                 label: const Text('Atualizar situação da conta'),
               ),
               const SizedBox(height: 10),
@@ -277,7 +278,7 @@ class _ReviewRequirementCard extends StatelessWidget {
               width: double.infinity,
               child: FilledButton.icon(
                 onPressed: onRespond,
-                icon: const Icon(Icons.edit_note_rounded),
+                icon: const Icon(AppIcons.edit_note_rounded),
                 label: Text(answered ? 'Atualizar resposta' : 'Resolver pendência'),
               ),
             ),
