@@ -29,6 +29,9 @@ export class RealtimeGateway
 
   private sessionSweep?: NodeJS.Timeout;
   private sweeping = false;
+  private readonly onPresenceChanged = (payload: unknown) => {
+    this.emitToRole('ADMIN', 'courier.presence', payload);
+  };
 
   constructor(
     private readonly auth: AuthService,
@@ -36,13 +39,15 @@ export class RealtimeGateway
   ) {}
 
   afterInit() {
+    AuthService.presenceChanges.on('changed', this.onPresenceChanged);
     this.sessionSweep = setInterval(() => {
       void this.disconnectInvalidSessions();
-    }, 30_000);
+    }, 5_000);
     this.sessionSweep.unref?.();
   }
 
   onModuleDestroy() {
+    AuthService.presenceChanges.off('changed', this.onPresenceChanged);
     if (this.sessionSweep) clearInterval(this.sessionSweep);
   }
 
@@ -66,7 +71,7 @@ export class RealtimeGateway
           id: { in: sessionIds },
           revokedAt: null,
           refreshExpiresAt: { gt: new Date() },
-          user: { status: 'ACTIVE' },
+          user: { OR: [{ status: 'ACTIVE' }, { role: 'COURIER' }] },
         },
         select: { id: true },
       });
