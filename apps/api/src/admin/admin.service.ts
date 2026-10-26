@@ -225,6 +225,117 @@ export class AdminService {
     };
   }
 
+  async editCourier(id: string, body: Record<string, unknown>, authorization?: string) {
+    await this.requireAdmin(authorization);
+    const profile = await this.prisma.courierProfile.findUnique({
+      where: { id }, include: { user: true },
+    });
+    if (!profile) throw new NotFoundException('Motoboy não encontrado');
+    const allowed = new Set([
+      'name', 'email', 'phone', 'cnh', 'cnhCategory', 'cnhExpiry',
+      'vehicleType', 'vehicleBrand', 'vehicleModel', 'vehicleYear',
+      'vehiclePlate', 'postalCode', 'cep', 'street', 'number',
+      'complement', 'neighborhood', 'city', 'state',
+      'pixKey', 'pixKeyType', 'hasMotorcycle', 'profilePhoto', 'extraData',
+    ]);
+    if (Object.keys(body).some(key => !allowed.has(key))) {
+      throw new BadRequestException('Para modificar CPF ou dados de identidade, solicite uma verificação documental.');
+    }
+    const values: Record<string, any> = {};
+    for (const [key, value] of Object.entries(body)) {
+      if (key === 'extraData') {
+        if (!value || typeof value !== 'object' || Array.isArray(value) ||
+            JSON.stringify(value).length > 10000) {
+          throw new BadRequestException('Dados adicionais inválidos');
+        }
+        values.extraData = value;
+        continue;
+      }
+      if (key === 'hasMotorcycle') {
+        if (typeof value !== 'boolean') throw new BadRequestException('Valor inválido');
+        values[key] = value;
+        continue;
+      }
+      if (typeof value !== 'string' && typeof value !== 'number') {
+        throw new BadRequestException('Campo inválido');
+      }
+      values[key] = String(value).trim();
+      if (values[key].length > 250 && key !== 'profilePhoto') {
+        throw new BadRequestException('Campo muito longo');
+      }
+      if (key === 'profilePhoto' &&
+          (values[key].length > 90000 || (values[key] && !/^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(values[key])))) {
+        throw new BadRequestException('Imagem de perfil inválida');
+      }
+    }
+    if (values.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(values.email)) {
+      throw new BadRequestException('E-mail inválido');
+    }
+    if (values.name !== undefined && values.name.length < 2) {
+      throw new BadRequestException('Informe o nome completo');
+    }
+    if (values.vehicleYear && (!/^\d{4}$/.test(values.vehicleYear) ||
+        Number(values.vehicleYear) < 1950 ||
+        Number(values.vehicleYear) > new Date().getFullYear() + 1)) {
+      throw new BadRequestException('Ano do veículo inválido');
+    }
+    const onboarding: Record<string, unknown> =
+      profile.onboardingData && typeof profile.onboardingData === 'object' &&
+      !Array.isArray(profile.onboardingData) ? { ...profile.onboardingData as any } : {};
+    const extras = values.extraData as Record<string, unknown> | undefined;
+    if (extras) {
+      for (const [key, value] of Object.entries(extras)) {
+        if (!(key in onboarding) ||
+            /password|senha|token|secret|cpf|document|role|status|verified|permission|balance/i.test(key) ||
+            typeof value !== typeof onboarding[key]) {
+          throw new BadRequestException('Campo adicional não permitido');
+        }
+        onboarding[key] = value;
+      }
+    }
+    const profileData: Record<string, any> = {};
+    for (const key of ['cnh', 'cnhCategory', 'vehicleBrand', 'vehicleModel', 'vehiclePlate']) {
+      if (key in values) profileData[key] = values[key] || null;
+    }
+    if ('vehicleYear' in values) profileData.vehicleYear = values.vehicleYear ? Number(values.vehicleYear) : null;
+    for (const [key, value] of Object.entries(values)) {
+      if (!['name', 'email', 'phone', 'extraData'].includes(key)) onboarding[key] = value;
+    }
+    if (Object.keys(values).some(key => !['name', 'email', 'phone'].includes(key))) {
+      profileData.onboardingData = onboarding;
+    }
+    if ('pixKey' in values || 'pixKeyType' in values) {
+      if ('pixKey' in values) profileData.pixKey = values.pixKey || null;
+      if ('pixKeyType' in values) {
+        const types = ['CPF', 'CNPJ', 'EMAIL', 'PHONE', 'RANDOM'];
+        if (values.pixKeyType && !types.includes(values.pixKeyType)) {
+          throw new BadRequestException('Tipo de chave PIX inválido');
+        }
+        profileData.pixKeyType = values.pixKeyType || null;
+      }
+    }
+    const userData: Record<string, any> = {};
+    for (const key of ['name', 'email', 'phone']) {
+      if (key in values) userData[key] = values[key];
+    }
+    try {
+      await this.prisma.$transaction(async tx => {
+        if (Object.keys(userData).length) await tx.user.update({
+          where: { id: profile.userId }, data: userData,
+        });
+        if (Object.keys(profileData).length) await tx.courierProfile.update({
+          where: { id }, data: profileData,
+        });
+      });
+    } catch (error: any) {
+      if (error.code === 'P2002') throw new BadRequestException('E-mail ou dado já cadastrado');
+      throw error;
+    }
+    this.realtime.emitToUser(profile.userId, 'courier.profile.updated', { courierId: id });
+    this.realtime.emitToRole('ADMIN', 'courier.profile.updated', { courierId: id });
+    return { updated: true };
+  }
+
   async couriers(authorization?: string) {
     await this.requireAdmin(authorization);
     const [onlineIds, rows] = await Promise.all([
