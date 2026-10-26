@@ -102,6 +102,129 @@ export class AdminService {
     });
   }
 
+  async courierDirectory(
+    query: { q?: string; page?: string; size?: string; status?: string; online?: string },
+    authorization?: string,
+  ) {
+    await this.requireAdmin(authorization);
+    const page = Number(query.page || 1);
+    const size = Number(query.size || 25);
+    const term = String(query.q || '').trim();
+    const status = String(query.status || 'ALL');
+    const online = String(query.online || 'ALL');
+    if (!Number.isInteger(page) || page < 1 || page > 100000 ||
+        ![25, 50, 100].includes(size) || term.length > 100 ||
+        !['ALL', 'ACTIVE', 'PENDING', 'SUSPENDED', 'BLOCKED'].includes(status) ||
+        !['ALL', 'ONLINE', 'OFFLINE'].includes(online)) {
+      throw new BadRequestException('Filtros de pesquisa inválidos');
+    }
+    const liveIds = await this.liveCourierIds();
+    const filters: any[] = [];
+    if (status !== 'ALL') filters.push({ user: { is: { status } } });
+    if (online === 'ONLINE') filters.push({ id: { in: [...liveIds] } });
+    if (online === 'OFFLINE') filters.push({ id: { notIn: [...liveIds] } });
+    if (term) {
+      const digits = term.replace(/\D/g, '');
+      const or: any[] = [
+        { document: { contains: term } },
+        { vehiclePlate: { contains: term, mode: 'insensitive' } },
+        { user: { is: { OR: [
+          { name: { contains: term, mode: 'insensitive' } },
+          { email: { contains: term, mode: 'insensitive' } },
+          { phone: { contains: term, mode: 'insensitive' } },
+        ] } } },
+      ];
+      if (digits.length >= 3) {
+        or.push({ document: { contains: digits } });
+      }
+      filters.push({ OR: or });
+    }
+    const where = filters.length ? { AND: filters } : {};
+    const count = await this.prisma.courierProfile.count({ where });
+    const totalPages = Math.max(1, Math.ceil(count / size));
+    const currentPage = Math.min(page, totalPages);
+    const [raw, total, pending] = await Promise.all([
+      (this.prisma as any).courierProfile.findMany({
+        where,
+        skip: (currentPage - 1) * size,
+        take: size,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        select: {
+          id: true, userId: true, document: true, approvalStatus: true,
+          isOnline: true, presenceStatus: true, vehicleBrand: true,
+          vehicleModel: true, vehiclePlate: true, createdAt: true, updatedAt: true,
+          user: { select: { id: true, name: true, email: true, phone: true,
+            status: true, createdAt: true } },
+          _count: { select: { requirements: { where: {
+            status: { not: 'RESOLVED' },
+          } } } },
+        },
+      }),
+      this.prisma.courierProfile.count(),
+      this.prisma.courierProfile.count({
+        where: { approvalStatus: CourierStatus.PENDING },
+      }),
+    ]);
+    return {
+      rows: raw.map((row: any) => this.operationalCourier(row, liveIds)),
+      totalMatches: count,
+      page: currentPage, size, totalPages,
+      summary: {
+        total, online: liveIds.size,
+        offline: Math.max(0, total - liveIds.size), pending,
+      },
+    };
+  }
+
+  async courierRecord(id: string, authorization?: string) {
+    await this.requireAdmin(authorization);
+    const row = await (this.prisma as any).courierProfile.findFirst({
+      where: { OR: [{ id }, { userId: id }] },
+      include: {
+        user: { select: { id: true, name: true, email: true, phone: true,
+          status: true, role: true, createdAt: true } },
+        requirements: { orderBy: { requestedAt: 'desc' } },
+      },
+    });
+    if (!row) throw new NotFoundException('Motoboy não encontrado');
+    const live = await this.liveCourierIds();
+    return this.operationalCourier(row, live);
+  }
+
+  async courierFinance(id: string, authorization?: string) {
+    await this.requireAdmin(authorization);
+    const profile = await this.prisma.courierProfile.findUnique({
+      where: { id }, select: { id: true },
+    });
+    if (!profile) throw new NotFoundException('Motoboy não encontrado');
+    const [credits, available, deliveries, withdrawals] = await Promise.all([
+      this.prisma.courierLedgerEntry.aggregate({
+        where: { courierId: id, type: 'DELIVERY_CREDIT' },
+        _sum: { amount: true },
+      }),
+      this.prisma.courierLedgerEntry.aggregate({
+        where: { courierId: id, availableAt: { lte: new Date() } },
+        _sum: { amount: true },
+      }),
+      this.prisma.order.count({ where: { courierId: id, status: 'DELIVERED' } }),
+      this.prisma.withdrawal.findMany({
+        where: { courierId: id }, orderBy: { requestedAt: 'desc' },
+      }),
+    ]);
+    const paid = withdrawals.filter((row) => row.status === 'PAID');
+    const pending = withdrawals.filter((row) =>
+      ['PENDING', 'PROCESSING'].includes(row.status));
+    return {
+      earningsTotal: Number(credits._sum.amount ?? 0),
+      availableBalance: Number(available._sum.amount ?? 0),
+      deliveries,
+      paidWithdrawalCount: paid.length,
+      paidWithdrawalTotal: paid.reduce((sum, row) => sum + Number(row.amount), 0),
+      pendingWithdrawalTotal: pending.reduce((sum, row) => sum + Number(row.amount), 0),
+      withdrawals,
+    };
+  }
+
   async couriers(authorization?: string) {
     await this.requireAdmin(authorization);
     const [onlineIds, rows] = await Promise.all([
