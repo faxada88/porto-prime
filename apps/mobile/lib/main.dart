@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'core/navigation/app_nav.dart';
-import 'core/network/api_client.dart';
 import 'core/theme/app_theme.dart';
 import 'features/splash/presentation/pages/splash_page.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await ApiClient.instance.initialize();
+  // Render the first Flutter frame immediately. Restoring the stored session
+  // happens on SplashPage, so Android's native launch screen cannot stall.
   runApp(const PortoPrimeApp());
 }
 
