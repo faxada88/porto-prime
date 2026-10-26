@@ -754,6 +754,31 @@ export class AdminService {
     return created;
   }
 
+  async cancelRequirement(id: string, authorization?: string) {
+    await this.requireAdmin(authorization);
+    const requirement = await (this.prisma as any).courierRequirement.findUnique({
+      where: { id }, include: { courier: { select: { userId: true } } },
+    });
+    if (!requirement) throw new NotFoundException('Pendência não encontrada');
+    if (requirement.status === 'RESOLVED') {
+      throw new BadRequestException('A solicitação já está encerrada');
+    }
+    const result = await (this.prisma as any).courierRequirement.update({
+      where: { id }, data: {
+        status: 'RESOLVED',
+        resolvedAt: new Date(),
+        description: requirement.description + '\\n\\nSolicitação cancelada pela administração.',
+      },
+    });
+    this.realtime.emitToUser(requirement.courier.userId, 'courier.account.updated', {
+      requirementId: id, at: new Date().toISOString(),
+    });
+    this.realtime.emitToRole('ADMIN', 'courier.requirement.answered', {
+      courierId: requirement.courierId, requirementId: id, at: new Date().toISOString(),
+    });
+    return result;
+  }
+
   async resolveRequirement(id: string, authorization?: string) {
     await this.requireAdmin(authorization);
     const requirement = await (this.prisma as any).courierRequirement.findUnique({
