@@ -517,3 +517,258 @@ body{background:var(--pp-canvas);color:var(--pp-ink)}
  html{scroll-behavior:auto}
  .shell :is(button,summary,input,select,textarea){transition:none!important;animation:none!important}
 }
+
+/* PORTO PRIME V6 — operational order table */
+.shell .orderOperationsV5 .panel{
+  padding:clamp(17px,2vw,26px);
+  border:1px solid #e1e9eb;
+  border-radius:19px;
+  box-shadow:0 12px 32px rgba(19,52,65,.035);
+  background:#fff;
+}
+.shell .orderOperationsV5 .opIntroduction{
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+  margin:-4px 0 20px;
+}
+.shell .orderOperationsV5 .opIntroduction>div{
+  display:grid;gap:5px;min-width:0;
+}
+.shell .orderOperationsV5 .opIntroduction strong{
+  color:#1e4654;font-size:13px;font-weight:850;letter-spacing:-.01em;
+}
+.shell .orderOperationsV5 .opIntroduction>div>span{
+  color:#8094a0;font-size:11px;line-height:1.5;
+}
+.shell .orderOperationsV5 .opLiveSignal{
+  display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;
+  padding:9px 12px;border-radius:999px;
+  background:#edf7f3;border:1px solid #d4eae2;
+  color:#1d7767;font-size:10px;font-weight:820;white-space:nowrap;
+}
+.shell .orderOperationsV5 .opLiveSignal i{
+  width:7px;height:7px;flex:0 0 7px;border-radius:50%;
+  background:#16a183;box-shadow:0 0 0 3px #caeadf;
+}
+.shell .orderOperationsV5 .opFilters{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:0;margin:0 0 19px;
+}
+.shell .orderOperationsV5 .opFilters button{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  min-height:39px;padding:8px 13px;
+  border-radius:10px;border:1px solid #e1e8ec;
+  background:#f5f8f9;color:#607888;
+  font-size:11px;font-weight:790;box-shadow:none;
+}
+.shell .orderOperationsV5 .opFilters button:hover{
+  border-color:#c3ded7;background:#eff8f4;color:#187668;
+}
+.shell .orderOperationsV5 .opFilters button[aria-pressed=true]{
+  border-color:#b9dfd0;background:#e6f6ef;color:#0b745e;
+}
+.shell .orderOperationsV5 .opFilters button em{
+  font-style:normal;opacity:1;font-size:10px;font-weight:850;
+  font-variant-numeric:tabular-nums;
+}
+.shell .orderOperationsV5 .orderSearchToolbar{
+  display:flex;flex-wrap:wrap;align-items:center;gap:12px;
+  padding:0;margin:0 0 15px;
+}
+.shell .orderOperationsV5 .orderNumberSearch{
+  display:flex;align-items:center;gap:12px;
+  flex:1 1 330px;min-height:44px;min-width:220px;
+  padding:0 14px;border:1px solid #dce7e9;
+  border-radius:11px;background:#fff;box-shadow:none;
+}
+.shell .orderOperationsV5 .orderNumberSearch svg{flex:0 0 auto;color:#4b7887}
+.shell .orderOperationsV5 .orderNumberSearch input{
+  min-width:0;width:100%;height:42px;padding:0;border:0;
+  box-shadow:none!important;font-size:12px;color:#274d5a;
+  background:transparent;outline:none;
+}
+.shell .orderOperationsV5 .orderNumberSearch input::placeholder{color:#95a6b3}
+.shell .orderOperationsV5 .orderNumberSearch button{
+  min-width:28px;min-height:28px;width:28px;height:28px;
+  padding:0;border:0;border-radius:8px;background:#f0f5f6;color:#5d7b85;
+}
+.shell .orderOperationsV5 .opSort{
+  flex:0 0 auto;display:flex;gap:8px;align-items:center;
+  color:#718995;font-size:10px;font-weight:750;
+}
+.shell .orderOperationsV5 .opSort select{
+  height:44px;max-width:175px;border-radius:11px;
+  padding:0 11px;border:1px solid #dae5e8;
+  background:#f9fbfc;color:#264e5c;font-size:11px;font-weight:770;
+}
+.shell .orderOperationsV5 .opResults{
+  margin-left:auto;flex:0 0 auto;color:#738995;
+  font-size:11px;font-weight:740;white-space:nowrap;
+}
+.shell .orderOperationsV5 .orderBulkBar.opCompactBulk{
+  position:static;top:auto;display:flex;align-items:center;justify-content:space-between;
+  gap:14px;padding:10px 14px;margin:0 0 13px;min-height:52px;
+  background:#f9fbfc;border:1px solid #e5ecef;
+  border-radius:12px;box-shadow:none;
+}
+.shell .orderOperationsV5 .orderBulkBar.opCompactBulk.active{
+  border-color:#c3e0d5;background:#eef8f3;
+}
+.shell .orderOperationsV5 .opBulkToggle{
+  display:flex;align-items:center;gap:11px;
+  color:#607b89;font-size:11px;font-weight:770;cursor:pointer;
+}
+.shell .orderOperationsV5 .opBulkToggle .checkControl{margin:0;flex:0 0 auto}
+.shell .orderOperationsV5 .opCompactBulk .bulkActions{
+  display:flex;align-items:center;gap:8px;
+}
+.shell .orderOperationsV5 .opCompactBulk .bulkDeleteBtn{
+  display:flex;align-items:center;gap:7px;
+  min-height:35px;padding:8px 12px;border-radius:9px;
+  border:1px solid #f0ceca;background:#fff8f6;
+  color:#a44d48;font-weight:770;font-size:10px;
+}
+.shell .orderOperationsV5 .opCompactBulk .bulkDeleteBtn:disabled{
+  border-color:#e8edef;background:#f5f8f9;
+  color:#aeb9bd;opacity:1;
+}
+.shell .orderOperationsV5 .opCompactBulk .secondary{
+  font-size:10px;min-height:35px;border-radius:9px;padding:7px 10px;
+}
+.shell .orderOperationsV5 .opTableScroll{
+  width:100%;overflow-x:auto;overflow-y:visible;
+  border:1px solid #e1e9ed;border-radius:13px;
+  background:#fff;scrollbar-width:thin;scrollbar-color:#c9dadd transparent;
+}
+.shell .orderOperationsV5 .orderCards{
+  min-width:1080px;width:100%;
+  display:grid;gap:0;border:0;border-radius:0;
+  overflow:visible;background:#fff;
+}
+.shell .orderOperationsV5 .opTableHead,
+.shell .orderOperationsV5 .opRow{
+  display:grid;
+  grid-template-columns:minmax(145px,1.07fr) minmax(152px,1.38fr) minmax(126px,.94fr) minmax(57px,.43fr) minmax(97px,.82fr) minmax(92px,.75fr) minmax(125px,1fr) minmax(101px,.82fr);
+  gap:12px;align-items:center;
+}
+.shell .orderOperationsV5 .opTableHead{
+  min-height:42px;padding:10px 16px;background:#f5f8f9;
+  border-bottom:1px solid #e5ecee;
+}
+.shell .orderOperationsV5 .opTableHead span{
+  text-align:left;color:#8093a0;
+  font-size:9px;font-weight:850;letter-spacing:.085em;
+  text-transform:uppercase;
+}
+.shell .orderOperationsV5 .opTableHead span:nth-child(6){text-align:right}
+.shell .orderOperationsV5 .opRow{
+  min-height:66px;margin:0;padding:11px 16px;
+  border:0;border-bottom:1px solid #ebf0f2;
+  border-radius:0;background:#fff;box-shadow:none;
+  cursor:default;transition:background .15s ease;
+}
+.shell .orderOperationsV5 .opRow:last-child{border-bottom:0}
+.shell .orderOperationsV5 .opRow:hover{background:#f5faf8}
+.shell .orderOperationsV5 .opRow.selectedOrder,
+.shell .orderOperationsV5 .opRow.isViewing{
+  background:#eef8f4;border-color:#deece6;
+}
+.shell .orderOperationsV5 .opIdentity{
+  display:flex;align-items:center;gap:10px;min-width:0;
+}
+.shell .orderOperationsV5 .opIdentity .checkControl{
+  flex:0 0 auto;margin:0;
+}
+.shell .orderOperationsV5 button.opOrderLink{
+  display:inline-block;max-width:100%;width:auto;min-width:0;min-height:33px;
+  padding:5px 1px;margin:0;border:0;border-radius:4px;background:none;
+  text-align:left;font-size:12px;line-height:1.4;font-weight:850;
+  color:#164c60;overflow-wrap:anywhere;box-shadow:none;
+}
+.shell .orderOperationsV5 button.opOrderLink:hover{
+  text-decoration:underline;color:#007f73;background:none;
+}
+.shell .orderOperationsV5 .opCustomer{display:grid;gap:4px;min-width:0}
+.shell .orderOperationsV5 .opCustomer b{
+  font-size:11px;font-weight:820;color:#254657;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.shell .orderOperationsV5 .opCustomer small{
+  color:#8297a5;font-size:10px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;
+}
+.shell .orderOperationsV5 .opWhen{
+  font-size:10px;line-height:1.5;color:#6e8794;white-space:normal;
+}
+.shell .orderOperationsV5 .opItems{
+  color:#627f8c;font-size:11px;font-weight:740;white-space:nowrap;
+}
+.shell .orderOperationsV5 .opPayPill{
+  display:inline-flex;align-items:center;justify-content:center;
+  max-width:100%;border:1px solid #f0e3bd;border-radius:999px;
+  padding:7px 9px;font-size:10px;line-height:1.3;
+  text-align:center;font-weight:820;color:#9b782a;background:#fff7de;
+}
+.shell .orderOperationsV5 .opPayPill.isPaid{
+  color:#17775b;border-color:#d4ebdf;background:#e7f7ed;
+}
+.shell .orderOperationsV5 .opPayPill.isRefunded{
+  color:#586b94;border-color:#dee4f5;background:#f1f4ff;
+}
+.shell .orderOperationsV5 .opValue{
+  font-size:12px;font-weight:900;color:#214557;
+  text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;
+}
+.shell .orderOperationsV5 .opState{display:grid;justify-items:start;gap:4px;min-width:0}
+.shell .orderOperationsV5 .opState small{font-size:9px;color:#997344}
+.shell .orderOperationsV5 .opState :is(span,b,small){
+  max-width:100%;line-height:1.4;overflow-wrap:anywhere;
+}
+.shell .orderOperationsV5 .opOpen{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  min-height:38px;padding:8px 9px;
+  border:1px solid #cde8dd;border-radius:10px;
+  color:#076f62;background:#e8f6ef;
+  font-size:10px;font-weight:830;white-space:nowrap;
+}
+.shell .orderOperationsV5 .opOpen:hover{
+  background:#d8f1e5;border-color:#aee0cb;color:#065a53;
+}
+.shell .orderOperationsV5 :is(.opOpen,.opOrderLink,.opFilters button,.opSort select):focus-visible{
+  outline:3px solid #77cdb6;outline-offset:3px;
+}
+.shell .orderOperationsV5 .orderMore{display:flex;gap:14px;align-items:center;justify-content:center;padding:16px 4px 0}
+@media(max-width:1150px){
+ .shell .orderOperationsV5 .opResults{margin-left:0}
+}
+@media(max-width:700px){
+ .shell .orderOperationsV5 .opIntroduction{align-items:flex-start;flex-direction:column;gap:10px}
+ .shell .orderOperationsV5 .opResults{flex-basis:100%}
+ .shell .orderOperationsV5 .opSort{flex:1 1 auto}
+ .shell .orderOperationsV5 .opTableScroll{overflow-x:visible;border:0;border-radius:0;background:transparent}
+ .shell .orderOperationsV5 .orderCards{min-width:0;gap:10px;display:grid;background:transparent}
+ .shell .orderOperationsV5 .opTableHead{display:none}
+ .shell .orderOperationsV5 .opRow{
+  grid-template-columns:minmax(0,1fr) auto;gap:7px 12px;
+  min-height:0;border:1px solid #dfe9e9;border-radius:13px;
+  padding:14px;background:#fff;
+ }
+ .shell .orderOperationsV5 .opIdentity{grid-column:1;grid-row:1}
+ .shell .orderOperationsV5 .opValue{grid-column:2;grid-row:1}
+ .shell .orderOperationsV5 .opCustomer{grid-column:1;grid-row:2}
+ .shell .orderOperationsV5 .opWhen{grid-column:1;grid-row:3}
+ .shell .orderOperationsV5 .opItems{grid-column:2;grid-row:3;text-align:right}
+ .shell .orderOperationsV5 .opPay{grid-column:1;grid-row:4}
+ .shell .orderOperationsV5 .opState{grid-column:2;grid-row:4}
+ .shell .orderOperationsV5 .opOpen{grid-column:1/-1;grid-row:5}
+ .shell .orderOperationsV5 .opCompactBulk .bulkActions{flex-wrap:wrap;justify-content:flex-end}
+}
+@media(max-width:440px){
+ .shell .orderOperationsV5 .panel{padding:13px}
+ .shell .orderOperationsV5 .opFilters button{font-size:10px;padding:7px 9px}
+ .shell .orderOperationsV5 .orderBulkBar.opCompactBulk{align-items:flex-start}
+ .shell .orderOperationsV5 .opBulkToggle{font-size:10px}
+ .shell .orderOperationsV5 .opCompactBulk .bulkDeleteBtn{font-size:9px;padding:6px 8px}
+}
+@media(prefers-reduced-motion:reduce){
+ .shell .orderOperationsV5 .opRow{transition:none}
+}
