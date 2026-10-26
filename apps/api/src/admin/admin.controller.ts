@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Headers, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Patch, Post, Query } from '@nestjs/common';
 import { AdminService } from './admin.service.js';
 
 @Controller('admin')
@@ -18,6 +18,30 @@ export class AdminController {
   @Get('couriers')
   couriers(@Headers('authorization') authorization?: string) {
     return this.adminService.couriers(authorization);
+  }
+
+  @Get('couriers/directory')
+  courierDirectory(
+    @Query() query: { q?: string; page?: string; size?: string; status?: string; online?: string },
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.adminService.courierDirectory(query, authorization);
+  }
+
+  @Get('couriers/:id/record')
+  courierRecord(
+    @Param('id') id: string,
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.adminService.courierRecord(id, authorization);
+  }
+
+  @Get('couriers/:id/finance')
+  courierFinance(
+    @Param('id') id: string,
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.adminService.courierFinance(id, authorization);
   }
 
   @Get('orders')
