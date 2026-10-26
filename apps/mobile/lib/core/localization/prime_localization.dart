@@ -357,16 +357,34 @@ class AppLanguage extends ChangeNotifier {
   Future<void> initialize() async {
     _preferences = await SharedPreferences.getInstance();
     for (final code in ['es', 'en']) {
-      final raw = jsonDecode(await rootBundle.loadString('assets/localization/$code.json')) as Map<String, dynamic>;
-      final messages = raw.map((key, value) => MapEntry(key, value.toString()));
-      _messages[code] = messages;
-      _templates[code] = messages.entries.where((e) => RegExp(r'\{\d+\}').hasMatch(e.key))
-          .where((e) => e.key.replaceAll(RegExp(r'\{\d+\}'), '').trim().length >= 4)
-          .map((e) => _Phrase(e.key, e.value)).toList()
-        ..sort((a, b) => b.specificity.compareTo(a.specificity));
+      // The translated JSON catalogues are optional until included in assets.
+      // Missing files must never crash application startup on Android.
+      try {
+        final raw = jsonDecode(
+          await rootBundle.loadString('assets/localization/$code.json'),
+        ) as Map<String, dynamic>;
+        final messages = raw.map((key, value) => MapEntry(key, value.toString()));
+        _messages[code] = messages;
+        _templates[code] = messages.entries.where((e) => RegExp(r'\{\d+\}').hasMatch(e.key))
+            .where((e) => e.key.replaceAll(RegExp(r'\{\d+\}'), '').trim().length >= 4)
+            .map((e) => _Phrase(e.key, e.value)).toList()
+          ..sort((a, b) => b.specificity.compareTo(a.specificity));
+      } catch (error) {
+        // Keep the existing curated/category translations as fallbacks.
+        _messages[code] = <String, String>{};
+        _templates[code] = <_Phrase>[];
+        debugPrint('Porto Prime: translation asset $code unavailable: $error');
+      }
     }
     final saved = _preferences?.getString('porto-language-v1');
-    _locale = supported.firstWhere((l) => l.languageCode == saved, orElse: () => supported.first);
+    final restoredLocale = supported.firstWhere(
+      (l) => l.languageCode == saved,
+      orElse: () => supported.first,
+    );
+    if (_locale != restoredLocale) {
+      _locale = restoredLocale;
+      notifyListeners();
+    }
   }
 
   Future<void> select(String code) async {
