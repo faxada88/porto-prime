@@ -10,9 +10,13 @@ As cinco bolinhas giram em três órbitas ao redor da moto, com rastros discreto
 Há uma única faixa de resumo na espera: ganhos de hoje, entregas de hoje e tempo online desta sessão. Valores financeiros e quantidade vêm da API. Tempo online é medido localmente nesta abertura da conta e pausa quando offline ou em segundo plano. Não representa um histórico diário fornecido pelo servidor.
 
 ## Recebendo oferta
-Card único com selo Nova entrega, cronômetro do prazo real, imagem institucional, remuneração, distância e duração, retirada e região de entrega, Recusar e Aceitar entrega. Preservadas as proteções contra aceite duplicado, fechamento durante uma solicitação, expiração e nova tentativa após falha.
+Card único branco, com título Nova entrega, contador compacto e uma linha discreta indicando o prazo real. O valor é a informação principal, seguido de distância e tempo. Retirada e região de entrega ocupam toda a largura útil de um bloco claro, com tipografia maior e sem fotografia decorativa, selo da plataforma ou coluna lateral simulando uma rota bloqueada.
 
-O servidor fornece somente a região antes do aceite. A prévia indica que a rota/endereço completo será liberado após aceitar; nenhuma coordenada ou rua é inventada para copiar o mapa da referência.
+Aceitar entrega ocupa a largura inteira e Recusar fica como ação secundária discreta logo abaixo. O código curto do pedido e a informação de endereço após o aceite ficam em uma linha de apoio que pode quebrar naturalmente. Preservadas as proteções contra aceite duplicado, fechamento durante uma solicitação, expiração e nova tentativa após falha. IncomingDeliveryOfferSheet e seus sete testes existentes não foram alterados.
+
+Enquanto existe oferta, o cabeçalho mostra apenas marca, notificações e foto. Ficar offline continua acessível no menu da foto pela mesma ação de disponibilidade. Na espera, saudação e botão ONLINE permanecem. A apresentação de uma nova oferta volta ao início da rolagem para manter o valor e o contador visíveis, inclusive quando a fonte está ampliada.
+
+O servidor fornece somente a região antes do aceite. Uma única informação explica que o endereço completo será liberado após aceitar; nenhuma coordenada, rua ou mapa é inventado.
 
 ## Com entrega
 O progresso mostra Retirar, Em entrega e Concluir conforme o status real. A ação principal continua sendo Confirmar coleta, Iniciar rota e Finalizar entrega, nessa ordem. Finalizar entrega chama a mesma confirmação com PIN.

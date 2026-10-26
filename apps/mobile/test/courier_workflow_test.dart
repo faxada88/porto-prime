@@ -34,6 +34,7 @@ Widget workflow(String phase, double scale, {double topInset = 0}) => MaterialAp
     body: CourierWorkflowLayout(online: true, accountId: 'courier-a', onRefresh: () async {},
       header: CourierDashboardHeader(name: 'Victor', photo: null, online: true,
         active: phase == 'assigned', waiting: phase == 'waiting', unreadCount: 0,
+        receivingOffer: phase == 'offer',
         onNotifications: () {}, onProfile: () {}, onLogout: () {}, onRoute: () {}, onChanged: (_) async {}),
       waitingBuilder: (height, elapsed) => CourierWaitingPanel(online: true,
         summary: const {'earningsToday': 96, 'deliveriesToday': 5}, onlineTime: elapsed,
@@ -57,7 +58,15 @@ void main() {
           await tester.pumpWidget(workflow(phase, scale));
           await tester.pump();
           expect(tester.takeException(), isNull);
-          expect(find.text(phase == 'assigned' ? 'Sua entrega' : 'Victor 👋'), findsOneWidget);
+          if (phase == 'offer') {
+            expect(find.text('Nova entrega'), findsOneWidget);
+            expect(find.text('Victor 👋'), findsNothing);
+            expect(find.text('ONLINE'), findsNothing);
+            expect(find.descendant(of: find.byType(IncomingDeliveryOfferSheet),
+              matching: find.byType(Image)), findsNothing);
+          } else {
+            expect(find.text(phase == 'assigned' ? 'Sua entrega' : 'Victor 👋'), findsOneWidget);
+          }
           expect(find.byType(CourierWaitingPanel), phase == 'waiting' ? findsOneWidget : findsNothing);
           expect(find.byType(IncomingDeliveryOfferSheet), phase == 'offer' ? findsOneWidget : findsNothing);
           expect(find.byType(CourierAssignedDelivery), phase == 'assigned' ? findsOneWidget : findsNothing);

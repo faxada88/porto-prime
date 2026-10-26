@@ -48,146 +48,111 @@ class CourierDeliverySurface extends StatelessWidget {
       ]));
     final reject = Tooltip(message: translateLabel('Recusar entrega'), child: OutlinedButton(
       onPressed: busy ? null : onReject,
-      style: OutlinedButton.styleFrom(backgroundColor: const Color(0xFFF1F5F6),
-        foregroundColor: courierInk, side: const BorderSide(color: Color(0xFFE6EEF0)),
-        minimumSize: const Size(44, 54), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+      style: OutlinedButton.styleFrom(backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF5F7480), side: const BorderSide(color: Colors.transparent),
+        minimumSize: const Size(44, 48), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17))),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        const Icon(AppIcons.close, size: 23), const SizedBox(width: 8),
         Flexible(child: PrimeText(busy && action == 'reject' ? 'Enviando…' : 'Recusar',
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 14, height: 1.3, fontWeight: FontWeight.w700))),
       ])));
-    return Container(padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(25),
-        gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter,
-          stops: [0, .22, 1], colors: [Color(0xFFFFFCF3), Colors.white, Colors.white]),
-        border: Border.all(color: const Color(0xFFE5ECEC)),
-        boxShadow: const [BoxShadow(color: Color(0x080D3D44), blurRadius: 22, offset: Offset(0, 8))]),
-      child: LayoutBuilder(builder: (context, box) {
-        final large = MediaQuery.textScalerOf(context).scale(14) > 19;
-        final image = ClipRRect(borderRadius: BorderRadius.circular(13),
-          child: Image.asset('assets/reference_home/courier-pickup-bag.webp', fit: BoxFit.cover,
-            excludeFromSemantics: true, errorBuilder: (_, __, ___) => const ColoredBox(
-              color: Color(0xFFF0F5F6), child: Center(child: Icon(AppIcons.package, size: 38, color: courierGreen)))));
-        final pay = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          PrimeText(money, style: const TextStyle(fontSize: 31, height: 1.15,
-            fontWeight: FontWeight.w800, letterSpacing: -.9, color: courierInk)),
-          const SizedBox(height: 8),
-          PrimeText(metric(order['routeDistanceKm'], 'km') + ' • ' + metric(order['routeDurationMinutes'], 'min'),
-            style: const TextStyle(fontSize: 15, height: 1.4, color: courierInk, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 9),
-          Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-            decoration: BoxDecoration(color: const Color(0xFFF0F5F6), borderRadius: BorderRadius.circular(18)),
-            child: const Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(Icons.delivery_dining_rounded, size: 17, color: courierInk), SizedBox(width: 5),
-              Flexible(child: PrimeText('Entrega Porto Prime', style: TextStyle(fontSize: 10.5,
-                height: 1.3, color: Color(0xFF577782)))),
-            ])),
-        ]);
-        final stops = Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          _OfferStop(label: 'Retirada', title: (pickup['name'] ?? 'Porto Prime Distribuidora').toString(),
-            detail: (pickup['region'] ?? 'Base Porto Prime').toString(), pickup: true),
-          _OfferStop(label: 'Entrega', title: (dropoff['neighborhood'] ?? 'Região informada').toString(),
-            detail: (dropoff['city'] ?? 'Porto Seguro').toString(), pickup: false),
-        ]);
-        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            Expanded(child: Align(alignment: Alignment.centerLeft, child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              decoration: BoxDecoration(color: const Color(0xFFFFE8B9), borderRadius: BorderRadius.circular(12)),
-              child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(AppIcons.energy, color: Color(0xFFD48B0D), size: 22), SizedBox(width: 8),
-                Flexible(child: PrimeText('NOVA ENTREGA', style: TextStyle(fontSize: 11,
-                  height: 1.3, fontWeight: FontWeight.w800, color: Color(0xFF4C350B)))),
-              ])))),
-            const SizedBox(width: 10),
-            if (seconds != null) _OfferCountdown(seconds: seconds!, total: totalSeconds),
-          ]),
-          const SizedBox(height: 19),
-          if (large) ...[
-            SizedBox(height: 142, child: image), const SizedBox(height: 14), pay,
-          ] else Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            SizedBox(width: box.maxWidth < 300 ? 87 : 109, height: 132, child: image),
-            const SizedBox(width: 14), Expanded(child: pay),
-          ]),
-          const SizedBox(height: 21),
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(child: stops),
-            if (box.maxWidth >= 300 && !large) ...[
-              const SizedBox(width: 12),
-              const SizedBox(width: 86, height: 164, child: _OfferProtectedRoute()),
-            ],
-          ]),
-          const SizedBox(height: 10),
-          Wrap(spacing: 10, runSpacing: 5, alignment: WrapAlignment.spaceBetween, children: [
-            PrimeText('#' + shortId, style: const TextStyle(fontSize: 9, height: 1.4, color: Color(0xFF7A909A))),
-            const PrimeText('Endereço completo após aceitar.', style: TextStyle(fontSize: 9,
-              height: 1.4, color: Color(0xFF7A909A))),
-          ]),
-          if (error != null) Padding(padding: const EdgeInsets.only(top: 12),
-            child: PrimeText(error!, style: const TextStyle(fontSize: 12, height: 1.4, color: AppColors.danger))),
-          const SizedBox(height: 18),
-          if (large || box.maxWidth < 300) ...[accept, const SizedBox(height: 9), reject]
-          else Row(children: [Expanded(flex: 4, child: reject), const SizedBox(width: 9),
-            Expanded(flex: 6, child: accept)]),
-        ]);
-      }));
+    final remaining = seconds ?? 0;
+    final total = totalSeconds ?? remaining;
+    final fraction = (remaining / (total > 0 ? total : 1)).clamp(0.0, 1.0).toDouble();
+    return Container(padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: const Color(0xFFDCE8E9)),
+        boxShadow: const [BoxShadow(color: Color(0x070D3D44), blurRadius: 24, offset: Offset(0, 8))]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 14, runSpacing: 10, children: [
+          const PrimeText('Nova entrega', style: TextStyle(fontSize: 17, height: 1.3,
+            fontWeight: FontWeight.w800, letterSpacing: -.3, color: courierInk)),
+          if (seconds != null) _OfferCountdown(seconds: seconds!),
+        ]),
+        if (seconds != null) ...[
+          const SizedBox(height: 14),
+          ClipRRect(borderRadius: BorderRadius.circular(3),
+            child: LinearProgressIndicator(value: fraction, minHeight: 3,
+              backgroundColor: const Color(0xFFEDF3F3),
+              color: remaining <= 8 ? const Color(0xFFD19B38) : const Color(0xFF079582))),
+        ],
+        const SizedBox(height: 22),
+        const PrimeText('Valor da entrega', style: TextStyle(fontSize: 12, height: 1.4,
+          color: Color(0xFF617B85), fontWeight: FontWeight.w600)),
+        const SizedBox(height: 5),
+        PrimeText(money, style: const TextStyle(fontSize: 37, height: 1.15,
+          fontWeight: FontWeight.w800, letterSpacing: -1.1, color: courierGreen)),
+        const SizedBox(height: 9),
+        PrimeText(metric(order['routeDistanceKm'], 'km') + ' • ' + metric(order['routeDurationMinutes'], 'min'),
+          style: const TextStyle(fontSize: 14, height: 1.4, color: Color(0xFF4E6875), fontWeight: FontWeight.w600)),
+        const SizedBox(height: 22),
+        Container(padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: const Color(0xFFF5F9F9), borderRadius: BorderRadius.circular(18)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            _OfferStop(label: 'Retirada', title: (pickup['name'] ?? 'Porto Prime Distribuidora').toString(),
+              detail: (pickup['region'] ?? 'Base Porto Prime').toString(), pickup: true),
+            const Padding(padding: EdgeInsets.fromLTRB(48, 15, 0, 15),
+              child: Divider(height: 1, color: Color(0xFFDFEAEB))),
+            _OfferStop(label: 'Entrega', title: (dropoff['neighborhood'] ?? 'Região informada').toString(),
+              detail: (dropoff['city'] ?? 'Porto Seguro').toString(), pickup: false),
+          ])),
+        const SizedBox(height: 14),
+        Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8, runSpacing: 4, children: [
+          PrimeText('#' + shortId, style: const TextStyle(fontSize: 10, height: 1.5, color: Color(0xFF6E838B))),
+          const PrimeText('Endereço completo após aceitar.', style: TextStyle(fontSize: 10.5,
+            height: 1.5, color: Color(0xFF6E838B))),
+        ]),
+        if (error != null) Padding(padding: const EdgeInsets.only(top: 12),
+          child: PrimeText(error!, style: const TextStyle(fontSize: 12, height: 1.4, color: AppColors.danger))),
+        const SizedBox(height: 18),
+        accept, const SizedBox(height: 6), reject,
+      ]));
   }
 }
+
 class _OfferStop extends StatelessWidget {
   const _OfferStop({required this.label, required this.title, required this.detail, required this.pickup});
   final String label, title, detail;
   final bool pickup;
-  @override Widget build(BuildContext context) {
-    final color = pickup ? const Color(0xFF00A77B) : const Color(0xFFFF3E50);
-    return Stack(children: [
-      if (pickup) const Positioned(left: 6, top: 13, bottom: 0,
-        child: SizedBox(width: 1, child: ColoredBox(color: Color(0xFFB5CDD1)))),
-      Padding(padding: EdgeInsets.fromLTRB(24, 0, 0, pickup ? 20 : 0),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          PrimeText(label, style: TextStyle(fontSize: 11, height: 1.3, color: color, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 4),
-          PrimeText(title, style: const TextStyle(fontSize: 13, height: 1.3,
-            fontWeight: FontWeight.w800, color: courierInk)),
-          const SizedBox(height: 3),
-          PrimeText(detail, style: const TextStyle(fontSize: 10.5, height: 1.5, color: Color(0xFF64808E))),
-        ])),
-      Positioned(left: 0, top: 1, child: Container(width: 14, height: 14,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle,
-          border: Border.all(color: color.withValues(alpha: .18), width: 3)))),
-    ]);
-  }
+  @override Widget build(BuildContext context) => Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Container(width: 36, height: 36,
+      decoration: BoxDecoration(color: pickup ? const Color(0xFFE0F2EC) : Colors.white,
+        borderRadius: BorderRadius.circular(12)),
+      child: Icon(pickup ? AppIcons.package : AppIcons.mapPin, size: 18, color: courierGreen)),
+    const SizedBox(width: 12),
+    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      PrimeText(label, style: const TextStyle(fontSize: 11.5, height: 1.4,
+        color: Color(0xFF627D86), fontWeight: FontWeight.w600)),
+      const SizedBox(height: 4),
+      PrimeText(title, style: const TextStyle(fontSize: 16, height: 1.35,
+        fontWeight: FontWeight.w800, letterSpacing: -.2, color: courierInk)),
+      if (detail.trim().isNotEmpty) ...[
+        const SizedBox(height: 5),
+        PrimeText(detail, style: const TextStyle(fontSize: 12, height: 1.5, color: Color(0xFF627D86))),
+      ],
+    ])),
+  ]);
 }
-class _OfferProtectedRoute extends StatelessWidget {
-  const _OfferProtectedRoute();
-  @override Widget build(BuildContext context) => Container(
-    decoration: BoxDecoration(color: const Color(0xFFF0F5F5), borderRadius: BorderRadius.circular(13),
-      border: Border.all(color: const Color(0xFFE4EDED))),
-    padding: const EdgeInsets.all(9),
-    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      const Icon(AppIcons.route, size: 27, color: Color(0xFF9EB7BC)), const SizedBox(height: 13),
-      const Icon(AppIcons.lock, size: 16, color: courierGreen), const SizedBox(height: 7),
-      const PrimeText('Rota após aceitar', textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 9, height: 1.5, color: Color(0xFF6E8791))),
-    ]));
-}
+
 class _OfferCountdown extends StatelessWidget {
-  const _OfferCountdown({required this.seconds, required this.total});
+  const _OfferCountdown({required this.seconds});
   final int seconds;
-  final int? total;
   @override Widget build(BuildContext context) {
-    final large = MediaQuery.textScalerOf(context).scale(12) > 18;
-    final size = large ? 88.0 : 51.0;
+    final urgent = seconds <= 8;
     final minutes = (seconds ~/ 60).toString().padLeft(2, '0');
     final rest = (seconds % 60).toString().padLeft(2, '0');
-    return Semantics(label: translateLabel('Tempo para aceitar'), child: SizedBox(
-      width: size, height: size, child: Stack(alignment: Alignment.center, children: [
-        Positioned.fill(child: CircularProgressIndicator(strokeWidth: 3.5, strokeCap: StrokeCap.round,
-          value: (seconds / ((total ?? seconds) > 0 ? (total ?? seconds) : 1)).clamp(0.0, 1.0).toDouble(),
-          backgroundColor: const Color(0xFFFAEFD7), color: seconds <= 8 ? AppColors.danger : const Color(0xFFF4AE00))),
-        PrimeText('$minutes:$rest', style: const TextStyle(fontSize: 11.5,
-          height: 1.2, fontWeight: FontWeight.w800, color: courierInk)),
+    final color = urgent ? const Color(0xFF926021) : courierGreen;
+    return Semantics(label: translateLabel('Tempo para aceitar'), child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(color: urgent ? const Color(0xFFFFF4E3) : const Color(0xFFEDF6F3),
+        borderRadius: BorderRadius.circular(12)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(AppIcons.clock, size: 16, color: color), const SizedBox(width: 7),
+        PrimeText('$minutes:$rest', style: TextStyle(fontSize: 13, height: 1.2,
+          fontWeight: FontWeight.w800, color: color)),
       ])));
   }
 }

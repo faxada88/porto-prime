@@ -125,7 +125,7 @@ class _CourierPageState extends State<CourierPage> {
         try { await _showDeliverySheet(context, order: offer, incoming: true); }
         finally { _offerModalOpen = false; }
       } else if (_operationsScroll.hasClients) {
-        final offset = 260.0.clamp(0.0, _operationsScroll.position.maxScrollExtent).toDouble();
+        const offset = 0.0;
         if (MediaQuery.disableAnimationsOf(context)) {
           _operationsScroll.jumpTo(offset);
         } else {
@@ -888,6 +888,7 @@ class _CourierPageState extends State<CourierPage> {
                 onProfile: () => _dashboardSection(4, 'profile'),
                 online: state.courierOnline, active: current != null,
                 waiting: current == null && offers.isEmpty,
+                receivingOffer: current == null && state.courierOnline && offers.isNotEmpty,
                 unreadCount: updates.where((r) => !_readUpdateIds.contains(r.id)).length,
                 onNotifications: _openUpdates,
                 onLogout: _signingOut || _navBusy || _advancing || _offerActionBusy ? null : _confirmLogout,

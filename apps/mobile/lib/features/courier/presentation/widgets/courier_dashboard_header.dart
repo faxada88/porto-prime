@@ -10,10 +10,10 @@ class CourierDashboardHeader extends StatefulWidget {
   const CourierDashboardHeader({super.key, required this.name, required this.photo,
     required this.online, required this.active, required this.unreadCount,
     required this.onNotifications, required this.onProfile, required this.onLogout,
-    required this.onRoute, required this.onChanged, this.waiting = false});
+    required this.onRoute, required this.onChanged, this.waiting = false, this.receivingOffer = false});
   final String name;
   final String? photo;
-  final bool online, active, waiting;
+  final bool online, active, waiting, receivingOffer;
   final int unreadCount;
   final VoidCallback onNotifications, onProfile, onRoute;
   final VoidCallback? onLogout;
@@ -55,8 +55,13 @@ class _CourierDashboardHeaderState extends State<CourierDashboardHeader> {
             onSelected: (value) {
               if (value == 'profile') { widget.onProfile(); }
               if (value == 'logout') { widget.onLogout?.call(); }
+              if (value == 'availability') { _toggle(); }
             },
             itemBuilder: (_) => [
+              if (widget.receivingOffer && widget.onChanged != null)
+                PopupMenuItem(value: 'availability', enabled: !_changing, child: Row(children: [
+                  const Icon(AppIcons.power, size: 19), const SizedBox(width: 10),
+                  Flexible(child: PrimeText(widget.online ? 'Ficar offline' : 'Ficar online'))])),
               PopupMenuItem(value: 'profile', child: Row(children: [
                 const Icon(AppIcons.user, size: 19), const SizedBox(width: 10),
                 Flexible(child: PrimeText('Meu perfil'))])),
@@ -88,7 +93,7 @@ class _CourierDashboardHeaderState extends State<CourierDashboardHeader> {
               ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [title, details])
               : Row(children: [const Expanded(child: title), details]);
           }),
-        ] else ...[
+        ] else if (!widget.receivingOffer) ...[
           const SizedBox(height: 24),
           LayoutBuilder(builder: (context, box) {
             final stacked = box.maxWidth < 330 || MediaQuery.textScalerOf(context).scale(14) > 19;

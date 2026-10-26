@@ -49,6 +49,6 @@ try {
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'install','-r','build\app\outputs\flutter-apk\app-release.apk')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','am','force-stop','com.portoprime.porto_prime')
  Invoke-Checked -Command $adb -Arguments @('-s',$DeviceId,'shell','monkey','-p','com.portoprime.porto_prime','-c','android.intent.category.LAUNCHER','1')
- Write-Host 'Painel atualizado: entrega em um unico card, cabecalho compacto e acoes claras de rota, contato e conclusao.'
+ Write-Host 'Painel atualizado: oferta limpa, valor em destaque, percurso legivel e aceite em um unico botao principal.'
  Write-Host 'Nest, banco, Admin, rotas e Stripe podem continuar ligados. Dados e sessao do aplicativo preservados.'
 } finally { Pop-Location }
