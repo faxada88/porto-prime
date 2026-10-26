@@ -41,27 +41,48 @@ class CourierWaitingPanel extends StatelessWidget {
   final double minimumHeight;
   final VoidCallback onEarnings, onDeliveries;
   @override Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
-    final radarSize = (box.maxWidth * .82).clamp(200.0, 320.0).toDouble();
+    final radarSize = (box.maxWidth * .72).clamp(208.0, 292.0).toDouble();
     return ConstrainedBox(constraints: BoxConstraints(minHeight: minimumHeight),
-      child: Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Padding(padding: const EdgeInsets.symmetric(vertical: 20), child: Column(children: [
-            CourierSearchingRadar(online: online, size: radarSize),
-            const SizedBox(height: 14),
+      child: Stack(children: [
+        const Positioned.fill(child: IgnorePointer(child: ExcludeSemantics(
+          child: RepaintBoundary(child: CustomPaint(painter: _WaitingCoastPainter()))))),
+        Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Center(child: CourierSearchingRadar(online: online, size: radarSize)),
+            const SizedBox(height: 8),
             PrimeText(online ? 'Buscando entregas' : 'Pronto para rodar?',
-              textAlign: TextAlign.center, style: const TextStyle(fontSize: 20,
-                height: 1.3, letterSpacing: -.5, fontWeight: FontWeight.w800, color: courierInk)),
-            if (!online) ...[const SizedBox(height: 8),
-            const PrimeText('Fique online para receber novas entregas.',
-              textAlign: TextAlign.center, style: TextStyle(fontSize: 12.5,
-                height: 1.6, color: Color(0xFF66818C)))],
+              textAlign: TextAlign.center, style: const TextStyle(fontSize: 19,
+                height: 1.3, letterSpacing: -.4, fontWeight: FontWeight.w800, color: courierInk)),
+            if (online) ...[
+              const SizedBox(height: 6),
+              Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 310),
+                child: const PrimeText('Você está disponível. Avisaremos assim que chegar uma nova oportunidade.',
+                  textAlign: TextAlign.center, style: TextStyle(fontSize: 12, height: 1.5, color: Color(0xFF617D89))))),
+            ],
+            const SizedBox(height: 18),
+            _WaitingSummary(summary: summary, onlineTime: onlineTime,
+              onEarnings: onEarnings, onDeliveries: onDeliveries),
           ])),
-          const SizedBox(height: 18),
-          _WaitingSummary(summary: summary, onlineTime: onlineTime,
-            onEarnings: onEarnings, onDeliveries: onDeliveries),
-        ])));
+      ]));
   });
+}
+
+/// Decorative waves only; the waiting surface has no location/map dependency.
+class _WaitingCoastPainter extends CustomPainter {
+  const _WaitingCoastPainter();
+  @override void paint(Canvas canvas, Size size) {
+    final left = Path()..moveTo(0, size.height * .59)
+      ..cubicTo(size.width * .11, size.height * .60, size.width * .15, size.height * .68, size.width * .35, size.height * .69)
+      ..cubicTo(size.width * .65, size.height * .75, size.width * .77, size.height * .67, size.width, size.height * .57)
+      ..lineTo(size.width, size.height)..lineTo(0, size.height)..close();
+    canvas.drawPath(left, Paint()..color = const Color(0x0D30B8A7));
+    final right = Path()..moveTo(0, size.height * .69)
+      ..cubicTo(size.width * .30, size.height * .69, size.width * .42, size.height * .81, size.width * .73, size.height * .72)
+      ..cubicTo(size.width * .90, size.height * .67, size.width * .82, size.height * .55, size.width, size.height * .54)
+      ..lineTo(size.width, size.height)..lineTo(0, size.height)..close();
+    canvas.drawPath(right, Paint()..color = const Color(0x0C21AFA2));
+  }
+  @override bool shouldRepaint(covariant _WaitingCoastPainter oldDelegate) => false;
 }
 
 class _WaitingSummary extends StatelessWidget {
@@ -75,17 +96,29 @@ class _WaitingSummary extends StatelessWidget {
     final money = value == null ? '—' : 'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';
     final hours = onlineTime.inHours;
     final minutes = onlineTime.inMinutes.remainder(60);
-    final time = hours == 0 ? '$minutes min' : '$hours h $minutes min';
+    final time = hours == 0 ? '${minutes}min' : '${hours}h ${minutes}min';
     final large = MediaQuery.textScalerOf(context).scale(12) > 18;
     Widget cell(IconData icon, String value, String label, VoidCallback? onTap) =>
       Material(color: Colors.transparent, child: InkWell(onTap: onTap,
         borderRadius: BorderRadius.circular(15),
         child: Padding(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child: large ? Row(children: [
             Container(width: 30, height: 30,
               decoration: const BoxDecoration(color: Color(0xFFEEF6F6), shape: BoxShape.circle),
               child: Icon(icon, color: courierGreen, size: 18)),
-            const SizedBox(height: 10),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              PrimeText(value, style: const TextStyle(fontSize: 16, height: 1.3,
+                fontWeight: FontWeight.w800, color: courierInk)),
+              const SizedBox(height: 4),
+              PrimeText(label, style: const TextStyle(fontSize: 10.5, height: 1.35,
+                color: Color(0xFF66818C))),
+            ])),
+          ]) : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(width: 30, height: 30,
+              decoration: const BoxDecoration(color: Color(0xFFEEF6F6), shape: BoxShape.circle),
+              child: Icon(icon, color: courierGreen, size: 18)),
+            const SizedBox(height: 8),
             PrimeText(value, style: const TextStyle(fontSize: 16, height: 1.3,
               fontWeight: FontWeight.w800, color: courierInk)),
             const SizedBox(height: 4),
@@ -98,8 +131,9 @@ class _WaitingSummary extends StatelessWidget {
       Tooltip(message: translateLabel('Tempo online nesta sessão. A contagem pausa quando você fica offline ou sai do aplicativo.'),
         child: cell(AppIcons.clock, time, 'Tempo online', null)),
     ];
-    return Container(decoration: BoxDecoration(color: Colors.white,
-      borderRadius: BorderRadius.circular(22), border: Border.all(color: const Color(0xFFE2ECEF))),
+    return Container(key: const ValueKey('courier_waiting_summary'), decoration: BoxDecoration(color: Colors.white,
+      borderRadius: BorderRadius.circular(22), border: Border.all(color: const Color(0xFFDAE8EB)),
+      boxShadow: const [BoxShadow(color: Color(0x08073E43), blurRadius: 18, offset: Offset(0, 5))]),
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
       child: large ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         for (var i = 0; i < cells.length; i++) ...[
@@ -151,10 +185,13 @@ class _CourierSearchingRadarState extends State<CourierSearchingRadar> with Sing
       child: CustomPaint(painter: _RadarPainter(
         online: widget.online, orbit: _orbit),
         child: Center(child: Container(width: widget.size * .34, height: widget.size * .34,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFFF9FDFD),
-            border: Border.all(color: const Color(0xFFC2E8E2), width: 1.5),
-            boxShadow: const [BoxShadow(color: Color(0x16067469), blurRadius: 14, offset: Offset(0, 6))]),
-          child: Icon(Icons.delivery_dining_rounded, color: widget.online ? courierGreen : const Color(0xFF80989F),
+          decoration: BoxDecoration(shape: BoxShape.circle,
+            gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
+              colors: widget.online ? const [Color(0xFF008D83), Color(0xFF005764)]
+                : const [Color(0xFFA9C8CB), Color(0xFF7B9DA3)]),
+            border: Border.all(color: widget.online ? const Color(0xFF7ACFC4) : const Color(0xFFD6E8E8), width: 4),
+            boxShadow: const [BoxShadow(color: Color(0x22067469), blurRadius: 20, offset: Offset(0, 5))]),
+          child: Icon(Icons.delivery_dining_rounded, color: Colors.white,
             size: widget.size * .17)))))));
 }
 class _RadarPainter extends CustomPainter {

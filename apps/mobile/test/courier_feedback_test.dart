@@ -38,7 +38,7 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('Waiting header has no repeated status text and aligns the pill with the name', (tester) async {
+  testWidgets('Waiting header has one status caption and aligns the pill with the name', (tester) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 850);
     addTearDown(tester.view.resetPhysicalSize);
@@ -48,7 +48,7 @@ void main() {
       onNotifications: () {}, onProfile: () {}, onLogout: () {}, onRoute: () {}, onChanged: (_) async {})));
     await tester.pump();
     expect(find.text('Você está online e pronto para receber entregas.'), findsNothing);
-    expect(find.text('Recebendo entregas'), findsNothing);
+    expect(find.text('Recebendo entregas'), findsOneWidget);
     final name = tester.getCenter(find.text('Victor 👋'));
     final control = tester.getCenter(find.byType(CourierReferenceAvailability));
     expect(control.dy, closeTo(name.dy, .5));

@@ -3,9 +3,15 @@
 Referência visual: Fluxo do App Porto Prime Delivery(1).png.
 
 ## Aguardando
-Cabeçalho claro com marca, foto real, sino, saudação e um único controle de disponibilidade, alinhado ao nome. Removidos os textos repetidos sobre receber ofertas: durante a espera há somente “Buscando entregas”. Offline mantém uma instrução curta.
+Cabeçalho claro e compacto com marca, foto real, sino, saudação e um único controle de disponibilidade, alinhado ao nome. O nome exibido usa a primeira palavra com inicial maiúscula, sem modificar o cadastro. A legenda Recebendo entregas aparece uma única vez abaixo do controle, como na referência image(20261026-112611).png.
 
-As cinco bolinhas giram em três órbitas ao redor da moto, com rastros discretos e pulso suave. O ciclo contínuo de 16 segundos usa pintura própria, sem reconstruir o painel a cada quadro. Pausa offline, em segundo plano, com TickerMode desativado ou com redução de movimento.
+O seletor tem trilho verde-petróleo online, cinza claro offline, botão branco que desliza entre as extremidades, resposta de escala ao toque e feedback tátil discreto. Um spinner no botão indica a solicitação em andamento. O mesmo callback e seu bloqueio de duplicidade continuam sendo usados; o controle não presume uma resposta positiva do servidor. A posição e o texto refletem os valores recebidos. Redução de movimento aplica as posições finais sem animação.
+
+O tamanho do controle é calculado a partir dos textos traduzidos e da escala da fonte. Nome e botão ficam lado a lado quando cabem; fontes ampliadas e nomes maiores passam a composição para duas linhas. A legenda não participa do alinhamento vertical do botão com o nome.
+
+As cinco bolinhas giram em três órbitas ao redor da moto branca sobre círculo verde-petróleo, com rastros discretos e pulso suave. O ciclo contínuo de 16 segundos usa pintura própria, sem reconstruir o painel a cada quadro. Pausa offline, em segundo plano, com TickerMode desativado ou com redução de movimento.
+
+O radar tem dimensão proporcional à largura, limitado a 208–292 dp. O resumo segue o título e uma única mensagem curta, com espaçamentos fixos; a área de espera não distribui o espaço restante entre os blocos. Ondas translúcidas são desenhadas em Flutter no fundo. Na fonte ampliada, os dados do resumo usam linhas compactas. O menu inferior premium já existente continua intacto.
 
 Há uma única faixa de resumo na espera: ganhos de hoje, entregas de hoje e tempo online desta sessão. Valores financeiros e quantidade vêm da API. Tempo online é medido localmente nesta abertura da conta e pausa quando offline ou em segundo plano. Não representa um histórico diário fornecido pelo servidor.
 
@@ -48,6 +54,11 @@ Sete verificações adicionais em courier_feedback_test.dart cobrem parada do ra
 ## Atualização
 Com o Android completamente iniciado:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\update-courier-dashboard.ps1 -DeviceId emulator-5554
+
+Para aplicar a polida visual e validar o novo seletor:
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\update-courier-polish.ps1 -DeviceId emulator-5554
+
+O instalador de polimento inclui os testes de fontes/telas, alinhamento, seletor, status pendente, erro e nova tentativa, ausência de lacuna forçada no resumo, além das ofertas, fluxo e menu premium. Não há Flutter SDK no ambiente de edição; as verificações de runtime são executadas no PC antes da instalação.
 
 Nest, Admin, banco, rotas e Stripe podem continuar ligados. Instalador mantém adb install -r e não limpa os dados do app. CleanBuild continua opcional.
 

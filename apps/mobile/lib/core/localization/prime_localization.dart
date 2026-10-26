@@ -17,6 +17,7 @@ class AppLanguage extends ChangeNotifier {
   SharedPreferences? _preferences;
 
   static const Map<String, Map<String, String>> _curated = {
+"Você está disponível. Avisaremos assim que chegar uma nova oportunidade.": {"es":"Estás disponible. Te avisaremos cuando llegue una nueva oportunidad.","en":"You're available. We'll let you know when a new opportunity arrives."},
 "Ligar": {"es":"Llamar","en":"Call"},
 "Peça o PIN ao cliente para finalizar.": {"es":"Pide el PIN al cliente para finalizar.","en":"Ask the customer for the PIN to complete delivery."},
 "Boa! Saque solicitado": {"es":"¡Listo! Retiro solicitado","en":"Great! Withdrawal requested"},
