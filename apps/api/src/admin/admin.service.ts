@@ -281,7 +281,7 @@ export class AdminService {
     }
     const onboarding: Record<string, unknown> =
       profile.onboardingData && typeof profile.onboardingData === 'object' &&
-      !Array.isArray(profile.onboardingData) ? { ...profile.onboardingData as any } : {};
+      !Array.isArray(profile.onboardingData) ? { ...(profile.onboardingData as Record<string, unknown>) } : {};
     const extras = values.extraData as Record<string, unknown> | undefined;
     if (extras) {
       for (const [key, value] of Object.entries(extras)) {
