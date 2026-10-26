@@ -19,6 +19,7 @@ import {
   Activity,
   Headphones,
   ChevronDown,
+  ChevronRight,
   Trash2,
   History,
   Banknote,
@@ -268,16 +269,30 @@ function CourierAdminProfile({user,app,close,act,requestRequirement}:{user:Row,a
  return <div className="modalBackdrop profileBackdrop" onMouseDown={close}><section className="profileModal courierFullProfile" role="dialog" aria-modal="true" aria-labelledby="courier-profile-title" onMouseDown={e=>e.stopPropagation()}><div className="profileModalHero"><button autoFocus className="profileClose" aria-label="Fechar perfil" onClick={close}><X size={18}/></button><div className="profileModalAvatar">{onboarding.profilePhoto?<img src={onboarding.profilePhoto} alt={"Foto de "+user.name}/>:((user.name||"?").slice(0,1).toUpperCase())}</div><div><small>PERFIL COMPLETO · MOTOBOY</small><h2 id="courier-profile-title">{user.name}</h2><p>Cadastrado em {dt(user.createdAt)}</p></div><Badge v={app.approvalStatus||user.status}/></div><div className="profileSummary"><div><span>Acesso à plataforma</span><Badge v={user.status}/></div><div><span>Disponibilidade</span><b>{app.isOnline?"Online":"Offline"}</b></div><div><span>Última atualização</span><b>{dt(app.updatedAt)}</b></div></div><CourierRecordEditor data={data} onSave={async changes=>{await api("/admin/couriers/"+app.id+"/profile","","PATCH",changes);await act("/admin/couriers/"+app.id+"/finance","GET")}}/><details className="courierRecordAux"><summary>Ganhos e histórico de saques<ChevronDown size={18}/></summary><section className="profileSection courierFinancial"><div className="profileSectionTitle"><span><Wallet size={16}/></span><div><b>Ganhos e saques</b><small>Valores registrados na carteira deste motoboy</small></div></div>{financeError&&<p className="error">{financeError}</p>}{!finance&&!financeError&&<div className="financeSkeleton" aria-label="Carregando resumo financeiro"/>}{finance&&<><div className="courierFinanceGrid"><div><span>Ganhos com entregas</span><b>{brl(finance.earningsTotal)}</b><small>{finance.deliveries} entregas concluídas</small></div><div><span>Saldo disponível</span><b>{brl(finance.availableBalance)}</b><small>{brl(finance.pendingWithdrawalTotal)} em saques pendentes</small></div><div><span>Saques pagos</span><b>{brl(finance.paidWithdrawalTotal)}</b><small>{finance.paidWithdrawalCount} saques realizados</small></div></div><h4>Histórico de solicitações</h4><div className="courierWithdrawalList">{finance.withdrawals.map((w:Row)=><article key={w.id}><div><b>{brl(w.amount)}</b><small>{dt(w.requestedAt)}</small><span>{w.pixKeyType} · {w.pixKey}</span>{w.processedAt&&<small>Processado em {dt(w.processedAt)}</small>}</div><Badge v={w.status}/></article>)}{!finance.withdrawals.length&&<p className="courierProfileEmpty">Nenhum saque solicitado.</p>}</div></>}</section></details><section className="profileSection courierProfileAccess"><div className="profileSectionTitle"><span><UserCheck size={16}/></span><div><b>Gerenciar acesso</b><small>Status atual: {statusLabel[user.status]||user.status}</small></div></div><div className="actions">{user.status!=="ACTIVE"&&<button onClick={()=>act("/admin/users/"+user.id+"/status","PATCH",{status:"ACTIVE"})}><Check size={16}/> Aprovar e ativar acesso</button>}{user.status==="ACTIVE"&&<button className="warn" onClick={()=>act("/admin/users/"+user.id+"/status","PATCH",{status:"SUSPENDED"})}><CircleAlert size={16}/> Suspender acesso</button>}{user.status!=="BLOCKED"&&<button className="danger" onClick={()=>act("/admin/users/"+user.id+"/status","PATCH",{status:"BLOCKED"})}><CircleAlert size={16}/> Bloquear acesso</button>}</div></section><section className="profileSection"><div className="profileSectionTitle"><span><ClipboardList size={16}/></span><div><b>Pendências e respostas</b><small>Histórico completo da candidatura</small></div></div>{app.id&&<button className="secondary" onClick={()=>requestRequirement(app,user.name)}>Solicitar informação ou documento</button>}<div className="profileHistory">{(app.requirements||[]).map((r:Row)=><div key={r.id}><div><b>{r.title}</b><Badge v={r.canceledAt?"CANCELED":r.status}/></div><p>{r.description}</p><small>{dt(r.requestedAt)}</small>{r.response&&<strong>Resposta: {r.response}</strong>}{!r.canceledAt&&r.status==="ANSWERED"&&<button onClick={()=>act("/admin/requirements/"+r.id+"/resolve","PATCH")}><Check size={15}/> Marcar como resolvida</button>}<CancelRequirement requirement={r} act={act}/></div>)}{!app.requirements?.length&&<p className="courierProfileEmpty">Nenhuma pendência registrada.</p>}</div></section><div className="profileModalFooter"><span>PORTO PRIME · CADASTRO E OPERAÇÃO</span><button onClick={close}>Fechar perfil</button></div></section></div>;
 }
 
+
 function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:string,products:Row[]}){
- const [viewId,setViewId]=useState<string|null>(null),[orderFilter,setOrderFilter]=useState("ALL");
+ const [viewId,setViewId]=useState<string|null>(null);
+ const [orderFilter,setOrderFilter]=useState("ALL");
+ const [sortBy,setSortBy]=useState("RECENT");
  const [audit,setAudit]=useState<{order:Row;events:Row[]}|null>(null);
  const [auditBusy,setAuditBusy]=useState(false),[auditError,setAuditError]=useState("");
  const [selected,setSelected]=useState<Set<string>>(new Set());
- useEffect(()=>{const valid=new Set(rows.map(x=>x.id));setSelected(prev=>new Set([...prev].filter(id=>valid.has(id))))},[rows]);
  const [orderQuery,setOrderQuery]=useState("");
  const [visibleLimit,setVisibleLimit]=useState(20);
+ useEffect(()=>{const valid=new Set(rows.map(x=>x.id));setSelected(prev=>new Set([...prev].filter(id=>valid.has(id))))},[rows]);
  const normalizedQuery=orderQuery.trim().replace(/^#/,"").toLowerCase();
- const filteredRows=rows.filter(o=>(orderFilter==="ALL"||orderFilter==="REVIEW"&&["CONFIRMED","PREPARING","READY_FOR_PICKUP"].includes(o.status)||orderFilter==="DISPATCH"&&o.status==="SEARCHING_COURIER"||orderFilter==="DELIVERY"&&["COURIER_ASSIGNED","PICKED_UP","OUT_FOR_DELIVERY"].includes(o.status)||orderFilter==="HOLD"&&o.fulfillmentHold)&&[o.id,o.customer?.name,o.customer?.phone].some(v=>String(v||"").toLowerCase().includes(normalizedQuery)));
+ const matchesStatus=(o:Row,filter:string)=>filter==="ALL"||
+  (filter==="REVIEW"&&["CONFIRMED","PREPARING","READY_FOR_PICKUP"].includes(o.status))||
+  (filter==="DISPATCH"&&o.status==="SEARCHING_COURIER")||
+  (filter==="DELIVERY"&&["COURIER_ASSIGNED","PICKED_UP","OUT_FOR_DELIVERY"].includes(o.status))||
+  (filter==="HOLD"&&Boolean(o.fulfillmentHold));
+ const filteredRows=rows.filter(o=>matchesStatus(o,orderFilter)&&
+  [o.id,o.customer?.name,o.customer?.phone].some(v=>String(v||"").toLowerCase().includes(normalizedQuery)))
+  .sort((a,b)=>{
+   if(sortBy==="VALUE")return Number(b.total||0)-Number(a.total||0);
+   const timeA=Date.parse(String(a.createdAt||""))||0,timeB=Date.parse(String(b.createdAt||""))||0;
+   return sortBy==="OLDEST"?timeA-timeB:timeB-timeA;
+  });
  const visibleRows=filteredRows.slice(0,visibleLimit);
  const allVisible=visibleRows.length>0&&visibleRows.every(x=>selected.has(x.id));
  const toggle=(id:string)=>setSelected(prev=>{const next=new Set(prev);next.has(id)?next.delete(id):next.size<100&&next.add(id);return next});
@@ -293,24 +308,49 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
  const openAudit=async(o:Row)=>{setAuditBusy(true);setAuditError("");try{const events=await api("/admin/orders/"+o.id+"/audit",token);setAudit({order:o,events})}catch(e:any){setAuditError(displayMessage(e.message))}finally{setAuditBusy(false)}};
  const activeView=rows.find(o=>o.id===viewId);
  const deleteOrder=(o:Row)=>{setViewId(null);ask({title:"Excluir este pedido?",message:"O pedido #"+o.id.slice(-8).toUpperCase()+" será removido do Admin e da área do cliente.",detail:"A operação será interrompida. Os registros financeiros são preservados; esta ação não solicita estorno.",confirm:"Excluir pedido",action:()=>act("/admin/orders/"+o.id,"DELETE")})};
- return <><div className="orderOperationsV5"><Panel title="Central de pedidos">
- {auditError&&<div className="error" role="alert">{auditError}</div>}
- <div className="opFilters">{[["ALL","Todos"],["REVIEW","Conferência"],["DISPATCH","Buscando motoboy"],["DELIVERY","Em entrega"],["HOLD","Aguardando cliente"]].map(([value,label])=><button key={value} aria-pressed={orderFilter===value} onClick={()=>{setOrderFilter(value);setVisibleLimit(20)}}>{label}<em>{value==="ALL"?rows.length:value==="REVIEW"?rows.filter(o=>["CONFIRMED","PREPARING","READY_FOR_PICKUP"].includes(o.status)).length:value==="DISPATCH"?rows.filter(o=>o.status==="SEARCHING_COURIER").length:value==="DELIVERY"?rows.filter(o=>["COURIER_ASSIGNED","PICKED_UP","OUT_FOR_DELIVERY"].includes(o.status)).length:rows.filter(o=>o.fulfillmentHold).length}</em></button>)}</div>
-  <div className="orderSearchToolbar">
-   <label className="orderNumberSearch"><Search size={19}/><input aria-label="Buscar pedido ou cliente" placeholder="Número do pedido, nome ou telefone…" value={orderQuery} onChange={e=>{setOrderQuery(e.target.value);setVisibleLimit(20)}}/>{orderQuery&&<button type="button" aria-label="Limpar busca de pedidos" onClick={()=>{setOrderQuery("");setVisibleLimit(20)}}><X size={16}/></button>}</label>
-   <span role="status">{filteredRows.length} {filteredRows.length===1?"pedido":"pedidos"}{normalizedQuery?" encontrados":" na operação"}</span>
+ const filters=[["ALL","Todos"],["REVIEW","Conferência"],["DISPATCH","Buscando motoboy"],["DELIVERY","Em entrega"],["HOLD","Aguardando cliente"]];
+ return <>
+  <div className="orderOperationsV5">
+   <Panel title="Central de pedidos">
+    <div className="opIntroduction"><div><strong>Pedidos em tempo real</strong><span>Acompanhe os pagamentos, confira produtos e libere o despacho em poucos cliques.</span></div><span className="opLiveSignal"><i/>{rows.length} {rows.length===1?"pedido":"pedidos"} na operação</span></div>
+    {auditError&&<div className="error" role="alert">{auditError}</div>}
+    <div className="opFilters" aria-label="Filtrar pedidos por etapa">{filters.map(([value,label])=>
+     <button key={value} type="button" aria-pressed={orderFilter===value} onClick={()=>{setOrderFilter(value);setVisibleLimit(20)}}>
+      {label}<em>{value==="ALL"?rows.length:rows.filter(o=>matchesStatus(o,value)).length}</em>
+     </button>
+    )}</div>
+    <div className="orderSearchToolbar">
+     <label className="orderNumberSearch"><Search size={19}/><input aria-label="Buscar pedido ou cliente" placeholder="Buscar pedido, cliente ou telefone…" value={orderQuery} onChange={e=>{setOrderQuery(e.target.value);setVisibleLimit(20)}}/>{orderQuery&&<button type="button" aria-label="Limpar busca de pedidos" onClick={()=>{setOrderQuery("");setVisibleLimit(20)}}><X size={16}/></button>}</label>
+     <div className="opSort"><label htmlFor="op-sort-orders">Ordenar por</label><select id="op-sort-orders" aria-label="Ordenar pedidos" value={sortBy} onChange={e=>{setSortBy(e.target.value);setVisibleLimit(20)}}><option value="RECENT">Mais recentes</option><option value="OLDEST">Mais antigos</option><option value="VALUE">Maior valor</option></select></div>
+     <span className="opResults" role="status">{filteredRows.length} {filteredRows.length===1?"pedido encontrado":"pedidos encontrados"}</span>
+    </div>
+    <div className={"orderBulkBar opCompactBulk"+(selected.size?" active":"")}>
+      <label className="opBulkToggle"><span className="checkControl"><input aria-label="Selecionar pedidos exibidos" type="checkbox" checked={allVisible} onChange={toggleAll}/><span/></span><span>{selected.size?selected.size+" selecionado(s)":"Selecionar pedidos exibidos"}</span></label>
+      <div className="bulkActions">{selected.size>0&&<button className="secondary" type="button" onClick={()=>setSelected(new Set())}>Limpar seleção</button>}<button className="bulkDeleteBtn" type="button" disabled={!selected.size} onClick={bulkDelete}><Trash2 size={15}/> Excluir selecionados</button></div>
+    </div>
+    {!filteredRows.length?<Empty text={normalizedQuery?"Nenhum pedido encontrado. Revise a busca ou limpe o campo.":orderFilter!=="ALL"?"Nenhum pedido nesta etapa. Selecione Todos para visualizar a operação.":"Nenhum pedido encontrado."}/>:(
+     <div className="opTableScroll" role="region" aria-label="Lista de pedidos" tabIndex={0}>
+      <div className="orderCards">
+       <div className="opTableHead" aria-hidden="true"><span>Pedido</span><span>Cliente</span><span>Data / hora</span><span>Itens</span><span>Pagamento</span><span>Valor</span><span>Situação</span><span>Abrir</span></div>
+       {visibleRows.map(o=><article className={"opRow"+(selected.has(o.id)?" selectedOrder":"")+(viewId===o.id?" isViewing":"")} key={o.id}>
+        <div className="opIdentity"><label className="checkControl"><input aria-label={"Selecionar pedido "+o.id} type="checkbox" checked={selected.has(o.id)} disabled={selected.size>=100&&!selected.has(o.id)} onChange={()=>toggle(o.id)}/><span/></label><button className="opOrderLink" type="button" onClick={()=>setViewId(o.id)} aria-label={"Abrir detalhes do pedido "+o.id}>#{String(o.id).slice(-8).toUpperCase()}</button></div>
+        <div className="opCustomer"><b>{o.customer?.name||"Cliente"}</b>{o.customer?.phone&&<small>{o.customer.phone}</small>}</div>
+        <div className="opWhen">{dt(o.createdAt)}</div>
+        <div className="opItems">{(o.items||[]).reduce((n:number,item:Row)=>n+Number(item.quantity||0),0)} un.</div>
+        <div className="opPay"><span className={"opPayPill "+(o.paymentStatus==="PAID"?"isPaid":o.paymentStatus==="REFUNDED"?"isRefunded":"isPending")}>{o.paymentStatus==="PAID"?"Pago":o.paymentStatus==="REFUNDED"?"Reembolsado":o.paymentStatus==="PARTIALLY_REFUNDED"?"Reembolso parcial":"Pendente"}</span></div>
+        <strong className="opValue">{brl(o.total)}</strong>
+        <div className="opState"><Badge v={o.status}/>{o.fulfillmentHold&&<small>Aguardando cliente</small>}</div>
+        <button className="opOpen" type="button" aria-label={"Ver pedido "+String(o.id).slice(-8).toUpperCase()} onClick={()=>setViewId(o.id)}>Ver pedido<ChevronRight size={16}/></button>
+       </article>)}
+      </div>
+     </div>
+    )}
+    {visibleRows.length<filteredRows.length&&<div className="orderMore"><span>Exibindo {visibleRows.length} de {filteredRows.length} pedidos</span><button className="secondary" onClick={()=>setVisibleLimit(n=>n+20)}>Mostrar mais 20 pedidos</button></div>}
+   </Panel>
   </div>
-  <div className={"bulkBar orderBulkBar "+(selected.size?"active":"")}>
-   <div className="bulkSelectAll">
-    <label className="checkControl"><input aria-label="Selecionar pedidos exibidos" type="checkbox" checked={allVisible} onChange={toggleAll}/><span/></label>
-    <div><b>{selected.size?selected.size+" pedido(s) selecionado(s)":"Selecionar pedidos exibidos"}</b><small>{selected.size?"Revise os selecionados antes de excluir":"Selecione um ou vários pedidos para ações em massa"}</small></div>
-   </div>
-   <div className="bulkActions">{selected.size>0&&<button className="secondary" onClick={()=>setSelected(new Set())}>Limpar seleção</button>}<button className="bulkDeleteBtn" disabled={!selected.size} onClick={bulkDelete}><Trash2 size={16}/> Excluir selecionados</button></div>
-  </div>
-  {!filteredRows.length?<Empty text={normalizedQuery?"Nenhum pedido com esse número. Confira o número ou limpe a busca.":"Nenhum pedido encontrado."}/>:<div className="orderCards">{visibleRows.map(o=><article className={"opRow "+(selected.has(o.id)?"selectedOrder":"")} key={o.id}><div className="opIdentity"><label className="checkControl"><input aria-label={"Selecionar pedido "+o.id} type="checkbox" checked={selected.has(o.id)} disabled={selected.size>=100&&!selected.has(o.id)} onChange={()=>toggle(o.id)}/><span/></label><div><small>PEDIDO</small><b>#{o.id.slice(-8).toUpperCase()}</b></div></div><div className="opCustomer"><b>{o.customer?.name||"Cliente"}</b><small>{dt(o.createdAt)} · {o.items?.length||0} itens</small></div><div className="opState"><Badge v={o.status}/></div><strong className="opValue">{brl(o.total)}</strong><button className="opOpen" aria-label={"Ver pedido "+o.id.slice(-8).toUpperCase()} onClick={()=>setViewId(o.id)}>Ver pedido<ChevronDown size={16}/></button></article>)}</div>}
-
- {visibleRows.length<filteredRows.length&&<div className="orderMore"><span>Exibindo {visibleRows.length} de {filteredRows.length} pedidos</span><button className="secondary" onClick={()=>setVisibleLimit(n=>n+20)}>Mostrar mais 20 pedidos</button></div>}
- </Panel></div>{activeView&&<OrderOperationWorkspace key={activeView.id} order={activeView} products={products} request={(path,method,body)=>api(path,token,method,body)} reload={()=>{void act("/admin/orders","GET")}} onStatus={status=>{void act("/admin/orders/"+activeView.id+"/status","PATCH",{status})}} onRelease={()=>{void act("/admin/orders/"+activeView.id+"/release")}} onAudit={()=>{setViewId(null);void openAudit(activeView)}} onDelete={()=>deleteOrder(activeView)} close={()=>setViewId(null)} auditBusy={auditBusy}/>} {audit&&<div className="modalBackdrop profileBackdrop" onMouseDown={()=>setAudit(null)}><section className="profileModal auditModal" onMouseDown={e=>e.stopPropagation()}><div className="profileModalHero"><button className="profileClose" aria-label="Fechar" onClick={()=>setAudit(null)}><X size={18}/></button><div className="profileModalAvatar">#</div><div><small>HISTÓRICO DA ENTREGA</small><h2>Pedido #{audit.order.id.slice(-8).toUpperCase()}</h2><p>Acompanhe cada etapa, da liberação à conclusão.</p></div><Badge v={audit.order.status}/></div><div className="profileSection"><div className="profileHistory">{audit.events.length?audit.events.map((e:Row)=><div key={e.id}><div><b>{dispatchEventLabel(e.type)}</b><span>{dt(e.createdAt)}</span></div>{e.courierId&&<p>Motoboy: {e.courierId}</p>}{e.offerId&&<p>Oferta: {e.offerId}</p>}{e.payload&&<strong>{JSON.stringify(e.payload)}</strong>}</div>):<div className="none">Nenhum evento registrado para este pedido.</div>}</div></div><div className="profileModalFooter"><span>PORTO PRIME · ACOMPANHAMENTO</span><button onClick={()=>setAudit(null)}>Fechar</button></div></section></div>}</>;
+  {activeView&&<OrderOperationWorkspace key={activeView.id} order={activeView} products={products} request={(path,method,body)=>api(path,token,method,body)} reload={()=>{void act("/admin/orders","GET")}} onStatus={status=>{void act("/admin/orders/"+activeView.id+"/status","PATCH",{status})}} onRelease={()=>{void act("/admin/orders/"+activeView.id+"/release")}} onAudit={()=>{setViewId(null);void openAudit(activeView)}} onDelete={()=>deleteOrder(activeView)} close={()=>setViewId(null)} auditBusy={auditBusy}/>}
+  {audit&&<div className="modalBackdrop profileBackdrop" onMouseDown={()=>setAudit(null)}><section className="profileModal auditModal" onMouseDown={e=>e.stopPropagation()}><div className="profileModalHero"><button className="profileClose" aria-label="Fechar" onClick={()=>setAudit(null)}><X size={18}/></button><div className="profileModalAvatar">#</div><div><small>HISTÓRICO DA ENTREGA</small><h2>Pedido #{audit.order.id.slice(-8).toUpperCase()}</h2><p>Acompanhe cada etapa, da liberação à conclusão.</p></div><Badge v={audit.order.status}/></div><div className="profileSection"><div className="profileHistory">{audit.events.length?audit.events.map((e:Row)=><div key={e.id}><div><b>{dispatchEventLabel(e.type)}</b><span>{dt(e.createdAt)}</span></div>{e.courierId&&<p>Motoboy: {e.courierId}</p>}{e.offerId&&<p>Oferta: {e.offerId}</p>}{e.payload&&<strong>{JSON.stringify(e.payload)}</strong>}</div>):<div className="none">Nenhum evento registrado para este pedido.</div>}</div></div><div className="profileModalFooter"><span>PORTO PRIME · ACOMPANHAMENTO</span><button onClick={()=>setAudit(null)}>Fechar</button></div></section></div>}
+ </>;
 }
 
 const dispatchEventLabel=(v:string)=>({ADMIN_RELEASED:"Admin liberou o pedido",SEARCH_STARTED:"Busca por motoboy iniciada",OFFER_CREATED:"Oferta enviada",OFFER_DECLINED:"Oferta recusada",OFFER_EXPIRED:"Oferta expirada",OFFER_CANCELED:"Oferta cancelada",OFFER_ACCEPTED:"Motoboy aceitou",COURIER_PICKED_UP:"Pedido coletado",OUT_FOR_DELIVERY:"Saiu para entrega",DELIVERED:"Entrega concluída",WALLET_CREDITED:"Carteira creditada"} as Record<string,string>)[v]||v;
