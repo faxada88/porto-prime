@@ -183,6 +183,13 @@ export class AdminService {
     });
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
+    if (user.courierProfile && status === 'ACTIVE') {
+      const unresolved = await (this.prisma as any).courierRequirement.count({
+        where: { courierId: user.courierProfile.id, status: { not: 'RESOLVED' } },
+      });
+      if (unresolved > 0) throw new BadRequestException('Resolva as pendências antes de ativar o motoboy');
+    }
+
     const result = await this.prisma.$transaction(async (tx) => {
       if (user.courierProfile && status !== 'ACTIVE') {
         await (tx as any).courierDevicePresence.updateMany({
@@ -366,7 +373,7 @@ export class AdminService {
     });
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       if (user.role === UserRole.COURIER && user.courierProfile) {
         const open = await (tx as any).courierRequirement.count({
           where: {
@@ -396,6 +403,12 @@ export class AdminService {
         select: { id: true, name: true, email: true, role: true, status: true },
       });
     });
+    if (user.courierProfile) {
+      this.realtime.emitToUser(userId, 'courier.account.updated', {
+        status: 'ACTIVE', at: new Date().toISOString(),
+      });
+    }
+    return result;
   }
 
   async reject(userId: string, authorization?: string) {
@@ -412,15 +425,29 @@ export class AdminService {
         data: {
           approvalStatus: CourierStatus.REJECTED,
           isOnline: false,
+          presenceStatus: 'OFFLINE',
+          availableSince: null,
         },
       });
     }
 
-    return this.prisma.user.update({
+    const result = await this.prisma.user.update({
       where: { id: userId },
       data: { status: UserStatus.BLOCKED },
       select: { id: true, name: true, email: true, role: true, status: true },
     });
+    if (user.courierProfile) {
+      await (this.prisma as any).courierDevicePresence.updateMany({
+        where: { courierId: user.courierProfile.id }, data: { onlineRequested: false },
+      });
+      this.realtime.emitToUser(userId, 'courier.account.updated', {
+        status: 'BLOCKED', at: new Date().toISOString(),
+      });
+      this.realtime.emitToRole('ADMIN', 'courier.presence', {
+        courierId: user.courierProfile.id, presenceStatus: 'OFFLINE', isOnline: false,
+      });
+    }
+    return result;
   }
 
   async createRequirement(
@@ -500,10 +527,22 @@ export class AdminService {
     });
     if (!requirement) throw new NotFoundException('Pendência não encontrada');
 
-    return (this.prisma as any).courierRequirement.update({
+    const result = await (this.prisma as any).courierRequirement.update({
       where: { id },
       data: { status: 'RESOLVED', resolvedAt: new Date() },
     });
+    const profile = await (this.prisma as any).courierProfile.findUnique({
+      where: { id: requirement.courierId }, select: { userId: true },
+    });
+    if (profile) {
+      this.realtime.emitToUser(profile.userId, 'courier.account.updated', {
+        requirementId: id, at: new Date().toISOString(),
+      });
+    }
+    this.realtime.emitToRole('ADMIN', 'courier.requirement.answered', {
+      courierId: requirement.courierId, requirementId: id, at: new Date().toISOString(),
+    });
+    return result;
   }
 
   async updateOrderStatus(
