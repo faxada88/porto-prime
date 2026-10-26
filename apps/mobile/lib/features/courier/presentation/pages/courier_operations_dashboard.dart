@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/localization/prime_localization.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/prime_animated_navigation.dart';
 import '../widgets/courier_dashboard_map.dart';
 
 class CourierOperationsNav extends StatelessWidget {
@@ -12,39 +13,21 @@ class CourierOperationsNav extends StatelessWidget {
   final bool online, active, busy;
   final int index;
   final VoidCallback onHome, onWallet, onAction, onHistory, onProfile;
-  @override Widget build(BuildContext context) => Container(
-    decoration: const BoxDecoration(color: Colors.white,
-      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      border: Border.fromBorderSide(BorderSide(color: Color(0xFFD9E7EB), width: 1)),
-      boxShadow: [BoxShadow(color: Color(0x0C16434D), blurRadius: 24, offset: Offset(0, -5))]),
-    child: SafeArea(top: false, minimum: const EdgeInsets.fromLTRB(12, 8, 12, 5),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _item(0, AppIcons.home, 'Início', onHome),
-        _item(1, AppIcons.package, 'Entregas', onAction),
-        _item(2, AppIcons.wallet, 'Carteira', onWallet),
-        _item(3, Icons.bar_chart_rounded, 'Histórico', onHistory),
-        _item(4, AppIcons.user, 'Perfil', onProfile),
-      ])));
-  Widget _item(int value, IconData icon, String label, VoidCallback tap) {
-    final selected = index == value;
-    return Expanded(child: Semantics(selected: selected, button: true,
-      child: Tooltip(message: translateLabel(label), child: InkWell(onTap: busy ? null : tap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 7),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(selected && value == 0 ? Icons.home_rounded : icon, size: 25,
-              color: selected ? courierGreen : const Color(0xFF5B7380)),
-            const SizedBox(height: 6),
-            PrimeText(label, maxLines: 2, textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 10, height: 1.25,
-                color: selected ? courierGreen : const Color(0xFF5B7380),
-                fontWeight: selected ? FontWeight.w800 : FontWeight.w500)),
-            const SizedBox(height: 6),
-            Container(height: 2.5, width: 24, decoration: BoxDecoration(
-              color: selected ? courierGreen : Colors.transparent,
-              borderRadius: BorderRadius.circular(3))),
-          ]))))));
+  void _select(int value) {
+    if (busy) return;
+    final callbacks = [onHome, onAction, onWallet, onHistory, onProfile];
+    if (value >= 0 && value < callbacks.length) callbacks[value]();
   }
+  @override Widget build(BuildContext context) => PrimeAnimatedNavigation(
+    selectedValue: index, enabled: !busy, maxWidth: 760, onSelect: _select,
+    destinations: const [
+      PrimeNavigationDestination(value: 0, label: 'Início', icon: AppIcons.home,
+        selectedIcon: Icons.home_rounded),
+      PrimeNavigationDestination(value: 1, label: 'Entregas', icon: AppIcons.package),
+      PrimeNavigationDestination(value: 2, label: 'Carteira', icon: AppIcons.wallet),
+      PrimeNavigationDestination(value: 3, label: 'Histórico', icon: Icons.bar_chart_rounded),
+      PrimeNavigationDestination(value: 4, label: 'Perfil', icon: AppIcons.user),
+    ]);
 }
 
 /// A single compact summary, only while waiting. Session time is measured locally.
