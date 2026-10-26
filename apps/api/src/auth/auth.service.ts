@@ -4,6 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { EventEmitter } from 'node:events';
 import {
   createHash,
   randomBytes,
@@ -26,6 +27,8 @@ import {
 
 @Injectable()
 export class AuthService {
+  static readonly presenceChanges = new EventEmitter();
+
   constructor(private readonly prisma: PrismaService) {}
 
   private hashPassword(password: string) {
@@ -592,15 +595,16 @@ export class AuthService {
       throw new UnauthorizedException('E-mail ou senha inválidos');
     }
 
-    if (user.status === UserStatus.PENDING) {
+    if (user.role !== UserRole.COURIER && user.status === UserStatus.PENDING) {
       throw new UnauthorizedException(
         'Cadastro aguardando aprovação administrativa',
       );
     }
 
     if (
-      user.status === UserStatus.BLOCKED ||
-      user.status === UserStatus.SUSPENDED
+      user.role !== UserRole.COURIER &&
+      (user.status === UserStatus.BLOCKED ||
+        user.status === UserStatus.SUSPENDED)
     ) {
       throw new UnauthorizedException('Conta indisponível');
     }
@@ -656,15 +660,16 @@ export class AuthService {
       throw new UnauthorizedException('Sessão inválida ou expirada');
     }
 
-    if (session.user.status === UserStatus.PENDING) {
+    if (session.user.role !== UserRole.COURIER && session.user.status === UserStatus.PENDING) {
       throw new UnauthorizedException(
         'Cadastro aguardando aprovação administrativa',
       );
     }
 
     if (
-      session.user.status === UserStatus.BLOCKED ||
-      session.user.status === UserStatus.SUSPENDED
+      session.user.role !== UserRole.COURIER &&
+      (session.user.status === UserStatus.BLOCKED ||
+        session.user.status === UserStatus.SUSPENDED)
     ) {
       throw new UnauthorizedException('Conta indisponível');
     }
@@ -681,7 +686,12 @@ export class AuthService {
   }
 
   async authenticate(authorization?: string) {
-    return (await this.authenticateSession(authorization)).user;
+    const user = (await this.authenticateSession(authorization)).user;
+    // Restricted couriers may review their account, but never use operational APIs.
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('Conta sem autorização operacional');
+    }
+    return user;
   }
 
   async refresh(
@@ -721,7 +731,7 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token inválido ou expirado');
     }
 
-    if (session.user.status !== UserStatus.ACTIVE) {
+    if (session.user.status !== UserStatus.ACTIVE && session.user.role !== UserRole.COURIER) {
       throw new UnauthorizedException('Conta indisponível');
     }
 
@@ -765,7 +775,8 @@ export class AuthService {
   }
 
   async me(authorization?: string) {
-    return this.publicUser(await this.authenticate(authorization));
+    // Permit identity checks on restricted courier accounts only.
+    return this.publicUser((await this.authenticateSession(authorization)).user);
   }
 
   async sessions(authorization?: string) {
@@ -796,6 +807,40 @@ export class AuthService {
     }));
   }
 
+  private async syncCourierPresenceAfterRevocation(sessionIds: string[]) {
+    if (!sessionIds.length) return;
+    const rows = await (this.prisma as any).courierDevicePresence.findMany({
+      where: { sessionId: { in: sessionIds } },
+      select: { courierId: true },
+    });
+    const courierIds = [...new Set<string>(rows.map((row: any) => String(row.courierId)))];
+    if (!courierIds.length) return;
+    const config = await (this.prisma as any).deliveryPricingConfig.findUnique({
+      where: { id: 'default' }, select: { heartbeatTimeoutSeconds: true },
+    });
+    const now = new Date();
+    const cutoff = new Date(now.getTime() - Math.max(20, Number(config?.heartbeatTimeoutSeconds ?? 45)) * 1000);
+    for (const courierId of courierIds) {
+      const live = await (this.prisma as any).courierDevicePresence.findFirst({
+        where: {
+          courierId, onlineRequested: true, lastHeartbeatAt: { gte: cutoff },
+          session: { is: { revokedAt: null, expiresAt: { gt: now }, refreshExpiresAt: { gt: now } } },
+        },
+        select: { id: true },
+      });
+      if (!live) {
+        await (this.prisma as any).courierProfile.updateMany({
+          where: { id: courierId, presenceStatus: { in: ['AVAILABLE', 'OFFERED'] } },
+          data: { isOnline: false, presenceStatus: 'OFFLINE', availableSince: null },
+        });
+      }
+      AuthService.presenceChanges.emit('changed', {
+        courierId, presenceStatus: live ? 'AVAILABLE' : 'OFFLINE',
+        isOnline: !!live, at: new Date().toISOString(),
+      });
+    }
+  }
+
   async revokeSession(
     sessionId: string,
     authorization?: string,
@@ -824,6 +869,7 @@ export class AuthService {
       }),
     ]);
 
+    await this.syncCourierPresenceAfterRevocation([target.id]);
     return { success: true };
   }
 
@@ -855,6 +901,7 @@ export class AuthService {
       }),
     ]);
 
+    await this.syncCourierPresenceAfterRevocation([session.id]);
     return { success: true };
   }
 
@@ -886,6 +933,7 @@ export class AuthService {
       }),
     ]);
 
+    await this.syncCourierPresenceAfterRevocation(ids);
     return { success: true };
   }
 
