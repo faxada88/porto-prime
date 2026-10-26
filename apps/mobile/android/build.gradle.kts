@@ -25,6 +25,30 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// Google's Play Services Tap & Pay SDK is private and unavailable on Maven.
+// Stripe's optional Issuing push-provisioning artifact exposes it transitively,
+// which AGP 9 unexpectedly resolves during stripe_android release lint.
+// Remove only that unavailable transitive dependency from the published
+// component metadata. Keep all lint tasks and all other Stripe dependencies.
+subprojects {
+    if (name == "stripe_android") {
+        dependencies {
+            components {
+                withModule("com.stripe:stripe-android-issuing-push-provisioning") {
+                    allVariants {
+                        withDependencies {
+                            removeAll {
+                                it.group == "com.google.android.gms" &&
+                                    it.name == "play-services-tapandpay"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 // stripe_android compiles its Java tasks to JVM 17. The Android Studio
 // toolchain can otherwise select JVM 21 for the plugin's Kotlin task and
 // Gradle refuses to combine incompatible bytecode targets. Keep the
