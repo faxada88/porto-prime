@@ -146,13 +146,14 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
             courierId: profile.id,
             onlineRequested: true,
             lastHeartbeatAt: { gte: cutoff },
+            session: { is: { revokedAt: null, expiresAt: { gt: new Date() }, refreshExpiresAt: { gt: new Date() } } },
           },
           select: { id: true },
         });
 
       if (onlineDevice) continue;
 
-      await (this.prisma as any).courierProfile.updateMany({
+      const updated = await (this.prisma as any).courierProfile.updateMany({
         where: {
           id: profile.id,
           presenceStatus: { in: ['AVAILABLE', 'OFFERED'] },
@@ -163,6 +164,11 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
           availableSince: null,
         },
       });
+      if (updated.count) {
+        this.realtime.emitToRole('ADMIN', 'courier.presence', {
+          courierId: profile.id, presenceStatus: 'OFFLINE', isOnline: false, at: new Date().toISOString(),
+        });
+      }
     }
   }
 
@@ -252,6 +258,11 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
         approvalStatus: 'APPROVED',
         presenceStatus: 'AVAILABLE',
         lastHeartbeatAt: { gte: heartbeatCutoff },
+        devicePresences: { some: {
+          onlineRequested: true,
+          lastHeartbeatAt: { gte: heartbeatCutoff },
+          session: { is: { revokedAt: null, expiresAt: { gt: new Date() }, refreshExpiresAt: { gt: new Date() } } },
+        } },
         user: { status: 'ACTIVE' },
         deliveries: {
           none: {
