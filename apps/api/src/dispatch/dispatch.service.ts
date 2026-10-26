@@ -264,6 +264,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
           session: { is: { revokedAt: null, expiresAt: { gt: new Date() }, refreshExpiresAt: { gt: new Date() } } },
         } },
         user: { status: 'ACTIVE' },
+        requirements: { none: { status: { in: ['OPEN', 'ANSWERED'] } } },
         deliveries: {
           none: {
             status: {
