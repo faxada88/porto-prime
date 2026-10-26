@@ -259,11 +259,24 @@ export class OrdersService {
 
   async courierPresence(authorization?: string) {
     const { profile } = await this.courier(authorization);
+    const cfg = await (this.prisma as any).deliveryPricingConfig.findUnique({
+      where: { id: 'default' }, select: { heartbeatTimeoutSeconds: true },
+    });
+    const now = new Date();
+    const cutoff = new Date(now.getTime() - Math.max(20, Number(cfg?.heartbeatTimeoutSeconds ?? 45)) * 1000);
+    const device = await (this.prisma as any).courierDevicePresence.findFirst({
+      where: {
+        courierId: profile.id, onlineRequested: true, lastHeartbeatAt: { gte: cutoff },
+        session: { is: { revokedAt: null, expiresAt: { gt: now }, refreshExpiresAt: { gt: now } } },
+      },
+      select: { id: true },
+    });
+    const isOnline = !!device && ['AVAILABLE', 'OFFERED'].includes(String((profile as any).presenceStatus));
     return {
-      isOnline: profile.isOnline,
-      presenceStatus: (profile as any).presenceStatus ?? 'OFFLINE',
-      lastHeartbeatAt: (profile as any).lastHeartbeatAt ?? null,
-      availableSince: (profile as any).availableSince ?? null,
+      isOnline,
+      presenceStatus: isOnline ? (profile as any).presenceStatus : ((profile as any).presenceStatus === 'DELIVERING' ? 'DELIVERING' : 'OFFLINE'),
+      lastHeartbeatAt: isOnline ? (profile as any).lastHeartbeatAt : null,
+      availableSince: isOnline ? (profile as any).availableSince : null,
       locationUpdatedAt: (profile as any).locationUpdatedAt ?? null,
     };
   }
@@ -379,6 +392,7 @@ export class OrdersService {
             courierId: profile.id,
             onlineRequested: true,
             lastHeartbeatAt: { gte: cutoff },
+            session: { is: { revokedAt: null, expiresAt: { gt: now }, refreshExpiresAt: { gt: now } } },
           },
           select: { id: true, lastHeartbeatAt: true },
         }),
