@@ -1,5 +1,5 @@
+import 'dart:ui' show Tristate;
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porto_prime/core/theme/app_theme.dart';
@@ -135,7 +135,7 @@ void main() {
     await tester.pump();
     expect(capsule(tester).center.dx, closeTo(target(tester, 2).center.dx, .5));
     expect(tester.getSemantics(find.byKey(PrimeAnimatedNavigation.destinationKey(2)))
-      .hasFlag(SemanticsFlag.isSelected), isTrue);
+      .flagsCollection.isSelected, Tristate.isTrue);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
     selected.dispose();
@@ -225,7 +225,9 @@ void main() {
       onHome: () => calls.add(0), onAction: () => calls.add(1), onWallet: () => calls.add(2),
       onHistory: () => calls.add(3), onProfile: () => calls.add(4))));
     await tester.pump();
-    for (var i = 0; i < 5; i++) await tester.tap(find.byKey(PrimeAnimatedNavigation.destinationKey(i)));
+    for (var i = 0; i < 5; i++) {
+      await tester.tap(find.byKey(PrimeAnimatedNavigation.destinationKey(i)));
+    }
     await tester.pump();
     expect(calls, isEmpty);
     expect(capsule(tester).center.dx, closeTo(target(tester, 2).center.dx, .5));

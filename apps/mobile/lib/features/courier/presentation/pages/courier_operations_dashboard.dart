@@ -54,7 +54,7 @@ class CourierWaitingPanel extends StatelessWidget {
                 height: 1.3, letterSpacing: -.5, fontWeight: FontWeight.w800, color: courierInk)),
             if (!online) ...[const SizedBox(height: 8),
             const PrimeText('Fique online para receber novas entregas.',
-              textAlign: TextAlign.center, style: const TextStyle(fontSize: 12.5,
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 12.5,
                 height: 1.6, color: Color(0xFF66818C)))],
           ])),
           const SizedBox(height: 18),
@@ -72,7 +72,7 @@ class _WaitingSummary extends StatelessWidget {
   final VoidCallback onEarnings, onDeliveries;
   @override Widget build(BuildContext context) {
     final value = double.tryParse(summary['earningsToday']?.toString() ?? '');
-    final money = value == null ? '—' : 'R\$ ' + value.toStringAsFixed(2).replaceAll('.', ',');
+    final money = value == null ? '—' : 'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';
     final hours = onlineTime.inHours;
     final minutes = onlineTime.inMinutes.remainder(60);
     final time = hours == 0 ? '$minutes min' : '$hours h $minutes min';
@@ -139,7 +139,7 @@ class _CourierSearchingRadarState extends State<CourierSearchingRadar> with Sing
   @override void didChangeDependencies() {
     super.didChangeDependencies();
     _reduceMotion = MediaQuery.disableAnimationsOf(context);
-    _tickerEnabled = TickerMode.of(context); _sync();
+    _tickerEnabled = TickerMode.valuesOf(context).enabled; _sync();
   }
   @override void didUpdateWidget(covariant CourierSearchingRadar oldWidget) { super.didUpdateWidget(oldWidget); _sync(); }
   @override void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -237,7 +237,7 @@ class CourierUpdatesSheet extends StatelessWidget {
           textAlign: TextAlign.center, style: TextStyle(color: AppColors.muted, height: 1.5)),
       ])),
       Flexible(child: ListView.separated(shrinkWrap: true, itemCount: rows.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
+        separatorBuilder: (_, _) => const Divider(height: 1),
         itemBuilder: (context, i) {
           final row = rows[i], read = readIds.contains(rows[i].id);
           return ListTile(contentPadding: const EdgeInsets.symmetric(vertical: 5),

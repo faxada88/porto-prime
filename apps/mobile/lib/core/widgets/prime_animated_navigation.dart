@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
+import 'package:flutter/semantics.dart' show OrdinalSortKey;
 import 'package:flutter/services.dart';
 import '../localization/prime_localization.dart';
 import '../theme/app_theme.dart';
@@ -109,7 +110,7 @@ class _PrimeAnimatedNavigationState extends State<PrimeAnimatedNavigation>
   @override void didChangeDependencies() {
     super.didChangeDependencies();
     _reduceMotion = MediaQuery.disableAnimationsOf(context);
-    _tickerEnabled = TickerMode.of(context);
+    _tickerEnabled = TickerMode.valuesOf(context).enabled;
     _routeCurrent = ModalRoute.of(context)?.isCurrent ?? true;
     if (!_routeCurrent) {
       _previewValue = null;
