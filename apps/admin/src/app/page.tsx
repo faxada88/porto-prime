@@ -16,7 +16,7 @@ import {
   PackageSearch,
   RefreshCw,
   Search,
-  Settings,
+  Settings as SettingsIcon,
   UserCheck,
   Users,
   Wallet,
@@ -104,7 +104,7 @@ export default function Home(){
   ["Catálogo", PackageSearch],
   ["Pagamentos", CreditCard],
   ["Saques", Wallet],
-  ["Configurações", Settings],
+  ["Configurações", SettingsIcon],
 ];
  return <div className="shell"><aside><div className="logo"><b>P</b><div><strong>PORTO PRIME</strong><span>CENTRAL DE OPERAÇÕES</span></div></div><nav>{nav.map(([n,NavIcon])=><button key={n} className={tab===n?"active":""} onClick={()=>{setTab(n);setSearch("")}}><NavIcon className="navIcon" size={17} strokeWidth={2}/><span>{n}</span>{n==="Aprovações"&&pending.length>0&&<em>{pending.length}</em>}</button>)}</nav><div className="admin"><span>{me.name?.[0]}</span><div><b>{me.name}</b><small>Administrador</small></div><button title="Sair" aria-label="Sair" onClick={async()=>{try{await api("/auth/logout",token,"POST")}catch{}localStorage.removeItem("pp_admin_token");localStorage.removeItem("pp_admin_refresh");localStorage.removeItem("pp_admin_session");location.reload()}}><LogOut size={16}/></button></div></aside>
  <main className="content"><header><div><small>CENTRAL PORTO PRIME</small><h1>{tab}</h1></div><div className="headActions">{tab!=="Visão geral"&&tab!=="Configurações"&&<label className="searchBox"><Search size={16}/><input className="search" aria-label="Buscar" placeholder="Buscar na operação..." value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button type="button" aria-label="Limpar busca" onClick={()=>setSearch("")}><X size={14}/></button>}</label>}<button className="live" title="Clique para sincronizar agora" onClick={()=>load()}><RefreshCw size={14}/><span>Sincronização automática</span>{lastSync&&<small>{lastSync.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}</small>}</button></div></header>{activityNotice&&<div className="activityToast"><b>Nova atividade</b><span>{activityNotice}</span></div>}{error&&<div className="error top">{error}</div>}{busy&&<div className="loading"><span className="loadingSpinner"/><span>Sincronizando dados...</span></div>}
