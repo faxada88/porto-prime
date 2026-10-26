@@ -771,8 +771,7 @@ Future<void> _courierStatus(BuildContext context) async {
                       ),
                     ),
                     const SizedBox(height: 17),
-                    TextField(
-                      controller: response,
+                    TextField(scrollPadding: const EdgeInsets.all(80), controller: response,
                       minLines: 4,
                       maxLines: 7,
                       decoration: PrimeInputDecoration(
@@ -1311,8 +1310,7 @@ class _PremiumFieldState extends State<_PremiumField> {
   bool obscure = true;
 
   @override
-  Widget build(BuildContext context) => TextField(
-        controller: widget.controller,
+  Widget build(BuildContext context) => TextField(scrollPadding: const EdgeInsets.all(80), controller: widget.controller,
         obscureText: widget.secret && obscure,
         keyboardType: widget.keyboardType,
         style: const TextStyle(
@@ -1449,11 +1447,11 @@ class _PrimeSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.viewInsetsOf(context).bottom;
-    final height = MediaQuery.sizeOf(context).height * maxHeightFactor;
+    final height = (MediaQuery.sizeOf(context).height - MediaQuery.viewPaddingOf(context).top) * maxHeightFactor;
 
     return Container(
       constraints: BoxConstraints(maxHeight: height),
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 22 + bottom),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 22),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(34)),
@@ -1461,6 +1459,8 @@ class _PrimeSheet extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SingleChildScrollView(
+          padding: EdgeInsets.only(bottom: bottom),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           physics: const BouncingScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

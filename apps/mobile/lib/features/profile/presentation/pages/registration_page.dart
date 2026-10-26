@@ -415,8 +415,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             : AppColors.lavender;
     return Padding(
     padding: const EdgeInsets.only(bottom: 13),
-    child: TextFormField(
-      controller: ctl(f.key),
+    child: TextFormField(scrollPadding: const EdgeInsets.all(80), controller: ctl(f.key),
       readOnly: courier && f.key == 'name',
       keyboardType: f.keyboard,
       inputFormatters: _formatters(f.format),
@@ -559,7 +558,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           Container(width:42,height:4,decoration:BoxDecoration(color:AppColors.stroke,borderRadius:BorderRadius.circular(8))),
           const SizedBox(height:18),
           Row(children:[Expanded(child:PrimeText(f.label,style:const TextStyle(fontSize:21,fontWeight:AppFontWeight.display))),IconButton(onPressed:()=>Navigator.pop(ctx),icon:const Icon(AppIcons.close_rounded))]),
-          TextField(controller:search,onChanged:(q)=>setSheet(()=>filtered=options.where((x)=>x.toLowerCase().contains(q.toLowerCase())).toList()),
+          TextField(scrollPadding: const EdgeInsets.all(80), controller:search,onChanged:(q)=>setSheet(()=>filtered=options.where((x)=>x.toLowerCase().contains(q.toLowerCase())).toList()),
             decoration:PrimeInputDecoration(hintText:'Pesquisar',prefixIcon:const Icon(AppIcons.search_rounded),filled:true,fillColor:AppColors.surfaceSoft,border:OutlineInputBorder(borderRadius:BorderRadius.circular(AppRadius.md),borderSide:BorderSide.none))),
           const SizedBox(height:10),
           Expanded(child:ListView.separated(itemCount:filtered.length,separatorBuilder:(_,_)=>const Divider(height:1,color:AppColors.stroke),
@@ -976,10 +975,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: FilledButton(
+              ConstrainedBox(constraints: const BoxConstraints(minWidth: double.infinity, minHeight: 52), child: FilledButton(
                   onPressed: () => Navigator.pop(d),
                   child: const PrimeText(
                     'Entendi',
@@ -1068,10 +1064,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: FilledButton(
+              ConstrainedBox(constraints: const BoxConstraints(minWidth: double.infinity, minHeight: 52), child: FilledButton(
                   onPressed: () => Navigator.pop(d),
                   style: FilledButton.styleFrom(
                     shape: RoundedRectangleBorder(

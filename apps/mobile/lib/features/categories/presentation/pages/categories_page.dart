@@ -126,7 +126,7 @@ class _CategoriesPageState extends State<CategoriesPage>{
       slivers:[
        SliverToBoxAdapter(child:_CategoryHero(name:category,iconKey:visual.key,photo:heroUrl,productPhoto:productPhoto)),
        SliverPadding(padding:const EdgeInsets.fromLTRB(16,16,16,0),sliver:SliverToBoxAdapter(child:Row(children:[
-        Expanded(child:TextField(controller:search,onChanged:(_)=>setState((){}),textInputAction:TextInputAction.search,
+        Expanded(child:TextField(scrollPadding: const EdgeInsets.all(80), controller:search,onChanged:(_)=>setState((){}),textInputAction:TextInputAction.search,
          onSubmitted:(_)=>FocusScope.of(context).unfocus(),
          decoration:PrimeInputDecoration(hintText:'Buscar em ${AppLanguage.instance.translate(category)}',
           prefixIcon:const Icon(AppIcons.search,size:23,color:Color(0xFF003E48)),

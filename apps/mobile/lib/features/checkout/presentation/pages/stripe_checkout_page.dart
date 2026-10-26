@@ -437,10 +437,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
                   ],
                 ),
                 const SizedBox(height: 18),
-                SizedBox(
-                  width: double.infinity,
-                  height: 58,
-                  child: FilledButton.icon(
+                ConstrainedBox(constraints: const BoxConstraints(minWidth: double.infinity, minHeight: 58), child: FilledButton.icon(
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.oceanDeep,
                       shape: RoundedRectangleBorder(

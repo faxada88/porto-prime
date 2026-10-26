@@ -73,8 +73,7 @@ class _AuthPageState extends State<AuthPage> {
         PrimeEditorialHeader(title: register ? 'Seu próximo capítulo.' : 'Bem-vindo à Prime.', subtitle: 'Sua conta conecta você aos melhores momentos em Porto Seguro.', icon: AppIcons.user, eyebrow: 'CONTA / PORTO PRIME'),
         const SizedBox(height: 20),
         if (register) ...[
-          TextField(
-            controller: name,
+          TextField(scrollPadding: const EdgeInsets.all(80), controller: name,
             textInputAction: TextInputAction.next,
             decoration: const PrimeInputDecoration(
               labelText: 'Nome completo',
@@ -82,8 +81,7 @@ class _AuthPageState extends State<AuthPage> {
             ),
           ),
           const SizedBox(height: 12),
-          TextField(
-            controller: phone,
+          TextField(scrollPadding: const EdgeInsets.all(80), controller: phone,
             keyboardType: TextInputType.phone,
             decoration: const PrimeInputDecoration(
               labelText: 'Telefone',
@@ -113,8 +111,7 @@ class _AuthPageState extends State<AuthPage> {
           ),
           const SizedBox(height: 12),
           if (role == 'PARTNER') ...[
-            TextField(
-              controller: business,
+            TextField(scrollPadding: const EdgeInsets.all(80), controller: business,
               decoration: const PrimeInputDecoration(
                 labelText: 'Nome do estabelecimento',
                 prefixIcon: Icon(AppIcons.storefront_outlined),
@@ -123,8 +120,7 @@ class _AuthPageState extends State<AuthPage> {
             const SizedBox(height: 12),
           ],
           if (role != 'CUSTOMER') ...[
-            TextField(
-              controller: document,
+            TextField(scrollPadding: const EdgeInsets.all(80), controller: document,
               decoration: PrimeInputDecoration(
                 labelText: role == 'COURIER'
                     ? 'Documento do motoboy'
@@ -135,8 +131,7 @@ class _AuthPageState extends State<AuthPage> {
             const SizedBox(height: 12),
           ],
         ],
-        TextField(
-          controller: email,
+        TextField(scrollPadding: const EdgeInsets.all(80), controller: email,
           keyboardType: TextInputType.emailAddress,
           autocorrect: false,
           decoration: const PrimeInputDecoration(
@@ -145,8 +140,7 @@ class _AuthPageState extends State<AuthPage> {
           ),
         ),
         const SizedBox(height: 12),
-        TextField(
-          controller: password,
+        TextField(scrollPadding: const EdgeInsets.all(80), controller: password,
           obscureText: true,
           decoration: const PrimeInputDecoration(
             labelText: 'Senha',

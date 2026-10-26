@@ -2,6 +2,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:country_picker/country_picker.dart';
 import 'core/localization/prime_localization.dart';
 import 'package:flutter/material.dart';
+import 'core/widgets/prime_safe_viewport.dart';
 
 import 'core/navigation/app_nav.dart';
 import 'core/network/api_client.dart';
@@ -26,7 +27,7 @@ class PortoPrimeApp extends StatelessWidget {
     supportedLocales: AppLanguage.supported,
     localizationsDelegates: [CountryLocalizations.delegate, ...GlobalMaterialLocalizations.delegates],
     debugShowCheckedModeBanner: false,
-    builder: (context, child) => SafeArea(top: false, bottom: false, child: child ?? const SizedBox.shrink()),
+    builder: (context, child) => PrimeSafeViewport(child: child ?? const SizedBox.shrink()),
     title: 'Porto Prime',
     theme: AppTheme.light,
     navigatorKey: AppNav.instance.rootNavigatorKey,

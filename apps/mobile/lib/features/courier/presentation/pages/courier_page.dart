@@ -269,8 +269,7 @@ class _CourierPageState extends State<CourierPage> {
                   ),
                 ),
                 const SizedBox(height: 18),
-                TextField(
-                  controller: pin,
+                TextField(scrollPadding: const EdgeInsets.all(80), controller: pin,
                   autofocus: true,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
@@ -528,8 +527,7 @@ class _CourierPageState extends State<CourierPage> {
                     ),
                   ),
                   const SizedBox(height: 15),
-                  TextField(
-                    controller: controller,
+                  TextField(scrollPadding: const EdgeInsets.all(80), controller: controller,
                     enabled: !loading,
                     autofocus: true,
                     keyboardType:
@@ -548,7 +546,7 @@ class _CourierPageState extends State<CourierPage> {
                     onChanged: loading ? null : (value) => setDialogState(() => pixType = value),
                   ),
                   const SizedBox(height: 12),
-                  TextField(controller: pixController, enabled: !loading, decoration: const PrimeInputDecoration(labelText: 'Chave PIX de recebimento', helperText: 'Confira a chave antes de solicitar o saque.')),
+                  TextField(scrollPadding: const EdgeInsets.all(80), controller: pixController, enabled: !loading, decoration: const PrimeInputDecoration(labelText: 'Chave PIX de recebimento', helperText: 'Confira a chave antes de solicitar o saque.')),
                   if (error != null) ...[
                     const SizedBox(height: 10),
                     Container(

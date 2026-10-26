@@ -26,7 +26,7 @@ class _RegistrationPlaceSearchState extends State<RegistrationPlaceSearch>{
   });
  }
  @override Widget build(BuildContext context)=>Padding(padding:const EdgeInsets.only(bottom:20),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
-  TextField(controller:controller,onChanged:search,decoration:PrimeInputDecoration(
+  TextField(scrollPadding: const EdgeInsets.all(80), controller:controller,onChanged:search,decoration:PrimeInputDecoration(
    labelText:'Onde vamos entregar?',hintText:'Hotel, pousada, rua ou estabelecimento',prefixIcon:const Icon(Icons.search_rounded),
    suffixIcon:loading?const Padding(padding:EdgeInsets.all(16),child:SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2))):null)),
   const SizedBox(height:8),const PrimeText('Digite a rua, hotel ou estabelecimento e escolha seu endereço nas sugestões.',style:TextStyle(fontSize:12,height:1.5,color:AppColors.inkSoft)),
