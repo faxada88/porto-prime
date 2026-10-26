@@ -42,6 +42,10 @@ class AppState extends ChangeNotifier {
   bool get loggedIn=>user!=null;
   bool get isCustomer=>user?['role']=='CUSTOMER';
   bool get isCourier=>user?['role']=='COURIER';
+  bool get courierAccountRestricted => isCourier &&
+      (user?['status'] != 'ACTIVE' ||
+       (courierProfile.isNotEmpty &&
+        (courierProfile['approvalStatus'] != 'APPROVED' || courierProfile['canDeliver'] == false)));
   int get cartCount=>cart.values.fold(0,(a,b)=>a+b);
   double get cartSubtotal=>cart.entries.fold(0,(sum,e){final p=product(e.key);return sum+(p==null?0:(double.tryParse(p['price'].toString())??0)*e.value);});
 
@@ -115,7 +119,10 @@ class AppState extends ChangeNotifier {
             event == 'delivery.offer.closed' ||
             event == 'delivery.accepted' ||
             event == 'order.updated' ||
-            event == 'courier.presence')) {
+            event == 'courier.presence' ||
+             event == 'courier.account.updated' ||
+             event == 'courier.requirement.created' ||
+             event == 'courier.requirement.answered')) {
       Future<void>(() async {
         try {
           await refreshCourier();
@@ -202,6 +209,16 @@ class AppState extends ChangeNotifier {
         body: {'document': document},
       ),
     );
+  }
+
+  Future<void> respondCourierRequirement(String requirementId, String response) async {
+    if (!isCourier) throw Exception('Acesso exclusivo para motoboy');
+    await api.request(
+      'POST',
+      '/couriers/requirements/$requirementId/respond',
+      body: {'response': response.trim()},
+    );
+    await refreshCourier();
   }
 
   Future<Map<String,dynamic>> respondCourierApplicationRequirement(
@@ -388,31 +405,43 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> _refreshCourierOnce() async {
-    if(!isCourier)return;
+    if (!isCourier) return;
 
-    final results=await Future.wait([
-      api.request('GET','/orders/courier/presence'),
-      api.request('GET','/orders/courier/current'),
-      api.request('GET','/orders/courier/available'),
-      api.request('GET','/wallet/summary'),
-      api.request('GET','/orders/courier/history'),
-      api.request('GET','/couriers/application/me'),
+    // Pending, blocked and suspended couriers may consult their status, but
+    // operational endpoints remain unavailable until approval.
+    final profile = Map<String,dynamic>.from(
+      await api.request('GET', '/couriers/application/me') as Map,
+    );
+    courierProfile = profile;
+    if (user != null && profile['userStatus'] != null) {
+      user = {...user!, 'status': profile['userStatus']};
+    }
+    if (courierAccountRestricted) {
+      courierOnline = false;
+      courierPresenceStatus = 'OFFLINE';
+      courierOffers = [];
+      courierDelivery = null;
+      notifyListeners();
+      return;
+    }
+
+    final results = await Future.wait([
+      api.request('GET', '/orders/courier/presence'),
+      api.request('GET', '/orders/courier/current'),
+      api.request('GET', '/orders/courier/available'),
+      api.request('GET', '/wallet/summary'),
+      api.request('GET', '/orders/courier/history'),
     ]);
-
-    final presence=Map<String,dynamic>.from(results[0] as Map);
-    courierPresenceStatus=(presence['presenceStatus']??'OFFLINE').toString();
-    courierOnline=presence['isOnline']==true ||
-        courierPresenceStatus=='AVAILABLE' ||
-        courierPresenceStatus=='OFFERED';
-
-    final current=results[1];
-    courierDelivery=current==null
-        ?null
-        :Map<String,dynamic>.from(current as Map);
-    courierOffers=List<dynamic>.from(results[2] as List);
-    walletSummary=Map<String,dynamic>.from(results[3] as Map);
-    courierHistory=List<dynamic>.from(results[4] as List);
-    courierProfile=Map<String,dynamic>.from(results[5] as Map);
+    final presence = Map<String,dynamic>.from(results[0] as Map);
+    courierPresenceStatus = (presence['presenceStatus'] ?? 'OFFLINE').toString();
+    courierOnline = presence['isOnline'] == true ||
+        courierPresenceStatus == 'AVAILABLE' ||
+        courierPresenceStatus == 'OFFERED';
+    final current = results[1];
+    courierDelivery = current == null ? null : Map<String,dynamic>.from(current as Map);
+    courierOffers = List<dynamic>.from(results[2] as List);
+    walletSummary = Map<String,dynamic>.from(results[3] as Map);
+    courierHistory = List<dynamic>.from(results[4] as List);
     notifyListeners();
   }
 
@@ -420,7 +449,7 @@ class AppState extends ChangeNotifier {
     double? latitude,
     double? longitude,
   }) async {
-    if(!isCourier)return;
+    if(!isCourier || courierAccountRestricted)return;
     final result=Map<String,dynamic>.from(
       await api.request(
         'PATCH',
@@ -445,6 +474,7 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> setCourierOnline(bool online) async {
+    if (courierAccountRestricted) throw Exception('Regularize sua conta antes de ficar online');
     final result=Map<String,dynamic>.from(
       await api.request(
         'PATCH',
