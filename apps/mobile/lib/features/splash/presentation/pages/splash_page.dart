@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/network/api_client.dart';
 import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/app_shell.dart';
@@ -26,19 +27,38 @@ class _SplashPageState extends State<SplashPage>
   }
 
   Future<void> _go() async {
-    await Future.wait([
-      AppState.instance.bootstrap(),
-      Future.delayed(const Duration(milliseconds: 1900)),
-    ]);
-    if (mounted)
+    // Never hold Android's native splash while reading local preferences.
+    // Keep session restore before loading the authenticated home.
+    final minimumDisplay = Future<void>.delayed(
+      const Duration(milliseconds: 1900),
+    );
+
+    try {
+      await ApiClient.instance.initialize().timeout(
+        const Duration(seconds: 8),
+      );
+      await AppState.instance.bootstrap().timeout(
+        const Duration(seconds: 24),
+      );
+    } catch (error, stackTrace) {
+      // The app must remain usable even if the backend or startup fails.
+      // Keep the error in the console for troubleshooting; bootstrap and
+      // networking continue to own their own authentication rules.
+      debugPrint('Porto Prime: startup failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    } finally {
+      await minimumDisplay;
+      if (!mounted) return;
+
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (_, _, _) => const AppShell(),
           transitionDuration: const Duration(milliseconds: 650),
-          transitionsBuilder: (_, a, _, child) =>
-              FadeTransition(opacity: a, child: child),
+          transitionsBuilder: (_, animation, _, child) =>
+              FadeTransition(opacity: animation, child: child),
         ),
       );
+    }
   }
 
   @override
