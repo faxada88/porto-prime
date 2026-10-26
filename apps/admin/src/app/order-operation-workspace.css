@@ -566,3 +566,355 @@
 @media(prefers-reduced-motion:reduce){
  .orderWorkspaceBackdropV5 *{scroll-behavior:auto;transition:none!important}
 }
+
+/* PORTO PRIME V6 — guided order inspector */
+.shell .orderWorkspaceBackdropV5 {
+  position:fixed; inset:0; z-index:1900;
+  display:flex; justify-content:flex-end; align-items:stretch;
+  padding:12px;
+  background:rgba(9,27,43,.32);
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+}
+.shell .orderWorkspaceBackdropV5 .orderWorkspaceV5{
+  display:flex; flex-direction:column; flex:0 1 auto;
+  width:min(890px,calc(100vw - 260px));
+  max-width:100%;
+  height:calc(100dvh - 24px);max-height:calc(100dvh - 24px);
+  min-height:0; overflow:hidden; isolation:isolate;
+  margin:0; border-radius:24px; border:1px solid #d9e7e8;
+  background:#f6f9fa; color:#1d3e4e;
+  box-shadow:0 36px 95px rgba(6,27,43,.25),0 3px 14px rgba(6,27,43,.07);
+}
+.shell .orderWorkspaceBackdropV5 .owHeader{
+  position:relative;display:flex;flex:0 0 auto;align-items:center;flex-wrap:nowrap;
+  min-height:103px; gap:13px; margin:0; padding:20px 25px;
+  background:#fff; color:#1a3b49;
+  border:0; border-bottom:1px solid #e3eced;box-shadow:none;
+}
+.shell .orderWorkspaceBackdropV5 .owHeader::before{
+  content:"";position:absolute;inset:0 0 auto;height:4px;
+  background:linear-gradient(90deg,#086e68,#24a697 60%,#e6bb67);
+}
+.shell .orderWorkspaceBackdropV5 .owMark{
+  width:44px;height:44px;flex:0 0 44px;
+  border:1px solid #cee9e3;border-radius:13px;
+  color:#087d70;background:#eaf7f3;
+}
+.shell .orderWorkspaceBackdropV5 .owTitle{flex:1;min-width:0}
+.shell .orderWorkspaceBackdropV5 .owTitle>span{
+  display:block;font-size:9px;font-weight:850;letter-spacing:.15em;color:#21867a;
+}
+.shell .orderWorkspaceBackdropV5 .owTitle h2{
+  margin:5px 0 3px;font-size:clamp(20px,2vw,26px);
+  font-weight:850;letter-spacing:-.055em;line-height:1.14;color:#19394a;
+  overflow-wrap:anywhere;
+}
+.shell .orderWorkspaceBackdropV5 .owTitle p{
+  margin:0;font-size:11px;line-height:1.5;color:#7d93a0;
+}
+.shell .orderWorkspaceBackdropV5 .owState{
+  flex:0 0 auto;max-width:160px;padding:9px 12px;
+  border:1px solid #d1eee2;border-radius:100px;
+  background:#eaf8f1;color:#147760;line-height:1.35;
+  white-space:normal;text-align:center;font-size:10px;font-weight:850;
+}
+.shell .orderWorkspaceBackdropV5 .owState.stateCONFIRMED,
+.shell .orderWorkspaceBackdropV5 .owState.statePREPARING,
+.shell .orderWorkspaceBackdropV5 .owState.stateREADY_FOR_PICKUP{
+  background:#fff2d9;border-color:#f8e4bd;color:#91600d;
+}
+.shell .orderWorkspaceBackdropV5 .owState.stateCANCELED{background:#fff0ee;border-color:#f5d9d5;color:#a64b49}
+.shell .orderWorkspaceBackdropV5 .owClose{
+  flex:0 0 36px; width:36px;height:36px;min-width:36px;min-height:36px;
+  background:#f5f8fa;border:1px solid #e1eaef;color:#537183;
+  border-radius:11px;
+}
+.shell .orderWorkspaceBackdropV5 .owClose:hover{background:#e8f2f1;color:#0d6a65}
+.shell .orderWorkspaceBackdropV5 .owJourney{
+  display:flex;flex:0 0 auto;gap:6px;align-items:center;justify-content:space-between;
+  min-height:69px;margin:0;padding:12px 24px;
+  border-bottom:1px solid #e4ecef;background:#fff;
+  overflow-x:auto;scrollbar-width:thin;
+}
+.shell .orderWorkspaceBackdropV5 .owJourney>span{
+  flex:0 0 auto;display:flex;flex-direction:column;align-items:center;
+  text-align:center;gap:6px;min-width:106px;
+  color:#97a9b5;font-size:10px;font-weight:730;
+  white-space:normal;line-height:1.25;
+}
+.shell .orderWorkspaceBackdropV5 .owJourney>span:not(:last-child)::after{display:none}
+.shell .orderWorkspaceBackdropV5 .owJourney i{
+  width:25px;height:25px;flex:0 0 25px;
+  color:#91a5b1;background:#f3f6f8;border:1px solid #e4ecef;
+  font-weight:850;font-size:10px;border-radius:50%;
+}
+.shell .orderWorkspaceBackdropV5 .owJourney .isDone{color:#20846f}
+.shell .orderWorkspaceBackdropV5 .owJourney .isDone i{color:#157e66;background:#e4f6ed;border-color:#cfebdb}
+.shell .orderWorkspaceBackdropV5 .owJourney .isCurrent{color:#066d63}
+.shell .orderWorkspaceBackdropV5 .owJourney .isCurrent i{
+  color:#fff;background:#0a8375;border-color:#0a8375;
+  box-shadow:0 0 0 4px #e7f6f0;
+}
+.shell .orderWorkspaceBackdropV5 .owQuickFacts{
+  flex:0 0 auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  padding:0 24px;margin:0;background:#fafcfc;border-bottom:1px solid #e5ecef;
+}
+.shell .orderWorkspaceBackdropV5 .owQuickFact{padding:12px 14px 12px 0;gap:4px}
+.shell .orderWorkspaceBackdropV5 .owQuickFact+.owQuickFact{
+  border-left:1px solid #e1e9eb;padding-left:17px;
+}
+.shell .orderWorkspaceBackdropV5 .owQuickFact span{font-size:10px;font-weight:750;color:#80949e}
+.shell .orderWorkspaceBackdropV5 .owQuickFact span svg{color:#168a79}
+.shell .orderWorkspaceBackdropV5 .owQuickFact strong{
+  font-size:13px;font-weight:850;color:#1f4251;overflow-wrap:anywhere;
+}
+.shell .orderWorkspaceBackdropV5 .owTabs{
+  display:flex;align-items:center;gap:5px;flex:0 0 auto;
+  min-height:45px; margin:0;padding:6px 23px;
+  background:#fff;border-bottom:1px solid #e6ecee;overflow-x:auto;
+  border-radius:0;box-shadow:none;
+}
+.shell .orderWorkspaceBackdropV5 .owTabs button{
+  display:flex;align-items:center;justify-content:center;
+  flex:0 0 auto;min-height:30px;
+  padding:6px 13px;margin:0;
+  border:1px solid transparent;border-radius:9px;
+  background:transparent;color:#577482;
+  font-size:11px;font-weight:750;white-space:nowrap;
+}
+.shell .orderWorkspaceBackdropV5 .owTabs button:hover,
+.shell .orderWorkspaceBackdropV5 .owTabs button:focus-visible{
+  border-color:#cde7df;background:#edf7f3;color:#086d62;
+}
+.shell .orderWorkspaceBackdropV5 .owScroll{
+  flex:1 1 0;min-height:0;max-height:none;width:100%;
+  overflow:auto;overscroll-behavior:contain;
+  padding:17px 20px 22px;
+  background:#f6f9fa;scrollbar-width:thin;scrollbar-color:#c7d9dd transparent;
+}
+.shell .orderWorkspaceBackdropV5 .owLayout{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);
+  align-items:start;gap:13px;min-width:0;
+}
+.shell .orderWorkspaceBackdropV5 .owMain,
+.shell .orderWorkspaceBackdropV5 .owAside{
+  display:grid;grid-template-columns:minmax(0,1fr);
+  align-items:start;align-content:start;
+  gap:13px;min-width:0;margin:0;
+}
+.shell .orderWorkspaceBackdropV5 .owSection{
+  display:block;min-width:0;width:100%;
+  padding:19px;border:1px solid #e0e8ec;border-radius:16px;
+  background:#fff;box-shadow:0 3px 12px rgba(22,60,76,.035);
+  overflow:visible;
+}
+.shell .orderWorkspaceBackdropV5 .owSection>header{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  min-height:0; margin:0 0 14px;padding:0 0 13px;
+  border:0;border-bottom:1px solid #edf2f3;gap:10px;flex-wrap:wrap;
+  background:transparent;box-shadow:none;
+}
+.shell .orderWorkspaceBackdropV5 .owEyebrow{
+  color:#178576;font-size:9px;font-weight:850;letter-spacing:.12em;
+}
+.shell .orderWorkspaceBackdropV5 .owSection h3{
+  display:flex;align-items:center;gap:8px;
+  margin:5px 0 0;font-size:14px;font-weight:850;letter-spacing:-.025em;
+  color:#1a3e4f;line-height:1.35;
+}
+.shell .orderWorkspaceBackdropV5 .owSection h3 svg{color:#0c8578;flex:0 0 auto}
+.shell .orderWorkspaceBackdropV5 .owSection>header p{margin:5px 0 0;font-size:10px;color:#8295a1}
+.shell .orderWorkspaceBackdropV5 .owQuantity{
+  padding:7px 10px;background:#edf6f3;color:#277865;
+  font-weight:820;font-size:10px;border-radius:999px;
+}
+.shell .orderWorkspaceBackdropV5 .owSection>b{
+  display:block;line-height:1.5;font-size:13px;font-weight:820;color:#244253;
+  overflow-wrap:anywhere;
+}
+.shell .orderWorkspaceBackdropV5 .owSection>p{
+  display:flex;align-items:center;gap:8px;
+  margin:7px 0 0;font-size:11px;color:#7c909c;
+  line-height:1.5;overflow-wrap:anywhere;
+}
+.shell .orderWorkspaceBackdropV5 .owSection>p.owInline svg{flex:0 0 auto;color:#13877a}
+.shell .orderWorkspaceBackdropV5 .owReference{
+  padding:12px;border:1px solid #e2eced;border-radius:11px;
+  background:#f5f9f9;color:#526e7b;font-size:11px;line-height:1.6;
+  overflow-wrap:anywhere;
+}
+.shell .orderWorkspaceBackdropV5 .owProducts .availabilityEditor{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:0}
+.shell .orderWorkspaceBackdropV5 .owProducts .availabilityItem{
+  padding:13px;border:1px solid #e5ecf0;border-radius:12px;background:#f9fbfc;
+}
+.shell .orderWorkspaceBackdropV5 .owProducts .availabilityItemHeading{
+  display:flex;gap:10px;align-items:flex-start;min-width:0;
+}
+.shell .orderWorkspaceBackdropV5 .owProducts .availabilityItemHeading>div{min-width:0}
+.shell .orderWorkspaceBackdropV5 .owProducts .availabilityItemHeading strong{
+  font-size:13px;line-height:1.4;font-weight:820;overflow-wrap:anywhere;color:#214353;
+}
+.shell .orderWorkspaceBackdropV5 .owProducts .availabilityItemHeading>b{
+  flex:0 0 auto;color:#1b4a59;font-size:13px;font-weight:850;
+  font-variant-numeric:tabular-nums;
+}
+.shell .orderWorkspaceBackdropV5 .owProducts .availabilityActions button{
+  background:#fff;border:1px solid #d9e7e9;border-radius:10px;
+  color:#226273;font-size:10px;font-weight:780;
+  min-height:36px;padding:8px 10px;white-space:normal;text-align:left;
+}
+.shell .orderWorkspaceBackdropV5 .owPayment{
+  font-size:9px;line-height:1.4;font-weight:830;
+  padding:6px 9px;border-radius:999px;
+  max-width:100%;color:#526e7b;background:#eff4f5;
+}
+.shell .orderWorkspaceBackdropV5 .owPayment.isPaid{color:#176e57;background:#e4f6ec}
+.shell .orderWorkspaceBackdropV5 dl.owTotals{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  grid-auto-flow:row!important;gap:0!important;
+  width:100%;margin:0!important;padding:0!important;
+}
+.shell .orderWorkspaceBackdropV5 dl.owTotals>div{
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;gap:8px!important;
+  padding:9px 0!important;margin:0!important;
+  border-bottom:1px solid #eef3f3!important;
+  min-width:0;width:100%;
+}
+.shell .orderWorkspaceBackdropV5 dl.owTotals dt{
+  margin:0!important;color:#748c97;font-size:11px;
+  line-height:1.4;overflow-wrap:anywhere;font-weight:500;
+}
+.shell .orderWorkspaceBackdropV5 dl.owTotals dd{
+  margin:0!important;min-width:0;text-align:right;
+  color:#234655;font-size:11px;font-weight:830;
+  white-space:nowrap;font-variant-numeric:tabular-nums;
+}
+.shell .orderWorkspaceBackdropV5 .owGrandTotal{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-top:14px;padding:13px 14px;border-radius:11px;
+  background:#eaf6f2;border:1px solid #cfe8de;
+  color:#145e56;
+}
+.shell .orderWorkspaceBackdropV5 .owGrandTotal span{font-size:11px;font-weight:790}
+.shell .orderWorkspaceBackdropV5 .owGrandTotal strong{font-size:17px;font-weight:900;font-variant-numeric:tabular-nums}
+.shell .orderWorkspaceBackdropV5 .owDispatch{border-radius:10px;margin:10px 0;background:#ecf8f1;border-color:#d5eee3}
+.shell .orderWorkspaceBackdropV5 .owSection>.owSecondary{
+  width:100%;margin-top:14px;min-height:38px;
+  background:#f3f9f8;border-color:#daeae5;color:#13766a;
+  font-size:11px;font-weight:790;
+}
+.shell .orderWorkspaceBackdropV5 .owAdminTools{
+  padding:14px 16px;border:1px dashed #d7e2e6;border-radius:13px;
+  background:#fff;
+}
+.shell .orderWorkspaceBackdropV5 .owAdminTools summary{
+  font-size:11px;font-weight:790;color:#647e8b;min-height:22px;
+}
+.shell .orderWorkspaceBackdropV5 .owFooter{
+  flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  padding:15px 24px;margin:0;gap:14px;min-height:84px;
+  background:#fff;border:0;border-top:1px solid #e1e9ec;
+  box-shadow:0 -7px 16px rgba(15,48,64,.035);
+}
+.shell .orderWorkspaceBackdropV5 .owFooterNote{flex:1;min-width:0}
+.shell .orderWorkspaceBackdropV5 .owFooterNote b{color:#224553;font-size:12px;font-weight:850}
+.shell .orderWorkspaceBackdropV5 .owFooterNote p{
+  margin:5px 0 0;font-size:10px;line-height:1.5;
+  color:#7a919d;max-width:360px;
+}
+.shell .orderWorkspaceBackdropV5 .owFooterActions{
+  display:flex;align-items:flex-end;justify-content:flex-end;
+  gap:9px;flex:0 0 auto;
+}
+.shell .orderWorkspaceBackdropV5 .owFooterActions label{
+  display:grid;gap:5px;min-width:0;
+}
+.shell .orderWorkspaceBackdropV5 .owFooterActions label>span{font-size:9px;color:#7b919e;font-weight:760}
+.shell .orderWorkspaceBackdropV5 .owFooterActions select{
+  height:42px;width:145px;max-width:100%;
+  border:1px solid #dce7ea;border-radius:10px;
+  background:#f6f8f9;color:#265262;
+  padding:0 9px;font-size:10px;font-weight:760;
+}
+.shell .orderWorkspaceBackdropV5 .owPrimary{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  min-height:42px;padding:11px 15px;
+  border:1px solid #07645b;border-radius:10px;
+  background:linear-gradient(135deg,#087f72,#04665d);
+  color:#fff;font-size:11px;font-weight:840;
+  box-shadow:0 5px 15px rgba(10,108,92,.19);
+}
+.shell .orderWorkspaceBackdropV5 .owPrimary:hover:not(:disabled){background:linear-gradient(135deg,#079584,#057568)}
+.shell .orderWorkspaceBackdropV5 .owFooterActions .owSecondary{
+  display:flex;align-items:center;justify-content:center;
+  min-height:42px;border-radius:10px;
+}
+.shell .orderWorkspaceBackdropV5 :is(.owClose,.owTabs button,.owOpen,select,.owPrimary):focus-visible{
+  outline:3px solid #56c3a7;outline-offset:2px;
+}
+@media(max-width:1300px){
+ .shell .orderWorkspaceBackdropV5 .orderWorkspaceV5{width:min(870px,calc(100vw - 165px))}
+}
+@media(max-width:1040px){
+ .shell .orderWorkspaceBackdropV5 .orderWorkspaceV5{width:min(830px,calc(100vw - 65px))}
+ .shell .orderWorkspaceBackdropV5 .owJourney>span{min-width:104px}
+}
+@media(max-width:860px){
+ .shell .orderWorkspaceBackdropV5{padding:0;background:rgba(9,27,43,.72)}
+ .shell .orderWorkspaceBackdropV5 .orderWorkspaceV5{
+  width:100%;height:100dvh;max-height:100dvh;border-radius:0;border:0;
+ }
+ .shell .orderWorkspaceBackdropV5 .owScroll{padding:14px}
+ .shell .orderWorkspaceBackdropV5 .owLayout{grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:12px}
+ .shell .orderWorkspaceBackdropV5 .owHeader{padding:17px 19px}
+ .shell .orderWorkspaceBackdropV5 .owFooter{padding:12px 18px}
+}
+@media(max-width:680px){
+ .shell .orderWorkspaceBackdropV5 .owHeader{min-height:85px;gap:8px;padding:16px 13px;flex-wrap:nowrap}
+ .shell .orderWorkspaceBackdropV5 .owTitle h2{font-size:19px}
+ .shell .orderWorkspaceBackdropV5 .owTitle>span{font-size:8px}
+ .shell .orderWorkspaceBackdropV5 .owTitle p{font-size:10px}
+ .shell .orderWorkspaceBackdropV5 .owMark{width:35px;height:35px;flex-basis:35px;border-radius:10px}
+ .shell .orderWorkspaceBackdropV5 .owState{order:0;margin:0;max-width:105px;font-size:9px;padding:7px}
+ .shell .orderWorkspaceBackdropV5 .owClose{margin:0}
+ .shell .orderWorkspaceBackdropV5 .owJourney{padding:10px 12px;min-height:60px}
+ .shell .orderWorkspaceBackdropV5 .owJourney>span{min-width:98px}
+ .shell .orderWorkspaceBackdropV5 .owQuickFacts{padding:0 12px}
+ .shell .orderWorkspaceBackdropV5 .owQuickFact{padding:10px 7px 10px 0}
+ .shell .orderWorkspaceBackdropV5 .owQuickFact+.owQuickFact{padding-left:9px}
+ .shell .orderWorkspaceBackdropV5 .owQuickFact strong{font-size:11px}
+ .shell .orderWorkspaceBackdropV5 .owQuickFact span{font-size:9px}
+ .shell .orderWorkspaceBackdropV5 .owTabs{padding:6px 11px}
+ .shell .orderWorkspaceBackdropV5 .owLayout{grid-template-columns:minmax(0,1fr)}
+ .shell .orderWorkspaceBackdropV5 .owMain{order:0}
+ .shell .orderWorkspaceBackdropV5 .owAside{order:1;grid-template-columns:minmax(0,1fr)}
+ .shell .orderWorkspaceBackdropV5 .owScroll{padding:12px}
+ .shell .orderWorkspaceBackdropV5 .owSection{padding:15px}
+ .shell .orderWorkspaceBackdropV5 .owFooter{
+  flex-direction:column;align-items:stretch;gap:7px;
+  padding:11px 13px calc(11px + env(safe-area-inset-bottom));
+ }
+ .shell .orderWorkspaceBackdropV5 .owFooterNote p{display:none}
+ .shell .orderWorkspaceBackdropV5 .owFooterActions{display:flex;width:100%;gap:8px}
+ .shell .orderWorkspaceBackdropV5 .owFooterActions label{flex:1}
+ .shell .orderWorkspaceBackdropV5 .owFooterActions select{width:100%}
+ .shell .orderWorkspaceBackdropV5 .owFooterActions>button{flex:1}
+}
+@media(max-width:410px){
+ .shell .orderWorkspaceBackdropV5 .owHeader{gap:6px}
+ .shell .orderWorkspaceBackdropV5 .owMark{display:none}
+ .shell .orderWorkspaceBackdropV5 .owState{max-width:90px}
+ .shell .orderWorkspaceBackdropV5 .owQuickFacts{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .shell .orderWorkspaceBackdropV5 .owQuickFact:nth-child(3){
+  grid-column:1/-1;border-top:1px solid #e1e9eb;border-left:0;
+  padding:9px 0;
+ }
+ .shell .orderWorkspaceBackdropV5 .owFooterActions{flex-direction:column;align-items:stretch}
+ .shell .orderWorkspaceBackdropV5 .owFooterActions label,
+ .shell .orderWorkspaceBackdropV5 .owFooterActions>button{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ .shell .orderWorkspaceBackdropV5 *{scroll-behavior:auto;animation:none!important;transition:none!important}
+}
