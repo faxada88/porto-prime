@@ -145,6 +145,7 @@ abstract final class AppIcons {
   static const numbers_rounded = badge;
   static const map_rounded = mapPin;
   static const local_post_office_rounded = mail;
+  static const local_post_office_outlined = mail;
   static const cake_outlined = calendar;
   static const phone_outlined = phone;
   static const business_outlined = building;
@@ -157,6 +158,7 @@ abstract final class AppIcons {
   static const account_balance_wallet_outlined = wallet;
   static const work_outline_rounded = briefcase;
   static const credit_card_outlined = creditCard;
+  static const credit_card_rounded = creditCard;
   static const event_available_outlined = calendar;
   static const commute_rounded = bike;
   static const calendar_today_outlined = calendar;
