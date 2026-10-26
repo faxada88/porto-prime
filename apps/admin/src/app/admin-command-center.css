@@ -772,3 +772,520 @@ body{background:var(--pp-canvas);color:var(--pp-ink)}
 @media(prefers-reduced-motion:reduce){
  .shell .orderOperationsV5 .opRow{transition:none}
 }
+
+/* PORTO PRIME V7 — orders visual replica, scoped strictly to orders tab */
+@supports selector(:has(*)){
+ .shell:has(.ppOrders2026){
+  --pp-sidebar:240px;
+  background:#fff;
+ }
+ .shell:has(.ppOrders2026)>aside{
+  background:#fff;color:#273f51;
+  border-right:1px solid #e7edf2;
+  box-shadow:0 2px 18px rgba(18,46,60,.025);
+ }
+ .shell:has(.ppOrders2026)>aside .logo{border-bottom-color:#e9eef0}
+ .shell:has(.ppOrders2026)>aside .logo>b{
+  background:linear-gradient(145deg,#12b897,#047b71);
+  border-radius:12px;color:#fff;box-shadow:none;
+ }
+ .shell:has(.ppOrders2026)>aside .logo strong{color:#122432}
+ .shell:has(.ppOrders2026)>aside .logo span{color:#8d9cab}
+ .shell:has(.ppOrders2026)>aside .navGroupLabel{color:#9cabb8}
+ .shell:has(.ppOrders2026)>aside nav button{
+  color:#526a80;background:transparent;
+  border-color:transparent;border-radius:11px;
+ }
+ .shell:has(.ppOrders2026)>aside nav button .navIcon{color:#647f91}
+ .shell:has(.ppOrders2026)>aside nav button:hover{
+  background:#f2f8f6;color:#076f65;
+ }
+ .shell:has(.ppOrders2026)>aside nav button.active{
+  background:#e1f4ec;border-color:transparent;
+  color:#086d60;box-shadow:none;
+ }
+ .shell:has(.ppOrders2026)>aside nav button.active .navIcon{color:#087a70}
+ .shell:has(.ppOrders2026)>aside .admin{
+  border-top:1px solid #e9eef0;
+ }
+ .shell:has(.ppOrders2026)>aside .admin>span{
+  background:#e5f4ee;border-color:#d1e9dd;color:#126f62;
+ }
+ .shell:has(.ppOrders2026)>aside .admin b{color:#2d4859}
+ .shell:has(.ppOrders2026)>aside .admin small{color:#8298a4}
+ .shell:has(.ppOrders2026)>aside .admin button{color:#617b88}
+ .shell:has(.ppOrders2026)>aside .admin button:hover{background:#edf7f3;color:#0a7264}
+ .shell:has(.ppOrders2026) .content{
+  max-width:1920px;padding:0 clamp(19px,2vw,34px) 42px;
+  background:linear-gradient(180deg,#fbfcfd 0,#fff 210px);
+ }
+ .shell:has(.ppOrders2026) .content>header.workspaceHeader{
+  min-height:78px;margin:0 calc(-1 * clamp(19px,2vw,34px)) 22px;
+  padding:12px clamp(19px,2vw,34px);
+  border-bottom:1px solid #e6edf1;background:#fff;
+  box-shadow:none;
+ }
+ .shell:has(.ppOrders2026) .content>header.workspaceHeader .workspaceHeading>small{
+  color:#8b9ca9;font-size:9px;letter-spacing:.09em;
+ }
+ .shell:has(.ppOrders2026) .content>header.workspaceHeader .workspaceHeading h1{
+  font-size:17px;letter-spacing:-.02em;margin:3px 0 0;color:#193947;
+ }
+ .shell:has(.ppOrders2026) .content>header.workspaceHeader .workspaceSubtitle{display:none}
+ .shell:has(.ppOrders2026) .headActions .live{
+  border:1px solid #cfe9df;background:#eef8f4;color:#117665;
+  border-radius:999px;padding:10px 15px;
+ }
+ .shell:has(.ppOrders2026) .headActions .live small{
+  padding-left:10px;border-left:1px solid #cfdfda;color:#6b8d88;
+ }
+}
+.shell .ppOrders2026{min-width:0;font-family:inherit;color:#1b3448}
+.shell .ppOrders2026 .poCanvas{
+ min-width:0;width:100%;margin:0;padding:0 0 18px;
+ background:transparent;
+}
+.shell .ppOrders2026 .poHero{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:24px;padding:5px 0 26px;
+ margin:0;background:none;border:0;min-height:0;
+}
+.shell .ppOrders2026 .poHeroIdentity{display:flex;align-items:center;gap:17px;min-width:0}
+.shell .ppOrders2026 .poHeroIcon{
+ width:65px;height:65px;flex:0 0 65px;display:grid;place-items:center;
+ border:1px solid #dceee7;border-radius:15px;
+ background:linear-gradient(145deg,#f1faf6,#e5f5ef);
+ color:#086e64;
+}
+.shell .ppOrders2026 .poHero h2{
+ margin:0 0 6px;font-size:clamp(24px,2vw,30px);font-weight:850;
+ color:#152c45;letter-spacing:-.055em;line-height:1.15;
+}
+.shell .ppOrders2026 .poHero p{margin:0;font-size:12px;color:#8294a9;line-height:1.55}
+.shell .ppOrders2026 .poRealtime{display:grid;justify-items:end;gap:8px;flex:0 0 auto}
+.shell .ppOrders2026 .poRealtime>span{
+ display:inline-flex;align-items:center;gap:9px;min-height:40px;
+ border:1px solid #d6ede3;border-radius:999px;
+ padding:9px 15px;background:#ebf8f2;
+ color:#0d735e;font-size:11px;font-weight:850;
+}
+.shell .ppOrders2026 .poRealtime i{
+ width:8px;height:8px;border-radius:50%;background:#10a582;
+ box-shadow:0 0 0 4px #cceade;
+}
+.shell .ppOrders2026 .poRealtime>small{font-size:10px;color:#90a1b1}
+.shell .ppOrders2026 .poMetrics{
+ display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+ gap:9px;min-width:0;margin:0 0 16px;
+}
+.shell .ppOrders2026 button.poMetric{
+ width:100%;display:flex;align-items:center;gap:12px;text-align:left;
+ padding:18px 13px;min-height:118px;min-width:0;
+ background:#fff;border:1px solid #e3eaf0;border-radius:13px;
+ box-shadow:0 2px 10px rgba(17,48,63,.028);
+ transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
+}
+.shell .ppOrders2026 button.poMetric:hover{
+ border-color:#b7dbcb;box-shadow:0 10px 24px rgba(8,88,73,.07);
+ transform:translateY(-1px);
+}
+.shell .ppOrders2026 button.poMetric.isActive{
+ background:#f2faf6;border-color:#a5dfc9;
+ box-shadow:0 3px 16px rgba(7,126,91,.05);
+}
+.shell .ppOrders2026 .poMetricIcon{
+ width:46px;height:46px;flex:0 0 46px;
+ display:grid;place-items:center;border-radius:12px;
+ background:#e8f6f1;color:#0c806e;
+}
+.shell .ppOrders2026 .poMetric1 .poMetricIcon{background:#f0f4f7;color:#627d99}
+.shell .ppOrders2026 .poMetric2 .poMetricIcon{background:#e8f2ff;color:#2a81df}
+.shell .ppOrders2026 .poMetric3 .poMetricIcon{background:#eaf6f8;color:#11909a}
+.shell .ppOrders2026 .poMetric4 .poMetricIcon{background:#f3efff;color:#7654d8}
+.shell .ppOrders2026 .poMetricContent{display:grid;align-content:center;gap:6px;min-width:0}
+.shell .ppOrders2026 .poMetricName{
+ font-size:11px;font-weight:820;color:#476078;
+ line-height:1.3;overflow-wrap:anywhere;
+}
+.shell .ppOrders2026 .poMetricContent strong{
+ font-size:27px;font-weight:900;line-height:1.05;
+ letter-spacing:-.06em;color:#162c46;font-variant-numeric:tabular-nums;
+}
+.shell .ppOrders2026 .poMetricDescription{
+ font-size:10px;color:#90a0af;line-height:1.35;
+ overflow-wrap:anywhere;
+}
+.shell .ppOrders2026 button.poMetric.isActive .poMetricName,
+.shell .ppOrders2026 button.poMetric.isActive .poMetricDescription{color:#146e62}
+.shell .ppOrders2026 .poToolbar{
+ display:grid;grid-template-columns:minmax(220px,1fr) minmax(150px,180px) minmax(145px,178px) 106px;
+ align-items:stretch;gap:10px;min-width:0;margin:0 0 14px;
+}
+.shell .ppOrders2026 .poSearch,
+.shell .ppOrders2026 .poToolbarSelect{
+ display:flex;align-items:center;gap:10px;
+ min-height:48px;min-width:0;padding:0 15px;margin:0;
+ border:1px solid #e0e8ef;border-radius:11px;
+ background:#fff;color:#617c91;
+ box-shadow:0 1px 5px rgba(21,60,78,.025);
+}
+.shell .ppOrders2026 .poSearch{cursor:text}
+.shell .ppOrders2026 .poSearch svg,
+.shell .ppOrders2026 .poToolbarSelect svg{flex:0 0 auto;color:#5f7c91}
+.shell .ppOrders2026 .poSearch input{
+ width:100%;min-width:0;min-height:46px;
+ border:0!important;outline:none!important;
+ background:transparent!important;box-shadow:none!important;
+ padding:0;margin:0;color:#284459;
+ font-size:12px;font-weight:580;
+}
+.shell .ppOrders2026 .poSearch input::placeholder{color:#94a5b5}
+.shell .ppOrders2026 .poSearch button{
+ width:27px;height:27px;min-width:27px;min-height:27px;
+ padding:0;border:0;border-radius:7px;
+ background:#f2f6f8;color:#627e8c;
+}
+.shell .ppOrders2026 .poToolbarSelect select{
+ display:block;min-width:0;width:100%;height:46px;
+ padding:0 2px;margin:0;border:0;box-shadow:none!important;
+ background:transparent;outline:none;color:#26435a;
+ font-size:11px;font-weight:820;cursor:pointer;
+}
+.shell .ppOrders2026 .poSortSymbol{
+ display:inline-flex;align-items:center;justify-content:center;
+ font-size:21px;font-weight:850;color:#385a71;
+}
+.shell .ppOrders2026 button.poFilterToggle{
+ min-height:48px;display:flex;align-items:center;justify-content:center;gap:8px;
+ background:#fff;color:#35546a;
+ border:1px solid #e0e8ef;border-radius:11px;
+ padding:10px;font-size:11px;font-weight:800;
+ box-shadow:0 1px 6px rgba(21,60,78,.025);
+}
+.shell .ppOrders2026 button.poFilterToggle:hover,
+.shell .ppOrders2026 button.poFilterToggle.isActive{
+ background:#edf8f3;border-color:#b8dfcf;color:#097767;
+}
+.shell .ppOrders2026 .poAdvanced{
+ display:flex;align-items:flex-end;gap:13px;flex-wrap:wrap;
+ padding:14px;margin:-3px 0 14px;
+ border:1px solid #e2eae9;background:#f9fcfb;border-radius:11px;
+}
+.shell .ppOrders2026 .poAdvanced label{display:grid;gap:6px;min-width:175px;color:#688090;font-size:10px;font-weight:750}
+.shell .ppOrders2026 .poAdvanced label select{
+ min-height:38px;padding:8px 12px;border-radius:8px;
+ border:1px solid #d8e6e4;background:#fff;color:#28485a;font-size:11px;
+}
+.shell .ppOrders2026 .poAdvanced button{
+ min-height:38px;padding:9px 12px;border-radius:8px;
+ border:1px solid #c9e7d9;background:#edf8f3;color:#0d7865;
+ font-size:11px;font-weight:780;
+}
+.shell .ppOrders2026 .poFilterLine{
+ display:flex;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;gap:12px;margin:0 0 16px;
+}
+.shell .ppOrders2026 .poPills{display:flex;align-items:center;flex-wrap:wrap;gap:7px}
+.shell .ppOrders2026 .poPills button{
+ min-height:36px;padding:9px 14px;border-radius:999px;
+ border:1px solid #e3eaf0;background:#f8fafc;color:#5e7489;
+ font-size:11px;font-weight:760;line-height:1.3;
+}
+.shell .ppOrders2026 .poPills button:hover{background:#edf8f3;color:#137565;border-color:#c7e6d6}
+.shell .ppOrders2026 .poPills button[aria-pressed=true]{
+ background:#e7f6ef;border-color:#b6e2cd;color:#087463;font-weight:850;
+}
+.shell .ppOrders2026 .poResults{font-size:11px;color:#798ca1;font-weight:760;white-space:nowrap}
+.shell .ppOrders2026 .poBulk{
+ display:flex;align-items:center;justify-content:space-between;
+ min-height:64px;gap:12px;padding:9px 14px;margin:0 0 16px;
+ background:#f7f9fb;border:1px solid #e5ecf2;border-radius:12px;
+}
+.shell .ppOrders2026 .poBulk.isSelected{border-color:#badfcf;background:#f1faf5}
+.shell .ppOrders2026 .poBulkSelect{
+ display:flex;align-items:center;gap:12px;cursor:pointer;
+ font-size:11px;font-weight:800;color:#536b82;
+}
+.shell .ppOrders2026 .poBulkSelect .checkControl{flex:0 0 auto;margin:0}
+.shell .ppOrders2026 .poBulkActions{display:flex;align-items:center;gap:9px}
+.shell .ppOrders2026 .poBulkActions button{
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ min-height:39px;padding:9px 13px;border-radius:9px;
+ font-size:11px;font-weight:820;
+}
+.shell .ppOrders2026 .poClearSelection{
+ background:#fff;border:1px solid #d5e7df;color:#1f7764;
+}
+.shell .ppOrders2026 .poDelete{
+ background:#fff8f6;border:1px solid #efd1c8;color:#a6574d;
+}
+.shell .ppOrders2026 .poDelete:disabled{
+ color:#a5b3bc;background:#f0f3f5;border-color:#e5ebed;opacity:.8;
+}
+.shell .ppOrders2026 .poPrint{
+ background:#eaf8f2;color:#087764;
+ border:1px solid #bbdfce;
+}
+.shell .ppOrders2026 .poPrint:hover{background:#d9f2e7}
+.shell .ppOrders2026 .poTableScroll{
+ overflow:auto;overscroll-behavior-x:contain;
+ min-width:0;width:100%;margin:0;
+ border:1px solid #e0e8ef;border-radius:13px;
+ background:#fff;scrollbar-width:thin;scrollbar-color:#c9d9dd transparent;
+}
+.shell .ppOrders2026 .poTable{display:block;min-width:1210px;width:100%}
+.shell .ppOrders2026 .poTableHead,
+.shell .ppOrders2026 .poRow{
+ display:grid;
+ grid-template-columns:30px minmax(90px,.69fr) minmax(150px,1.32fr) minmax(115px,.85fr) minmax(128px,.96fr) minmax(140px,1.13fr) minmax(128px,1fr) minmax(108px,.82fr) minmax(105px,.84fr);
+ align-items:center;gap:11px;padding:0 14px;
+}
+.shell .ppOrders2026 .poTableHead{
+ min-height:45px;border-bottom:1px solid #e5edf1;
+ background:linear-gradient(180deg,#f8fafb,#f4f7f9);
+}
+.shell .ppOrders2026 .poTableHead span{
+ font-size:10px;color:#738699;font-weight:830;
+ letter-spacing:.025em;white-space:nowrap;
+}
+.shell .ppOrders2026 .poRow{
+ min-height:88px;padding-top:11px;padding-bottom:11px;
+ border-bottom:1px solid #e7edf0;background:#fff;
+ transition:background .15s ease;
+}
+.shell .ppOrders2026 .poRow:last-child{border-bottom:0}
+.shell .ppOrders2026 .poRow:hover{background:#f9fcfb}
+.shell .ppOrders2026 .poRow.isSelected,
+.shell .ppOrders2026 .poRow.isViewing{background:#eff9f4}
+.shell .ppOrders2026 .poRowCheck{margin:0}
+.shell .ppOrders2026 .poOrder,
+.shell .ppOrders2026 .poPayment,
+.shell .ppOrders2026 .poStatus,
+.shell .ppOrders2026 .poTime{display:grid;align-content:center;gap:5px;min-width:0}
+.shell .ppOrders2026 .poOrder button{
+ display:inline-flex;width:fit-content;min-height:22px;padding:0;
+ margin:0;background:none;border:0;
+ font-size:12px;font-weight:860;color:#183e55;
+ text-align:left;overflow-wrap:anywhere;
+}
+.shell .ppOrders2026 .poOrder button:hover{text-decoration:underline;color:#087966;background:none}
+.shell .ppOrders2026 .poOrder small,
+.shell .ppOrders2026 .poProducts small,
+.shell .ppOrders2026 .poPayment small,
+.shell .ppOrders2026 .poStatus small,
+.shell .ppOrders2026 .poTime small{
+ font-size:10px;font-weight:550;color:#8b9eaf;
+ line-height:1.35;overflow-wrap:anywhere;
+}
+.shell .ppOrders2026 .poPerson,
+.shell .ppOrders2026 .poCourier{
+ display:flex;align-items:center;gap:9px;min-width:0;
+}
+.shell .ppOrders2026 .poPerson>span:last-child,
+.shell .ppOrders2026 .poCourier>span:last-child{
+ display:grid;gap:4px;min-width:0;
+}
+.shell .ppOrders2026 .poPerson strong,
+.shell .ppOrders2026 .poCourier strong,
+.shell .ppOrders2026 .poProducts strong,
+.shell .ppOrders2026 .poTime strong{
+ display:block;color:#203b50;font-size:11px;font-weight:840;
+ line-height:1.35;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.shell .ppOrders2026 .poPerson small,
+.shell .ppOrders2026 .poCourier small{
+ display:block;color:#869bb0;font-size:10px;line-height:1.35;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.shell .ppOrders2026 .poAvatar{
+ width:34px;height:34px;flex:0 0 34px;
+ display:grid;place-items:center;border-radius:50%;
+ background:#e9eff3;color:#587084;
+ font-size:10px;font-weight:850;
+}
+.shell .ppOrders2026 .poCourierAvatar{background:#e3f3eb;color:#0d7c69}
+.shell .ppOrders2026 .poProducts{display:flex;align-items:center;gap:9px;min-width:0}
+.shell .ppOrders2026 .poProducts>div:first-child{display:grid;gap:4px;min-width:0}
+.shell .ppOrders2026 .poProductIcons{display:flex;align-items:center;min-width:0}
+.shell .ppOrders2026 .poProductIcons>span{
+ width:25px;height:29px;flex:0 0 25px;
+ display:grid;place-items:center;
+ margin-left:-5px;border:2px solid #fff;border-radius:8px;
+ background:#f6e8dc;color:#a96c45;
+}
+.shell .ppOrders2026 .poProductIcons>span:nth-child(2){background:#eff2d9;color:#8b9c48}
+.shell .ppOrders2026 .poProductIcons>span:nth-child(3){background:#e6f2ee;color:#4d9b88}
+.shell .ppOrders2026 .poProductIcons>span:first-child{margin-left:0}
+.shell .ppOrders2026 .poPaymentBadge{
+ width:fit-content;max-width:100%;
+ display:inline-flex;align-items:center;justify-content:flex-start;gap:6px;
+ padding:7px 9px;background:#fff4e2;color:#a27528;
+ border:1px solid #f6e7cf;border-radius:999px;
+ font-size:10px;font-weight:820;line-height:1.3;
+}
+.shell .ppOrders2026 .poPaymentBadge svg{flex:0 0 auto}
+.shell .ppOrders2026 .poPaymentBadge.isPaid{background:#e8f7ef;border-color:#daeee1;color:#087965}
+.shell .ppOrders2026 .poPaymentBadge.isRefunded{background:#eef2fd;border-color:#e2e6f9;color:#5c689f}
+.shell .ppOrders2026 .poStatus .badge{
+ max-width:100%;display:inline-flex!important;width:fit-content;
+ font-size:10px;line-height:1.35;white-space:normal;
+ padding:6px 9px;border-radius:999px;
+}
+.shell .ppOrders2026 .poStatus .b-confirmed,
+.shell .ppOrders2026 .poStatus .b-preparing,
+.shell .ppOrders2026 .poStatus .b-ready_for_pickup{
+ color:#946010;background:#fff0d1;border-color:#ffebbe;
+}
+.shell .ppOrders2026 .poStatus .b-searching_courier{
+ color:#2475c9;background:#e8f2ff;border-color:#d9e8fd;
+}
+.shell .ppOrders2026 .poStatus .b-out_for_delivery,
+.shell .ppOrders2026 .poStatus .b-picked_up,
+.shell .ppOrders2026 .poStatus .b-courier_assigned{
+ color:#137c5e;background:#e5f7ed;border-color:#d6ebde;
+}
+.shell .ppOrders2026 .poStatus .b-delivered{color:#117c66;background:#e5f7f0;border-color:#d3e9dc}
+.shell .ppOrders2026 .poStatus .b-canceled{color:#b15552;background:#fff0ee;border-color:#f6d9d6}
+.shell .ppOrders2026 .poCourierEmpty{display:grid;gap:4px;min-width:0}
+.shell .ppOrders2026 .poCourierEmpty strong{font-size:12px;color:#96a5b0}
+.shell .ppOrders2026 .poCourierEmpty small{font-size:10px;color:#90a1ad}
+.shell .ppOrders2026 .poTime strong{font-size:10px}
+.shell .ppOrders2026 button.poOpen{
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ padding:9px 11px;min-height:37px;margin:0;
+ background:#fff;color:#26455a;border:1px solid #dce6eb;
+ border-radius:9px;font-size:10px;font-weight:840;white-space:nowrap;
+ box-shadow:0 1px 3px rgba(12,42,59,.035);
+}
+.shell .ppOrders2026 button.poOpen:hover{
+ background:#e9f7f0;color:#076d60;border-color:#b5dfca;
+}
+.shell .ppOrders2026 .poEmpty{
+ display:flex;flex-direction:column;justify-content:center;align-items:center;
+ min-height:228px;padding:29px 18px;text-align:center;gap:8px;
+ background:linear-gradient(180deg,#fff,#fbfdfd);
+}
+.shell .ppOrders2026 .poEmptyIcon{
+ display:grid;place-items:center;width:60px;height:60px;margin-bottom:6px;
+ background:#ecf8f2;color:#098471;border-radius:18px;
+}
+.shell .ppOrders2026 .poEmpty h3{
+ margin:0;font-size:16px;font-weight:860;color:#233e50;letter-spacing:-.02em;
+}
+.shell .ppOrders2026 .poEmpty p{
+ max-width:460px;margin:0;color:#8a9dac;line-height:1.55;font-size:11px;
+}
+.shell .ppOrders2026 .poEmpty button,
+.shell .ppOrders2026 .poLoadMore button{
+ min-height:37px;padding:8px 13px;margin-top:8px;
+ background:#e8f6ef;border:1px solid #c4e7d6;border-radius:9px;
+ color:#127965;font-weight:830;font-size:11px;
+}
+.shell .ppOrders2026 .poLoadMore{
+ display:flex;align-items:center;justify-content:center;gap:12px;
+ padding:18px 0 0;font-size:11px;color:#7a91a0;
+}
+.shell .ppOrders2026 .poLoadMore button{
+ display:inline-flex;align-items:center;gap:7px;margin:0;
+}
+.shell .ppOrders2026 :is(button,select,input):focus-visible{
+ outline:3px solid #73cdb6!important;outline-offset:2px;
+}
+@media(max-width:1530px){
+ .shell .ppOrders2026 .poMetrics{gap:8px}
+ .shell .ppOrders2026 button.poMetric{gap:9px;padding:14px 11px}
+ .shell .ppOrders2026 .poMetricIcon{width:40px;height:40px;flex-basis:40px}
+ .shell .ppOrders2026 .poMetricContent strong{font-size:25px}
+}
+@media(max-width:1310px){
+ .shell .ppOrders2026 .poMetrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .shell .ppOrders2026 .poToolbar{
+  grid-template-columns:minmax(200px,1fr) minmax(140px,185px) minmax(140px,170px);
+ }
+ .shell .ppOrders2026 .poFilterToggle{grid-column:3}
+}
+@media(max-width:1050px){
+ .shell .ppOrders2026 .poMetrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .shell .ppOrders2026 .poToolbar{grid-template-columns:minmax(200px,1fr) minmax(150px,185px)}
+ .shell .ppOrders2026 .poFilterToggle{grid-column:auto}
+}
+@media(max-width:759px){
+ .shell:has(.ppOrders2026)>aside{
+  background:#fff;border-color:#e5edef;color:#2b4b57;
+ }
+ .shell .ppOrders2026 .poHero{flex-wrap:wrap;gap:14px;padding-bottom:18px}
+ .shell .ppOrders2026 .poRealtime{justify-items:start}
+ .shell .ppOrders2026 .poHeroIcon{width:48px;height:48px;flex-basis:48px}
+ .shell .ppOrders2026 .poHero h2{font-size:23px}
+ .shell .ppOrders2026 .poMetrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .shell .ppOrders2026 button.poMetric{min-height:104px}
+ .shell .ppOrders2026 .poToolbar{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ .shell .ppOrders2026 .poSearch{grid-column:1/-1}
+ .shell .ppOrders2026 .poFilterLine{align-items:flex-start}
+ .shell .ppOrders2026 .poResults{width:100%}
+ .shell .ppOrders2026 .poBulk{align-items:flex-start;flex-wrap:wrap}
+ .shell .ppOrders2026 .poBulkActions{width:100%;justify-content:flex-end;flex-wrap:wrap}
+ .shell .ppOrders2026 .poTableScroll{border:0;background:transparent;overflow:visible}
+ .shell .ppOrders2026 .poTable{min-width:0;display:grid;gap:10px;background:transparent}
+ .shell .ppOrders2026 .poTableHead{display:none}
+ .shell .ppOrders2026 .poRow{
+  display:grid;grid-template-columns:25px minmax(0,1fr) auto;
+  gap:12px;padding:15px;min-height:0;
+  border:1px solid #e2eaf0;border-radius:14px;
+  background:#fff;
+ }
+ .shell .ppOrders2026 .poRowCheck{grid-column:1;grid-row:1}
+ .shell .ppOrders2026 .poOrder{grid-column:2;grid-row:1}
+ .shell .ppOrders2026 .poTime{grid-column:3;grid-row:1;text-align:right}
+ .shell .ppOrders2026 .poPerson{grid-column:1/3;grid-row:2}
+ .shell .ppOrders2026 .poProducts{grid-column:3;grid-row:2;justify-content:flex-end}
+ .shell .ppOrders2026 .poPayment{grid-column:1/3;grid-row:3}
+ .shell .ppOrders2026 .poStatus{grid-column:3;grid-row:3}
+ .shell .ppOrders2026 .poCourier{grid-column:1/-1;grid-row:4}
+ .shell .ppOrders2026 button.poOpen{grid-column:1/-1;grid-row:5;width:100%}
+ .shell .ppOrders2026 .poEmpty{background:#fff;border:1px solid #e2eaf0;border-radius:14px}
+}
+@media(max-width:480px){
+ .shell .ppOrders2026 .poToolbar{grid-template-columns:1fr}
+ .shell .ppOrders2026 .poSearch{grid-column:auto}
+ .shell .ppOrders2026 .poMetrics{gap:7px}
+ .shell .ppOrders2026 button.poMetric{padding:10px;align-items:flex-start;gap:8px}
+ .shell .ppOrders2026 .poMetricIcon{width:32px;height:32px;flex-basis:32px}
+ .shell .ppOrders2026 .poMetricContent strong{font-size:23px}
+ .shell .ppOrders2026 .poMetricName{font-size:10px}
+ .shell .ppOrders2026 .poMetricDescription{font-size:9px}
+ .shell .ppOrders2026 .poRealtime>small{font-size:9px}
+ .shell .ppOrders2026 .poHero p{font-size:11px}
+ .shell .ppOrders2026 .poPills{gap:6px}
+ .shell .ppOrders2026 .poPills button{padding:7px 10px;font-size:10px}
+ .shell .ppOrders2026 .poBulkActions button{padding:8px 10px;font-size:10px}
+ .shell .ppOrders2026 .poPerson small{white-space:normal}
+ .shell .ppOrders2026 .poStatus .badge{font-size:9px}
+ .shell .ppOrders2026 .poProductIcons{display:none}
+}
+@media print{
+ @page{margin:12mm}
+ body{background:#fff!important}
+ .shell:has(.ppOrders2026){display:block!important}
+ .shell:has(.ppOrders2026)>aside,
+ .shell:has(.ppOrders2026) .content>header.workspaceHeader,
+ .shell:has(.ppOrders2026) .poToolbar,
+ .shell:has(.ppOrders2026) .poFilterLine,
+ .shell:has(.ppOrders2026) .poBulk,
+ .shell:has(.ppOrders2026) .poRealtime,
+ .shell:has(.ppOrders2026) .poLoadMore,
+ .shell:has(.ppOrders2026) button.poOpen{display:none!important}
+ .shell:has(.ppOrders2026) .content{width:100%!important;max-width:none!important;padding:0!important;margin:0!important}
+ .shell:has(.ppOrders2026) .poMetrics{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+ .shell:has(.ppOrders2026) button.poMetric{break-inside:avoid;min-height:70px;padding:8px;border:1px solid #ccd8dc}
+ .shell:has(.ppOrders2026) .poTableScroll{overflow:visible!important;border-color:#c8d5dc}
+ .shell:has(.ppOrders2026) .poTable{min-width:0!important;zoom:.76}
+ .shell:has(.ppOrders2026) .poTableHead{display:grid}
+ .shell:has(.ppOrders2026) .poRow{display:grid!important;break-inside:avoid;border-radius:0}
+ .shell:has(.ppOrders2026) .poEmpty{min-height:120px}
+}
+@media(prefers-reduced-motion:reduce){
+ .shell .ppOrders2026 button.poMetric,
+ .shell .ppOrders2026 .poRow{transition:none!important;transform:none!important}
+}
