@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { UserRole } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { RealtimeGateway } from '../realtime/realtime.gateway.js';
 import { AuthService } from '../auth/auth.service.js';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class CouriersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auth: AuthService,
+    private readonly realtime: RealtimeGateway,
   ) {}
 
   private digits(value: unknown) {
@@ -46,6 +48,10 @@ export class CouriersService {
       name: profile.user.name,
       document: profile.document,
       approvalStatus: profile.approvalStatus,
+      userStatus: profile.user.status,
+      canDeliver: profile.user.status === 'ACTIVE' && profile.approvalStatus === 'APPROVED' && !(profile.requirements ?? []).some((r: any) => r.status !== 'RESOLVED'),
+      hasPendingRequirements: (profile.requirements ?? []).some((r: any) => r.status === 'OPEN'),
+      accountNotice: profile.user.status === 'BLOCKED' ? 'Sua conta foi bloqueada pela administração.' : profile.user.status === 'SUSPENDED' ? 'Sua conta está temporariamente suspensa.' : profile.user.status === 'PENDING' ? 'Sua conta está em análise. Consulte suas pendências abaixo.' : null,
       cnh: profile.cnh,
       cnhCategory: profile.cnhCategory,
       vehicleBrand: profile.vehicleBrand,
@@ -178,7 +184,7 @@ export class CouriersService {
 
   async profile(authorization?: string) {
     const user =
-      await this.auth.authenticate(authorization);
+      (await this.auth.authenticateSession(authorization)).user;
 
     if (user.role !== UserRole.COURIER) {
       throw new BadRequestException(
@@ -191,7 +197,7 @@ export class CouriersService {
         where: { userId: user.id },
         include: {
           user: {
-            select: { name: true },
+            select: { name: true, status: true },
           },
           requirements: {
             orderBy: { requestedAt: 'desc' },
@@ -245,7 +251,7 @@ export class CouriersService {
         data: allowed,
         include: {
           user: {
-            select: { name: true },
+            select: { name: true, status: true },
           },
           requirements: {
             orderBy: { requestedAt: 'desc' },
@@ -284,7 +290,10 @@ export class CouriersService {
       );
     }
 
-    return (this.prisma as any).courierRequirement.update({
+    if (requirement.status === 'RESOLVED') {
+      throw new BadRequestException('Pendência já foi resolvida');
+    }
+    const result = await (this.prisma as any).courierRequirement.update({
       where: { id },
       data: {
         response: response.trim(),
@@ -292,5 +301,12 @@ export class CouriersService {
         answeredAt: new Date(),
       },
     });
+    this.realtime.emitToRole('ADMIN', 'courier.requirement.answered', {
+      courierId: profile.id, requirementId: id, at: new Date().toISOString(),
+    });
+    this.realtime.emitToUser(profile.userId, 'courier.account.updated', {
+      status: profile.user.status, at: new Date().toISOString(),
+    });
+    return result;
   }
 }
