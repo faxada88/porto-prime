@@ -498,8 +498,7 @@ class _Hero extends StatelessWidget {
                         ),
                         const SizedBox(height: 15),
                         const Text(
-                          'Verão na porta.
-Sem sair do momento.',
+                          'Verão na porta.\nSem sair do momento.',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 29,
