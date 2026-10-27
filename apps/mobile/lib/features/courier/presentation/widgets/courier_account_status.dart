@@ -89,7 +89,7 @@ class CourierAccountStatus extends StatelessWidget {
                       PrimeText(requirements.any((r) => r['status'] == 'OPEN')
                         ? 'Nova pendência solicitada' : 'Documentação em análise',
                         style: const TextStyle(color: Color(0xFF985C0C),
-                          fontWeight: FontWeight.w850, fontSize: 13)),
+                          fontWeight: FontWeight.w800, fontSize: 13)),
                       const SizedBox(height: 4),
                       const PrimeText('Confira abaixo o que a equipe precisa que você envie.',
                         style: TextStyle(color: Color(0xFF95734B), fontSize: 11, height: 1.45)),
