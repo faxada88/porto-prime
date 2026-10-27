@@ -662,7 +662,7 @@ class AppState extends ChangeNotifier {
     courierOffers=List<dynamic>.from(results[2] as List);
     if(courierOnline){
       unawaited(CourierOfferAlerts.online().catchError((_) {}));
-      final offer=courierOffers.whereType<Map>().cast<Map<String,dynamic>>().firstOrNull;
+      final offer=courierOffers.whereType<Map>().map((row)=>Map<String,dynamic>.from(row)).firstOrNull;
       if(offer!=null)unawaited(CourierOfferAlerts.show(offer).catchError((_) {}));
       else unawaited(CourierOfferAlerts.dismiss().catchError((_) {}));
     }else{
