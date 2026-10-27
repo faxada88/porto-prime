@@ -4,8 +4,8 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import {
  ArrowLeft, Check, FileText, Clock3, Phone, Mail, Bike, ShieldCheck,
  Expand, X, Plus, ClipboardList, AlertTriangle, MapPin, Headphones,
- MessageCircle, BadgeCheck, ChevronDown, Send, RefreshCw, CheckCircle2,
- Smartphone, History, Crown, Bell, ImageIcon
+ MessageCircle, BadgeCheck, ChevronDown, Send, RefreshCw,
+ History, ImageIcon
 } from 'lucide-react';
 import RequirementList from './requirement-list';
 import './courier-review-workspace.css';
@@ -100,7 +100,6 @@ export default function CourierReviewWorkspace({
   }catch(e){setError(e instanceof Error?e.message:'Não foi possível enviar a solicitação.');}
   finally{setBusy(null);}
  }
- const statusText=focus?.status==='ANSWERED'?'Resposta recebida':focus?'Nova pendência solicitada':approved?'Conta liberada':'Cadastro em análise';
 
  return <div className={embedded?'crEmbedded crReview2026':'crBackdrop crReview2026'}>
   <section className="crWorkspace" role={embedded?'region':'dialog'} aria-modal={embedded?undefined:true} aria-labelledby="crTitle">
@@ -125,6 +124,7 @@ export default function CourierReviewWorkspace({
      <div className="crFact"><span className="crFactIcon"><Bike size={20}/></span><div><small>Moto informada</small><strong>{[data.vehicleBrand,data.vehicleModel].filter(Boolean).join(' ')||'Não informada'}</strong><small>Placa: {data.vehiclePlate||'—'}</small></div></div>
      <div className="crFact"><span className="crFactIcon"><FileText size={20}/></span><div><small>CNH</small><strong>{data.cnh||'Não informada'}</strong><small>Categoria: {data.cnhCategory||'—'}</small></div></div>
      <div className="crIdentityFoot"><ShieldCheck size={16}/> Dados conforme o cadastro do motoboy.</div>
+     {onSupport&&<button type="button" className="crProfileSupport" onClick={onSupport}><Headphones size={15}/> Abrir central de suporte</button>}
     </section>
 
     <main className="crMain">
@@ -172,27 +172,7 @@ export default function CourierReviewWorkspace({
      <details className="crManagement"><summary><ClipboardList size={17}/> Dados cadastrais, ganhos e gerenciamento de acesso <ChevronDown size={17}/></summary><div className="crManagementBody">{children}</div></details>
     </main>
 
-    <aside className="crAside crAppPreview" aria-label="Prévia da situação no aplicativo do motoboy">
-     <section className="crAppPreviewHeading">
-      <div className="crPreviewHeadingIcon"><Smartphone size={23}/></div>
-      <div><h3>App do motoboy</h3><p>Prévia baseada na pendência atual</p></div>
-      <span className="crPreviewConnected"><span/> Atualizações</span>
-     </section>
-     <div className="crPhone">
-      <div className="crPhoneTop"><span>9:41</span><span className="crPhoneCamera"/><span>● ▰</span></div>
-      <div className="crPhoneAppBar"><Crown size={17}/><strong>PORTO PRIME</strong><Bell size={18}/></div>
-      <div className="crPhoneHero"><small>DOCUMENTAÇÃO</small><h3>{approved?'Sua conta está liberada':focus?.status==='ANSWERED'?'Sua resposta está em análise':'Seu cadastro está em análise'}</h3><p>Acompanhe as solicitações da equipe por aqui.</p></div>
-      <div className="crPhoneStatus"><div><AlertTriangle size={19}/><span>{statusText}</span></div><small>{date(updatedAt)}</small></div>
-      <div className="crPhoneBody"><strong>{focus?.title||(approved?'Conta regularizada':'Acompanhamento do cadastro')}</strong><p>{focus?.description||(approved?'Documentação concluída.':'Nenhuma solicitação adicional no momento.')}</p>
-       {focus?.status==='OPEN'&&<div className="crPhonePrimary"><FileText size={14}/> Enviar documento</div>}
-       {focus?.status==='ANSWERED'&&<div className="crPhoneConfirmation"><Check size={15}/> Resposta enviada para análise</div>}
-       <div className="crPhoneHelp"><Headphones size={14}/> Falar com o suporte</div>
-      </div>
-      <div className="crPhoneNav"><span>Início</span><span>Entregas</span><span>Conta</span></div>
-     </div>
-     <div className="crLiveExplanation"><span><RefreshCw size={18}/></span><div><strong>Sincronização automática</strong><p>Alterações confirmadas são enviadas pelo servidor ao aplicativo conectado. Se estiver offline, aparecem ao reconectar e atualizar os dados.</p></div></div>
-     {onSupport&&<button type="button" className="crSupportButton" onClick={onSupport}><Headphones size={16}/> Abrir central de suporte</button>}
-    </aside>
+
    </div>
   </section>
 
