@@ -139,7 +139,7 @@ Future<void> showOffer(Map<String, dynamic> offer) async {
       importance: Importance.max,
       priority: Priority.max,
       visibility: NotificationVisibility.public,
-      category: AndroidNotificationCategory.alarm,
+      category: AndroidNotificationCategory.message,
       playSound: true,
       enableVibration: true,
       ticker: 'Nova entrega Porto Prime',
