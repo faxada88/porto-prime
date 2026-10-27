@@ -698,3 +698,102 @@
 @media(prefers-reduced-motion:reduce){
  .crWorkspace *{scroll-behavior:auto!important;animation:none!important;transition:none!important}
 }
+
+/* Courier dossier shell · visually matches the mock only while review is visible */
+@supports selector(:has(*)){
+ .shell:has(.crEmbedded){
+  background:#fff;
+  --pp-sidebar:235px;
+ }
+ .shell:has(.crEmbedded)>aside{
+  background:#fff!important;color:#243f55!important;
+  border-right:1px solid #e5ecf3!important;
+  box-shadow:0 3px 18px rgba(21,50,75,.025);
+ }
+ .shell:has(.crEmbedded)>aside .logo{
+  border-bottom-color:#e7edf2;
+ }
+ .shell:has(.crEmbedded)>aside .logo>b{
+  background:linear-gradient(145deg,#0db49d,#027d78)!important;
+  color:#fff!important;border-radius:13px;box-shadow:none;
+ }
+ .shell:has(.crEmbedded)>aside .logo strong{color:#172c4a!important}
+ .shell:has(.crEmbedded)>aside .logo span{color:#7c92a8!important}
+ .shell:has(.crEmbedded)>aside .navGroupLabel{color:#899fb2!important}
+ .shell:has(.crEmbedded)>aside nav button{
+  background:transparent;color:#4b6684;
+  border-color:transparent;border-radius:11px;
+ }
+ .shell:has(.crEmbedded)>aside nav button .navIcon{color:#547391}
+ .shell:has(.crEmbedded)>aside nav button:hover{
+  background:#f2f8f6;border-color:transparent;color:#0c786b;
+ }
+ .shell:has(.crEmbedded)>aside nav button.active{
+  border-color:transparent;
+  background:#e5f5ed;color:#056f60!important;
+  box-shadow:inset 3px 0 #069577;
+ }
+ .shell:has(.crEmbedded)>aside nav button.active .navIcon{color:#087963}
+ .shell:has(.crEmbedded)>aside .admin{
+  border-top-color:#e7edf2;
+ }
+ .shell:has(.crEmbedded)>aside .admin>span{
+  background:#e8f3ef;border:1px solid #d8eae1;color:#0b806f;
+ }
+ .shell:has(.crEmbedded)>aside .admin b{color:#243d56!important}
+ .shell:has(.crEmbedded)>aside .admin small{color:#8199af!important}
+ .shell:has(.crEmbedded)>aside .admin button{color:#69829b!important}
+ .shell:has(.crEmbedded) .content{
+  background:#f8fafd;
+  max-width:1900px;
+  padding:0 clamp(15px,1.65vw,27px) 39px;
+ }
+ .shell:has(.crEmbedded) .content>header.workspaceHeader{
+  display:flex!important;
+  align-items:center!important;flex-direction:row!important;
+  min-height:73px;
+  margin:0 calc(-1 * clamp(15px,1.65vw,27px)) 21px;
+  padding:12px clamp(15px,1.65vw,27px)!important;
+  background:#fff;border-bottom:1px solid #e6edf3;
+  box-shadow:none;
+ }
+ .shell:has(.crEmbedded) .content>header.workspaceHeader .workspaceHeading{
+  display:none;
+ }
+ .shell:has(.crEmbedded) .headActions{
+  width:100%;max-width:none;
+  display:flex;justify-content:space-between;gap:13px;
+ }
+ .shell:has(.crEmbedded) .headActions .searchBox{
+  display:flex;width:min(630px,65%);min-width:0;
+  height:44px;padding:0 14px;border:1px solid #e3ebf3;
+  border-radius:12px;background:#fff;
+ }
+ .shell:has(.crEmbedded) .headActions .searchBox input{
+  width:100%;min-width:0;max-width:none;font-size:12px;
+ }
+ .shell:has(.crEmbedded) .headActions .live{
+  flex:0 0 auto;border:1px solid #cfe8e0;border-radius:999px;
+  background:#eff8f4;color:#0d7461;
+  font-size:10px;font-weight:780;
+ }
+ .shell:has(.crEmbedded) .unifiedCourierQueue{min-width:0}
+ .shell:has(.crEmbedded) .unifiedCourierQueueHead{
+  margin:0 0 15px;padding:12px 16px;
+  background:#fff;border:1px solid #e3ebf3;border-radius:12px;
+ }
+ .shell:has(.crEmbedded) .crEmbedded{
+  border:1px solid #e4ebf3;border-radius:17px;
+  box-shadow:0 12px 32px rgba(24,59,92,.035);
+ }
+}
+@media(max-width:900px){
+ .shell:has(.crEmbedded) .headActions .searchBox{width:min(550px,60%)}
+}
+@media(max-width:759px){
+ .shell:has(.crEmbedded)>aside{background:#fff!important}
+ .shell:has(.crEmbedded) .headActions{max-width:none;width:100%}
+ .shell:has(.crEmbedded) .headActions .searchBox{width:auto;flex:1 1 auto}
+ .shell:has(.crEmbedded) .headActions .live{flex:0 0 auto}
+ .shell:has(.crEmbedded) .content>header.workspaceHeader{min-height:60px}
+}
