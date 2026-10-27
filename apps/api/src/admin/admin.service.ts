@@ -922,7 +922,7 @@ export class AdminService {
       for(const courierId of result.couriers)this.realtime.emitToCourier(courierId,'order.deleted',{orderId});
       this.realtime.emitOrderUpdated(order);
     }
-    return { id: order.id, customerName: order.customer?.name ?? null };
+    return { id: order.id, displayNumber: order.displayNumber, customerName: order.customer?.name ?? null };
   }
 
   async deleteOrder(orderId: string, authorization?: string) {
@@ -931,7 +931,7 @@ export class AdminService {
     return {
       success: true,
       deleted,
-      message: `Pedido #${deleted.id.slice(-8).toUpperCase()} removido do Admin, cliente e entregas com sucesso`,
+      message: `Pedido #${deleted.displayNumber == null ? '—' : String(deleted.displayNumber).padStart(4, '0')} removido do Admin, cliente e entregas com sucesso`,
     };
   }
 
