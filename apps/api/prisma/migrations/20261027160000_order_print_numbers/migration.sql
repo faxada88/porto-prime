@@ -20,7 +20,7 @@ BEGIN
  IF EXISTS (
    SELECT 1 FROM (
      SELECT COUNT(*) AS count FROM "Order"
-     GROUP BY to_char("createdAt" AT TIME ZONE 'America/Bahia', 'YYYY-MM-DD')
+     GROUP BY to_char(("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Bahia', 'YYYY-MM-DD')
    ) AS daily WHERE daily.count > 9999
  ) THEN
   RAISE EXCEPTION 'Há mais de 9999 pedidos em um dia; não é possível atribuir comprovantes únicos com quatro dígitos';
@@ -29,9 +29,9 @@ END $$;
 
 WITH numbered AS (
  SELECT "id",
-        to_char("createdAt" AT TIME ZONE 'America/Bahia','YYYY-MM-DD') AS day,
+        to_char(("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Bahia','YYYY-MM-DD') AS day,
         ROW_NUMBER() OVER (
-          PARTITION BY to_char("createdAt" AT TIME ZONE 'America/Bahia','YYYY-MM-DD')
+          PARTITION BY to_char(("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Bahia','YYYY-MM-DD')
           ORDER BY "createdAt","id"
         ) AS n
  FROM "Order"
