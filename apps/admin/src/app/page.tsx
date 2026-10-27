@@ -217,7 +217,7 @@ function Dashboard({dash,orders,pending,withdrawals}:{dash:Row,orders:Row[],pend
 }
 function Panel({title,children}:{title:string,children:React.ReactNode}){return <section className="panel"><div className="panelHead"><h3>{title}</h3><span>Dados em tempo real</span></div>{children}</section>}
 function Badge({v}:{v:string}){return <span className={"badge b-"+v.toLowerCase()}>{statusLabel[v]||v}</span>}
-function MiniOrders({rows}:{rows:Row[]}){return <div className="rows">{rows.map(o=><div className="row" key={o.id}><div className="order">#{o.id.slice(-6).toUpperCase()}</div><div className="grow"><b>{o.customer?.name}</b><span>{brl(o.total)}</span><small>{dt(o.createdAt)}</small></div><Badge v={o.status}/></div>)}</div>}
+function MiniOrders({rows}:{rows:Row[]}){return <div className="rows">{rows.map(o=><div className="row" key={o.id}><div className="order">#{orderDisplayNumber(o)}</div><div className="grow"><b>{o.customer?.name}</b><span>{brl(o.total)}</span><small>{dt(o.createdAt)}</small></div><Badge v={o.status}/></div>)}</div>}
 function Pending(props:{rows:Row[],act:any,courierByUser:Record<string,Row>,requestRequirement:(app:Row,name:string)=>void,onSupport:()=>void}){
  const [selected,setSelected]=useState("");
  const couriers=props.rows.filter(r=>r.role==="COURIER");
