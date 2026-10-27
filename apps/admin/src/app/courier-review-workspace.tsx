@@ -166,7 +166,7 @@ export default function CourierReviewWorkspace({
       <span className="crNoticeSymbol">{active.length?<AlertTriangle size={22}/>:<CheckCircle2 size={22}/>}</span>
       <div><strong>{active.length?active.length+' pendência'+(active.length>1?'s':'')+' em andamento':'Sem pendências em aberto'}</strong><p>{answered.length?'Resposta recebida. Confira o documento e registre sua decisão.':active.length?'Aguardando o motoboy responder à solicitação.':'Documentação sem pendências ativas.'}</p></div>
       <div className="crNoticeActions">
-       {!active.length&&!approved&&!blocked&&<button type="button" className="crApproveInline" onClick={()=>{setDecisionError('');setDecision({requirementId:'',title:'Documentação analisada'});}}><UserCheck size={16}/> Aprovar e liberar conta</button>}
+       {canRelease&&<button type="button" className="crApproveInline" onClick={()=>{setDecisionError('');setDecision({requirementId:'',title:'Documentação analisada'});}}><UserCheck size={16}/> Aprovar e liberar conta</button>}
        <button type="button" className="crRequestTop" onClick={request}><Plus size={15}/> Nova pendência</button>
       </div>
      </div>
