@@ -24,6 +24,31 @@ describe('Acesso e cancelamento de pendências',()=>{
  it('ativar motoboy aprova também o perfil',async()=>{const f=fixture();await f.service.updateUserStatus('u','ACTIVE');expect(f.db.courierProfile.update).toHaveBeenCalledWith({where:{id:'c'},data:{approvalStatus:'APPROVED'}})});
  it('ativar não ignora pendências abertas',async()=>{const f=fixture();f.db.courierRequirement.count.mockResolvedValue(1);await expect(f.service.updateUserStatus('u','ACTIVE')).rejects.toThrow('pendências');expect(f.db.user.update).not.toHaveBeenCalled()});
  it('pendência cancelada não pode ser resolvida novamente',async()=>{const f=fixture();f.requirement.canceledAt=new Date();await expect(f.service.resolveRequirement('r')).rejects.toThrow('cancelada')});
+
+ it('aceita a resposta e permite aprovação explícita quando não restam pendências',async()=>{
+  const f=fixture();
+  f.requirement.status='ANSWERED';
+  const reviewed=await f.service.resolveRequirement('r');
+  expect(reviewed).toMatchObject({status:'RESOLVED'});
+  const activated=await f.service.approve('u');
+  expect(activated).toMatchObject({id:'u'});
+  expect(f.db.courierProfile.update).toHaveBeenCalledWith({
+   where:{id:'c'},data:{approvalStatus:'APPROVED'}
+  });
+  expect(f.db.user.update).toHaveBeenCalledWith(expect.objectContaining({
+   where:{id:'u'},data:{status:'ACTIVE'}
+  }));
+  expect(f.realtime.emitToUser).toHaveBeenCalledWith('u','courier.profile.updated',expect.anything());
+ });
+ it('não libera a conta após aceitar uma resposta se houver outra pendência ativa',async()=>{
+  const f=fixture();
+  f.requirement.status='ANSWERED';
+  await f.service.resolveRequirement('r');
+  f.db.courierRequirement.count.mockResolvedValue(1);
+  await expect(f.service.approve('u')).rejects.toThrow('pendências');
+  expect(f.db.user.update).not.toHaveBeenCalled();
+ });
+
 });
 
 
