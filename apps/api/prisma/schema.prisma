@@ -314,6 +314,11 @@ model Order {
   courierId  String?
   addressId  String
 
+  // Public receipt number (0001-9999), unique within its Porto Seguro local day.
+  // Internal IDs and the separate 4-digit delivery confirmation PIN do not change.
+  displayNumber Int?
+  displayDay    String? @db.VarChar(10)
+
   status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
   paymentMethod PaymentMethod?
@@ -363,6 +368,7 @@ model Order {
   @@index([status])
   @@index([activeOfferId])
   @@index([createdAt])
+  @@unique([displayDay, displayNumber])
   referralPartnerId String?
   referralPartner PartnerProfile? @relation("PartnerReferrals",fields:[referralPartnerId],references:[id],onDelete:Restrict)
   partnerCommissionPercent Decimal @default(0) @db.Decimal(5,2)
@@ -370,6 +376,13 @@ model Order {
   partnerCommissionCreditedAt DateTime?
   @@index([referralPartnerId,createdAt])
 
+}
+
+// One atomic counter per local calendar day. Reuse of 4-digit values is
+// intentional across different dates, never inside a single day.
+model DailyOrderNumber {
+  day           String @id @db.VarChar(10)
+  currentNumber Int    @default(0)
 }
 
 model OrderItem {
