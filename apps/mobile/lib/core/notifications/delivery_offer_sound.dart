@@ -9,6 +9,8 @@ bool _playing=false;
 
 /// Only the currently displayed, unexpired offer may ring.
 void startDeliveryOfferSound(DateTime expiresAt) {
+  if (_expiry != null && _expiry!.isAtSameMomentAs(expiresAt) &&
+      expiresAt.isAfter(DateTime.now()) && _repeat != null) return;
   stopDeliveryOfferSound();
   if(!expiresAt.isAfter(DateTime.now()))return;
   _expiry=expiresAt;
