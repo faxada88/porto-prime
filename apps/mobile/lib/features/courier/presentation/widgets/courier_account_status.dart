@@ -6,6 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/state/app_state.dart';
 
+String _courierRequestDate(dynamic value) {
+  final parsed = DateTime.tryParse(value?.toString() ?? '');
+  if (parsed == null) return 'Solicitação recente';
+  final local = parsed.toLocal();
+  String two(int number) => number.toString().padLeft(2, '0');
+  return two(local.day) + '/' + two(local.month) + '/' +
+      local.year.toString() + ', ' + two(local.hour) + ':' + two(local.minute);
+}
+
 /// Restricted accounts retain their authenticated identity and recovery channel.
 class CourierAccountStatus extends StatelessWidget {
   const CourierAccountStatus({super.key});
@@ -232,14 +241,7 @@ class _RequirementCardState extends State<_RequirementCard> {
     final status = widget.requirement['status']?.toString() ?? 'OPEN';
     final isAnswered = sent || status == 'ANSWERED';
     final open = status == 'OPEN';
-    final requestedAt = DateTime.tryParse(widget.requirement['requestedAt']?.toString() ?? '');
-    String two(int number) => number.toString().padLeft(2, '0');
-    final when = requestedAt == null ? 'Solicitação recente' :
-      (() {
-        final local = requestedAt.toLocal();
-        return two(local.day) + '/' + two(local.month) + '/' +
-          local.year.toString() + ', ' + two(local.hour) + ':' + two(local.minute);
-      })();
+    final when = _courierRequestDate(widget.requirement['requestedAt']);
 
     const ink = Color(0xFF12384B);
     const teal = Color(0xFF093F45);
