@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../network/api_client.dart';
 import '../realtime/realtime_client.dart';
+import '../notifications/courier_offer_alerts.dart';
 
 class AppState extends ChangeNotifier {
   final Set<String> removedOrderIds={};
@@ -212,6 +213,7 @@ class AppState extends ChangeNotifier {
       if(courierDelivery?['id'].toString()==id){courierDelivery=null;unawaited(CourierRouteTracker.instance.stop());}
       courierHistory.removeWhere((o)=>o['id'].toString()==id);
       courierOffers.removeWhere((o)=>o['orderId']?.toString()==id);
+      if(isCourier)unawaited(CourierOfferAlerts.dismiss().catchError((_) {}));
       notifyListeners();
     }
 
@@ -236,6 +238,7 @@ class AppState extends ChangeNotifier {
         _courierOperationsEpoch++;
         courierOffers=[offer];
         notifyListeners();
+        unawaited(CourierOfferAlerts.show(offer).catchError((_) {}));
       }
       // The authenticated socket already contains the complete safe offer.
       return;
@@ -244,6 +247,7 @@ class AppState extends ChangeNotifier {
       _courierOperationsEpoch++;
       final orderId=payload['orderId']?.toString(),offerId=payload['offerId']?.toString();
       courierOffers.removeWhere((offer)=>offerId!=null?offer['offerId']?.toString()==offerId:offer['orderId']?.toString()==orderId);
+      unawaited(CourierOfferAlerts.dismiss(offerId).catchError((_) {}));
       notifyListeners();
       return;
     }
@@ -289,6 +293,7 @@ class AppState extends ChangeNotifier {
         courierOnline = false;
         courierPresenceStatus = 'OFFLINE';
         courierOffers = [];
+        unawaited(CourierOfferAlerts.offline().catchError((_) {}));
       }
       notifyListeners();
       unawaited(refreshCourierAccount().catchError((_) {}));
@@ -542,6 +547,7 @@ class AppState extends ChangeNotifier {
   Future<void> logout() async {
     try{await api.request('POST','/auth/logout');}catch(_){}
     await CourierRouteTracker.instance.stop();
+    await CourierOfferAlerts.offline().catchError((_) {});
     realtime.disconnect();
     await api.clearSession();
     user=null;customerCreditBalance=0;customerCreditCard={};useCustomerCredit=false;customerCreditRequested=0;
@@ -654,6 +660,14 @@ class AppState extends ChangeNotifier {
     courierOnline=presence['isOnline']==true;
     courierDelivery=results[1]==null?null:Map<String,dynamic>.from(results[1] as Map);
     courierOffers=List<dynamic>.from(results[2] as List);
+    if(courierOnline){
+      unawaited(CourierOfferAlerts.online().catchError((_) {}));
+      final offer=courierOffers.whereType<Map>().cast<Map<String,dynamic>>().firstOrNull;
+      if(offer!=null)unawaited(CourierOfferAlerts.show(offer).catchError((_) {}));
+      else unawaited(CourierOfferAlerts.dismiss().catchError((_) {}));
+    }else{
+      unawaited(CourierOfferAlerts.offline().catchError((_) {}));
+    }
     unawaited(CourierRouteTracker.instance.sync(courierDelivery));
     notifyListeners();
   }
@@ -679,6 +693,7 @@ class AppState extends ChangeNotifier {
       courierOnline = false;
       courierPresenceStatus = 'OFFLINE';
       courierOffers = [];
+      unawaited(CourierOfferAlerts.offline().catchError((_) {}));
     }
     notifyListeners();
   }
@@ -754,7 +769,11 @@ class AppState extends ChangeNotifier {
         nextPresence != courierPresenceStatus || nextOnline != courierOnline;
     courierPresenceStatus = nextPresence;
     courierOnline = nextOnline;
-    if (changed) notifyListeners();
+    if (changed) {
+      if(nextOnline)unawaited(CourierOfferAlerts.online().catchError((_) {}));
+      else unawaited(CourierOfferAlerts.offline().catchError((_) {}));
+      notifyListeners();
+    }
   }
 
   Future<void> setCourierOnline(bool online) async {
@@ -771,6 +790,8 @@ class AppState extends ChangeNotifier {
     if (!isCourier || user?['id'] != accountId || courierRestricted) return;
     courierPresenceStatus=(result['presenceStatus']??'OFFLINE').toString();
     courierOnline=result['isOnline']==true;
+    if(courierOnline)unawaited(CourierOfferAlerts.online().catchError((_) {}));
+    else unawaited(CourierOfferAlerts.offline().catchError((_) {}));
     notifyListeners();
     unawaited(refreshCourierOperations().catchError((_) {}));
   }
@@ -797,6 +818,7 @@ class AppState extends ChangeNotifier {
     _courierOperationsEpoch++;
     courierDelivery=Map<String,dynamic>.from(result as Map);
     courierOffers.removeWhere((offer)=>offer['orderId']?.toString()==id);
+    unawaited(CourierOfferAlerts.dismiss().catchError((_) {}));
     courierPresenceStatus='DELIVERING';
     notifyListeners();
     unawaited(CourierRouteTracker.instance.sync(courierDelivery));
@@ -807,6 +829,7 @@ class AppState extends ChangeNotifier {
     await api.request('PATCH','/orders/$id/courier/reject');
     _courierOperationsEpoch++;
     courierOffers.removeWhere((offer)=>offer['orderId']?.toString()==id);
+    unawaited(CourierOfferAlerts.dismiss().catchError((_) {}));
     notifyListeners();
     unawaited(refreshCourierOperations().catchError((_) {}));
   }
