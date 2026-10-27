@@ -26,3 +26,34 @@ describe('Acesso e cancelamento de pendências',()=>{
  it('pendência cancelada não pode ser resolvida novamente',async()=>{const f=fixture();f.requirement.canceledAt=new Date();await expect(f.service.resolveRequirement('r')).rejects.toThrow('cancelada')});
 });
 
+
+
+describe('Revisão de documento da mesma pendência',()=>{
+ it('encerra a solicitação anterior, mantém seu histórico e abre uma única substituta',async()=>{
+  const f=fixture();
+  f.db.courierRequirement.updateMany=vi.fn(async()=>({count:1}));
+  f.db.courierRequirement.create=vi.fn(async({data}:any)=>({id:'revisada',status:'OPEN',...data}));
+  const result=await f.service.requestRequirementRevision('r',{title:'Foto ilegível',description:'Envie foto nítida'});
+  expect(result).toMatchObject({id:'revisada',title:'Foto ilegível',status:'OPEN'});
+  expect(f.db.courierRequirement.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+   where:expect.objectContaining({id:'r',canceledAt:null}),
+   data:expect.objectContaining({status:'RESOLVED',canceledBy:'admin'})
+  }));
+  expect(f.db.courierRequirement.create).toHaveBeenCalledTimes(1);
+  expect(f.realtime.emitToUser).toHaveBeenCalledWith('u','courier.profile.updated',expect.anything());
+  expect(f.realtime.emitToRole).toHaveBeenCalledWith('ADMIN','courier.profile.updated',expect.anything());
+ });
+ it('não abre outra pendência quando outra análise já encerrou a anterior',async()=>{
+  const f=fixture();
+  f.db.courierRequirement.updateMany=vi.fn(async()=>({count:0}));
+  f.db.courierRequirement.create=vi.fn();
+  await expect(f.service.requestRequirementRevision('r',{title:'Foto ilegível',description:'Reenvie'})).rejects.toThrow('outro administrador');
+  expect(f.db.courierRequirement.create).not.toHaveBeenCalled();
+  expect(f.realtime.emitToUser).not.toHaveBeenCalled();
+ });
+ it('recusa mensagens sem orientação para o motoboy',async()=>{
+  const f=fixture();
+  await expect(f.service.requestRequirementRevision('r',{title:'Foto ilegível',description:'   '})).rejects.toThrow('Informe um motivo');
+  expect(f.realtime.emitToUser).not.toHaveBeenCalled();
+ });
+});
