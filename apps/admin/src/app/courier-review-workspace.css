@@ -1337,3 +1337,132 @@
 @media(max-width:830px){
  .crReview2026 .crWorkspace .crColumns{grid-template-columns:minmax(0,1fr)}
 }
+
+/* Courier document accepted: choose approve, request more, or continue review */
+.crReview2026 .crNoticeActions{
+ display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:9px;
+ margin-left:auto;flex:0 1 auto;
+}
+.crReview2026 .crWorkspace button.crApproveInline{
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ min-height:40px;padding:10px 15px;border:1px solid #087964;
+ border-radius:10px;background:linear-gradient(135deg,#0c8f76,#076953);
+ color:#fff;font-size:11px;font-weight:850;white-space:normal;
+ box-shadow:0 4px 12px rgba(9,119,93,.12);
+}
+.crReview2026 .crWorkspace button.crApproveInline:hover{
+ background:linear-gradient(135deg,#08735e,#055b49);
+}
+.crReview2026 .crNoticeActions .crRequestTop{margin:0}
+.crDecisionBackdrop{
+ position:fixed;inset:0;z-index:5800;display:flex;
+ align-items:center;justify-content:center;
+ padding:20px;background:rgba(7,28,39,.73);backdrop-filter:blur(7px);
+}
+.crDecisionModal{
+ width:min(100%,535px);max-height:calc(100dvh - 30px);overflow:auto;
+ display:flex;flex-direction:column;align-items:stretch;
+ padding:28px;background:#fff;border:1px solid #dceae8;border-radius:22px;
+ box-shadow:0 32px 120px rgba(0,25,37,.31);color:#143448;
+}
+.crDecisionModalHeader{display:flex;justify-content:space-between;align-items:flex-start;margin:0 0 17px}
+.crDecisionModalIcon{
+ width:62px;height:62px;display:grid;place-items:center;
+ border-radius:18px;color:#09856b;background:#e7f7ee;
+ border:1px solid #cdebdc;
+}
+.crDecisionModalClose{
+ width:36px;height:36px;display:grid;place-items:center;
+ border:1px solid #e4ebf0;border-radius:10px;
+ background:#f7fafb;color:#527086;
+}
+.crDecisionModalEyebrow{
+ font-size:10px;font-weight:900;letter-spacing:.13em;color:#0c8670;
+}
+.crDecisionModal h3{
+ margin:8px 0 10px;font-size:clamp(23px,3vw,28px);font-weight:900;
+ line-height:1.2;letter-spacing:-.04em;color:#102f46;
+}
+.crDecisionModalIntro{
+ margin:0 0 18px;font-size:12px;line-height:1.65;color:#6b8294;
+}
+.crDecisionModalIntro strong{color:#2a5364}
+.crDecisionModalStatus{
+ display:flex;align-items:flex-start;gap:10px;
+ padding:12px 13px;margin:0 0 19px;
+ border:1px solid #cde9d9;border-radius:11px;
+ background:#eff9f3;color:#246e5d;font-size:11px;line-height:1.55;font-weight:740;
+}
+.crDecisionModalStatus svg{flex:0 0 18px;margin-top:1px;color:#0f9274}
+.crDecisionModalOptions{display:grid;gap:10px}
+.crDecisionModalOptions>button{
+ width:100%;min-height:86px;display:flex;align-items:center;
+ justify-content:flex-start;gap:13px;text-align:left;
+ padding:16px 15px;border:1px solid #dce7ec;border-radius:13px;
+ box-shadow:none;
+}
+.crDecisionModalOptions>button>span:nth-child(2){
+ display:grid;gap:6px;flex:1;min-width:0;
+}
+.crDecisionModalOptions>button strong{
+ font-size:13px;line-height:1.35;font-weight:890;
+}
+.crDecisionModalOptions>button small{
+ font-size:10px;line-height:1.5;opacity:.85;
+}
+.crDecisionModalOptions>button>svg:last-child{flex:0 0 20px}
+.crDecisionOptionIcon{
+ width:43px;height:43px;flex:0 0 43px;
+ display:grid;place-items:center;border-radius:12px;
+}
+.crDecisionModalOptions>button.crDecisionModalApprove{
+ background:linear-gradient(130deg,#108d76,#056759);
+ border-color:#0c826e;color:#fff;
+ box-shadow:0 6px 17px rgba(5,106,85,.14);
+}
+.crDecisionModalApprove .crDecisionOptionIcon{background:rgba(255,255,255,.17);color:#fff}
+.crDecisionModalOptions>button.crDecisionModalApprove:hover:not(:disabled){
+ background:linear-gradient(130deg,#087966,#04584d);
+}
+.crDecisionModalOptions>button.crDecisionModalApprove:disabled{
+ background:#e6ebee;border-color:#e0e7ea;color:#8ca0ab;
+ box-shadow:none;opacity:1;cursor:not-allowed;
+}
+.crDecisionModalOptions>button.crDecisionModalApprove:disabled .crDecisionOptionIcon{
+ background:#d5e0e4;color:#94a8b1;
+}
+.crDecisionModalOptions>button.crDecisionModalMore{
+ background:#f8fbfa;color:#285366;border-color:#d4e4e3;
+}
+.crDecisionModalMore .crDecisionOptionIcon{background:#e5f2ec;color:#087663}
+.crDecisionModalOptions>button.crDecisionModalMore:hover:not(:disabled){
+ background:#eaf7f0;border-color:#aed9c8;
+}
+.crDecisionModalLater{
+ align-self:center;margin:17px 0 0;
+ padding:9px 12px;border:0;background:transparent;
+ color:#607e8e;font-size:11px;font-weight:810;
+}
+.crDecisionModalLater:hover:not(:disabled){color:#086f61;text-decoration:underline}
+.crDecisionModalWarning,.crDecisionModalError{
+ display:flex;gap:9px;align-items:flex-start;
+ margin:12px 0 0;padding:11px 12px;
+ border:1px solid #f7dbbc;background:#fff5e9;border-radius:10px;
+ color:#945e1e;font-size:10px;line-height:1.55;
+}
+.crDecisionModalWarning svg,.crDecisionModalError svg{flex:0 0 16px}
+.crDecisionModalError{color:#b24842;background:#fff0ee;border-color:#f4cdca}
+.crDecisionModal :is(button):focus-visible{outline:3px solid #6dcab0;outline-offset:2px}
+@media(max-width:690px){
+ .crReview2026 .crNoticeActions{width:100%;flex:1 1 100%;justify-content:stretch}
+ .crReview2026 .crNoticeActions>button{width:100%;margin:0}
+ .crDecisionBackdrop{padding:9px;align-items:center}
+ .crDecisionModal{padding:19px 16px;border-radius:16px}
+ .crDecisionModal h3{font-size:23px}
+ .crDecisionModalOptions>button{padding:12px 10px;gap:9px;min-height:76px}
+ .crDecisionOptionIcon{width:34px;height:34px;flex-basis:34px}
+ .crDecisionModalOptions>button strong{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ .crDecisionModal *, .crDecisionBackdrop *{transition:none!important;animation:none!important}
+}
