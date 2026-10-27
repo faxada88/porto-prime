@@ -9,7 +9,7 @@ import {AdminService} from './admin.service.js';
 function fixture(){
  const profile={id:'c',userId:'u',approvalStatus:'PENDING',user:{status:'PENDING'}};
  const requirement:any={id:'r',courierId:'c',status:'OPEN',courier:profile,previousApprovalStatus:'APPROVED',previousUserStatus:'ACTIVE'};
- const db:any={courierRequirement:{findUnique:vi.fn(async()=>requirement),count:vi.fn(async()=>0),update:vi.fn(async({data}:any)=>({...requirement,...data}))},courierProfile:{update:vi.fn()},user:{update:vi.fn(async()=>({id:'u'})),findUnique:vi.fn(async()=>({id:'u',role:'COURIER',courierProfile:profile}))}};
+ const db:any={courierRequirement:{findUnique:vi.fn(async()=>requirement),count:vi.fn(async()=>0),update:vi.fn(async({data}:any)=>({...requirement,...data}))},courierProfile:{update:vi.fn(),findUnique:vi.fn(async()=>({approvalStatus:profile.approvalStatus,user:{status:profile.user.status},requirements:[{id:'revisada',title:'Foto ilegível',description:'Envie foto nítida',status:'OPEN',requestedAt:new Date(),answeredAt:null,canceledAt:null}]}))},user:{update:vi.fn(async()=>({id:'u'})),findUnique:vi.fn(async()=>({id:'u',role:'COURIER',courierProfile:profile}))}};
  db.$transaction=vi.fn(async(fn:any)=>fn(db));
  const realtime:any={syncCourierPresence:vi.fn(),emitToUser:vi.fn(),emitToRole:vi.fn()};
  return{db,profile,requirement,realtime,service:new AdminService(db,{authenticate:async()=>({id:'admin',role:'ADMIN'})}as any,{}as any,{}as any,realtime)};
@@ -42,6 +42,20 @@ describe('Revisão de documento da mesma pendência',()=>{
   expect(f.db.courierRequirement.create).toHaveBeenCalledTimes(1);
   expect(f.realtime.emitToUser).toHaveBeenCalledWith('u','courier.profile.updated',expect.anything());
   expect(f.realtime.emitToRole).toHaveBeenCalledWith('ADMIN','courier.profile.updated',expect.anything());
+  expect(f.realtime.emitToUser).toHaveBeenCalledWith('u','courier.requirements.updated',
+    expect.objectContaining({courierId:'c',userStatus:'PENDING',approvalStatus:'PENDING',requirements:expect.arrayContaining([expect.objectContaining({id:'revisada',status:'OPEN'})])}));
+
+ });
+ it('notifica imediatamente mesmo se a presença do motoboy falhar',async()=>{
+  const f=fixture();
+  f.db.courierRequirement.updateMany=vi.fn(async()=>({count:1}));
+  f.db.courierRequirement.create=vi.fn(async({data}:any)=>({id:'revisada',status:'OPEN',...data}));
+  f.realtime.syncCourierPresence.mockRejectedValueOnce(new Error('presence unavailable'));
+  const result=await f.service.requestRequirementRevision('r',{title:'Foto ilegível',description:'Envie foto nítida'});
+  expect(result.id).toBe('revisada');
+  expect(f.realtime.emitToUser).toHaveBeenCalledWith('u','courier.requirements.updated',expect.anything());
+  expect(f.realtime.emitToUser.mock.invocationCallOrder[0])
+    .toBeLessThan(f.realtime.syncCourierPresence.mock.invocationCallOrder[0]);
  });
  it('não abre outra pendência quando outra análise já encerrou a anterior',async()=>{
   const f=fixture();
