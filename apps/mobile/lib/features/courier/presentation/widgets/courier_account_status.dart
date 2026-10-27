@@ -1,5 +1,6 @@
 import 'courier_review_success.dart';
 import '../../../../core/localization/prime_localization.dart';
+import 'dart:async';
 import 'dart:convert';
 import '../../../support/presentation/pages/support_page.dart';
 import 'package:flutter/material.dart';
@@ -16,8 +17,40 @@ String _courierRequestDate(dynamic value) {
 }
 
 /// Restricted accounts retain their authenticated identity and recovery channel.
-class CourierAccountStatus extends StatelessWidget {
+class CourierAccountStatus extends StatefulWidget {
   const CourierAccountStatus({super.key});
+
+  @override
+  State<CourierAccountStatus> createState() => _CourierAccountStatusState();
+}
+
+class _CourierAccountStatusState extends State<CourierAccountStatus> {
+  Timer? _accountRefresh;
+
+  @override
+  void initState() {
+    super.initState();
+    AppState.instance.addListener(_showLatestRequirements);
+    // The socket updates instantly; polling independently recovers missed
+    // messages, including a pending account that went offline briefly.
+    unawaited(AppState.instance.refreshCourierAccount().catchError((_) {}));
+    _accountRefresh = Timer.periodic(const Duration(seconds: 6), (_) {
+      if (mounted && AppState.instance.isCourier) {
+        unawaited(AppState.instance.refreshCourierAccount().catchError((_) {}));
+      }
+    });
+  }
+
+  void _showLatestRequirements() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _accountRefresh?.cancel();
+    AppState.instance.removeListener(_showLatestRequirements);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
