@@ -4,7 +4,7 @@ import { useState, type ReactNode } from 'react';
 import {
  ArrowLeft, Check, FileText, Clock3, Phone, Mail, Bike, ShieldCheck,
  Expand, X, Plus, ClipboardList, AlertTriangle, MapPin, Headphones,
- MessageCircle, UserRound, BadgeCheck, CalendarDays, ChevronDown, Search, Send
+ MessageCircle, BadgeCheck, ChevronDown, Send
 } from 'lucide-react';
 import RequirementList from './requirement-list';
 import './courier-review-workspace.css';
