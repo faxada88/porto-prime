@@ -34,6 +34,18 @@ void main() {
       }
     }
   }
+  testWidgets('Answered requirement replaces the form with a waiting confirmation', (tester) async {
+    state.user = {'id': 'courier', 'role': 'COURIER', 'status': 'PENDING'};
+    state.courierProfile = {'approvalStatus': 'PENDING', 'requirements': [
+      {'id': 'r', 'title': 'Documento atualizado', 'status': 'ANSWERED'},
+    ]};
+    await tester.pumpWidget(MaterialApp(theme: AppTheme.light, home: const CourierAccountStatus()));
+    expect(find.text('Pronto! Agora é só aguardar.'), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+    expect(find.text('Enviar para análise'), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
   test('approval removes the operational restriction without changing the account identity', () {
     state.user = {'id': 'courier', 'role': 'COURIER', 'status': 'PENDING'};
     state.courierProfile = {'approvalStatus': 'PENDING'};

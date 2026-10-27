@@ -15,7 +15,9 @@ class CourierAccountStatus extends StatelessWidget {
     final status = state.user?['status']?.toString() ?? 'PENDING';
     final blocked = status == 'BLOCKED' || state.courierProfile['approvalStatus'] == 'REJECTED';
     final suspended = status == 'SUSPENDED' || state.courierProfile['approvalStatus'] == 'SUSPENDED';
-    final title = blocked ? 'Conta bloqueada' : suspended ? 'Conta suspensa' : 'Vamos regularizar sua conta';
+    final outstanding = (state.courierProfile['requirements'] as List? ?? []).whereType<Map>().where((r) => r['canceledAt'] == null && r['status'] != 'RESOLVED').toList();
+    final waiting = outstanding.isNotEmpty && outstanding.every((r) => r['status'] == 'ANSWERED');
+    final title = blocked ? 'Conta bloqueada' : suspended ? 'Conta suspensa' : waiting ? 'Resposta enviada • aguardando análise' : 'Vamos regularizar sua conta';
     final requirements = (state.courierProfile['requirements'] as List? ?? [])
         .whereType<Map>().where((r) => r['status'] != 'RESOLVED' && r['canceledAt'] == null).toList();
     return Scaffold(
@@ -35,7 +37,7 @@ class CourierAccountStatus extends StatelessWidget {
             const SizedBox(height: 12),
             PrimeText(blocked || suspended
               ? 'Novas entregas estão indisponíveis. Consulte as orientações abaixo. O acesso será atualizado após a revisão administrativa.'
-              : 'Confira o que falta e envie sua resposta por aqui. Você não precisa informar seu CPF novamente.',
+              : waiting ? 'Sua resposta foi enviada para análise. Avisaremos por aqui quando houver uma atualização.' : 'Confira o que falta e envie sua resposta por aqui. Você não precisa informar seu CPF novamente.',
               textAlign: TextAlign.center),
             const SizedBox(height: 24),
             if (state.courierProfile['restrictionReason'] != null) Card(child: Padding(padding: const EdgeInsets.all(20), child: PrimeText(state.courierProfile['restrictionReason'].toString()))),
@@ -70,6 +72,7 @@ class _RequirementCardState extends State<_RequirementCard> {
   String? photo;
   String? error;
   bool busy = false;
+  bool sent = false;
   @override
   void dispose() { answer.dispose(); super.dispose(); }
 
@@ -95,9 +98,11 @@ class _RequirementCardState extends State<_RequirementCard> {
       await AppState.instance.api.request('POST', '/couriers/requirements/${widget.requirement['id']}/respond',
         body: {'response': answer.text.trim(), if (photo != null) 'documentPhoto': photo});
       if (!mounted) return;
+      FocusScope.of(context).unfocus();
       answer.clear();
-      setState(() => photo = null);
-      await AppState.instance.refreshCourierAccount();
+      setState(() { photo = null; sent = true; });
+      // A successful submission stays confirmed even if the follow-up refresh fails.
+      try { await AppState.instance.refreshCourierAccount(); } catch (_) {}
     } catch (e) { if (mounted) setState(() => error = e.toString().replaceFirst('Exception: ', '')); }
     finally { if (mounted) setState(() => busy = false); }
   }
@@ -107,9 +112,20 @@ class _RequirementCardState extends State<_RequirementCard> {
     child: Padding(padding: const EdgeInsets.all(20), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       PrimeText(widget.requirement['title']?.toString() ?? 'Exigência', style: Theme.of(context).textTheme.titleMedium),
       const SizedBox(height: 8), PrimeText(widget.requirement['description']?.toString() ?? ''),
-      if (widget.requirement['status'] == 'ANSWERED') const Padding(padding: EdgeInsets.symmetric(vertical: 12),
-        child: PrimeText('Resposta enviada • aguardando análise')),
-      if (widget.canReply) ...[
+      if (sent || widget.requirement['status'] == 'ANSWERED') ...[
+        const SizedBox(height: 20),
+        Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(
+          color: const Color(0xFFEAF6F0), borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFCEE5DA))),
+          child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(Icons.check_circle_rounded, size: 36, color: Color(0xFF127765)),
+            SizedBox(height: 12),
+            PrimeText('Pronto! Agora é só aguardar.', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF073E43))),
+            SizedBox(height: 8),
+            PrimeText('Sua resposta foi enviada para análise. Avisaremos por aqui quando houver uma atualização.'),
+          ])),
+      ],
+      if (widget.canReply && !sent && widget.requirement['status'] != 'ANSWERED') ...[
         const SizedBox(height: 16),
         TextField(controller: answer, enabled: !busy, minLines: 2, maxLines: 6, maxLength: 4000,
           scrollPadding: const EdgeInsets.all(80), decoration: const PrimeInputDecoration(labelText: 'Sua resposta', border: OutlineInputBorder())),

@@ -1,0 +1,14 @@
+.requirementReview { display:grid; gap:16px; min-width:0; padding:16px 0; }
+.requirementReviewSummary { display:grid; gap:5px; padding:0 18px; }
+.requirementReviewSummary strong { color:#073e43; font-size:15px; }
+.requirementReviewSummary span { color:#62757c; font-size:13px; }
+.requirementReviewItem { min-width:0; background:white; border:1px solid #dce8e7; border-radius:18px; overflow:hidden; }
+.requirementReview .requirementReviewItem > div { padding:20px; border:0; margin:0; }
+.requirementReviewItem p { line-height:1.65; overflow-wrap:anywhere; }
+.requirementReviewItem button { margin:8px 8px 0 0; max-width:100%; white-space:normal; }
+.requirementReview .approvalResponse { background:#f1f8f6; border:1px solid #dcece6; padding:16px; border-radius:12px; }
+.requirementReviewHistory { border-top:1px solid #dce8e7; padding:16px 0 0; }
+.requirementReviewHistory > summary { cursor:pointer; color:#62757c; font-size:13px; font-weight:650; padding:8px 18px; }
+.requirementReviewHistory > summary span { display:inline-block; margin-left:8px; background:#edf2f3; border-radius:20px; padding:2px 8px; }
+.requirementReviewHistory .requirementReviewItem { margin-top:12px; background:#fafcfc; }
+@media(max-width:480px) { .requirementReview .requirementReviewItem > div { padding:14px; } .requirementReviewItem button { width:100%; margin-right:0; } }

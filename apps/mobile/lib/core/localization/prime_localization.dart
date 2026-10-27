@@ -27,6 +27,8 @@ class AppLanguage extends ChangeNotifier {
 "Falar com o suporte": {"es": "Contactar con soporte", "en": "Contact support"},
 "Exigência": {"es": "Requisito", "en": "Requirement"},
 "Resposta enviada • aguardando análise": {"es": "Respuesta enviada • pendiente de revisión", "en": "Response sent • awaiting review"},
+"Pronto! Agora é só aguardar.": {"es": "¡Listo! Ahora solo queda esperar.", "en": "All done! We’ll take it from here."},
+"Sua resposta foi enviada para análise. Avisaremos por aqui quando houver uma atualização.": {"es": "Enviamos tu respuesta para revisión. Te avisaremos aquí cuando haya novedades.", "en": "Your response has been submitted for review. We’ll notify you here when there’s an update."},
 "Sua resposta": {"es": "Tu respuesta", "en": "Your response"},
 "Anexar imagem do documento": {"es": "Adjuntar imagen del documento", "en": "Attach a document image"},
 "Documento anexado • substituir": {"es": "Documento adjunto • sustituir", "en": "Document attached • replace"},
