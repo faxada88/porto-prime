@@ -711,9 +711,51 @@ export class AdminService {
   }
 
   private async applicationChanged(userId: string, courierId?: string) {
-    if (courierId) await this.realtime.syncCourierPresence(courierId);
-    this.realtime.emitToUser(userId, 'courier.profile.updated', {courierId});
-    this.realtime.emitToRole('ADMIN', 'courier.profile.updated', {courierId});
+    // Never delay the application notification behind the courier-presence
+    // calculation. A courier can be offline or restricted and must still
+    // receive their pending-document changes on the active authenticated app.
+    const at = new Date().toISOString();
+    this.realtime.emitToUser(userId, 'courier.profile.updated', {courierId, at});
+    this.realtime.emitToRole('ADMIN', 'courier.profile.updated', {courierId, at});
+
+    if (!courierId) return;
+    try {
+      // Send only the currently actionable instructions to the authenticated
+      // courier's socket. No CPF, private document image or historical answer
+      // is included; the app fetches the full account state separately.
+      const requirements = await this.prisma.courierRequirement.findMany({
+        where: {
+          courierId,
+          status: { in: ['OPEN', 'ANSWERED'] },
+          canceledAt: null,
+        },
+        orderBy: { requestedAt: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          status: true,
+          requestedAt: true,
+          answeredAt: true,
+          canceledAt: true,
+        },
+      });
+      this.realtime.emitToUser(userId, 'courier.requirements.updated', {
+        courierId,
+        requirements,
+        at,
+      });
+    } catch {
+      // The original profile event above already requests a full refresh.
+      // A failed snapshot must not roll back the committed requirement.
+    }
+
+    try {
+      await this.realtime.syncCourierPresence(courierId);
+    } catch {
+      // Presence may be temporarily unavailable while an account is
+      // restricted. It cannot prevent document notifications or Admin success.
+    }
   }
 
   async cancelRequirement(id: string, authorization?: string) {
