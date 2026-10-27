@@ -1,3 +1,4 @@
+import '../../../../core/utils/print_order_number.dart';
 import '../../../../core/localization/prime_localization.dart';
 import '../widgets/prime_payment_experience.dart';
 import 'dart:async';
@@ -280,9 +281,7 @@ class _StripeCheckoutPageState extends State<StripeCheckoutPage> with WidgetsBin
       }
     }
     final total = double.tryParse((order?['total'] ?? 0).toString()) ?? 0;
-    final shortId = widget.orderId.length > 8
-        ? widget.orderId.substring(0, 8).toUpperCase()
-        : widget.orderId.toUpperCase();
+    final shortId = printOrderNumber(order);
 
     final track = await showModalBottomSheet<bool>(
       context: context,
