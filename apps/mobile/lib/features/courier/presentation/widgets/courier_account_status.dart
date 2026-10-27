@@ -26,19 +26,29 @@ class CourierAccountStatus extends StatefulWidget {
 
 class _CourierAccountStatusState extends State<CourierAccountStatus> {
   Timer? _accountRefresh;
+  bool _refreshingAccount = false;
+
+  Future<void> _checkRequirements() async {
+    if (!mounted || _refreshingAccount || !AppState.instance.isCourier) return;
+    _refreshingAccount = true;
+    try {
+      await AppState.instance.refreshCourierAccount();
+    } catch (_) {
+      // The next poll recovers after an offline or temporarily failing API.
+    } finally {
+      _refreshingAccount = false;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     AppState.instance.addListener(_showLatestRequirements);
-    // The socket updates instantly; polling independently recovers missed
-    // messages, including a pending account that went offline briefly.
-    unawaited(AppState.instance.refreshCourierAccount().catchError((_) {}));
-    _accountRefresh = Timer.periodic(const Duration(seconds: 6), (_) {
-      if (mounted && AppState.instance.isCourier) {
-        unawaited(AppState.instance.refreshCourierAccount().catchError((_) {}));
-      }
-    });
+    // The socket updates instantly; a single in-flight polling request
+    // recovers missed events without racing itself on a slow connection.
+    unawaited(_checkRequirements());
+    _accountRefresh = Timer.periodic(
+      const Duration(seconds: 6), (_) => unawaited(_checkRequirements()));
   }
 
   void _showLatestRequirements() {
