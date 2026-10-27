@@ -453,6 +453,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
     return {
       offerId: offer.id,
       orderId: offer.orderId,
+      displayNumber: offer.order.displayNumber,
       status: offer.status,
       expiresAt: offer.expiresAt,
       deliveryFee: offer.order.deliveryFee,
