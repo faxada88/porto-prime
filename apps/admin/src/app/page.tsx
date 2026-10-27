@@ -305,6 +305,7 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
  const [orderQuery,setOrderQuery]=useState("");
  const [visibleLimit,setVisibleLimit]=useState(20);
  const [thermalPaper,setThermalPaper]=useState<58|80>(80);
+ const [thermalBaud,setThermalBaud]=useState<9600|19200|115200>(9600);
  const [thermalBusy,setThermalBusy]=useState(false);
  const [thermalSelected,setThermalSelected]=useState(false);
  const [thermalMessage,setThermalMessage]=useState("");
@@ -314,7 +315,7 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
   if(!printable.length||thermalBusy)return;
   setThermalBusy(true);setThermalError("");setThermalMessage("");
   try{
-   await printThermalOrders(printable,thermalPaper);
+   await printThermalOrders(printable,thermalPaper,thermalBaud);
    setThermalSelected(true);
    setThermalMessage(printable.length===1?"Comanda enviada para a impressora térmica.":"Comandas enviadas para a impressora térmica.");
   }catch(e){setThermalError(e instanceof Error?e.message:"Não foi possível conectar à impressora térmica.");}
@@ -391,6 +392,7 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
     <div className="poThermalControl">
       <div><Printer size={19}/><span><strong>Impressora térmica ESC/POS</strong><small>{thermalSelected?"Impressora selecionada":"USB serial ou Bluetooth SPP, porta COM."}</small></span></div>
       <label>Bobina <select value={thermalPaper} onChange={e=>setThermalPaper(Number(e.target.value)===58?58:80)} aria-label="Largura da bobina térmica"><option value={80}>80 mm</option><option value={58}>58 mm</option></select></label>
+      <label>Porta COM <select value={thermalBaud} onChange={e=>{const value=Number(e.target.value);setThermalBaud(value===115200?115200:value===19200?19200:9600);}} aria-label="Velocidade da impressora térmica"><option value={9600}>9600</option><option value={19200}>19200</option><option value={115200}>115200</option></select></label>
       <button type="button" onClick={()=>void connectThermal()} disabled={thermalBusy||!thermalSupported()}>Conectar térmica</button>
     </div>
     {thermalError&&<div className="poThermalError" role="alert">{thermalError}</div>}
