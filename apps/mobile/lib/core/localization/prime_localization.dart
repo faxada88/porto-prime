@@ -17,6 +17,23 @@ class AppLanguage extends ChangeNotifier {
   SharedPreferences? _preferences;
 
   static const Map<String, Map<String, String>> _curated = {
+"Conta bloqueada": {"es": "Cuenta bloqueada", "en": "Account blocked"},
+"Conta suspensa": {"es": "Cuenta suspendida", "en": "Account suspended"},
+"Vamos regularizar sua conta": {"es": "Vamos a regularizar tu cuenta", "en": "Let’s get your account ready"},
+"Novas entregas estão indisponíveis. Consulte as orientações abaixo. O acesso será atualizado após a revisão administrativa.": {"es": "No puedes recibir nuevas entregas. Consulta las indicaciones a continuación. El acceso se actualizará después de la revisión administrativa.", "en": "New deliveries are unavailable. Check the guidance below. Access will update after the administrative review."},
+"Confira o que falta e envie sua resposta por aqui. Você não precisa informar seu CPF novamente.": {"es": "Revisa lo que falta y envía tu respuesta aquí. No necesitas volver a introducir tu CPF.", "en": "Check what’s missing and send your response here. You don’t need to enter your CPF again."},
+"Aguardando análise administrativa. Nenhuma exigência adicional foi registrada.": {"es": "Pendiente de revisión administrativa. No se ha solicitado información adicional.", "en": "Awaiting administrative review. No additional information has been requested."},
+"Atualizar situação": {"es": "Actualizar estado", "en": "Refresh status"},
+"Falar com o suporte": {"es": "Contactar con soporte", "en": "Contact support"},
+"Exigência": {"es": "Requisito", "en": "Requirement"},
+"Resposta enviada • aguardando análise": {"es": "Respuesta enviada • pendiente de revisión", "en": "Response sent • awaiting review"},
+"Sua resposta": {"es": "Tu respuesta", "en": "Your response"},
+"Anexar imagem do documento": {"es": "Adjuntar imagen del documento", "en": "Attach a document image"},
+"Documento anexado • substituir": {"es": "Documento adjunto • sustituir", "en": "Document attached • replace"},
+"Enviar para análise": {"es": "Enviar para revisión", "en": "Send for review"},
+"Escreva uma resposta antes de enviar.": {"es": "Escribe una respuesta antes de enviarla.", "en": "Write a response before sending."},
+"Escolha uma imagem de até 60 KB.": {"es": "Selecciona una imagen de hasta 60 KB.", "en": "Choose an image up to 60 KB."},
+"Escolha uma imagem JPEG ou PNG.": {"es": "Selecciona una imagen JPEG o PNG.", "en": "Choose a JPEG or PNG image."},
 "Você está disponível. Avisaremos assim que chegar uma nova oportunidade.": {"es":"Estás disponible. Te avisaremos cuando llegue una nueva oportunidad.","en":"You're available. We'll let you know when a new opportunity arrives."},
 "Ligar": {"es":"Llamar","en":"Call"},
 "Peça o PIN ao cliente para finalizar.": {"es":"Pide el PIN al cliente para finalizar.","en":"Ask the customer for the PIN to complete delivery."},
@@ -494,3 +511,4 @@ class LanguagePicker extends StatelessWidget {
           const SizedBox(width: 4), const Icon(Icons.expand_more_rounded, size: 16, color: Colors.white)])),
     ));
 }
+

@@ -17,6 +17,8 @@ import { PrismaService } from '../prisma/prisma.service.js';
 @WebSocketGateway({
   cors: { origin: true, credentials: false },
   transports: ['websocket', 'polling'],
+  pingInterval: 5_000,
+  pingTimeout: 5_000,
 })
 export class RealtimeGateway
   implements
@@ -37,14 +39,29 @@ export class RealtimeGateway
     private readonly catalog?: CatalogGateway,
   ) {}
 
+  private readonly onPresence = (result: any) => {
+    const payload = { courierId: result.id, isOnline: result.isOnline, presenceStatus: result.presenceStatus, at: new Date().toISOString() };
+    this.emitToRole('ADMIN', 'courier.presence', payload);
+    this.emitToCourier(result.id, 'courier.presence', payload);
+    for (const offer of result.closed) {
+      const closed = { orderId: offer.orderId, offerId: offer.id, reason: 'UNAVAILABLE' };
+      this.emitToCourier(result.id, 'delivery.offer.closed', closed);
+      this.emitToRole('ADMIN', 'dispatch.offer.closed', closed);
+    }
+  };
+
+  syncCourierPresence(courierId: string) { return this.auth.syncCourierPresence(courierId); }
+
   afterInit() {
+    this.auth.presenceEvents.on('changed', this.onPresence);
     this.sessionSweep = setInterval(() => {
-      void this.disconnectInvalidSessions();
-    }, 30_000);
+      void this.disconnectInvalidSessions().catch(() => undefined);
+    }, 2_000);
     this.sessionSweep.unref?.();
   }
 
   onModuleDestroy() {
+    this.auth.presenceEvents.off('changed', this.onPresence);
     if (this.sessionSweep) clearInterval(this.sessionSweep);
   }
 
@@ -68,7 +85,7 @@ export class RealtimeGateway
           id: { in: sessionIds },
           revokedAt: null,
           refreshExpiresAt: { gt: new Date() },
-          user: { status: 'ACTIVE' },
+          user: { OR: [{ status: 'ACTIVE' }, { role: 'COURIER' }] },
         },
         select: { id: true },
       });
@@ -97,7 +114,7 @@ export class RealtimeGateway
           .trim();
 
       const session = await this.auth.authenticateSession(
-        token ? `Bearer ${token}` : undefined,
+        token ? `Bearer ${token}` : undefined, true,
       );
       const user = session.user;
 
@@ -129,10 +146,15 @@ export class RealtimeGateway
     }
   }
 
-  handleDisconnect(_client: Socket) {
-    // O heartbeat persistido por sessão/dispositivo é a fonte de verdade
-    // para presença operacional. Oscilações rápidas do socket não forçam
-    // OFFLINE imediatamente.
+  async handleDisconnect(client: Socket) {
+    const sessionId = client.data.sessionId;
+    if (!sessionId || !client.data.courierId) return;
+    // Another socket of this same session may already have reconnected.
+    if ([...this.server.sockets.sockets.values()].some(socket => socket.id !== client.id && socket.data.sessionId === sessionId)) return;
+    try {
+      await this.prisma.courierDevicePresence.updateMany({ where: { sessionId }, data: { onlineRequested: false } });
+      await this.auth.syncSessionPresence(sessionId);
+    } catch { /* The bounded presence sweep retries after transient DB failures. */ }
   }
 
   @SubscribeMessage('ping')
@@ -189,3 +211,4 @@ export class RealtimeGateway
     this.emitToRole('ADMIN', 'order.updated', payload);
   }
 }
+

@@ -315,7 +315,7 @@ export class AdminService {
     });
   }
 
-  async updateUserStatus(userId: string, status: string, authorization?: string) {
+  async updateUserStatus(userId: string, status: string, authorization?: string, reason?: string) {
     await this.requireAdmin(authorization);
     const allowed = ['ACTIVE', 'PENDING', 'SUSPENDED', 'BLOCKED'];
     if (!allowed.includes(status)) {
@@ -332,7 +332,17 @@ export class AdminService {
       return this.approve(userId, authorization);
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
+      if (user.courierProfile) {
+        await tx.$queryRawUnsafe('SELECT "id" FROM "CourierProfile" WHERE "id" = $1 FOR UPDATE', user.courierProfile.id);
+        const current = await tx.courierProfile.findUnique({where: {id: user.courierProfile.id}});
+        const previous = current?.onboardingData;
+        const data = previous && typeof previous === 'object' && !Array.isArray(previous) ? previous : {};
+        await tx.courierProfile.update({where: {id: user.courierProfile.id}, data: {
+          onboardingData: {...data, restrictionReason: String(reason ?? '').trim().slice(0,2000) || 'Acesso operacional restrito pela administração. Entre em contato com o suporte para receber orientações.'},
+          isOnline: false, presenceStatus: 'OFFLINE', availableSince: null,
+        }});
+      }
       return tx.user.update({
         where: { id: userId },
         data: { status: status as UserStatus },
@@ -346,6 +356,8 @@ export class AdminService {
         },
       });
     });
+    await this.applicationChanged(userId, user.courierProfile?.id);
+    return result;
   }
 
   private normalizeBulkIds(ids: unknown) {
@@ -525,7 +537,7 @@ export class AdminService {
         select: { id: true, name: true, email: true, role: true, status: true },
       });
     });
-    this.applicationChanged(userId, user.courierProfile?.id);
+    await this.applicationChanged(userId, user.courierProfile?.id);
     if(user.role===UserRole.PARTNER){this.realtime.emitToUser(userId,'partner.profile.updated',{userId});this.realtime.emitToRole('ADMIN','partner.profile.updated',{userId});}
     return result;
   }
@@ -547,11 +559,13 @@ export class AdminService {
       });
     }
 
-    return this.prisma.user.update({
+    const result = await this.prisma.user.update({
       where: { id: userId },
       data: { status: UserStatus.BLOCKED },
       select: { id: true, name: true, email: true, role: true, status: true },
     });
+    await this.applicationChanged(userId, user.courierProfile?.id);
+    return result;
   }
 
   async createRequirement(
@@ -617,11 +631,12 @@ export class AdminService {
         },
       };
     }, {isolationLevel: 'Serializable'});
-    this.applicationChanged(profile.userId, profile.id);
+    await this.applicationChanged(profile.userId, profile.id);
     return result;
   }
 
-  private applicationChanged(userId: string, courierId?: string) {
+  private async applicationChanged(userId: string, courierId?: string) {
+    if (courierId) await this.realtime.syncCourierPresence(courierId);
     this.realtime.emitToUser(userId, 'courier.profile.updated', {courierId});
     this.realtime.emitToRole('ADMIN', 'courier.profile.updated', {courierId});
   }
@@ -644,7 +659,7 @@ export class AdminService {
       }
       return {...updated, courier: profile};
     }, {isolationLevel: 'Serializable'});
-    this.applicationChanged(result.courier.userId, result.courierId);
+    await this.applicationChanged(result.courier.userId, result.courierId);
     const {courier, ...safe} = result;
     return safe;
   }
@@ -655,7 +670,7 @@ export class AdminService {
     if (!requirement) throw new NotFoundException('Pendência não encontrada');
     if (requirement.canceledAt) throw new BadRequestException('Esta pendência foi cancelada');
     const result = await (this.prisma as any).courierRequirement.update({where: {id}, data: {status: 'RESOLVED', resolvedAt: new Date()}});
-    this.applicationChanged(requirement.courier.userId, requirement.courierId);
+    await this.applicationChanged(requirement.courier.userId, requirement.courierId);
     return result;
   }
 
@@ -957,3 +972,4 @@ export class AdminService {
     return result;
   }
 }
+

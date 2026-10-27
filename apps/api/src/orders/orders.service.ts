@@ -1,3 +1,4 @@
+import { liveDeviceWhere } from '../auth/courier-presence.js';
 import {referralSnapshot,creditPartnerDeliveryTx} from '../partners/partner-commission.js';
 import {orderAdjustments} from '../availability/order-adjustments.js';
 import {
@@ -379,10 +380,10 @@ export class OrdersService {
       throw new BadRequestException('Longitude inválida');
     }
 
-    const onlineRequested =
-      body.online ?? profile.isOnline;
+    const device = await this.prisma.courierDevicePresence.findUnique({ where: { sessionId: session.id } });
+    const onlineRequested = body.online ?? device?.onlineRequested ?? false;
 
-    if (body.online !== undefined) {
+    if (body.online === false) {
       await (this.prisma as any).courierDevicePresence.updateMany({
         where: { courierId: profile.id }, data: { onlineRequested: body.online },
       });
@@ -400,7 +401,7 @@ export class OrdersService {
           : {}),
       },
       update: {
-        onlineRequested,
+        ...(body.online !== undefined ? { onlineRequested: body.online } : {}),
         lastHeartbeatAt: now,
         ...(latitude !== undefined && longitude !== undefined
           ? { latitude, longitude }
@@ -408,101 +409,12 @@ export class OrdersService {
       },
     });
 
-    const cfg = await (this.prisma as any).deliveryPricingConfig.upsert({
-      where: { id: 'default' },
-      create: { id: 'default' },
-      update: {},
-      select: { heartbeatTimeoutSeconds: true },
-    });
-    const cutoff = new Date(
-      Date.now() -
-        Math.max(20, Number(cfg.heartbeatTimeoutSeconds || 45)) * 1000,
-    );
-
-    const [activeDelivery, pendingOffer, locationDevice, activeDeviceCount] =
-      await Promise.all([
-        this.prisma.order.findFirst({
-          where: {
-            courierId: profile.id,
-            OR:[{adminDeletedAt:null,status:{notIn:[OrderStatus.DELIVERED,OrderStatus.CANCELED]}},{cancellation:{is:{returnStatus:{in:['REQUIRED','IN_TRANSIT','ARRIVED']}}}}],
-          },
-          select: { id: true },
-        }),
-        this.prisma.deliveryOffer.findFirst({
-          where: {
-            courierId: profile.id,
-            status: 'PENDING',
-            order:{adminDeletedAt:null},
-            expiresAt: { gt: now },
-          },
-          select: { id: true },
-        }),
-        (this.prisma as any).courierDevicePresence.findFirst({
-          where: {
-            courierId: profile.id,
-            lastHeartbeatAt: { gte: cutoff },
-            latitude: { not: null },
-            longitude: { not: null },
-          },
-          orderBy: { lastHeartbeatAt: 'desc' },
-          select: {
-            latitude: true,
-            longitude: true,
-            lastHeartbeatAt: true,
-          },
-        }),
-        (this.prisma as any).courierDevicePresence.count({
-          where: {
-            courierId: profile.id,
-            onlineRequested: true,
-            lastHeartbeatAt: { gte: cutoff },
-          },
-        }),
-      ]);
-
-    const hasOnlineDevice = body.online ?? profile.isOnline;
-    const presenceStatus = activeDelivery
-      ? 'DELIVERING'
-      : pendingOffer
-        ? 'OFFERED'
-        : hasOnlineDevice
-          ? 'AVAILABLE'
-          : 'OFFLINE';
-
-    const updated = await (this.prisma as any).courierProfile.update({
-      where: { id: profile.id },
-      data: {
-        presenceStatus,
-        ...(body.online !== undefined ? { isOnline: body.online } : {}),
-        lastHeartbeatAt: hasOnlineDevice ? now : profile.lastHeartbeatAt,
-        availableSince:
-          presenceStatus === 'AVAILABLE'
-            ? (profile as any).availableSince ?? now
-            : null,
-        ...(locationDevice
-          ? {
-              currentLatitude: locationDevice.latitude,
-              currentLongitude: locationDevice.longitude,
-              locationUpdatedAt: locationDevice.lastHeartbeatAt,
-            }
-          : {}),
-      },
-    });
-
-    this.realtime.emitToRole('ADMIN', 'courier.presence', {
-      courierId: profile.id,
-      presenceStatus,
-      at: now.toISOString(),
-    });
-
-    return {
-      isOnline: updated.isOnline,
-      presenceStatus: updated.presenceStatus,
-      lastHeartbeatAt: updated.lastHeartbeatAt,
-      availableSince: updated.availableSince,
-      locationUpdatedAt: updated.locationUpdatedAt,
-      activeDevices: activeDeviceCount,
-    };
+    if (latitude !== undefined && longitude !== undefined) {
+      await this.prisma.courierProfile.update({ where: { id: profile.id }, data: { currentLatitude: latitude, currentLongitude: longitude, locationUpdatedAt: now } });
+    }
+    const updated = await this.auth.syncCourierPresence(profile.id);
+    const activeDevices = await this.prisma.courierDevicePresence.count({ where: { courierId: profile.id, ...liveDeviceWhere() } });
+    return { isOnline: updated?.isOnline ?? false, presenceStatus: updated?.presenceStatus ?? 'OFFLINE', lastHeartbeatAt: updated?.lastHeartbeatAt, availableSince: updated?.availableSince, locationUpdatedAt: updated?.locationUpdatedAt ?? null, activeDevices };
   }
 
   async courierOnline(
@@ -742,3 +654,4 @@ export class OrdersService {
     return this.withoutDeliverySecrets(updated);
   }
 }
+

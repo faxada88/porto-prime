@@ -14,7 +14,7 @@ export class SupportService {
  constructor(private readonly db:PrismaService,private readonly auth:AuthService,private readonly realtime:RealtimeGateway){}
  private text(value:unknown,name:string,max:number){if(typeof value!=='string'||!value.trim()||value.trim().length>max)throw new BadRequestException(`${name}: informe de 1 a ${max} caracteres`);return value.trim();}
  private body(value:unknown):asserts value is Record<string,unknown>{if(!value||typeof value!=='object'||Array.isArray(value))throw new BadRequestException('Informe os dados do atendimento');}
- private async user(authorization?:string,admin=false){const u=await this.auth.authenticate(authorization);if(admin&&u.role!=='ADMIN')throw new ForbiddenException('Acesso exclusivo do atendimento');return u;}
+ private async user(authorization?:string,admin=false){const u=await this.auth.authenticate(authorization,true);if(admin&&u.role!=='ADMIN')throw new ForbiddenException('Acesso exclusivo do atendimento');return u;}
  private async thread(id:string,user:{id:string;role:string}){const thread=await this.db.supportThread.findUnique({where:{id}});if(!thread||user.role!=='ADMIN'&&thread.ownerId!==user.id)throw new NotFoundException('Atendimento não encontrado');return thread;}
  private emit(thread:{id:string;ownerId:string|null},senderRole:string,kind='message'){const payload={threadId:thread.id,senderRole,kind,at:new Date().toISOString()};if(thread.ownerId)this.realtime.emitToUser(thread.ownerId,'support.updated',payload);this.realtime.emitToRole('ADMIN','support.updated',payload);}
  async options(authorization?:string){const u=await this.user(authorization);return {categories:categories[u.role]||[],statuses:['OPEN','IN_PROGRESS','RESOLVED']};}
@@ -70,3 +70,4 @@ export class SupportService {
  }
  async status(id:string,body:Record<string,unknown>,authorization?:string){this.body(body);const u=await this.user(authorization,true);await this.thread(id,u);const status=this.text(body.status,'Status',30);if(!['OPEN','IN_PROGRESS','RESOLVED'].includes(status))throw new BadRequestException('Status inválido');const thread=await this.db.supportThread.update({where:{id},data:{status}});this.emit(thread,u.role,'status');return thread;}
 }
+

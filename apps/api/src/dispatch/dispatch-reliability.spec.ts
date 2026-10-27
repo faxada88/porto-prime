@@ -17,9 +17,10 @@ describe('Dispatch reliability',()=>{
  it('commits expiry cleanup before rejecting an acceptance and redispatches',async()=>{
   let released=false,available=false,committed=false,retried=false;
   const tx={
+   $queryRawUnsafe:async()=>[],
    order:{findUnique:async()=>({id:'order',courierId:null,status:'SEARCHING_COURIER'}),updateMany:async()=>{released=true;return {count:1};}},
    deliveryOffer:{findFirst:async()=>({id:'expired',expiresAt:new Date(0)}),updateMany:async()=>({count:1})},
-   courierProfile:{updateMany:async()=>{available=true;return {count:1};}},dispatchEvent:{create:async()=>({})},
+   courierProfile:{findFirst:async()=>({id:'courier'}),updateMany:async()=>{available=true;return {count:1};}},dispatchEvent:{create:async()=>({})},
   };
   const service=new DispatchService({$transaction:async(fn:any)=>{const result=await fn(tx);committed=true;return result;}} as any,gateway() as any);
   (service as any).scheduleRedispatch=()=>{retried=true;};
@@ -43,7 +44,9 @@ describe('Dispatch reliability',()=>{
   const attempted:string[]=[];
   const service=new DispatchService({order:{findMany:async()=>[{id:'broken'},{id:'ok'}]}} as any,gateway() as any);
   (service as any).expireOffers=async()=>{};
+  (service as any).markStaleCouriersOffline=async()=>{};
   (service as any).dispatchOrder=async(id:string)=>{attempted.push(id);if(id==='broken')throw Error('temporary failure');};
   await (service as any).tick();assert.deepEqual(attempted,['broken','ok']);
  });
 });
+

@@ -1,3 +1,4 @@
+import { liveDeviceWhere, PRESENCE_TTL_MS } from '../auth/courier-presence.js';
 import {
   BadRequestException,
   ConflictException,
@@ -96,6 +97,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
     if (this.running) return;
     this.running = true;
     try {
+      await this.markStaleCouriersOffline();
       await this.expireOffers();
 
       const orders = await (this.prisma as any).order.findMany({
@@ -128,8 +130,8 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
   }
 
   async markStaleCouriersOffline() {
-    // Online is a courier preference. A missing heartbeat must never change it.
-    // Dispatch eligibility still requires a fresh heartbeat below.
+    const couriers = await this.prisma.courierProfile.findMany({ where: { isOnline: true }, select: { id: true } });
+    for (const courier of couriers) await this.realtime.syncCourierPresence(courier.id);
   }
 
   async startDispatch(orderId: string) {
@@ -201,7 +203,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
   async dispatchOrder(orderId: string) {
     const cfg = await this.config();
     const heartbeatCutoff = new Date(
-      Date.now() - Math.max(20, cfg.heartbeatTimeoutSeconds) * 1000,
+      Date.now() - PRESENCE_TTL_MS,
     );
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
@@ -225,6 +227,8 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
         approvalStatus: 'APPROVED',
         presenceStatus: 'AVAILABLE',
         isOnline: true,
+        devicePresences: { some: liveDeviceWhere() },
+        deliveryOffers: { none: { status: 'PENDING', expiresAt: { gt: new Date() } } },
         lastHeartbeatAt: { gte: heartbeatCutoff },
         user: { status: 'ACTIVE' },
         deliveries: {
@@ -328,6 +332,11 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
                 id: candidate.courier.id,
                 presenceStatus: 'AVAILABLE',
                 isOnline: true,
+                approvalStatus: 'APPROVED',
+                user: { status: 'ACTIVE' },
+                devicePresences: { some: liveDeviceWhere() },
+                deliveryOffers: { none: { status: 'PENDING', expiresAt: { gt: new Date() } } },
+                deliveries: { none: { OR: [{status: {notIn: ['DELIVERED', 'CANCELED']}}, {cancellation: {is: {returnStatus: {in: ['REQUIRED', 'IN_TRANSIT', 'ARRIVED']}}}}] } },
                 lastHeartbeatAt: { gte: heartbeatCutoff },
               },
               data: {
@@ -474,6 +483,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
     const offer = await (this.prisma as any).deliveryOffer.findFirst({
       where: {
         courierId,
+        courier: { isOnline: true, approvalStatus: 'APPROVED', user: { status: 'ACTIVE' }, devicePresences: { some: liveDeviceWhere() } },
         status: 'PENDING',
         order:{adminDeletedAt:null},
         expiresAt: { gt: new Date() },
@@ -520,6 +530,9 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
         });
         if (existing && !existing.adminDeletedAt && existing.courierId === courierId &&
             !['DELIVERED', 'CANCELED'].includes(existing.status)) return existing;
+        await tx.$queryRawUnsafe('SELECT "id" FROM "CourierProfile" WHERE "id" = $1 FOR UPDATE', courierId);
+        const eligible = await tx.courierProfile.findFirst({ where: { id: courierId, userId, isOnline: true, approvalStatus: 'APPROVED', user: { status: 'ACTIVE' }, devicePresences: { some: liveDeviceWhere(now) }, deliveries: {none: {OR: [{status: {notIn: ['DELIVERED', 'CANCELED']}}, {cancellation: {is: {returnStatus: {in: ['REQUIRED', 'IN_TRANSIT', 'ARRIVED']}}}}]}} } });
+        if (!eligible) throw new ConflictException('Você está indisponível para novas entregas. Atualize sua conta.');
         const offer = await tx.deliveryOffer.findFirst({
           where: {
             orderId,
@@ -695,7 +708,7 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
     const now = new Date();
     const cfg = await this.config();
     const cutoff = new Date(
-      Date.now() - Math.max(20, cfg.heartbeatTimeoutSeconds) * 1000,
+      Date.now() - PRESENCE_TTL_MS,
     );
 
     const result = await (this.prisma as any).$transaction(
@@ -876,3 +889,4 @@ export class DispatchService implements OnModuleInit, OnModuleDestroy {
     });
   }
 }
+

@@ -1,7 +1,10 @@
+import { EventEmitter } from 'node:events';
+import { reconcileCourierPresence } from './courier-presence.js';
 import {
   BadRequestException,
   ConflictException,
   Injectable,
+  ForbiddenException,
   UnauthorizedException,
 } from '@nestjs/common';
 import {
@@ -36,6 +39,19 @@ type PostalCodeResult =
 @Injectable()
 export class AuthService {
   constructor(private readonly prisma: PrismaService, private readonly cpfHub: CpfHubService) {}
+
+  readonly presenceEvents = new EventEmitter();
+
+  async syncCourierPresence(courierId: string) {
+    const result = await reconcileCourierPresence(this.prisma, courierId);
+    if (result && (result.changed || result.closed.length)) this.presenceEvents.emit('changed', result);
+    return result;
+  }
+
+  async syncSessionPresence(sessionId: string) {
+    const device = await this.prisma.courierDevicePresence.findUnique({ where: { sessionId } });
+    if (device) await this.syncCourierPresence(device.courierId);
+  }
 
   private hashPassword(password: string) {
     const salt = randomBytes(16).toString('hex');
@@ -647,15 +663,15 @@ export class AuthService {
       throw new UnauthorizedException('E-mail ou senha inválidos');
     }
 
-    if (user.status === UserStatus.PENDING) {
+    if (user.role !== UserRole.COURIER && user.status === UserStatus.PENDING) {
       throw new UnauthorizedException(
         'Cadastro aguardando aprovação administrativa',
       );
     }
 
     if (
-      user.status === UserStatus.BLOCKED ||
-      user.status === UserStatus.SUSPENDED
+      user.role !== UserRole.COURIER && (user.status === UserStatus.BLOCKED ||
+      user.status === UserStatus.SUSPENDED)
     ) {
       throw new UnauthorizedException('Conta indisponível');
     }
@@ -681,7 +697,7 @@ export class AuthService {
       : '';
   }
 
-  async authenticateSession(authorization?: string) {
+  async authenticateSession(authorization?: string, accountAccess = false) {
     const token = this.bearer(authorization);
     if (!token) {
       throw new UnauthorizedException('Autenticação obrigatória');
@@ -711,17 +727,8 @@ export class AuthService {
       throw new UnauthorizedException('Sessão inválida ou expirada');
     }
 
-    if (session.user.status === UserStatus.PENDING) {
-      throw new UnauthorizedException(
-        'Cadastro aguardando aprovação administrativa',
-      );
-    }
-
-    if (
-      session.user.status === UserStatus.BLOCKED ||
-      session.user.status === UserStatus.SUSPENDED
-    ) {
-      throw new UnauthorizedException('Conta indisponível');
+    if (session.user.status !== UserStatus.ACTIVE && !(accountAccess && session.user.role === UserRole.COURIER)) {
+      throw new ForbiddenException('Conta restrita. Consulte as orientações na sua conta.');
     }
 
     const now = new Date();
@@ -735,8 +742,8 @@ export class AuthService {
     return session;
   }
 
-  async authenticate(authorization?: string) {
-    return (await this.authenticateSession(authorization)).user;
+  async authenticate(authorization?: string, accountAccess = false) {
+    return (await this.authenticateSession(authorization, accountAccess)).user;
   }
 
   async refresh(
@@ -776,7 +783,7 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token inválido ou expirado');
     }
 
-    if (session.user.status !== UserStatus.ACTIVE) {
+    if (session.user.status !== UserStatus.ACTIVE && session.user.role !== UserRole.COURIER) {
       throw new UnauthorizedException('Conta indisponível');
     }
 
@@ -820,11 +827,11 @@ export class AuthService {
   }
 
   async me(authorization?: string) {
-    return this.publicUser(await this.authenticate(authorization));
+    return this.publicUser((await this.authenticateSession(authorization, true)).user);
   }
 
   async sessions(authorization?: string) {
-    const current = await this.authenticateSession(authorization);
+    const current = await this.authenticateSession(authorization, true);
     const rows = await this.prisma.authSession.findMany({
       where: {
         userId: current.userId,
@@ -855,7 +862,7 @@ export class AuthService {
     sessionId: string,
     authorization?: string,
   ) {
-    const current = await this.authenticateSession(authorization);
+    const current = await this.authenticateSession(authorization, true);
     const target = await this.prisma.authSession.findFirst({
       where: { id: sessionId, userId: current.userId },
       select: { id: true },
@@ -879,6 +886,7 @@ export class AuthService {
       }),
     ]);
 
+    await this.syncSessionPresence(target.id);
     return { success: true };
   }
 
@@ -910,11 +918,12 @@ export class AuthService {
       }),
     ]);
 
+    await this.syncSessionPresence(session.id);
     return { success: true };
   }
 
   async logoutAll(authorization?: string) {
-    const current = await this.authenticateSession(authorization);
+    const current = await this.authenticateSession(authorization, true);
     const sessions = await this.prisma.authSession.findMany({
       where: {
         userId: current.userId,
@@ -941,6 +950,7 @@ export class AuthService {
       }),
     ]);
 
+    for (const id of ids) await this.syncSessionPresence(id);
     return { success: true };
   }
 

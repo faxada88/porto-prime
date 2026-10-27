@@ -77,8 +77,9 @@ export class AdminController {
     @Param('id') id: string,
     @Body('status') status: string,
     @Headers('authorization') authorization?: string,
+    @Body('reason') reason?: string,
   ) {
-    return this.adminService.updateUserStatus(id, status, authorization);
+    return this.adminService.updateUserStatus(id, status, authorization, reason);
   }
 
   @Delete('users/:id')

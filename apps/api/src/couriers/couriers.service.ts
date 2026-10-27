@@ -21,6 +21,12 @@ export class CouriersService {
     return String(value ?? '').replace(/\D/g, '');
   }
 
+  private publicAnswer(response: string | null) {
+    if (!response) return null;
+    try { const parsed = JSON.parse(response); return typeof parsed?.text === 'string' ? parsed.text : null; }
+    catch { return response; }
+  }
+
   private validCpf(value: unknown) {
     const cpf = this.digits(value);
 
@@ -53,6 +59,8 @@ export class CouriersService {
       pixKeyType: profile.pixKeyType,
       document: profile.document,
       approvalStatus: profile.approvalStatus,
+      userStatus: profile.user.status,
+      restrictionReason: profile.user.status === 'ACTIVE' ? null : profile.onboardingData?.restrictionReason ?? null,
       cnh: profile.cnh,
       cnhCategory: profile.cnhCategory,
       vehicleBrand: profile.vehicleBrand,
@@ -124,7 +132,7 @@ export class CouriersService {
           id: requirement.id,
           title: requirement.title,
           description: requirement.description,
-          response: requirement.response,
+          response: this.publicAnswer(requirement.response), // Never expose document images through the public CPF lookup.
           status: requirement.status,
           requestedAt: requirement.requestedAt,
           answeredAt: requirement.answeredAt,
@@ -157,6 +165,8 @@ export class CouriersService {
           id: requirementId,
           courier: {
             document: cpf,
+            user: { status: { in: ['ACTIVE', 'PENDING'] } },
+            approvalStatus: { notIn: ['REJECTED', 'SUSPENDED'] },
           },
         },
       });
@@ -182,7 +192,7 @@ export class CouriersService {
 
   async profile(authorization?: string) {
     const user =
-      await this.auth.authenticate(authorization);
+      await this.auth.authenticate(authorization, true);
 
     if (user.role !== UserRole.COURIER) {
       throw new BadRequestException(
@@ -195,7 +205,7 @@ export class CouriersService {
         where: { userId: user.id },
         include: {
           user: {
-            select: { name: true },
+            select: { name: true, status: true },
           },
           requirements: {
             orderBy: { requestedAt: 'desc' },
@@ -220,6 +230,7 @@ export class CouriersService {
 
   async savePhoto(raw: unknown, authorization?: string) {
     const profile = await this.profile(authorization);
+    this.assertCanEdit(profile);
     const photo = validateProfilePhoto(raw);
     await this.prisma.$transaction(async tx => {
       await tx.$queryRawUnsafe('SELECT "id" FROM "CourierProfile" WHERE "id" = $1 FOR UPDATE', profile.id);
@@ -242,6 +253,7 @@ export class CouriersService {
       await this.profile(authorization);
 
     const allowed: any = {};
+    this.assertCanEdit(profile);
 
     for (const key of [
       'cnh',
@@ -265,7 +277,7 @@ export class CouriersService {
         data: allowed,
         include: {
           user: {
-            select: { name: true },
+            select: { name: true, status: true },
           },
           requirements: {
             orderBy: { requestedAt: 'desc' },
@@ -280,8 +292,9 @@ export class CouriersService {
     id: string,
     response: string,
     authorization?: string,
+    documentPhoto?: string,
   ) {
-    if (!response?.trim()) {
+    if (typeof response !== 'string' || !response.trim()) {
       throw new BadRequestException(
         'Escreva a resposta ou informação solicitada',
       );
@@ -304,8 +317,13 @@ export class CouriersService {
       );
     }
 
+    if (profile.user.status === 'BLOCKED' || profile.user.status === 'SUSPENDED' || ['REJECTED', 'SUSPENDED'].includes(profile.approvalStatus)) {
+      throw new BadRequestException('Envio indisponível enquanto a conta está suspensa ou bloqueada. Entre em contato com o suporte.');
+    }
+    if (response.length > 4000) throw new BadRequestException('Use até 4.000 caracteres.');
+    const photo = documentPhoto ? validateProfilePhoto(documentPhoto) : undefined;
     return this.answerRequirement(id, {
-        response: response.trim(),
+        response: photo ? JSON.stringify({ text: response.trim(), documentPhoto: photo }) : response.trim(),
         status: 'ANSWERED',
         answeredAt: new Date(),
       });
@@ -314,6 +332,19 @@ export class CouriersService {
   private async answerRequirement(id: string, data: Record<string, unknown>) {
     const changed = await (this.prisma as any).courierRequirement.updateMany({where: {id, status: {not: 'RESOLVED'}, canceledAt: null}, data});
     if (!changed.count) throw new BadRequestException('Esta pendência foi concluída ou cancelada. Atualize a consulta.');
-    return (this.prisma as any).courierRequirement.findUnique({where: {id}});
+    const result = await (this.prisma as any).courierRequirement.findUnique({where: {id}, include: {courier: {select: {userId: true}}}});
+    if (result) {
+      this.realtime.emitToUser(result.courier.userId, 'courier.profile.updated', {courierId: result.courierId});
+      this.realtime.emitToRole('ADMIN', 'courier.profile.updated', {courierId: result.courierId});
+    }
+    return { success: true };
+
+  }
+
+  private assertCanEdit(profile: any) {
+    if (['BLOCKED', 'SUSPENDED'].includes(profile.user.status) || ['REJECTED', 'SUSPENDED'].includes(profile.approvalStatus)) {
+      throw new BadRequestException('A conta está restrita a consulta e atendimento.');
+    }
   }
 }
+

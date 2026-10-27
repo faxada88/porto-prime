@@ -1,3 +1,4 @@
+import '../widgets/courier_account_status.dart';
 import '../../../../core/localization/prime_localization.dart';
 import '../../../../core/tracking/courier_route_tracker.dart';
 import '../../../../core/tracking/courier_tracking_notice.dart';
@@ -45,6 +46,7 @@ class _CourierPageState extends State<CourierPage> {
   bool _logoutDialogOpen = false;
   bool _withdrawalDialogOpen = false;
   bool _signingOut = false;
+  bool _accountWasRestricted = false;
   final Set<String> _readUpdateIds = {};
   final _operationsScroll = ScrollController();
   String? _lastPresentedOfferId;
@@ -54,6 +56,15 @@ class _CourierPageState extends State<CourierPage> {
 
   void _syncOfferSound() {
     final state=AppState.instance;
+    final restricted = state.courierRestricted;
+    if (restricted && !_accountWasRestricted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && AppState.instance.courierRestricted) {
+          Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
+        }
+      });
+    }
+    _accountWasRestricted = restricted;
     if(_soundingOfferId==null)return;
     final stillAvailable=state.courierOffers.any((offer)=>(offer['offerId']??offer['orderId']).toString()==_soundingOfferId);
     if(!state.isCourier||!state.courierOnline||state.courierDelivery!=null||!stillAvailable){stopDeliveryOfferSound();_soundingOfferId=null;}
@@ -72,7 +83,7 @@ class _CourierPageState extends State<CourierPage> {
       } catch (_) {}
     });
     _heartbeatTimer = Timer.periodic(
-      const Duration(seconds: 15),
+      const Duration(seconds: 5),
       (_) async {
         try {
           await AppState.instance.heartbeatCourier();
@@ -86,7 +97,7 @@ class _CourierPageState extends State<CourierPage> {
         // Socket is the primary path; polling only recovers missed events.
         if(state.realtime.connected && ++_refreshTicks%3!=0)return;
         try {
-          await state.refreshCourierOperations();
+          await state.refreshCourier();
         } catch (_) {}
       },
     );
@@ -851,6 +862,7 @@ class _CourierPageState extends State<CourierPage> {
     animation: AppState.instance,
     builder: (_, __) {
       final state = AppState.instance;
+      if (state.courierRestricted) return const CourierAccountStatus();
       final current = state.courierDelivery == null ? null
         : Map<String, dynamic>.from(state.courierDelivery!);
       if (current?['cancellation'] is Map &&
@@ -3169,4 +3181,5 @@ String _money(dynamic value) {
   final number = double.tryParse(value?.toString() ?? '') ?? 0;
   return 'R\$ ${number.toStringAsFixed(2).replaceAll('.', ',')}';
 }
+
 

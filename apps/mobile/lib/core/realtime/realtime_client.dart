@@ -78,6 +78,7 @@ class RealtimeClient {
     for (final event in events) {
       socket.on(event, (payload) => onEvent?.call(event, payload));
     }
+    socket.onDisconnect((_) => onEvent?.call('transport.disconnected', null));
 
     socket.onReconnectAttempt((_) {
       final fresh = ApiClient.instance.token;

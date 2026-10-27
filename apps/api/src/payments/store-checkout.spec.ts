@@ -2,7 +2,7 @@ import {afterEach,describe,it,expect,vi} from 'vitest';
 vi.mock('../prisma/prisma.service.js',()=>({PrismaService:class{}}));
 vi.mock('../auth/auth.service.js',()=>({AuthService:class{}}));
 vi.mock('../realtime/realtime.gateway.js',()=>({RealtimeGateway:class{}}));
-vi.mock('../generated/prisma/client.js',()=>({UserRole:{CUSTOMER:'CUSTOMER'},PaymentStatus:{PAID:'PAID'},PaymentMethod:{CARD:'CARD'},OrderStatus:{CANCELED:"CANCELED"}}));
+vi.mock('../generated/prisma/client.js',()=>({UserRole:{CUSTOMER:'CUSTOMER'},PaymentStatus:{PAID:'PAID',PENDING:'PENDING',FAILED:'FAILED'},PaymentMethod:{CARD:'CARD'},OrderStatus:{CANCELED:"CANCELED",PENDING:"PENDING"}}));
 vi.mock('./stripe-payment-verifier.js',()=>({retrieveStripeIntent:vi.fn(),isVerifiedPayment:vi.fn()}));
 import {PaymentsService} from './payments.service.js';
 import {retrieveStripeIntent} from './stripe-payment-verifier.js';

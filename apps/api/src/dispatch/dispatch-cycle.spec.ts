@@ -18,7 +18,7 @@ function fixture(count: number) {
       },
     },
     courierProfile: {
-      findMany: vi.fn(async ({ where }: any) => couriers.filter(c => c.isOnline === where.isOnline && c.presenceStatus === where.presenceStatus && c.approvalStatus === where.approvalStatus && c.lastHeartbeatAt >= where.lastHeartbeatAt.gte && !c.busy && !(where.deliveryOffers?.none && offers.some(o => o.courierId === c.id))).map(c => ({ ...c, deliveryOffers: offers.filter(o => o.courierId === c.id) }))),
+      findMany: vi.fn(async ({ where }: any) => couriers.filter(c => c.isOnline === where.isOnline && c.presenceStatus === where.presenceStatus && c.approvalStatus === where.approvalStatus && c.lastHeartbeatAt >= where.lastHeartbeatAt.gte && !c.busy && !(where.deliveryOffers?.none && offers.some(o => o.courierId === c.id && o.status === 'PENDING' && o.expiresAt > new Date()))).map(c => ({ ...c, deliveryOffers: offers.filter(o => o.courierId === c.id) }))),
       updateMany: async ({ where, data }: any) => {
         const courier = couriers.find(c => c.id === where.id && c.presenceStatus === where.presenceStatus && c.lastHeartbeatAt >= where.lastHeartbeatAt.gte);
         if (!courier) return { count: 0 };
@@ -63,12 +63,13 @@ describe('delivery offer rotation without permanent exclusions', () => {
     expect(f.offers).toHaveLength(count * 3);
     expect(f.offers.every(o => ['EXPIRED', 'DECLINED'].includes(o.status))).toBe(true);
   });
-  it('does not turn a requested-online courier offline on a stale heartbeat', async () => {
+  it('reconciles stale couriers before dispatch and does not offer to them', async () => {
     const f = fixture(1);
     f.couriers[0].lastHeartbeatAt = new Date(0);
+    f.prisma.courierProfile.findMany.mockResolvedValueOnce([{id: f.couriers[0].id}]);
+    f.realtime.syncCourierPresence = vi.fn(async () => {f.couriers[0].isOnline=false;f.couriers[0].presenceStatus='OFFLINE';});
     await f.service.markStaleCouriersOffline();
-    expect(f.couriers[0].isOnline).toBe(true);
-    expect(f.couriers[0].presenceStatus).toBe('AVAILABLE');
+    expect(f.realtime.syncCourierPresence).toHaveBeenCalledWith(f.couriers[0].id);
     expect(await f.service.dispatchOrder(f.order.id)).toBeNull();
   });
   it('respects a manual offline choice even if availability is stale', async () => {
@@ -120,3 +121,4 @@ describe('delivery offer rotation without permanent exclusions', () => {
 describe('Oferta com adicional cobrado no checkout',()=>{
  it('usa o adicional congelado no pedido e exibe ganhos sem somar novamente',async()=>{const f=fixture(1);Object.assign(f.order,{deliveryFee:8,courierDemandBonus:2.5,demandSurchargeIncluded:true});const payload=await f.service.dispatchOrder(f.order.id);expect(payload).toMatchObject({deliveryFee:8,demandBonus:2.5,courierEarnings:8});expect(f.offers[0].demandBonus).toBe(2.5);f.close('DECLINED');expect(await f.service.dispatchOrder(f.order.id)).toMatchObject({demandBonus:2.5,courierEarnings:8})});
 });
+

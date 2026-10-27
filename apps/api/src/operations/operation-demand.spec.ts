@@ -30,7 +30,7 @@ describe('Alta demanda com bônus',()=>{
 describe('Bônus prometido na oferta',()=>{
  it('mantém bônus original no aceite mesmo após desligar ou alterar a configuração',async()=>{
   const offer={id:'offer',demandBonus:3,expiresAt:new Date(Date.now()+60000)};
-  const tx:any={deliveryOffer:{findFirst:vi.fn(async()=>offer),updateMany:vi.fn(async()=>({count:1})),findMany:vi.fn(async()=>[])},order:{updateMany:vi.fn(async()=>({count:1})),findUnique:vi.fn(async()=>({id:'order'}))},courierProfile:{update:vi.fn(async()=>({}))},dispatchEvent:{create:vi.fn(async()=>({}))},courierDemandSignal:{findUnique:vi.fn(async()=>({mode:'MANUAL_OFF',bonusAmount:5}))}};
+  const tx:any={$queryRawUnsafe:vi.fn(async()=>[]),deliveryOffer:{findFirst:vi.fn(async()=>offer),updateMany:vi.fn(async()=>({count:1})),findMany:vi.fn(async()=>[])},order:{updateMany:vi.fn(async()=>({count:1})),findUnique:vi.fn(async()=>({id:'order'}))},courierProfile:{findFirst:vi.fn(async()=>({id:'courier'})),update:vi.fn(async()=>({}))},dispatchEvent:{create:vi.fn(async()=>({}))},courierDemandSignal:{findUnique:vi.fn(async()=>({mode:'MANUAL_OFF',bonusAmount:5}))}};
   const db:any={$transaction:async(fn:any)=>fn(tx)};
   const realtime:any={emitOrderUpdated:vi.fn(),emitToUser:vi.fn()};
   await new DispatchService(db,realtime).acceptOffer('courier','user','order');
@@ -42,3 +42,4 @@ describe('Bônus prometido na oferta',()=>{
 describe('Sincronização do preço com os clientes',()=>{
  it('invalida cotações ao ativar ou alterar o adicional mas não ao variar somente a fila',async()=>{const f=fixture('ADMIN',10);await f.service.read(undefined,'ADMIN');expect(f.realtime.emitCatalogUpdated).toHaveBeenCalledWith('delivery.pricing.updated');f.realtime.emitCatalogUpdated.mockClear();f.tx.order.count.mockResolvedValue(11);await f.service.read(undefined,'ADMIN');expect(f.realtime.emitCatalogUpdated).not.toHaveBeenCalled();await f.service.set({bonusAmount:5});expect(f.realtime.emitCatalogUpdated).toHaveBeenCalledTimes(1)});
 });
+

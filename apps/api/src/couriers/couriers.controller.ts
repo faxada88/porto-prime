@@ -52,12 +52,15 @@ export class CouriersController {
   respond(
     @Param('id') id: string,
     @Body('response') response: string,
+    @Body('documentPhoto') documentPhoto?: string,
     @Headers('authorization') authorization?: string,
   ) {
     return this.service.respond(
       id,
       response,
       authorization,
+      documentPhoto,
     );
   }
 }
+
