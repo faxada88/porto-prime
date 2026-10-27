@@ -723,28 +723,38 @@ export class AdminService {
       // Send only the currently actionable instructions to the authenticated
       // courier's socket. No CPF, private document image or historical answer
       // is included; the app fetches the full account state separately.
-      const requirements = await this.prisma.courierRequirement.findMany({
-        where: {
-          courierId,
-          status: { in: ['OPEN', 'ANSWERED'] },
-          canceledAt: null,
-        },
-        orderBy: { requestedAt: 'desc' },
+      const profile = await this.prisma.courierProfile.findUnique({
+        where: { id: courierId },
         select: {
-          id: true,
-          title: true,
-          description: true,
-          status: true,
-          requestedAt: true,
-          answeredAt: true,
-          canceledAt: true,
+          approvalStatus: true,
+          user: { select: { status: true } },
+          requirements: {
+            where: {
+              status: { in: ['OPEN', 'ANSWERED'] },
+              canceledAt: null,
+            },
+            orderBy: { requestedAt: 'desc' },
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              status: true,
+              requestedAt: true,
+              answeredAt: true,
+              canceledAt: true,
+            },
+          },
         },
       });
-      this.realtime.emitToUser(userId, 'courier.requirements.updated', {
-        courierId,
-        requirements,
-        at,
-      });
+      if (profile) {
+        this.realtime.emitToUser(userId, 'courier.requirements.updated', {
+          courierId,
+          userStatus: profile.user.status,
+          approvalStatus: profile.approvalStatus,
+          requirements: profile.requirements,
+          at,
+        });
+      }
     } catch {
       // The original profile event above already requests a full refresh.
       // A failed snapshot must not roll back the committed requirement.
