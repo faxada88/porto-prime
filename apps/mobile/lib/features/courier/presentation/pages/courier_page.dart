@@ -1,3 +1,4 @@
+import '../../../../core/utils/print_order_number.dart';
 import '../widgets/courier_review_success.dart';
 import '../widgets/courier_account_status.dart';
 import '../../../../core/localization/prime_localization.dart';
@@ -1290,7 +1291,7 @@ class _ActiveDeliveryCard extends StatelessWidget {
               _StatusMark(status: status),
               const Spacer(),
               PrimeText(
-                '#${_shortId(order['id'])}',
+                '#${printOrderNumber(order)}',
                 style: const TextStyle(
                   color: AppColors.muted,
                   fontSize: AppFontSize.caption,
@@ -1900,7 +1901,7 @@ class _SheetHero extends StatelessWidget {
                 )
               else
                 PrimeText(
-                  '#' + _shortId(id),
+                  '#' + printOrderNumber(order),
                   style: const TextStyle(
                     color: Colors.white60,
                     fontSize: AppFontSize.caption,
@@ -2951,7 +2952,7 @@ class _HistoryRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   PrimeText(
-                    'Entrega #' + _shortId(order['id']),
+                    'Entrega #' + printOrderNumber(order),
                     style: const TextStyle(
                       fontSize: AppFontSize.caption,
                       fontWeight: AppFontWeight.display,
@@ -3178,11 +3179,6 @@ Color _statusColor(String status) => switch (status) {
       _ => AppColors.oceanDeep,
     };
 
-String _shortId(dynamic value) {
-  final id = value?.toString() ?? '';
-  if (id.length <= 8) return id.toUpperCase();
-  return id.substring(id.length - 8).toUpperCase();
-}
 
 String _money(dynamic value) {
   final number = double.tryParse(value?.toString() ?? '') ?? 0;
