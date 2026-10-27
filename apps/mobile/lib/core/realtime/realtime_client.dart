@@ -42,7 +42,8 @@ class RealtimeClient {
           .setTransports(['websocket'])
           .disableAutoConnect()
           .enableReconnection()
-          .setReconnectionAttempts(20)
+          // Stay subscribed while the user remains logged in, including
+          // across longer network interruptions and background resumes.
           .setReconnectionDelay(1200)
           .setAuth({'token': token})
           .build(),
@@ -68,6 +69,7 @@ class RealtimeClient {
       'courier.presence',
       'wallet.updated',
       'courier.profile.updated',
+      'courier.requirements.updated',
       'courier.demand.updated',
       'catalog.updated',
       'store.updated',
