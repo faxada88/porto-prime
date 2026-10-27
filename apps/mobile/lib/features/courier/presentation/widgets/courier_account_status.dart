@@ -92,9 +92,11 @@ class _CourierAccountStatusState extends State<CourierAccountStatus> {
         title: const Row(children: [
           Icon(Icons.workspace_premium_outlined, color: Color(0xFF063A41), size: 24),
           SizedBox(width: 8),
-          PrimeText('PORTO PRIME',
-            style: TextStyle(color: Color(0xFF063A41), fontSize: 14,
-              fontWeight: FontWeight.w900, letterSpacing: .4)),
+          Expanded(
+            child: PrimeText('PORTO PRIME',
+              style: TextStyle(color: Color(0xFF063A41), fontSize: 14,
+                fontWeight: FontWeight.w900, letterSpacing: .4)),
+          ),
         ]),
         actions: [
           IconButton(
