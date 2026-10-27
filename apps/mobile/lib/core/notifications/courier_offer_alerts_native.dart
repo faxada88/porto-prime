@@ -16,6 +16,7 @@ const _notificationId = 8911;
 Future<void>? _initializing;
 Future<void>? _activating;
 bool _active = false;
+int _shiftGeneration = 0;
 String? _visibleOfferId;
 Timer? _expiryTimer;
 
@@ -54,7 +55,8 @@ Future<void> online() async {
   if (!Platform.isAndroid) return;
   if (_active) return;
   if (_activating != null) return _activating!;
-  _activating = _startShift();
+  final generation = ++_shiftGeneration;
+  _activating = _startShift(generation);
   try {
     await _activating!;
   } finally {
@@ -62,7 +64,7 @@ Future<void> online() async {
   }
 }
 
-Future<void> _startShift() async {
+Future<void> _startShift(int generation) async {
   try {
     await _initialize();
     final enabled = await FlutterBackground.initialize(
@@ -75,7 +77,11 @@ Future<void> _startShift() async {
     );
     if (!enabled) return;
     final started = await FlutterBackground.enableBackgroundExecution();
-    _active = started;
+    if (generation == _shiftGeneration) {
+      _active = started;
+    } else if (started) {
+      await FlutterBackground.disableBackgroundExecution();
+    }
   } catch (e) {
     if (kDebugMode) debugPrint('Porto Prime: foreground service not started: $e');
     // A denied system permission never changes the courier's online state.
@@ -85,6 +91,7 @@ Future<void> _startShift() async {
 
 Future<void> offline() async {
   if (!Platform.isAndroid) return;
+  ++_shiftGeneration;
   _active = false;
   await dismissOffer();
   try {
