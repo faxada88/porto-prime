@@ -146,11 +146,32 @@ export class OrdersService {
       // Stripe requires a minimum BRL cash charge; zero is handled by credit confirmation.
       if(cents(expectedTotal)>0&&cents(expectedTotal)<50)throw new BadRequestException('O pagamento restante pelo Stripe precisa ser de pelo menos R$ 0,50. Reduza o saldo utilizado ou cubra toda a compra com saldo');
       allocateCredit(items,storeCreditUsed);
+      // Reserve a four-digit daily print number atomically, in the same DB
+      // transaction as the order. This is NOT the delivery-confirmation PIN.
+      const localParts = Object.fromEntries(
+        new Intl.DateTimeFormat('en-US', {
+          timeZone: 'America/Bahia',
+          year: 'numeric', month: '2-digit', day: '2-digit',
+        }).formatToParts(new Date()).map(part => [part.type, part.value]),
+      );
+      const displayDay = [localParts.year, localParts.month, localParts.day].join('-');
+      const allocated = await tx.$queryRawUnsafe(
+        'INSERT INTO "DailyOrderNumber" ("day","currentNumber") VALUES ($1,1) ' +
+        'ON CONFLICT ("day") DO UPDATE SET "currentNumber"="DailyOrderNumber"."currentNumber"+1 ' +
+        'RETURNING "currentNumber"',
+        displayDay,
+      );
+      const displayNumber = Number(allocated?.[0]?.currentNumber);
+      if (!Number.isInteger(displayNumber) || displayNumber < 1 || displayNumber > 9999) {
+        throw new BadRequestException('Limite de 9999 pedidos do dia atingido. Contate a operação antes de registrar outro pedido.');
+      }
       const created=await tx.order.create({
       data: {
         ...await referralSnapshot(tx,data.referralCode,user.id),
         customerId: user.id,
         addressId: address.id,
+        displayNumber,
+        displayDay,
         subtotal,
         deliveryFee,
         courierDemandBonus: quote.demandSurcharge,
