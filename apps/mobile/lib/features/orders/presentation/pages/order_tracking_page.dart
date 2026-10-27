@@ -1,3 +1,4 @@
+import '../../../../core/utils/print_order_number.dart';
 import '../../../../core/localization/prime_localization.dart';
 import '../widgets/live_delivery_map.dart';
 import '../../../../core/tracking/courier_route_tracker.dart';
@@ -242,15 +243,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                     children: [
                       _info(
                         'Pedido',
-                        '#' +
-                            widget.orderId
-                                .substring(
-                                  0,
-                                  widget.orderId.length < 8
-                                      ? widget.orderId.length
-                                      : 8,
-                                )
-                                .toUpperCase(),
+                        '#' + printOrderNumber(current),
                       ),
                       _info(
                         'Pagamento',
@@ -317,8 +310,7 @@ class _Hero extends StatelessWidget {
             ),
             const Spacer(),
             PrimeText(
-              '#' +
-                  id.substring(0, id.length < 8 ? id.length : 8).toUpperCase(),
+              '#' + printOrderNumber(order),
               style: Theme.of(
                 context,
               ).textTheme.labelSmall?.copyWith(color: Colors.white60),
