@@ -16,6 +16,7 @@ const _notificationId = 8911;
 Future<void>? _initializing;
 Future<void>? _activating;
 bool _active = false;
+bool _attemptedThisShift = false;
 int _shiftGeneration = 0;
 String? _visibleOfferId;
 Timer? _expiryTimer;
@@ -53,8 +54,9 @@ Future<void> _initializeOnce() async {
 /// receiving offers while Android's screen is locked.
 Future<void> online() async {
   if (!Platform.isAndroid) return;
-  if (_active) return;
+  if (_active || _attemptedThisShift) return;
   if (_activating != null) return _activating!;
+  _attemptedThisShift = true;
   final generation = ++_shiftGeneration;
   _activating = _startShift(generation);
   try {
@@ -92,6 +94,7 @@ Future<void> _startShift(int generation) async {
 Future<void> offline() async {
   if (!Platform.isAndroid) return;
   ++_shiftGeneration;
+  _attemptedThisShift = false;
   _active = false;
   await dismissOffer();
   try {
