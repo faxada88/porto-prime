@@ -797,3 +797,611 @@
  .shell:has(.crEmbedded) .headActions .live{flex:0 0 auto}
  .shell:has(.crEmbedded) .content>header.workspaceHeader{min-height:60px}
 }
+
+/* PORTO PRIME · Candidate review cockpit · October 2026 */
+/* All rules below are scoped to the documentation analysis workspace. */
+.crReview2026 .crWorkspace{background:#f8fafc;color:#122c42}
+.crReview2026 .crWorkspace .crHeader{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:space-between!important;
+ min-height:76px!important;padding:15px 22px!important;
+ border-bottom:1px solid #e6edf3;background:#fff;
+}
+.crReview2026 .crWorkspace .crHeaderTitle{flex:1 1 auto;min-width:0}
+.crReview2026 .crWorkspace .crHeader h2{
+ margin:0 0 4px!important;color:#142a47;
+ font-size:clamp(18px,1.6vw,25px);font-weight:900;letter-spacing:-.052em;
+}
+.crReview2026 .crWorkspace .crHeaderTitle p{
+ display:flex;align-items:center;gap:7px;
+ color:#7790a7;font-size:11px;line-height:1.4;margin:0;
+}
+.crReview2026 .crBreadcrumbArrow{transform:rotate(-90deg);color:#91a5b6}
+.crReview2026 .crSyncHeader{
+ display:grid;grid-template-columns:8px auto;align-items:center;
+ column-gap:7px;row-gap:3px;padding:0 14px;
+ min-width:0;color:#097b64;
+}
+.crReview2026 .crSyncCircle{grid-row:1;width:8px;height:8px;border-radius:50%;background:#0eae82;box-shadow:0 0 0 4px #e2f6ed}
+.crReview2026 .crSyncHeader strong{font-size:10px;font-weight:840;white-space:nowrap}
+.crReview2026 .crSyncHeader small{grid-column:2;color:#8298a9;font-size:9px;white-space:nowrap}
+.crReview2026 .crTopStatus{padding:9px 13px;min-width:0;font-size:10px}
+.crReview2026 .crWorkspace .crColumns{
+ display:grid;grid-template-columns:minmax(165px,.88fr) minmax(0,2.86fr) minmax(245px,1.2fr);
+ gap:15px;align-items:start;min-width:0;
+ padding:18px;
+}
+.crReview2026 .crWorkspace .crIdentity{
+ display:flex;flex-direction:column;align-items:stretch;
+ margin:0;padding:18px 15px;
+ background:#fff;border:1px solid #e6ecf3;border-radius:16px;
+ box-shadow:0 3px 12px rgba(18,50,73,.025);
+}
+.crReview2026 .crWorkspace .crPortrait{
+ width:100px;height:100px;align-self:center;
+ margin:0 0 9px;background:#eaf5f8;border-radius:22px;
+}
+.crReview2026 .crWorkspace .crPortrait img,
+.crReview2026 .crWorkspace .crPortrait>span{
+ width:90px;height:90px;flex-basis:90px;
+}
+.crReview2026 .crWorkspace .crIdentityStatus{
+ align-self:center;order:1;margin:0 0 10px;
+ background:#fff0da;color:#b66b13;font-size:9px;padding:6px 10px;
+}
+.crReview2026 .crWorkspace .crIdentity h3{
+ order:2;font-size:15px;line-height:1.3;
+ font-weight:900;text-align:center;margin:0 0 16px!important;
+ color:#193250;overflow-wrap:anywhere;
+}
+.crReview2026 .crWorkspace .crContactDetails{
+ order:3;gap:10px;margin:0 0 13px;
+}
+.crReview2026 .crWorkspace .crContactDetails li{font-size:10px;color:#617b97}
+.crReview2026 .crWorkspace .crProfileDivider{order:4;margin:4px 0 15px}
+.crReview2026 .crWorkspace .crFact{order:5;margin:0 0 15px;gap:8px}
+.crReview2026 .crWorkspace .crFact small{font-size:9px}
+.crReview2026 .crWorkspace .crFact strong{font-size:11px}
+.crReview2026 .crWorkspace .crIdentityFoot{
+ order:6;margin-top:4px;padding:10px;border-radius:10px;
+ font-size:9px;color:#537c75;line-height:1.6;
+}
+.crReview2026 .crWorkspace .crMain{
+ display:grid;grid-template-columns:minmax(0,1fr);
+ gap:11px;align-content:start;
+}
+.crReview2026 .crWorkspace .crSteps{
+ min-height:86px;margin:0;padding:14px 8px 11px;border-radius:14px;
+}
+.crReview2026 .crWorkspace .crSteps b{font-size:10px}
+.crReview2026 .crWorkspace .crNotice{
+ padding:13px 15px;border-radius:13px;gap:10px;
+}
+.crReview2026 .crWorkspace .crNotice strong{font-size:12px}
+.crReview2026 .crWorkspace .crNotice p{font-size:10px}
+.crReview2026 .crWorkspace .crNoticeSymbol{
+ flex-basis:35px;width:35px;height:35px;
+}
+.crReview2026 .crWorkspace button.crRequestTop{
+ padding:9px 12px;font-size:10px;white-space:nowrap;background:#fff;
+}
+.crReview2026 .crWorkspace .requirementReview{
+ gap:10px;padding:0;margin:0;
+}
+.crReview2026 .crWorkspace .requirementReviewSummary{display:none}
+.crReview2026 .crWorkspace .requirementReviewHistory{display:none}
+.crReview2026 .crWorkspace .requirementReviewItem{
+ background:#fff;border:1px solid #e2eaf0;border-radius:15px;
+ box-shadow:0 4px 17px rgba(18,49,77,.026);
+}
+.crReview2026 .crWorkspace .requirementReviewItem>.crReviewItem{
+ padding:0;margin:0;border:0;
+}
+.crReview2026 .crWorkspace .crRequirementHeader{
+ display:flex;gap:11px;align-items:flex-start;
+ flex-wrap:nowrap;padding:15px 15px 11px;margin:0;
+}
+.crReview2026 .crWorkspace .crFileIcon{
+ width:42px;height:42px;flex:0 0 42px;
+ color:#1a7bcc;background:#edf5ff;border-radius:12px;
+}
+.crReview2026 .crWorkspace .crRequirementTitle{
+ flex:1 1 auto;min-width:0;
+}
+.crReview2026 .crWorkspace .crRequirementEyebrow{
+ display:block;margin:0 0 6px;font-size:9px;font-weight:850;
+ color:#8298b1;letter-spacing:.09em;
+}
+.crReview2026 .crWorkspace .crRequirementTitle h3{
+ margin:0 0 7px;font-size:15px;letter-spacing:-.022em;
+ line-height:1.35;font-weight:890;color:#172e4b;
+}
+.crReview2026 .crWorkspace .crRequirementTitle p{
+ margin:0;font-size:10px;line-height:1.6;color:#68809a;
+}
+.crReview2026 .crWorkspace .crRequirementMeta{
+ min-width:105px;flex:0 1 136px;gap:7px;
+ margin-left:auto;text-align:right;
+}
+.crReview2026 .crWorkspace .crReqStatus{
+ border:1px solid #dce9e1;padding:7px 10px;border-radius:999px;
+ background:#e7f8f0;color:#0b785e;font-size:9px;
+}
+.crReview2026 .crWorkspace .crReqStatus.awaiting{color:#ab730d;background:#fff4e5;border-color:#ffe9cd}
+.crReview2026 .crWorkspace .crRequirementMeta small{font-size:9px;line-height:1.4}
+.crReview2026 .crWorkspace .crReviewDecisionGrid{
+ display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
+ gap:0;margin:0 13px 14px;
+ border:1px solid #e3eaf1;border-radius:12px;overflow:hidden;
+ background:#fff;
+}
+.crReview2026 .crWorkspace .crAnswer{
+ display:block;margin:0;padding:0;
+}
+.crReview2026 .crWorkspace .crResponse,
+.crReview2026 .crWorkspace .crPendingResponse{
+ display:flex;flex-direction:column;
+ width:100%;min-width:0;height:100%;
+ gap:8px;margin:0;padding:14px;
+ background:#f7fbfa;border:0;border-right:1px solid #e7edf2;
+ border-radius:0;text-align:left;
+}
+.crReview2026 .crWorkspace .crResponse .crAnswerHeading,
+.crReview2026 .crWorkspace .crPendingResponse>strong{
+ margin:0 0 4px;color:#24425a;
+ font-size:11px;font-weight:880;
+}
+.crReview2026 .crWorkspace .crResponse .crAnswerHeading h4{
+ color:#24425a;font-size:11px;font-weight:880;
+}
+.crReview2026 .crWorkspace .crResponseText{
+ padding:12px;background:#e8f6f1;
+ border-radius:10px;border:1px solid #d9eee5;
+}
+.crReview2026 .crWorkspace .crResponseText p{
+ margin:0;color:#44657d;font-size:11px;
+ line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;
+}
+.crReview2026 .crWorkspace button.crAttachedDocument{
+ display:flex;align-items:center;gap:10px;
+ width:100%;min-width:0;margin:0;min-height:66px;padding:8px;
+ border:1px solid #dce9e5;border-radius:10px;
+ background:#fff;color:#2d5864;text-align:left;
+}
+.crReview2026 .crWorkspace button.crAttachedDocument:hover{
+ border-color:#8dccb5;background:#f4fbf7;
+}
+.crReview2026 .crWorkspace .crAttachedDocument img{
+ width:60px;height:55px;flex:0 0 60px;
+ object-fit:cover;border-radius:7px;
+}
+.crReview2026 .crWorkspace .crAttachedDocument>span{
+ display:grid;gap:4px;flex:1;min-width:0;
+ font-size:10px;font-weight:800;
+}
+.crReview2026 .crWorkspace .crAttachedDocument>span svg{display:inline;vertical-align:middle}
+.crReview2026 .crWorkspace .crAttachedDocument small{
+ font-size:9px;font-weight:500;color:#8aa0a9;
+}
+.crReview2026 .crWorkspace .crResponseNoPhoto{
+ display:flex;align-items:center;gap:8px;
+ padding:10px 0;color:#8aa4ae;font-size:10px;
+ margin:0!important;
+}
+.crReview2026 .crWorkspace .crPendingResponse{
+ align-items:flex-start;background:#f8fbfc;
+}
+.crReview2026 .crWorkspace .crPendingResponse>svg{color:#4381a4}
+.crReview2026 .crWorkspace .crPendingResponseBody{
+ flex:1;width:100%;display:flex;align-items:center;gap:9px;
+ min-height:120px;padding:15px;
+ border:1px dashed #dbe6eb;background:#fff;border-radius:10px;
+ color:#8395a5;font-size:11px;line-height:1.6;
+}
+.crReview2026 .crWorkspace .crPendingResponseBody svg{flex:0 0 26px;color:#9fb2bc}
+.crReview2026 .crWorkspace .crDecision{
+ display:flex;flex-direction:column;align-items:stretch;
+ gap:8px;min-width:0;padding:13px;
+}
+.crReview2026 .crWorkspace .crDecision h4{
+ margin:1px 0 4px;font-size:11px;line-height:1.35;
+ color:#24405d;font-weight:850;
+}
+.crReview2026 .crWorkspace .crDecision>button,
+.crReview2026 .crWorkspace .crCancelSlot>button{
+ display:flex;align-items:center;justify-content:center;gap:10px;
+ width:100%;min-height:56px;flex:0 0 auto;margin:0!important;
+ padding:10px;border-radius:9px;
+ font-size:11px;font-weight:820;line-height:1.35;
+ text-align:center;
+}
+.crReview2026 .crWorkspace .crDecision>button>span{display:grid;gap:3px}
+.crReview2026 .crWorkspace .crDecision>button b{font-size:11px}
+.crReview2026 .crWorkspace .crDecision>button small{
+ font-size:9px;font-weight:510;line-height:1.35;
+}
+.crReview2026 .crWorkspace button.crResolve{
+ color:#fff;background:linear-gradient(135deg,#047f71,#045b57);
+ border:1px solid #08736a;box-shadow:0 4px 12px #076b641a;
+}
+.crReview2026 .crWorkspace button.crResolve:hover{background:#057066}
+.crReview2026 .crWorkspace button.crAskAgain{
+ color:#a86a14;background:#fff8ed;
+ border:1px solid #f5dcb4;
+}
+.crReview2026 .crWorkspace button.crAskAgain:hover{background:#ffefd3}
+.crReview2026 .crWorkspace .crDecisionWaiting{
+ display:flex;align-items:center;justify-content:center;gap:9px;
+ min-height:53px;padding:10px;border-radius:9px;
+ border:1px dashed #d9e5ed;background:#f7f9fb;
+ color:#7992a2;font-size:10px;text-align:center;line-height:1.5;
+}
+.crReview2026 .crWorkspace .crCancelSlot{display:flex;width:100%;min-width:0;flex:0 0 auto}
+.crReview2026 .crWorkspace .crCancelSlot>button{
+ color:#b44343;background:#fff0f0;border:1px solid #f4cecb;
+}
+.crReview2026 .crWorkspace .crCancelSlot>button:hover{background:#ffe3e3}
+.crReview2026 .crWorkspace .crItemHistory{
+ margin:0;padding:0;border-top:1px solid #e8eef3;
+ background:#fafcff;
+}
+.crReview2026 .crWorkspace .crItemHistory summary{
+ padding:11px 14px;min-height:42px;font-size:10px;
+}
+.crReview2026 .crWorkspace .crItemHistoryBody{padding:5px 15px 13px}
+.crReview2026 .crWorkspace .crGeneralHistory{
+ margin:0;padding:0;background:#fff;
+ border:1px solid #e2eaf1;border-radius:12px;overflow:hidden;
+}
+.crReview2026 .crWorkspace .crGeneralHistory>summary{
+ display:flex;align-items:center;gap:9px;
+ min-height:47px;padding:11px 14px;cursor:pointer;
+ color:#335676;font-size:11px;font-weight:830;line-height:1.35;
+}
+.crReview2026 .crWorkspace .crGeneralHistory>summary>span{
+ padding:3px 9px;border-radius:999px;background:#edf3f6;
+ color:#60788d;font-size:9px;
+}
+.crReview2026 .crWorkspace .crGeneralHistory>summary>svg:last-child{margin-left:auto}
+.crReview2026 .crWorkspace .crGeneralHistory[open]>summary>svg:last-child{transform:rotate(180deg)}
+.crReview2026 .crWorkspace .crGeneralHistoryContent{
+ display:grid;gap:0;padding:10px 16px 13px;
+ border-top:1px solid #e9eff4;
+}
+.crReview2026 .crWorkspace .crGeneralHistoryContent>div{
+ display:grid;grid-template-columns:17px minmax(0,1fr);
+ column-gap:10px;row-gap:3px;
+ padding:7px 0;border-left:1px solid #dce9ee;
+ margin-left:6px;
+}
+.crReview2026 .crWorkspace .crHistoryDot{
+ grid-column:1;grid-row:1/-1;align-self:start;
+ width:9px;height:9px;border-radius:50%;
+ background:#11a486;margin-left:-5px;margin-top:3px;
+ border:2px solid #fff;box-shadow:0 0 0 1px #10a888;
+}
+.crReview2026 .crWorkspace .crGeneralHistoryContent b{
+ grid-column:2;grid-row:1;color:#35556f;
+ font-size:10px;overflow-wrap:anywhere;
+}
+.crReview2026 .crWorkspace .crGeneralHistoryContent small{
+ grid-column:2;grid-row:2;font-size:9px;color:#8097aa;
+}
+.crReview2026 .crWorkspace .crManagement{
+ margin:0;background:#fff;border-radius:12px;
+}
+.crReview2026 .crWorkspace .crManagement>summary{min-height:48px;font-size:11px}
+
+.crReview2026 .crWorkspace .crAppPreview{
+ display:flex;flex-direction:column;gap:12px;
+ min-width:0;overflow:visible;margin:0;
+ padding:0;background:transparent;border:0;box-shadow:none;
+}
+.crReview2026 .crWorkspace .crAppPreviewHeading{
+ display:grid;grid-template-columns:31px minmax(0,1fr) auto;
+ gap:8px;align-items:center;
+ padding:11px;border:1px solid #dfeae9;border-radius:12px;
+ background:#f3fbf6;
+}
+.crReview2026 .crWorkspace .crPreviewHeadingIcon{
+ display:grid;place-items:center;width:31px;height:31px;
+ border-radius:50%;background:#e0f5ed;color:#0b856e;
+}
+.crReview2026 .crWorkspace .crAppPreviewHeading h3{
+ margin:0 0 2px;color:#1a3c49;font-size:11px;font-weight:900;
+}
+.crReview2026 .crWorkspace .crAppPreviewHeading p{
+ margin:0;color:#79919c;line-height:1.35;font-size:9px;
+}
+.crReview2026 .crWorkspace .crPreviewConnected{
+ display:inline-flex;align-items:center;gap:6px;
+ padding:6px 8px;border-radius:999px;
+ background:#e2f5eb;color:#0e8269;font-size:9px;font-weight:850;
+ white-space:nowrap;
+}
+.crReview2026 .crWorkspace .crPreviewConnected>span{width:6px;height:6px;border-radius:50%;background:#12a382}
+.crReview2026 .crWorkspace .crPhone{
+ display:flex;flex-direction:column;
+ width:100%;max-width:297px;min-height:455px;
+ align-self:center;margin:0;
+ padding:7px 7px 9px;
+ background:#0c161c;border:3px solid #222b30;border-radius:30px;
+ box-shadow:0 11px 26px #001a252d,inset 0 0 0 2px #75808b;
+ overflow:hidden;
+}
+.crReview2026 .crWorkspace .crPhoneTop{
+ position:relative;display:flex;align-items:center;justify-content:space-between;
+ height:23px;flex:0 0 23px;
+ padding:0 13px;border-radius:22px 22px 0 0;
+ color:#203943;background:#f7fafb;font-size:9px;font-weight:810;
+}
+.crReview2026 .crWorkspace .crPhoneCamera{
+ position:absolute;left:50%;top:2px;transform:translateX(-50%);
+ width:14px;height:14px;border-radius:50%;background:#081820;
+ box-shadow:0 0 0 2px #d2e4e7;
+}
+.crReview2026 .crWorkspace .crPhoneAppBar{
+ display:flex;align-items:center;gap:6px;
+ padding:11px;border-bottom:1px solid #e6eff0;
+ background:#fff;color:#073941;
+}
+.crReview2026 .crWorkspace .crPhoneAppBar strong{font-size:10px;font-weight:900}
+.crReview2026 .crWorkspace .crPhoneAppBar svg:last-child{margin-left:auto}
+.crReview2026 .crWorkspace .crPhoneHero{
+ display:grid;gap:8px;padding:18px 14px 16px;
+ min-height:135px;color:#0e3942;
+ border-radius:0;
+ background:linear-gradient(137deg,#eaf8f5,#b7e6ed 68%,#f6e4b8);
+}
+.crReview2026 .crWorkspace .crPhoneHero small{
+ font-size:8px;font-weight:850;letter-spacing:.1em;color:#0b8874;
+}
+.crReview2026 .crWorkspace .crPhoneHero h3{
+ margin:0;font-size:19px;font-weight:900;color:#0a353c;
+ letter-spacing:-.04em;line-height:1.2;
+}
+.crReview2026 .crWorkspace .crPhoneHero p{
+ margin:0;font-size:9px;color:#476e78;line-height:1.5;
+}
+.crReview2026 .crWorkspace .crPhoneStatus{
+ margin:11px 9px 0;padding:10px 11px 9px;
+ background:#fff5e7;border:1px solid #ffe1bb;
+ border-radius:11px 11px 0 0;color:#a96a11;
+}
+.crReview2026 .crWorkspace .crPhoneStatus>div{
+ display:flex;align-items:center;gap:7px;
+ font-size:10px;font-weight:850;
+}
+.crReview2026 .crWorkspace .crPhoneStatus small{
+ display:block;margin-top:5px;color:#ab955e;font-size:8px;
+}
+.crReview2026 .crWorkspace .crPhoneBody{
+ display:flex;flex-direction:column;align-items:stretch;gap:11px;
+ padding:12px 11px 15px;margin:0 9px;
+ border:1px solid #ffe1bb;border-top:0;
+ border-radius:0 0 11px 11px;background:#fff;
+}
+.crReview2026 .crWorkspace .crPhoneBody>strong{
+ color:#1b3951;font-size:11px;line-height:1.4;overflow-wrap:anywhere;
+}
+.crReview2026 .crWorkspace .crPhoneBody>p{
+ max-height:118px;overflow:auto;margin:0;
+ font-size:9px;line-height:1.55;color:#728b9c;overflow-wrap:anywhere;
+}
+.crReview2026 .crWorkspace .crPhonePrimary,
+.crReview2026 .crWorkspace .crPhoneHelp,
+.crReview2026 .crWorkspace .crPhoneConfirmation{
+ display:flex;align-items:center;justify-content:center;gap:7px;
+ padding:10px 8px;border-radius:7px;font-size:9px;
+ line-height:1.3;font-weight:850;text-align:center;
+}
+.crReview2026 .crWorkspace .crPhonePrimary{color:#fff;background:#083e44}
+.crReview2026 .crWorkspace .crPhoneConfirmation{
+ background:#e3f6ee;color:#0c8168;
+}
+.crReview2026 .crWorkspace .crPhoneHelp{
+ border:1px solid #c3d6d7;color:#254956;background:#f8fbfa;
+}
+.crReview2026 .crWorkspace .crPhoneNav{
+ display:flex;align-items:center;justify-content:space-around;
+ margin-top:auto;padding:12px 6px 7px;
+ background:#fff;color:#7893a3;font-size:9px;
+ border-top:1px solid #eef2f3;
+}
+.crReview2026 .crWorkspace .crLiveExplanation{
+ display:flex;align-items:flex-start;gap:9px;
+ padding:11px;border:1px solid #d5ede3;border-radius:11px;
+ color:#376f68;background:#f0faf5;
+}
+.crReview2026 .crWorkspace .crLiveExplanation>span{
+ display:grid;place-items:center;flex:0 0 31px;
+ width:31px;height:31px;border-radius:50%;
+ background:#d4f0e3;color:#078774;
+}
+.crReview2026 .crWorkspace .crLiveExplanation strong{
+ color:#0b745e;font-size:10px;font-weight:890;
+}
+.crReview2026 .crWorkspace .crLiveExplanation p{
+ color:#688c84;font-size:9px;line-height:1.55;margin:5px 0 0;
+}
+.crReview2026 .crWorkspace .crSupportButton{
+ display:flex;justify-content:center;gap:8px;
+ width:100%;margin:0;min-height:38px;
+ font-size:10px;font-weight:820;
+}
+.crReview2026 .crWorkspace .crSupportButton svg:last-child{margin:0}
+
+.crRevisionBackdrop{
+ position:fixed;inset:0;z-index:4500;
+ display:flex;justify-content:center;align-items:center;
+ padding:20px;background:#0c1c2ec4;backdrop-filter:blur(5px);
+}
+.crRevisionModal{
+ display:grid;gap:16px;max-width:600px;width:100%;max-height:94dvh;
+ overflow:auto;padding:24px;margin:0;
+ border:1px solid #dce9eb;border-radius:21px;
+ background:#fff;box-shadow:0 35px 100px #071e3e54;
+}
+.crRevisionModal>header{
+ display:flex;align-items:flex-start;gap:12px;
+ padding:0 0 15px;margin:0;border-bottom:1px solid #e7eef2;
+ min-height:0;background:none;
+}
+.crRevisionIcon{
+ display:grid;place-items:center;
+ width:45px;height:45px;flex:0 0 45px;
+ border-radius:12px;background:#eaf6f1;color:#0c856f;
+}
+.crRevisionModal>header>div:nth-child(2){flex:1;min-width:0}
+.crRevisionModal>header small{display:block;color:#0b8b75;font-size:9px;font-weight:880;letter-spacing:.1em}
+.crRevisionModal>header h3{margin:5px 0;font-size:19px;font-weight:890;color:#183a4d}
+.crRevisionModal>header p{margin:0;font-size:11px;line-height:1.6;color:#71899a}
+.crRevisionModal>header button{
+ width:32px;height:32px;min-width:32px;border:1px solid #e1e9ef;
+ border-radius:9px;display:grid;place-items:center;background:#f7fafb;color:#496879;
+}
+.crRevisionModal>label{
+ display:grid;gap:7px;font-size:11px;font-weight:800;color:#31586b;
+}
+.crRevisionModal>label select,
+.crRevisionModal>label input,
+.crRevisionModal>label textarea{
+ width:100%;min-height:41px;padding:10px 12px;
+ border:1px solid #dbe8ec;border-radius:10px;
+ background:#fbfdfd;color:#224758;font-size:12px;line-height:1.5;
+ outline:none;
+}
+.crRevisionModal>label textarea{resize:vertical;min-height:100px}
+.crRevisionModal>label :is(select,input,textarea):focus{border-color:#55aa92;box-shadow:0 0 0 3px #e3f7ec}
+.crRevisionPreview{
+ display:grid;gap:7px;padding:14px;
+ background:#eff8f3;border:1px solid #d4eddf;border-radius:11px;
+}
+.crRevisionPreview small{color:#0e8a70;font-size:9px;font-weight:900;letter-spacing:.08em}
+.crRevisionPreview strong{font-size:12px;color:#21584f}
+.crRevisionPreview p{margin:0;font-size:11px;color:#69897e;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.crRevisionModal>footer{
+ display:flex;justify-content:flex-end;gap:9px;
+ padding:15px 0 0;margin:0;border-top:1px solid #e5edf0;
+ background:transparent;
+}
+.crRevisionModal>footer button{
+ display:flex;align-items:center;justify-content:center;gap:8px;
+ min-height:40px;padding:10px 13px;
+ border:1px solid #dce7ea;border-radius:9px;
+ background:#f4f7f8;color:#446673;font-size:11px;font-weight:820;
+}
+.crRevisionModal>footer button[type=submit]{
+ background:#08786e;color:#fff;border-color:#08786e;
+}
+.crRevisionModal>footer button:disabled{opacity:.55;cursor:not-allowed}
+
+/* Match the dark operational navigation in the reference, only in Aprovações. */
+@supports selector(:has(*)){
+ .shell:has(.crEmbedded.crReview2026){
+  background:#f8fafc;
+ }
+ .shell:has(.crEmbedded.crReview2026)>aside{
+  background:linear-gradient(170deg,#093b43,#062e36)!important;
+  border-right:1px solid #174d54!important;color:#efffff!important;
+  box-shadow:8px 0 24px #042d3622;
+ }
+ .shell:has(.crEmbedded.crReview2026)>aside .logo{
+  border-bottom-color:#ffffff22;
+ }
+ .shell:has(.crEmbedded.crReview2026)>aside .logo>b{
+  background:linear-gradient(125deg,#e6b95d,#e9cc83)!important;
+  color:#103d42!important;border:0;
+ }
+ .shell:has(.crEmbedded.crReview2026)>aside .logo strong{color:#f9fffd!important}
+ .shell:has(.crEmbedded.crReview2026)>aside .logo span{color:#b9d1ce!important}
+ .shell:has(.crEmbedded.crReview2026)>aside .navGroupLabel{color:#91b9b9!important}
+ .shell:has(.crEmbedded.crReview2026)>aside nav button{
+  background:transparent!important;border-color:transparent!important;
+  color:#c0dbdd!important;
+ }
+ .shell:has(.crEmbedded.crReview2026)>aside nav button .navIcon{color:#a7d0d0!important}
+ .shell:has(.crEmbedded.crReview2026)>aside nav button:hover{
+  color:#fff!important;background:#ffffff18!important;
+ }
+ .shell:has(.crEmbedded.crReview2026)>aside nav button.active{
+  color:#fff!important;
+  background:#ffffff19!important;
+  border-color:#ffffff10!important;
+  box-shadow:inset 3px 0 #16d6aa!important;
+ }
+ .shell:has(.crEmbedded.crReview2026)>aside nav button.active .navIcon{color:#b5fff1!important}
+ .shell:has(.crEmbedded.crReview2026)>aside .admin{
+  border-top-color:#ffffff23!important;
+ }
+ .shell:has(.crEmbedded.crReview2026)>aside .admin b{color:#fff!important}
+ .shell:has(.crEmbedded.crReview2026)>aside .admin small{color:#a9cdca!important}
+ .shell:has(.crEmbedded.crReview2026)>aside .admin button{color:#c1e2dc!important}
+}
+@media(max-width:1550px){
+ .crReview2026 .crWorkspace .crColumns{
+  grid-template-columns:minmax(155px,.79fr) minmax(0,2.7fr) minmax(222px,1.12fr);
+  gap:12px;padding:15px;
+ }
+ .crReview2026 .crWorkspace .crIdentity{padding:14px 11px}
+ .crReview2026 .crWorkspace .crRequirementHeader{flex-wrap:wrap}
+ .crReview2026 .crWorkspace .crRequirementMeta{
+  margin-left:0;flex:1 1 100%;justify-items:start;text-align:left;
+ }
+}
+@media(max-width:1220px){
+ .crReview2026 .crWorkspace .crColumns{
+  grid-template-columns:minmax(165px,.79fr) minmax(0,2.5fr);
+ }
+ .crReview2026 .crWorkspace .crAppPreview{
+  grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(205px,280px);
+  gap:12px;
+ }
+ .crReview2026 .crWorkspace .crAppPreviewHeading{grid-column:1/-1}
+ .crReview2026 .crWorkspace .crPhone{grid-column:2;grid-row:2/4}
+ .crReview2026 .crWorkspace .crLiveExplanation{grid-column:1;grid-row:2}
+ .crReview2026 .crWorkspace .crAppPreview>.crSupportButton{grid-column:1;grid-row:3}
+}
+@media(max-width:830px){
+ .crReview2026 .crWorkspace .crColumns{grid-template-columns:minmax(0,1fr)}
+ .crReview2026 .crWorkspace .crAppPreview{grid-column:1;grid-template-columns:minmax(0,1fr) minmax(200px,280px)}
+ .crReview2026 .crWorkspace .crIdentity{
+  display:grid;grid-template-columns:80px minmax(0,1fr);
+  gap:8px 13px;align-items:start;
+ }
+ .crReview2026 .crWorkspace .crPortrait{grid-row:1/3;grid-column:1;width:76px;height:76px}
+ .crReview2026 .crWorkspace .crPortrait img,
+ .crReview2026 .crWorkspace .crPortrait>span{width:70px;height:70px;flex-basis:70px}
+ .crReview2026 .crWorkspace .crIdentityStatus{order:1;grid-column:2;grid-row:1;justify-self:start;align-self:end}
+ .crReview2026 .crWorkspace .crIdentity h3{order:2;grid-column:2;grid-row:2;text-align:left;margin:0!important}
+ .crReview2026 .crWorkspace .crContactDetails{order:3;grid-column:1/-1}
+ .crReview2026 .crWorkspace .crProfileDivider{order:4;grid-column:1/-1}
+ .crReview2026 .crWorkspace .crFact{order:5;grid-column:1/-1}
+ .crReview2026 .crWorkspace .crIdentityFoot{order:6;grid-column:1/-1}
+}
+@media(max-width:625px){
+ .crReview2026 .crWorkspace .crHeader{padding:13px!important;gap:9px;flex-wrap:wrap}
+ .crReview2026 .crWorkspace .crHeaderTitle{flex:1 1 100%}
+ .crReview2026 .crWorkspace .crSyncHeader{padding:0}
+ .crReview2026 .crWorkspace .crColumns{padding:10px;gap:10px}
+ .crReview2026 .crWorkspace .crReviewDecisionGrid{grid-template-columns:minmax(0,1fr)}
+ .crReview2026 .crWorkspace .crResponse,
+ .crReview2026 .crWorkspace .crPendingResponse{
+  border-right:0;border-bottom:1px solid #e7edf2;
+ }
+ .crReview2026 .crWorkspace .crRequirementHeader{flex-wrap:wrap;padding:13px}
+ .crReview2026 .crWorkspace .crRequirementMeta{flex:1 1 100%}
+ .crReview2026 .crWorkspace .crSteps b{font-size:9px}
+ .crReview2026 .crWorkspace .crAppPreview{
+  display:flex;flex-direction:column;align-items:stretch;
+ }
+ .crReview2026 .crWorkspace .crPhone{width:min(100%,300px);align-self:center;margin:0}
+ .crReview2026 .crWorkspace .crLiveExplanation{width:100%}
+ .crRevisionBackdrop{padding:10px}
+ .crRevisionModal{padding:16px;border-radius:14px}
+ .crRevisionModal>footer{flex-wrap:wrap}
+ .crRevisionModal>footer button{flex:1 1 150px}
+}
+@media(prefers-reduced-motion:reduce){
+ .crReview2026 *{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+}
