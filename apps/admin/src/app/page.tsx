@@ -304,6 +304,8 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
  const [selected,setSelected]=useState<Set<string>>(new Set());
  const [orderQuery,setOrderQuery]=useState("");
  const [visibleLimit,setVisibleLimit]=useState(20);
+ const [supportsSerial,setSupportsSerial]=useState(false);
+ useEffect(()=>{setSupportsSerial(thermalSupported())},[]);
  const [thermalPaper,setThermalPaper]=useState<58|80>(80);
  const [thermalBaud,setThermalBaud]=useState<9600|19200|115200>(9600);
  const [thermalBusy,setThermalBusy]=useState(false);
@@ -393,11 +395,11 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
       <div><Printer size={19}/><span><strong>Impressora térmica ESC/POS</strong><small>{thermalSelected?"Impressora selecionada":"USB serial ou Bluetooth SPP, porta COM."}</small></span></div>
       <label>Bobina <select value={thermalPaper} onChange={e=>setThermalPaper(Number(e.target.value)===58?58:80)} aria-label="Largura da bobina térmica"><option value={80}>80 mm</option><option value={58}>58 mm</option></select></label>
       <label>Porta COM <select value={thermalBaud} onChange={e=>{const value=Number(e.target.value);setThermalBaud(value===115200?115200:value===19200?19200:9600);}} aria-label="Velocidade da impressora térmica"><option value={9600}>9600</option><option value={19200}>19200</option><option value={115200}>115200</option></select></label>
-      <button type="button" onClick={()=>void connectThermal()} disabled={thermalBusy||!thermalSupported()}>Conectar térmica</button>
+      <button type="button" onClick={()=>void connectThermal()} disabled={thermalBusy||!supportsSerial}>Conectar térmica</button>
     </div>
     {thermalError&&<div className="poThermalError" role="alert">{thermalError}</div>}
     {thermalMessage&&!thermalError&&<div className="poThermalSuccess" role="status">{thermalMessage}</div>}
-    {!thermalSupported()&&<div className="poThermalError" role="status">Impressão ESC/POS disponível no Chrome/Edge via localhost ou HTTPS. Impressoras comuns não são selecionadas.</div>
+    {!supportsSerial&&<div className="poThermalError" role="status">Impressão ESC/POS disponível no Chrome/Edge via localhost ou HTTPS. Impressoras comuns não são selecionadas.</div>
     {newestPrintable&&<div className="poSlipReady" role="status">
       <span className="poSlipIcon"><Printer size={21}/></span>
       <div><strong>Comanda pronta para impressão</strong><small>Pedido #{orderDisplayNumber(newestPrintable)} · Confira e entregue ao motoboy.</small></div>
@@ -419,7 +421,7 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
     <div className="poFilterLine"><div className="poPills" aria-label="Filtrar etapa operacional">{filters.map(([value,label])=><button type="button" key={value} aria-pressed={orderFilter===value} onClick={()=>{setOrderFilter(value);setVisibleLimit(20)}}>{label}</button>)}</div><span className="poResults" role="status">{filteredRows.length} {filteredRows.length===1?"pedido encontrado":"pedidos encontrados"}</span></div>
     <div className={"poBulk"+(selected.size?" isSelected":"")}>
      <label className="poBulkSelect"><span className="checkControl"><input aria-label="Selecionar todos os pedidos exibidos" type="checkbox" checked={allVisible} onChange={toggleAll}/><span/></span><span>{selected.size} {selected.size===1?"pedido selecionado":"pedidos selecionados"}</span></label>
-     <div className="poBulkActions">{selected.size>0&&<button className="poClearSelection" type="button" onClick={()=>setSelected(new Set())}>Limpar seleção</button>}<button className="poDelete" type="button" disabled={!selected.size} onClick={bulkDelete}><Trash2 size={15}/>Excluir selecionados</button><button className="poPrint" type="button" disabled={!selectedRows.some(canPrintCourierSlip)} onClick={()=>void printSlips(selectedRows)}><Printer size={17}/>Imprimir selecionadas</button></div>
+     <div className="poBulkActions">{selected.size>0&&<button className="poClearSelection" type="button" onClick={()=>setSelected(new Set())}>Limpar seleção</button>}<button className="poDelete" type="button" disabled={!selected.size} onClick={bulkDelete}><Trash2 size={15}/>Excluir selecionados</button><button className="poPrint" type="button" disabled={thermalBusy||!selectedRows.some(canPrintCourierSlip)} onClick={()=>void printSlips(selectedRows)}><Printer size={17}/>Imprimir selecionadas</button></div>
     </div>
     <div className="poTableScroll" role="region" aria-label="Lista de pedidos" tabIndex={0}>
      <div className="poTable">
@@ -439,7 +441,7 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
         <div className="poCourier">{courierName?<><span className="poAvatar poCourierAvatar">{initials(courierName)}</span><span><strong title={courierName}>{courierName}</strong><small>Motoboy atribuído</small></span></>:<span className="poCourierEmpty"><strong>—</strong><small>{o.status==="SEARCHING_COURIER"?"Buscando…":"Aguardando"}</small></span>}</div>
         <div className="poTime"><strong>{shortDate(o.createdAt)}</strong><small>{brl(o.total)}</small></div>
         <div className="poActionGroup">
-          <button type="button" className="poPrintSingle" disabled={!canPrintCourierSlip(o)} title={"Imprimir comanda do pedido #"+orderId} aria-label={"Imprimir comanda do pedido "+orderId} onClick={()=>void printSlips([o])}><Printer size={16}/></button>
+          <button type="button" className="poPrintSingle" disabled={thermalBusy||!canPrintCourierSlip(o)} title={"Imprimir comanda do pedido #"+orderId} aria-label={"Imprimir comanda do pedido "+orderId} onClick={()=>void printSlips([o])}><Printer size={16}/></button>
           <button type="button" className="poOpen" onClick={()=>setViewId(o.id)} aria-label={"Ver detalhes do pedido "+orderId}>Ver detalhes<ChevronRight size={15}/></button>
          </div>
        </article>;
