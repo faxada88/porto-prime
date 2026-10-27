@@ -5,7 +5,7 @@ import {
  ArrowLeft, Check, FileText, Clock3, Phone, Mail, Bike, ShieldCheck,
  Expand, X, Plus, ClipboardList, AlertTriangle, MapPin, Headphones,
  MessageCircle, BadgeCheck, ChevronDown, Send, RefreshCw, CheckCircle2,
- History, ImageIcon
+ History, ImageIcon, UserCheck, ArrowRight, LockKeyhole
 } from 'lucide-react';
 import RequirementList from './requirement-list';
 import './courier-review-workspace.css';
@@ -54,14 +54,16 @@ function Answer({value}:{value:string}) {
 }
 
 export default function CourierReviewWorkspace({
- user,app,close,request,resolve,requestRevision,cancel,children,embedded=false,onSupport
+ user,app,close,request,resolve,approve,requestRevision,cancel,children,embedded=false,onSupport
 }:{
  user:RecordData;app:RecordData;close:()=>void;request:()=>void;
- resolve:(id:string)=>Promise<unknown>;requestRevision:(id:string,title:string,description:string)=>Promise<unknown>;
+ resolve:(id:string)=>Promise<unknown>;approve:()=>Promise<unknown>;requestRevision:(id:string,title:string,description:string)=>Promise<unknown>;
  cancel:(item:RecordData)=>ReactNode;children:ReactNode;embedded?:boolean;onSupport?:()=>void;
 }){
  const [busy,setBusy]=useState<string|null>(null),[error,setError]=useState('');
  const [revision,setRevision]=useState<RecordData|null>(null);
+ const [decision,setDecision]=useState<{requirementId:string;title:string}|null>(null);
+ const [decisionError,setDecisionError]=useState('');
  const [reason,setReason]=useState(''),[revisionTitle,setRevisionTitle]=useState(''),[revisionDescription,setRevisionDescription]=useState('');
  const requirements:RecordData[]=app.requirements||[];
  const active=requirements.filter(r=>!r.canceledAt&&r.status!=='RESOLVED');
@@ -70,19 +72,45 @@ export default function CourierReviewWorkspace({
  const focus=sortedActive[0]||null;
  const data={...(app.onboardingData||user.courierProfile?.onboardingData||{}),...app};
  const approved=user.status==='ACTIVE'&&app.approvalStatus==='APPROVED';
- const blocked=user.status==='BLOCKED'||user.status==='SUSPENDED';
+ const blocked=user.status==='BLOCKED'||user.status==='SUSPENDED'||['REJECTED','SUSPENDED'].includes(String(app.approvalStatus||''));
+ const canRelease=!blocked&&!approved&&active.length===0;
  const status=approved?'Conta liberada':user.status==='BLOCKED'?'Bloqueada':user.status==='SUSPENDED'?'Suspensa':'Pendente';
  const portrait=validImage(data.profilePhoto)?data.profilePhoto as string:'';
  const address=[data.city,data.state].filter(Boolean).join(' - ');
  const updatedAt=focus?.respondedAt||focus?.answeredAt||focus?.requestedAt||focus?.createdAt||user.createdAt;
  const history=[...requirements].sort((a,b)=>(new Date(b.requestedAt||b.createdAt||0).getTime()||0)-(new Date(a.requestedAt||a.createdAt||0).getTime()||0));
 
- async function finish(id:string) {
+ async function finish(id:string,title:string) {
   if(busy)return;
-  setBusy(id);setError('');
-  try{const result=await resolve(id);if(result===null)throw new Error('Não foi possível concluir a pendência.');}
-  catch(e){setError(e instanceof Error?e.message:'Não foi possível concluir a pendência.');}
+  setBusy(id);setError('');setDecisionError('');
+  try{
+   const result=await resolve(id);
+   if(result===null)throw new Error('Não foi possível concluir a pendência.');
+   // This modal is shown only after the server confirms the document review.
+   // Approval remains a separate explicit action guarded by the backend.
+   setDecision({requirementId:id,title});
+  }catch(e){setError(e instanceof Error?e.message:'Não foi possível concluir a pendência.');}
   finally{setBusy(null);}
+ }
+ async function releaseAccount() {
+  if(busy||!decision)return;
+  const outstanding=active.filter(r=>r.id!==decision.requirementId);
+  if(outstanding.length||blocked){
+   setDecisionError('Ainda existem pendências em aberto ou restrições nesta conta. Conclua a análise antes de liberar o acesso.');
+   return;
+  }
+  setBusy('approval');setDecisionError('');
+  try{
+   const result=await approve();
+   if(result===null)throw new Error('Não foi possível aprovar a conta. Confira se ainda existem pendências.');
+   setDecision(null);
+  }catch(e){setDecisionError(e instanceof Error?e.message:'Não foi possível aprovar a conta.');}
+  finally{setBusy(null);}
+ }
+ function requestAdditionalDocument(){
+  if(busy)return;
+  setDecision(null);setDecisionError('');
+  request();
  }
  function openRevision(item:RecordData){
   if(busy)return;
@@ -137,7 +165,10 @@ export default function CourierReviewWorkspace({
      <div className={'crNotice'+(active.length?'':' isClear')}>
       <span className="crNoticeSymbol">{active.length?<AlertTriangle size={22}/>:<CheckCircle2 size={22}/>}</span>
       <div><strong>{active.length?active.length+' pendência'+(active.length>1?'s':'')+' em andamento':'Sem pendências em aberto'}</strong><p>{answered.length?'Resposta recebida. Confira o documento e registre sua decisão.':active.length?'Aguardando o motoboy responder à solicitação.':'Documentação sem pendências ativas.'}</p></div>
-      <button type="button" className="crRequestTop" onClick={request}><Plus size={15}/> Nova pendência</button>
+      <div className="crNoticeActions">
+       {!active.length&&!approved&&!blocked&&<button type="button" className="crApproveInline" onClick={()=>{setDecisionError('');setDecision({requirementId:'',title:'Documentação analisada'});}}><UserCheck size={16}/> Aprovar e liberar conta</button>}
+       <button type="button" className="crRequestTop" onClick={request}><Plus size={15}/> Nova pendência</button>
+      </div>
      </div>
      {error&&!revision&&<p role="alert" className="crError"><AlertTriangle size={16}/>{error}</p>}
 
@@ -151,7 +182,7 @@ export default function CourierReviewWorkspace({
        {r.response?<Answer value={String(r.response)}/>:<div className="crPendingResponse"><MessageCircle size={18}/><strong>Resposta do motoboy</strong><div className="crPendingResponseBody"><Clock3 size={26}/><span>O motoboy ainda não enviou o documento solicitado.</span></div></div>}
        <div className="crDecision">
         <h4>Decisão do administrador</h4>
-        {!r.canceledAt&&r.status==='ANSWERED'?<button className="crResolve" type="button" disabled={!!busy} onClick={()=>{if(r.id)void finish(String(r.id));}}><Check size={19}/><span><b>{busy===r.id?'Registrando…':'Aceitar resposta'}</b><small>Documento válido e pendência resolvida</small></span></button>:<div className="crDecisionWaiting"><Clock3 size={17}/>{r.canceledAt?'Solicitação encerrada':r.status==='RESOLVED'?'Pendência resolvida':'Aguardando envio para liberar a aprovação'}</div>}
+        {!r.canceledAt&&r.status==='ANSWERED'?<button className="crResolve" type="button" disabled={!!busy} onClick={()=>{if(r.id)void finish(String(r.id),String(r.title||'Documento enviado'));}}><Check size={19}/><span><b>{busy===r.id?'Registrando…':'Aceitar resposta'}</b><small>Documento válido e pendência resolvida</small></span></button>:<div className="crDecisionWaiting"><Clock3 size={17}/>{r.canceledAt?'Solicitação encerrada':r.status==='RESOLVED'?'Pendência resolvida':'Aguardando envio para liberar a aprovação'}</div>}
         {!r.canceledAt&&r.status!=='RESOLVED'&&<button className="crAskAgain" type="button" disabled={!!busy} onClick={()=>openRevision(r)}><RefreshCw size={17}/><span><b>Solicitar novo documento</b><small>Revisar esta pendência e pedir correção</small></span></button>}
         <div className="crCancelSlot">{cancel(r)}</div>
        </div>
@@ -174,6 +205,35 @@ export default function CourierReviewWorkspace({
 
    </div>
   </section>
+
+
+  {decision&&<div className="crDecisionBackdrop" onMouseDown={()=>!busy&&setDecision(null)}>
+   <section className="crDecisionModal" role="dialog" aria-modal="true" aria-labelledby="crApprovalDecisionTitle" onMouseDown={e=>e.stopPropagation()} onKeyDown={e=>{if(e.key==='Escape'&&!busy)setDecision(null);}}>
+    <header className="crDecisionModalHeader">
+     <span className="crDecisionModalIcon"><CheckCircle2 size={28}/></span>
+     <button type="button" className="crDecisionModalClose" aria-label="Fechar janela" disabled={!!busy} onClick={()=>setDecision(null)}><X size={19}/></button>
+    </header>
+    <span className="crDecisionModalEyebrow">ANÁLISE DE DOCUMENTAÇÃO</span>
+    <h3 id="crApprovalDecisionTitle">{decision.requirementId?'Documento aceito! O que deseja fazer agora?':'Deseja liberar a conta do motoboy?'}</h3>
+    <p className="crDecisionModalIntro">{decision.requirementId?<>A resposta para <strong>{decision.title}</strong> foi aceita e a pendência foi encerrada.</>:'A documentação está sem pendências em aberto. Escolha a próxima ação para esta conta.'}</p>
+    <div className="crDecisionModalStatus">
+     {active.filter(r=>r.id!==decision.requirementId).length===0
+      ? <><CheckCircle2 size={18}/><span>Todas as pendências foram resolvidas. A conta pode ser aprovada.</span></>
+      : <><AlertTriangle size={18}/><span>{active.filter(r=>r.id!==decision.requirementId).length} pendência(s) ainda precisam ser analisadas antes da liberação.</span></>}
+    </div>
+    <div className="crDecisionModalOptions">
+     <button type="button" className="crDecisionModalApprove" disabled={!!busy||!(!blocked&&active.filter(r=>r.id!==decision.requirementId).length===0)} onClick={()=>void releaseAccount()}>
+      <span className="crDecisionOptionIcon"><UserCheck size={22}/></span><span><strong>{busy==='approval'?'Aprovando conta…':'Aprovar e liberar a conta'}</strong><small>O motoboy poderá acessar as entregas e ficar online</small></span><ArrowRight size={20}/>
+     </button>
+     <button type="button" className="crDecisionModalMore" disabled={!!busy} onClick={requestAdditionalDocument}>
+      <span className="crDecisionOptionIcon"><FileText size={21}/></span><span><strong>Solicitar mais um documento</strong><small>Enviar nova orientação ao aplicativo do motoboy</small></span><ArrowRight size={19}/>
+     </button>
+    </div>
+    {blocked&&<p className="crDecisionModalWarning"><LockKeyhole size={16}/> A conta está bloqueada, suspensa ou rejeitada. A liberação exige revisão do status.</p>}
+    {decisionError&&<p className="crDecisionModalError" role="alert"><AlertTriangle size={16}/>{decisionError}</p>}
+    <button type="button" className="crDecisionModalLater" disabled={!!busy} onClick={()=>{setDecision(null);setDecisionError('');}}>Continuar analisando por enquanto</button>
+   </section>
+  </div>}
 
   {revision&&<div className="crRevisionBackdrop" onMouseDown={()=>!busy&&setRevision(null)}>
    <form className="crRevisionModal" role="dialog" aria-modal="true" aria-labelledby="crRevisionTitle" onMouseDown={e=>e.stopPropagation()} onSubmit={e=>void submitRevision(e)}>
