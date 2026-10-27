@@ -399,7 +399,7 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
     </div>
     {thermalError&&<div className="poThermalError" role="alert">{thermalError}</div>}
     {thermalMessage&&!thermalError&&<div className="poThermalSuccess" role="status">{thermalMessage}</div>}
-    {!supportsSerial&&<div className="poThermalError" role="status">Impressão ESC/POS disponível no Chrome/Edge via localhost ou HTTPS. Impressoras comuns não são selecionadas.</div>
+    {!supportsSerial&&<div className="poThermalError" role="status">Impressão ESC/POS disponível no Chrome/Edge via localhost ou HTTPS. Impressoras comuns não são selecionadas.</div>}
     {newestPrintable&&<div className="poSlipReady" role="status">
       <span className="poSlipIcon"><Printer size={21}/></span>
       <div><strong>Comanda pronta para impressão</strong><small>Pedido #{orderDisplayNumber(newestPrintable)} · Confira e entregue ao motoboy.</small></div>
