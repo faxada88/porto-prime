@@ -1,3 +1,4 @@
+import 'courier_review_success.dart';
 import '../../../../core/localization/prime_localization.dart';
 import 'dart:convert';
 import '../../../support/presentation/pages/support_page.dart';
@@ -20,6 +21,7 @@ class CourierAccountStatus extends StatelessWidget {
     final title = blocked ? 'Conta bloqueada' : suspended ? 'Conta suspensa' : waiting ? 'Resposta enviada • aguardando análise' : 'Vamos regularizar sua conta';
     final requirements = (state.courierProfile['requirements'] as List? ?? [])
         .whereType<Map>().where((r) => r['status'] != 'RESOLVED' && r['canceledAt'] == null).toList();
+    if (waiting && !blocked && !suspended) return CourierReviewSuccess(requirements: outstanding);
     return Scaffold(
       backgroundColor: const Color(0xFFF5F9FA),
       appBar: AppBar(title: const PrimeText('Minha conta'), actions: [

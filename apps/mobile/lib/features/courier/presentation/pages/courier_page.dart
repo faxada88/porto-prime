@@ -1,3 +1,4 @@
+import '../widgets/courier_review_success.dart';
 import '../widgets/courier_account_status.dart';
 import '../../../../core/localization/prime_localization.dart';
 import '../../../../core/tracking/courier_route_tracker.dart';
@@ -47,6 +48,7 @@ class _CourierPageState extends State<CourierPage> {
   bool _withdrawalDialogOpen = false;
   bool _signingOut = false;
   bool _accountWasRestricted = false;
+  String? _approvalWelcomeUser;
   final Set<String> _readUpdateIds = {};
   final _operationsScroll = ScrollController();
   String? _lastPresentedOfferId;
@@ -64,6 +66,8 @@ class _CourierPageState extends State<CourierPage> {
         }
       });
     }
+    if (_accountWasRestricted && !restricted && state.isCourier) _approvalWelcomeUser = state.user?['id']?.toString();
+    if (restricted || !state.isCourier) _approvalWelcomeUser = null;
     _accountWasRestricted = restricted;
     if(_soundingOfferId==null)return;
     final stillAvailable=state.courierOffers.any((offer)=>(offer['offerId']??offer['orderId']).toString()==_soundingOfferId);
@@ -863,6 +867,9 @@ class _CourierPageState extends State<CourierPage> {
     builder: (_, __) {
       final state = AppState.instance;
       if (state.courierRestricted) return const CourierAccountStatus();
+      if (_approvalWelcomeUser != null && _approvalWelcomeUser == state.user?['id']?.toString()) {
+        return CourierReviewSuccess(approved: true, onOnline: () { if (mounted) setState(() => _approvalWelcomeUser = null); });
+      }
       final current = state.courierDelivery == null ? null
         : Map<String, dynamic>.from(state.courierDelivery!);
       if (current?['cancellation'] is Map &&

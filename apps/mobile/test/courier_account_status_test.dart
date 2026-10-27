@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:porto_prime/features/courier/presentation/widgets/courier_review_success.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:porto_prime/core/state/app_state.dart';
 import 'package:porto_prime/core/theme/app_theme.dart';
@@ -40,12 +41,28 @@ void main() {
       {'id': 'r', 'title': 'Documento atualizado', 'status': 'ANSWERED'},
     ]};
     await tester.pumpWidget(MaterialApp(theme: AppTheme.light, home: const CourierAccountStatus()));
-    expect(find.text('Pronto! Agora é só aguardar.'), findsOneWidget);
+    expect(find.text('Documentação enviada\ncom sucesso'), findsOneWidget);
     expect(find.byType(TextField), findsNothing);
     expect(find.text('Enviar para análise'), findsNothing);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
+  for (final approved in [false, true]) {
+    for (final width in [320.0, 390.0, 768.0]) {
+      testWidgets('Review screen $approved fits $width with large text', (tester) async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = Size(width, 850);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(MaterialApp(theme: AppTheme.light,
+          builder: (context, child) => MediaQuery(data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(2)), child: child!),
+          home: CourierReviewSuccess(approved: approved, requirements: const [{'title': 'Categoria da CNH incompatível'}])));
+        expect(tester.takeException(), isNull);
+        expect(find.text('Ficar online'), approved ? findsOneWidget : findsNothing);
+        await tester.pumpWidget(const SizedBox.shrink());
+      });
+    }
+  }
   test('approval removes the operational restriction without changing the account identity', () {
     state.user = {'id': 'courier', 'role': 'COURIER', 'status': 'PENDING'};
     state.courierProfile = {'approvalStatus': 'PENDING'};
