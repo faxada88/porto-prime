@@ -159,7 +159,7 @@ class ThermalWriter {
 }
 
 export async function printThermalOrders(
-  orders: Order[], paper: 58 | 80
+  orders: Order[], paper: 58 | 80, baudRate: 9600 | 19200 | 115200 = 9600
 ): Promise<void> {
   if (inProgress) throw new Error("A impressora ja esta processando uma comanda.");
   if (!orders.length) return;
@@ -174,7 +174,7 @@ export async function printThermalOrders(
   inProgress = true;
   let opened = false;
   try {
-    await printer.open({baudRate:9600});
+    await printer.open({baudRate});
     opened = true;
     if (!printer.writable) throw new Error("A porta termica nao permite gravacao.");
     const writer = printer.writable.getWriter();
