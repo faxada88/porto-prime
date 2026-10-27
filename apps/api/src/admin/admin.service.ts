@@ -635,6 +635,81 @@ export class AdminService {
     return result;
   }
 
+  /**
+   * Re-request a document without accumulating overlapping active requirements.
+   * Keep the prior answer and any private attachment in the historical request.
+   * This transition is atomic; the courier is notified only after commit.
+   */
+  async requestRequirementRevision(
+    id: string,
+    body: { title: string; description: string },
+    authorization?: string,
+  ) {
+    const admin = await this.requireAdmin(authorization);
+    const title = typeof body?.title === 'string' ? body.title.trim() : '';
+    const description = typeof body?.description === 'string' ? body.description.trim() : '';
+    if (!title || !description || title.length > 100 || description.length > 950) {
+      throw new BadRequestException('Informe um motivo de até 100 caracteres e uma orientação de até 950 caracteres');
+    }
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const db = tx as any;
+      const existing = await db.courierRequirement.findUnique({
+        where: { id },
+        include: { courier: { include: { user: true } } },
+      });
+      if (!existing) throw new NotFoundException('Pendência não encontrada');
+      if (existing.canceledAt || !['OPEN', 'ANSWERED'].includes(existing.status)) {
+        throw new BadRequestException('Esta pendência não está mais em aberto. Atualize a análise antes de prosseguir.');
+      }
+
+      // A conditional update ensures two simultaneous admin actions cannot
+      // create two replacement requirements for the same response.
+      const closed = await db.courierRequirement.updateMany({
+        where: { id, status: { in: ['OPEN', 'ANSWERED'] }, canceledAt: null },
+        data: {
+          status: 'RESOLVED',
+          canceledAt: new Date(),
+          canceledBy: admin.id,
+          resolvedAt: new Date(),
+        },
+      });
+      if (closed.count !== 1) {
+        throw new BadRequestException('A pendência foi alterada por outro administrador. Atualize a página.');
+      }
+
+      const requirement = await db.courierRequirement.create({
+        data: {
+          courierId: existing.courierId,
+          title,
+          description,
+          previousApprovalStatus: existing.previousApprovalStatus ?? existing.courier.approvalStatus,
+          previousUserStatus: existing.previousUserStatus ?? existing.courier.user.status,
+        },
+      });
+
+      // Preserve suspensions/rejections and the existing restricted-account
+      // semantics rather than activating the courier as part of a revision.
+      await db.courierProfile.update({
+        where: { id: existing.courierId },
+        data: {
+          approvalStatus: ['SUSPENDED', 'REJECTED'].includes(existing.courier.approvalStatus)
+            ? existing.courier.approvalStatus : CourierStatus.PENDING,
+        },
+      });
+      if (existing.courier.user.status === UserStatus.ACTIVE) {
+        await tx.user.update({
+          where: { id: existing.courier.userId },
+          data: { status: UserStatus.PENDING },
+        });
+      }
+      return { requirement, userId: existing.courier.userId, courierId: existing.courierId };
+    }, { isolationLevel: 'Serializable' });
+
+    await this.applicationChanged(result.userId, result.courierId);
+    return result.requirement;
+  }
+
   private async applicationChanged(userId: string, courierId?: string) {
     if (courierId) await this.realtime.syncCourierPresence(courierId);
     this.realtime.emitToUser(userId, 'courier.profile.updated', {courierId});
