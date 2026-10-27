@@ -256,6 +256,45 @@ class AppState extends ChangeNotifier {
       return;
     }
 
+    if (isCourier && event == 'courier.requirements.updated' && payload is Map) {
+      // Display Admin instructions immediately, without waiting for the
+      // network round-trip to /couriers/application/me. Only the authenticated
+      // user's socket receives these safe fields from the backend.
+      final targetId = payload['courierId']?.toString();
+      final currentId = courierProfile['id']?.toString();
+      if (targetId != null && currentId != null && targetId != currentId) return;
+
+      final instructions = payload['requirements'];
+      if (instructions is List) {
+        final snapshot = Map<String, dynamic>.from(courierProfile);
+        snapshot['requirements'] = instructions
+            .whereType<Map>()
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList();
+        if (payload['approvalStatus'] is String) {
+          snapshot['approvalStatus'] = payload['approvalStatus'];
+        }
+        courierProfile = snapshot;
+      }
+      if (payload['userStatus'] is String && user != null) {
+        final next = Map<String, dynamic>.from(user!);
+        next['status'] = payload['userStatus'];
+        user = next;
+      }
+      // Reject any older profile fetch already in flight; otherwise a stale
+      // result could overwrite the newest Admin request on the next frame.
+      ++_courierAccountEpoch;
+      if (courierRestricted) {
+        ++_courierOperationsEpoch;
+        courierOnline = false;
+        courierPresenceStatus = 'OFFLINE';
+        courierOffers = [];
+      }
+      notifyListeners();
+      unawaited(refreshCourierAccount().catchError((_) {}));
+      return;
+    }
+
     if (isCourier && event == 'courier.profile.updated') {
       Future<void>(() async {
         try {
