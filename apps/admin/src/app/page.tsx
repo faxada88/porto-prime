@@ -7,7 +7,7 @@ import CustomerProfileWorkspace from "./customer-profile-workspace";
 import CustomerDirectory from "./customer-directory";
 import OrderAvailabilityEditor from "./order-availability-editor";
 import OrderOperationWorkspace from "./order-operation-workspace";
-import OrderPrintReceipts from "./order-print-receipt";
+import {printThermalOrders,selectThermalPrinter,thermalSupported} from "./order-thermal-printer";
 import {orderDisplayNumber,canPrintCourierSlip} from "./order-display-number";
 import OrderArchive, {isArchivedOrder} from "./order-archive";
 import DemandControl from "./demand-control";
@@ -19,7 +19,6 @@ import SupportCenter, {SupportAlerts} from "./support-center";
 import CatalogPanel from "./catalog-panel";
 import { displayMessage } from "./ui-messages";
 import { useEffect,useMemo,useState } from "react";
-import {flushSync} from "react-dom";
 import { io } from "socket.io-client";
 import {
   Activity,
@@ -305,19 +304,27 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
  const [selected,setSelected]=useState<Set<string>>(new Set());
  const [orderQuery,setOrderQuery]=useState("");
  const [visibleLimit,setVisibleLimit]=useState(20);
- const [printRows,setPrintRows]=useState<Row[]>([]);
- const printSlips=(requested:Row[])=>{
+ const [thermalPaper,setThermalPaper]=useState<58|80>(80);
+ const [thermalBusy,setThermalBusy]=useState(false);
+ const [thermalSelected,setThermalSelected]=useState(false);
+ const [thermalMessage,setThermalMessage]=useState("");
+ const [thermalError,setThermalError]=useState("");
+ const printSlips=async(requested:Row[])=>{
   const printable=requested.filter(canPrintCourierSlip);
-  if(!printable.length)return;
-  flushSync(()=>setPrintRows(printable));
-  window.setTimeout(()=>window.print(),50);
+  if(!printable.length||thermalBusy)return;
+  setThermalBusy(true);setThermalError("");setThermalMessage("");
+  try{
+   await printThermalOrders(printable,thermalPaper);
+   setThermalSelected(true);
+   setThermalMessage(printable.length===1?"Comanda enviada para a impressora térmica.":"Comandas enviadas para a impressora térmica.");
+  }catch(e){setThermalError(e instanceof Error?e.message:"Não foi possível conectar à impressora térmica.");}
+  finally{setThermalBusy(false);}
  };
- useEffect(()=>{
-  const clear=()=>setPrintRows([]);
-  window.addEventListener("afterprint",clear);
-  return()=>window.removeEventListener("afterprint",clear);
- },[]);
- useEffect(()=>{const valid=new Set(rows.map(x=>x.id));setSelected(prev=>new Set([...prev].filter(id=>valid.has(id))))},[rows]);
+ const connectThermal=async()=>{
+  setThermalError("");setThermalMessage("");
+  try{await selectThermalPrinter();setThermalSelected(true);setThermalMessage("Impressora térmica selecionada. A comanda pode ser enviada agora.");}
+  catch(e){setThermalError(e instanceof Error?e.message:"Não foi possível selecionar a impressora térmica.");}
+ };
  const normalizedQuery=orderQuery.trim().replace(/^#/,"").toLowerCase();
  const matchesStatus=(o:Row,filter:string)=>filter==="ALL"||
   (filter==="REVIEW"&&["CONFIRMED","PREPARING","READY_FOR_PICKUP"].includes(o.status))||
@@ -381,10 +388,18 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
      <div className="poRealtime"><span><i/>Dados em tempo real</span><small>Sincronização automática do painel</small></div>
     </div>
     {auditError&&<div className="error" role="alert">{auditError}</div>}
+    <div className="poThermalControl">
+      <div><Printer size={19}/><span><strong>Impressora térmica ESC/POS</strong><small>{thermalSelected?"Impressora selecionada":"USB serial ou Bluetooth SPP, porta COM."}</small></span></div>
+      <label>Bobina <select value={thermalPaper} onChange={e=>setThermalPaper(Number(e.target.value)===58?58:80)} aria-label="Largura da bobina térmica"><option value={80}>80 mm</option><option value={58}>58 mm</option></select></label>
+      <button type="button" onClick={()=>void connectThermal()} disabled={thermalBusy||!thermalSupported()}>Conectar térmica</button>
+    </div>
+    {thermalError&&<div className="poThermalError" role="alert">{thermalError}</div>}
+    {thermalMessage&&!thermalError&&<div className="poThermalSuccess" role="status">{thermalMessage}</div>}
+    {!thermalSupported()&&<div className="poThermalError" role="status">Impressão ESC/POS disponível no Chrome/Edge via localhost ou HTTPS. Impressoras comuns não são selecionadas.</div>
     {newestPrintable&&<div className="poSlipReady" role="status">
       <span className="poSlipIcon"><Printer size={21}/></span>
       <div><strong>Comanda pronta para impressão</strong><small>Pedido #{orderDisplayNumber(newestPrintable)} · Confira e entregue ao motoboy.</small></div>
-      <button type="button" onClick={()=>printSlips([newestPrintable])}><Printer size={16}/> Imprimir comanda</button>
+      <button type="button" disabled={thermalBusy} onClick={()=>void printSlips([newestPrintable])}><Printer size={16}/> Imprimir na térmica</button>
     </div>}
     <div className="poMetrics" aria-label="Visão geral dos pedidos">
      {highlights.map(({key,name,description,Icon},index)=><button key={key} type="button" className={"poMetric poMetric"+index+(orderFilter===key?" isActive":"")} aria-pressed={orderFilter===key} onClick={()=>{setOrderFilter(key);setVisibleLimit(20)}}>
@@ -402,7 +417,7 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
     <div className="poFilterLine"><div className="poPills" aria-label="Filtrar etapa operacional">{filters.map(([value,label])=><button type="button" key={value} aria-pressed={orderFilter===value} onClick={()=>{setOrderFilter(value);setVisibleLimit(20)}}>{label}</button>)}</div><span className="poResults" role="status">{filteredRows.length} {filteredRows.length===1?"pedido encontrado":"pedidos encontrados"}</span></div>
     <div className={"poBulk"+(selected.size?" isSelected":"")}>
      <label className="poBulkSelect"><span className="checkControl"><input aria-label="Selecionar todos os pedidos exibidos" type="checkbox" checked={allVisible} onChange={toggleAll}/><span/></span><span>{selected.size} {selected.size===1?"pedido selecionado":"pedidos selecionados"}</span></label>
-     <div className="poBulkActions">{selected.size>0&&<button className="poClearSelection" type="button" onClick={()=>setSelected(new Set())}>Limpar seleção</button>}<button className="poDelete" type="button" disabled={!selected.size} onClick={bulkDelete}><Trash2 size={15}/>Excluir selecionados</button><button className="poPrint" type="button" disabled={!selectedRows.some(canPrintCourierSlip)} onClick={()=>printSlips(selectedRows)}><Printer size={17}/>Imprimir comandas selecionadas</button></div>
+     <div className="poBulkActions">{selected.size>0&&<button className="poClearSelection" type="button" onClick={()=>setSelected(new Set())}>Limpar seleção</button>}<button className="poDelete" type="button" disabled={!selected.size} onClick={bulkDelete}><Trash2 size={15}/>Excluir selecionados</button><button className="poPrint" type="button" disabled={!selectedRows.some(canPrintCourierSlip)} onClick={()=>void printSlips(selectedRows)}><Printer size={17}/>Imprimir selecionadas</button></div>
     </div>
     <div className="poTableScroll" role="region" aria-label="Lista de pedidos" tabIndex={0}>
      <div className="poTable">
@@ -422,7 +437,7 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
         <div className="poCourier">{courierName?<><span className="poAvatar poCourierAvatar">{initials(courierName)}</span><span><strong title={courierName}>{courierName}</strong><small>Motoboy atribuído</small></span></>:<span className="poCourierEmpty"><strong>—</strong><small>{o.status==="SEARCHING_COURIER"?"Buscando…":"Aguardando"}</small></span>}</div>
         <div className="poTime"><strong>{shortDate(o.createdAt)}</strong><small>{brl(o.total)}</small></div>
         <div className="poActionGroup">
-          <button type="button" className="poPrintSingle" disabled={!canPrintCourierSlip(o)} title={"Imprimir comanda do pedido #"+orderId} aria-label={"Imprimir comanda do pedido "+orderId} onClick={()=>printSlips([o])}><Printer size={16}/></button>
+          <button type="button" className="poPrintSingle" disabled={!canPrintCourierSlip(o)} title={"Imprimir comanda do pedido #"+orderId} aria-label={"Imprimir comanda do pedido "+orderId} onClick={()=>void printSlips([o])}><Printer size={16}/></button>
           <button type="button" className="poOpen" onClick={()=>setViewId(o.id)} aria-label={"Ver detalhes do pedido "+orderId}>Ver detalhes<ChevronRight size={15}/></button>
          </div>
        </article>;
@@ -433,8 +448,7 @@ function Orders({rows,act,ask,token,products}:{rows:Row[],act:any,ask:any,token:
     {visibleRows.length<filteredRows.length&&<div className="poLoadMore"><span>Exibindo {visibleRows.length} de {filteredRows.length}</span><button type="button" onClick={()=>setVisibleLimit(n=>n+20)}>Mostrar mais 20 pedidos<ChevronDown size={16}/></button></div>}
    </section>
   </div>
-  <OrderPrintReceipts orders={printRows}/>
-  {activeView&&<OrderOperationWorkspace key={activeView.id} order={activeView} products={products} request={(path,method,body)=>api(path,token,method,body)} reload={()=>{void act("/admin/orders","GET")}} onStatus={status=>{void act("/admin/orders/"+activeView.id+"/status","PATCH",{status})}} onRelease={()=>{void act("/admin/orders/"+activeView.id+"/release")}} onAudit={()=>{setViewId(null);void openAudit(activeView)}} onPrint={()=>printSlips([activeView])} onDelete={()=>deleteOrder(activeView)} close={()=>setViewId(null)} auditBusy={auditBusy}/>}
+  {activeView&&<OrderOperationWorkspace key={activeView.id} order={activeView} products={products} request={(path,method,body)=>api(path,token,method,body)} reload={()=>{void act("/admin/orders","GET")}} onStatus={status=>{void act("/admin/orders/"+activeView.id+"/status","PATCH",{status})}} onRelease={()=>{void act("/admin/orders/"+activeView.id+"/release")}} onAudit={()=>{setViewId(null);void openAudit(activeView)}} onPrint={()=>void printSlips([activeView])} onDelete={()=>deleteOrder(activeView)} close={()=>setViewId(null)} auditBusy={auditBusy}/>}
   {audit&&<div className="modalBackdrop profileBackdrop" onMouseDown={()=>setAudit(null)}><section className="profileModal auditModal" onMouseDown={e=>e.stopPropagation()}><div className="profileModalHero"><button className="profileClose" aria-label="Fechar" onClick={()=>setAudit(null)}><X size={18}/></button><div className="profileModalAvatar">#</div><div><small>HISTÓRICO DA ENTREGA</small><h2>Pedido #{orderDisplayNumber(audit.order)}</h2><p>Acompanhe cada etapa, da liberação à conclusão.</p></div><Badge v={audit.order.status}/></div><div className="profileSection"><div className="profileHistory">{audit.events.length?audit.events.map((e:Row)=><div key={e.id}><div><b>{dispatchEventLabel(e.type)}</b><span>{dt(e.createdAt)}</span></div>{e.courierId&&<p>Motoboy: {e.courierId}</p>}{e.offerId&&<p>Oferta: {e.offerId}</p>}{e.payload&&<strong>{JSON.stringify(e.payload)}</strong>}</div>):<div className="none">Nenhum evento registrado para este pedido.</div>}</div></div><div className="profileModalFooter"><span>PORTO PRIME · ACOMPANHAMENTO</span><button onClick={()=>setAudit(null)}>Fechar</button></div></section></div>}
  </>;
 }
