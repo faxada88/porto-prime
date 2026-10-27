@@ -918,3 +918,23 @@
 @media(prefers-reduced-motion:reduce){
  .shell .orderWorkspaceBackdropV5 *{scroll-behavior:auto;animation:none!important;transition:none!important}
 }
+
+/* Order details: print the exact courier slip without altering dispatch. */
+.orderWorkspaceBackdropV5 .owFooterActions button.owPrintButton{
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ min-height:44px;padding:10px 14px;
+ border:1px solid #bbdfd0;border-radius:11px;
+ background:#ebf9f2;color:#0b7562;font-weight:850;font-size:12px;
+ white-space:nowrap;box-shadow:none;
+}
+.orderWorkspaceBackdropV5 .owFooterActions button.owPrintButton:hover:not(:disabled){
+ background:#d8f2e4;border-color:#91cbb6;
+}
+.orderWorkspaceBackdropV5 .owFooterActions button.owPrintButton:disabled{
+ opacity:.5;cursor:not-allowed;background:#f2f5f6;color:#869eab;border-color:#dfe8e9;
+}
+@media(max-width:680px){
+ .orderWorkspaceBackdropV5 .owFooterActions button.owPrintButton{
+  width:100%;min-height:43px;
+ }
+}
