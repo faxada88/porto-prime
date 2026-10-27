@@ -5,7 +5,7 @@ import {
  ArrowLeft, Check, FileText, Clock3, Phone, Mail, Bike, ShieldCheck,
  Expand, X, Plus, ClipboardList, AlertTriangle, MapPin, Headphones,
  MessageCircle, BadgeCheck, ChevronDown, Send, RefreshCw, CheckCircle2,
- Smartphone, History, Search, Crown, Bell, ImageIcon
+ Smartphone, History, Crown, Bell, ImageIcon
 } from 'lucide-react';
 import RequirementList from './requirement-list';
 import './courier-review-workspace.css';
