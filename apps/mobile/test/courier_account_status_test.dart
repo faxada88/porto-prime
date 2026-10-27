@@ -25,10 +25,39 @@ void main() {
             home: const CourierAccountStatus()));
           await tester.pump();
           expect(tester.takeException(), isNull);
-          expect(find.text('Minha conta'), findsOneWidget);
+          expect(find.text('PORTO PRIME'), findsOneWidget);
+          final title = status == 'BLOCKED'
+              ? 'Sua conta está bloqueada'
+              : status == 'SUSPENDED'
+                  ? 'Sua conta está suspensa'
+                  : 'Seu cadastro está em análise';
+          expect(find.text(title), findsOneWidget);
           expect(find.byTooltip('Sair da conta'), findsOneWidget);
           expect(find.text('Documento atualizado'), findsOneWidget);
-          expect(find.text('Enviar para análise'), status == 'PENDING' ? findsOneWidget : findsNothing);
+          expect(find.text('Enviar documento'),
+              status == 'PENDING' ? findsOneWidget : findsNothing);
+          expect(find.byType(TextField), findsNothing);
+          expect(find.text('Enviar para análise'), findsNothing);
+          if (status == 'PENDING') {
+            final openForm = find.text('Enviar documento');
+            await tester.ensureVisible(openForm);
+            await tester.pumpAndSettle();
+            await tester.tap(openForm);
+            await tester.pumpAndSettle();
+            expect(find.byType(TextField), findsOneWidget);
+            expect(find.text('Enviar para análise'), findsOneWidget);
+            expect(tester.takeException(), isNull);
+
+            final closeForm = find.text('Voltar');
+            await tester.ensureVisible(closeForm);
+            await tester.pumpAndSettle();
+            await tester.tap(closeForm);
+            await tester.pumpAndSettle();
+            expect(find.byType(TextField), findsNothing);
+            expect(find.text('Enviar documento'), findsOneWidget);
+            expect(find.text('Enviar para análise'), findsNothing);
+            expect(tester.takeException(), isNull);
+          }
           expect(find.text('Ficar online'), findsNothing);
           await tester.pumpWidget(const SizedBox.shrink());
         });
