@@ -161,7 +161,13 @@ export default function CourierReviewWorkspace({
      </div>}</RequirementList>
      {!requirements.length&&<div className="crNoRequirements"><ShieldCheck size={28}/><strong>Nenhuma pendência registrada</strong><p>O cadastro pode ser conferido ou você pode solicitar um documento.</p></div>}
      <details className="crGeneralHistory"><summary><History size={18}/> Histórico de solicitações <span>{requirements.length} registros</span><ChevronDown size={17}/></summary>
-      <div className="crGeneralHistoryContent"><div><span className="crHistoryDot"/><b>Cadastro realizado</b><small>{date(user.createdAt)}</small></div>{history.map(r=><div key={r.id}><span className="crHistoryDot"/><b>{r.title}</b><small>{r.canceledAt?'Solicitação encerrada':r.status==='RESOLVED'?'Pendência resolvida':r.status==='ANSWERED'?'Resposta recebida':'Aguardando documento'} · {date(r.canceledAt||r.resolvedAt||r.answeredAt||r.requestedAt||r.createdAt)}</small></div>)}</div>
+      <div className="crGeneralHistoryContent">
+       <div><span className="crHistoryDot"/><b>Cadastro realizado</b><small>{date(user.createdAt)}</small></div>
+       {history.map(r=><details className="crArchiveDetail" key={r.id}>
+        <summary><span className="crHistoryDot"/><b>{r.title}</b><small>{r.canceledAt?'Solicitação encerrada':r.status==='RESOLVED'?'Pendência resolvida':r.status==='ANSWERED'?'Resposta recebida':'Aguardando documento'} · {date(r.canceledAt||r.resolvedAt||r.answeredAt||r.requestedAt||r.createdAt)}</small>{r.response&&<span className="crArchiveView">Ver resposta <ChevronDown size={13}/></span>}</summary>
+        <div className="crArchiveBody"><p>{r.description}</p>{r.response&&<Answer value={String(r.response)}/>}</div>
+       </details>)}
+      </div>
      </details>
      <details className="crManagement"><summary><ClipboardList size={17}/> Dados cadastrais, ganhos e gerenciamento de acesso <ChevronDown size={17}/></summary><div className="crManagementBody">{children}</div></details>
     </main>
