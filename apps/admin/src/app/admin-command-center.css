@@ -1289,3 +1289,78 @@ body{background:var(--pp-canvas);color:var(--pp-ink)}
  .shell .ppOrders2026 button.poMetric,
  .shell .ppOrders2026 .poRow{transition:none!important;transform:none!important}
 }
+
+/* Porto Prime • printable four-digit courier ticket controls (Pedidos only). */
+.shell .ppOrders2026 .poSlipReady{
+ display:flex;align-items:center;gap:13px;flex-wrap:wrap;
+ padding:14px 17px;margin:0 0 16px;
+ border:1px solid #c8e6d7;border-radius:13px;
+ background:linear-gradient(110deg,#f0fbf5,#f7fcf9);
+ color:#173d3d;
+}
+.shell .ppOrders2026 .poSlipIcon{
+ display:grid;place-items:center;width:43px;height:43px;
+ flex:0 0 43px;border-radius:11px;
+ background:#d8f3e4;color:#067c65;
+}
+.shell .ppOrders2026 .poSlipReady>div{
+ display:grid;gap:5px;min-width:0;flex:1 1 220px;
+}
+.shell .ppOrders2026 .poSlipReady strong{
+ color:#153e41;font-size:12px;font-weight:880;
+}
+.shell .ppOrders2026 .poSlipReady small{
+ color:#658980;font-size:11px;line-height:1.4;
+}
+.shell .ppOrders2026 .poSlipReady>button{
+ display:flex;align-items:center;justify-content:center;gap:8px;
+ min-height:40px;padding:10px 15px;white-space:nowrap;
+ border:1px solid #087862;border-radius:10px;
+ background:#087862;color:#fff;font-size:11px;font-weight:870;
+}
+.shell .ppOrders2026 .poSlipReady>button:hover{background:#055b50}
+.shell .ppOrders2026 .poActionGroup{
+ display:flex;align-items:center;gap:5px;min-width:0;
+}
+.shell .ppOrders2026 .poActionGroup .poOpen{
+ flex:1 1 auto;width:auto;min-width:0;padding:8px 7px;
+}
+.shell .ppOrders2026 button.poPrintSingle{
+ display:grid;place-items:center;flex:0 0 38px;
+ width:38px;height:38px;padding:0;
+ border:1px solid #b9dfd1;border-radius:9px;
+ background:#eaf8f1;color:#0a7561;
+}
+.shell .ppOrders2026 button.poPrintSingle:hover:not(:disabled){
+ background:#d8f1e4;color:#045b4e;
+}
+.shell .ppOrders2026 button.poPrintSingle:disabled{
+ background:#f4f6f7;color:#a2b0b9;border-color:#e0e8ec;
+ opacity:.65;cursor:not-allowed;
+}
+.shell .ppOrders2026 .poTableHead,.shell .ppOrders2026 .poRow{
+ grid-template-columns:30px minmax(78px,.65fr) minmax(145px,1.24fr)
+ minmax(112px,.8fr) minmax(126px,.89fr) minmax(130px,1.06fr)
+ minmax(116px,.92fr) minmax(106px,.8fr) minmax(142px,1.1fr);
+}
+.shell .ppOrders2026 .poTable{min-width:1280px}
+.shell .ppOrders2026 .poOrder button{font-size:14px;font-weight:920;letter-spacing:.03em}
+.shell .ppOrders2026 .poBulk .poPrint:disabled{
+ opacity:.5;cursor:not-allowed;
+ color:#9aafa6;background:#f1f5f3;border-color:#dee9e3;
+}
+@media(max-width:759px){
+ .shell .ppOrders2026 .poTable{min-width:0}
+ .shell .ppOrders2026 .poRow{
+  grid-template-columns:25px minmax(0,1fr) auto;
+ }
+ .shell .ppOrders2026 .poActionGroup{grid-column:1/-1;grid-row:5;width:100%}
+ .shell .ppOrders2026 .poActionGroup .poOpen{min-height:42px}
+ .shell .ppOrders2026 button.poPrintSingle{height:42px;flex-basis:46px}
+ .shell .ppOrders2026 .poSlipReady>button{flex:1 1 100%}
+}
+@media print{
+ body:has(.ppReceiptPrintZone) .ppOrders2026,
+ body:has(.ppReceiptPrintZone) .poSlipReady,
+ body:has(.ppReceiptPrintZone) .poActionGroup{display:none!important}
+}
