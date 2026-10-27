@@ -4,7 +4,7 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import {
  ArrowLeft, Check, FileText, Clock3, Phone, Mail, Bike, ShieldCheck,
  Expand, X, Plus, ClipboardList, AlertTriangle, MapPin, Headphones,
- MessageCircle, BadgeCheck, ChevronDown, Send, RefreshCw,
+ MessageCircle, BadgeCheck, ChevronDown, Send, RefreshCw, CheckCircle2,
  History, ImageIcon
 } from 'lucide-react';
 import RequirementList from './requirement-list';
@@ -66,7 +66,6 @@ export default function CourierReviewWorkspace({
  const requirements:RecordData[]=app.requirements||[];
  const active=requirements.filter(r=>!r.canceledAt&&r.status!=='RESOLVED');
  const answered=active.filter(r=>r.status==='ANSWERED');
- const resolved=requirements.filter(r=>!r.canceledAt&&r.status==='RESOLVED');
  const sortedActive=[...active].sort((a,b)=>Number(b.status==='ANSWERED')-Number(a.status==='ANSWERED'));
  const focus=sortedActive[0]||null;
  const data={...(app.onboardingData||user.courierProfile?.onboardingData||{}),...app};
