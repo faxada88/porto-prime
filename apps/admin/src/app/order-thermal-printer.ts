@@ -114,7 +114,8 @@ class ThermalWriter {
     // 4-digit code stays large even on 58-mm paper.
     this.size(2, 2);this.text(fourDigits(order));this.size(1, 1);
     this.bold(false);this.text(printedAt(order.createdAt));
-    this.line();this.bold(true);this.text("PAGAMENTO CONFIRMADO");
+    this.line();this.bold(true);
+    this.text(order.paymentStatus === "PARTIALLY_REFUNDED" ? "PAGAMENTO COM AJUSTE" : "PAGAMENTO CONFIRMADO");
     this.text("NAO COBRAR DO CLIENTE");this.bold(false);
     this.line();this.align(0);
     this.bold(true);this.text("CLIENTE");this.bold(false);
@@ -133,6 +134,9 @@ class ThermalWriter {
     const items = (Array.isArray(order.items) ? order.items : [])
       .filter((item: Order) => !excluded.has(String(item.availabilityStatus || "")));
     const count = items.reduce((n: number, item: Order) => n + Number(item.quantity || 0), 0);
+    const productsTotal = items.reduce((sum: number, item: Order) => sum +
+      (item.total != null ? Number(item.total) : Number(item.unitPrice || 0) *
+        Number(item.quantity || 0)), 0);
     this.bold(true);this.text("PRODUTOS (" + count + ")");this.bold(false);
     for (const item of items) {
       const quantity = Math.max(0,Number(item.quantity || 0));
@@ -144,7 +148,7 @@ class ThermalWriter {
     if (!items.length) this.text("Nenhum item disponivel para entrega");
     this.line();
     // Snapshot prices from checkout: this is not a tax invoice.
-    this.text(paired("PRODUTOS",currency(order.subtotal),this.columns));
+    this.text(paired("PRODUTOS",currency(productsTotal),this.columns));
     this.bold(true);this.text(paired("TAXA DE ENTREGA",currency(order.deliveryFee),this.columns));
     this.bold(false);
     this.line();
