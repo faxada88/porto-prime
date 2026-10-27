@@ -779,6 +779,8 @@ class AppState extends ChangeNotifier {
   Future<void> setCourierOnline(bool online) async {
     final accountId = user?['id'];
     if (!isCourier || courierRestricted) return;
+    if (online && !await CourierOfferAlerts.prepareOnline()) return;
+    if (!isCourier || user?['id'] != accountId || courierRestricted) return;
     ++_courierOperationsEpoch;
     final result=Map<String,dynamic>.from(
       await api.request(

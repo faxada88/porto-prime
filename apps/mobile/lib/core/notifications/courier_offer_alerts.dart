@@ -5,6 +5,8 @@ import 'courier_offer_alerts_native.dart'
 class CourierOfferAlerts {
   CourierOfferAlerts._();
 
+  static Future<bool> prepareOnline() => platform.prepareOnline();
+
   static Future<void> online() => platform.online();
   static Future<void> offline() => platform.offline();
 
@@ -14,3 +16,4 @@ class CourierOfferAlerts {
   static Future<void> dismiss([String? id]) =>
       platform.dismissOffer(id);
 }
+

@@ -1,5 +1,4 @@
-/// Android-only notification integration. Flutter Web keeps its existing
-/// visual offer sheet and original on-screen delivery sound.
+Future<bool> prepareOnline() async => true;
 Future<void> online() async {}
 Future<void> offline() async {}
 Future<void> showOffer(Map<String, dynamic> offer) async {}
