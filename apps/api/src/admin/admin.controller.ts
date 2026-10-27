@@ -123,6 +123,15 @@ export class AdminController {
     return this.adminService.createRequirement(id, body, authorization);
   }
 
+  @Patch('requirements/:id/request-revision')
+  requestRequirementRevision(
+    @Param('id') id: string,
+    @Body() body: { title: string; description: string },
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.adminService.requestRequirementRevision(id, body, authorization);
+  }
+
   @Patch('requirements/:id/cancel')
   cancelRequirement(@Param('id') id: string, @Headers('authorization') authorization?: string) {
     return this.adminService.cancelRequirement(id, authorization);
