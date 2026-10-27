@@ -1364,3 +1364,52 @@ body{background:var(--pp-canvas);color:var(--pp-ink)}
  body:has(.ppReceiptPrintZone) .poSlipReady,
  body:has(.ppReceiptPrintZone) .poActionGroup{display:none!important}
 }
+
+/* Thermal receipt controls are scoped strictly to the Orders workspace. */
+.shell .ppOrders2026 .poThermalControl{
+ display:flex;align-items:center;gap:11px;flex-wrap:wrap;
+ min-height:61px;margin:0 0 13px;padding:11px 14px;
+ border:1px solid #dce8e7;border-radius:12px;
+ background:#fff;color:#234756;
+}
+.shell .ppOrders2026 .poThermalControl>div{
+ display:flex;align-items:center;gap:10px;flex:1 1 235px;
+}
+.shell .ppOrders2026 .poThermalControl>div>svg{
+ flex:0 0 18px;color:#09816d;
+}
+.shell .ppOrders2026 .poThermalControl>div>span{
+ display:grid;gap:4px;min-width:0;
+}
+.shell .ppOrders2026 .poThermalControl strong{font-size:12px;font-weight:860}
+.shell .ppOrders2026 .poThermalControl small{font-size:10px;color:#76909d;line-height:1.45}
+.shell .ppOrders2026 .poThermalControl label{
+ display:flex;align-items:center;gap:7px;
+ font-size:11px;color:#688295;font-weight:700;
+}
+.shell .ppOrders2026 .poThermalControl select{
+ min-height:35px;min-width:83px;padding:7px 8px;
+ border:1px solid #d3e4e4;border-radius:8px;
+ background:#f7fbfa;color:#214b57;font-size:11px;
+}
+.shell .ppOrders2026 .poThermalControl>button{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:36px;padding:9px 13px;border-radius:9px;
+ border:1px solid #bfe0d2;background:#eaf8f1;
+ color:#0b725f;font-size:11px;font-weight:840;
+}
+.shell .ppOrders2026 .poThermalControl>button:hover:not(:disabled){background:#d7efe3}
+.shell .ppOrders2026 .poThermalControl>button:disabled{opacity:.5;cursor:not-allowed}
+.shell .ppOrders2026 .poThermalError,
+.shell .ppOrders2026 .poThermalSuccess{
+ padding:11px 13px;margin:0 0 12px;
+ border:1px solid #f3c8bd;border-radius:10px;
+ background:#fff3ef;color:#a64f40;
+ font-size:11px;line-height:1.55;
+}
+.shell .ppOrders2026 .poThermalSuccess{
+ border-color:#c4e5d5;background:#eff9f3;color:#10725d;
+}
+@media(max-width:680px){
+ .shell .ppOrders2026 .poThermalControl>button{flex:1 1 100%}
+}
