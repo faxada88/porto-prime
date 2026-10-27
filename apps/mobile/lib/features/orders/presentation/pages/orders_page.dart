@@ -1,3 +1,4 @@
+import '../../../../core/utils/print_order_number.dart';
 import '../../../../core/localization/prime_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/prime_brand.dart';
@@ -135,8 +136,7 @@ class _OrderCard extends StatelessWidget {
     final items = ((order['items'] as List?) ?? const []).where((i)=>!['REFUND_PROCESSING','REFUNDED','VOUCHERED'].contains(i['availabilityStatus'])).toList();
     final status = order['status'].toString();
     final paid = order['paymentStatus'] == 'PAID';
-    final shortId =
-        id.substring(0, id.length < 8 ? id.length : 8).toUpperCase();
+    final shortId = printOrderNumber(order);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
