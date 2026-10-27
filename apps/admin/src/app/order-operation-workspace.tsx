@@ -1,7 +1,8 @@
 "use client";
 import {useEffect,useRef} from "react";
-import {X,Package,MapPin,UserRound,Bike,CreditCard,History,Trash2,Check,ArrowRight,ShieldCheck,Clock,ChevronDown,Phone,ReceiptText,Navigation} from "lucide-react";
+import {X,Package,MapPin,UserRound,Bike,CreditCard,History,Trash2,Check,ArrowRight,ShieldCheck,Clock,ChevronDown,Phone,ReceiptText,Navigation,Printer} from "lucide-react";
 import OrderAvailabilityEditor from "./order-availability-editor";
+import {orderDisplayNumber,canPrintCourierSlip} from "./order-display-number";
 import "./order-operation-workspace.css";
 
 type Row=Record<string,any>;
@@ -17,11 +18,11 @@ const labels:Record<string,string>={
 };
 const statuses=["PENDING","CONFIRMED","PREPARING","READY_FOR_PICKUP","CANCELED"];
 
-export default function OrderOperationWorkspace({order,products,request,reload,onStatus,onRelease,onAudit,onDelete,close,auditBusy}:{
+export default function OrderOperationWorkspace({order,products,request,reload,onStatus,onRelease,onAudit,onPrint,onDelete,close,auditBusy}:{
  order:Row;products:Row[];
  request:(path:string,method:string,body?:any)=>Promise<any>;
  reload:()=>void;onStatus:(status:string)=>void;onRelease:()=>void;
- onAudit:()=>void;onDelete:()=>void;close:()=>void;auditBusy:boolean;
+ onAudit:()=>void;onPrint:()=>void;onDelete:()=>void;close:()=>void;auditBusy:boolean;
 }){
  const panel=useRef<HTMLElement>(null),scrollArea=useRef<HTMLDivElement>(null),closeRef=useRef(close);
  closeRef.current=close;
@@ -70,7 +71,7 @@ export default function OrderOperationWorkspace({order,products,request,reload,o
     <div className="owMark"><Package size={24}/></div>
     <div className="owTitle">
      <span>PORTO PRIME · GESTÃO DO PEDIDO</span>
-     <h2 id="order-workspace-title">Pedido #{String(order.id).slice(-8).toUpperCase()}</h2>
+     <h2 id="order-workspace-title">Pedido #{orderDisplayNumber(order)}</h2>
      <p>{date(order.createdAt)} · {order.customer?.name||"Cliente"}</p>
     </div>
     <span className={"owState state"+order.status}>{labels[order.status]||order.status}</span>
@@ -150,6 +151,7 @@ export default function OrderOperationWorkspace({order,products,request,reload,o
    <footer className="owFooter">
     <div className="owFooterNote"><b>{order.fulfillmentHold?"Aguardando a decisão do cliente":ready?"Pronto para conferência":"Acompanhamento do pedido"}</b><p>{actionHint}</p></div>
     <div className="owFooterActions">
+     <button type="button" className="owPrintButton" disabled={!canPrintCourierSlip(order)} onClick={onPrint} title="Imprimir comanda para o motoboy"><Printer size={17}/> Imprimir comanda</button>
      {statuses.includes(order.status)&&<label><span>Etapa na loja</span><select aria-label="Alterar etapa do pedido" value={order.status} onChange={event=>onStatus(event.target.value)}>{statuses.map(status=><option key={status} value={status}>{labels[status]}</option>)}</select></label>}
      {ready?<button type="button" className="owPrimary" disabled={order.fulfillmentHold} onClick={onRelease}>{order.fulfillmentHold?"Aguardando cliente":"Liberar pedido"}<ArrowRight size={18}/></button>:<button type="button" className="owSecondary" onClick={close}>Voltar aos pedidos</button>}
     </div>
