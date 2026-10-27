@@ -18,47 +18,128 @@ class CourierAccountStatus extends StatelessWidget {
     final suspended = status == 'SUSPENDED' || state.courierProfile['approvalStatus'] == 'SUSPENDED';
     final outstanding = (state.courierProfile['requirements'] as List? ?? []).whereType<Map>().where((r) => r['canceledAt'] == null && r['status'] != 'RESOLVED').toList();
     final waiting = outstanding.isNotEmpty && outstanding.every((r) => r['status'] == 'ANSWERED');
-    final title = blocked ? 'Conta bloqueada' : suspended ? 'Conta suspensa' : waiting ? 'Resposta enviada • aguardando análise' : 'Vamos regularizar sua conta';
     final requirements = (state.courierProfile['requirements'] as List? ?? [])
         .whereType<Map>().where((r) => r['status'] != 'RESOLVED' && r['canceledAt'] == null).toList();
     if (waiting && !blocked && !suspended) return CourierReviewSuccess(requirements: outstanding);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F9FA),
-      appBar: AppBar(title: const PrimeText('Minha conta'), actions: [
-        IconButton(tooltip: 'Sair da conta', onPressed: state.logout, icon: const Icon(Icons.logout)),
-      ]),
-      body: RefreshIndicator(onRefresh: state.refreshCourier, child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.all(24),
-        children: [Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 600), child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Icon(blocked ? Icons.lock_outline : suspended ? Icons.pause_circle_outline : Icons.assignment_outlined,
-              size: 48, color: const Color(0xFF073E43)),
-            const SizedBox(height: 20),
-            PrimeText(title, style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
-            const SizedBox(height: 12),
-            PrimeText(blocked || suspended
-              ? 'Novas entregas estão indisponíveis. Consulte as orientações abaixo. O acesso será atualizado após a revisão administrativa.'
-              : waiting ? 'Sua resposta foi enviada para análise. Avisaremos por aqui quando houver uma atualização.' : 'Confira o que falta e envie sua resposta por aqui. Você não precisa informar seu CPF novamente.',
-              textAlign: TextAlign.center),
-            const SizedBox(height: 24),
-            if (state.courierProfile['restrictionReason'] != null) Card(child: Padding(padding: const EdgeInsets.all(20), child: PrimeText(state.courierProfile['restrictionReason'].toString()))),
-            if (requirements.isEmpty) const Card(child: Padding(padding: EdgeInsets.all(20),
-              child: PrimeText('Aguardando análise administrativa. Nenhuma exigência adicional foi registrada.'))),
-            for (final requirement in requirements) _RequirementCard(
-              key: ValueKey(requirement['id']), requirement: requirement, canReply: !blocked && !suspended),
-            const SizedBox(height: 16),
-            TextButton.icon(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SupportPage())), icon: const Icon(Icons.support_agent), label: const PrimeText('Falar com o suporte')),
-            OutlinedButton.icon(onPressed: () async {
-              try { await state.refreshCourier(); } catch (_) {
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: PrimeText('Não foi possível atualizar. Tente novamente.')));
-              }
-            }, icon: const Icon(Icons.refresh), label: const PrimeText('Atualizar situação')),
-          ],
-        )))],
-      )),
+      backgroundColor: const Color(0xFFF6F9FB),
+      appBar: AppBar(
+        title: const PrimeText('Minha conta',
+          style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: Color(0xFF0B3540))),
+        backgroundColor: Colors.white, surfaceTintColor: Colors.white,
+        actions: [IconButton(tooltip: 'Sair da conta', onPressed: state.logout,
+          icon: const Icon(Icons.logout_rounded, color: Color(0xFF123B45)))],
+      ),
+      body: RefreshIndicator(
+        onRefresh: state.refreshCourier,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(18, 17, 18, 35),
+          children: [Center(child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 590),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Container(
+                clipBehavior: Clip.antiAlias,
+                constraints: const BoxConstraints(minHeight: 183),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(22),
+                  image: const DecorationImage(
+                    image: AssetImage('assets/reference_home/coast-banner.webp'), fit: BoxFit.cover)),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(begin: Alignment.centerLeft, end: Alignment.centerRight,
+                      colors: [Color(0xF3F0FAF7), Color(0xDEE6F6F2), Color(0x57E6F4F4)])),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center, children: [
+                      const PrimeText('PORTO PRIME  /  DOCUMENTAÇÃO',
+                        style: TextStyle(color: Color(0xFF097768), fontSize: 11,
+                          fontWeight: FontWeight.w900, letterSpacing: 1)),
+                      const SizedBox(height: 13),
+                      PrimeText(blocked ? 'Sua conta está bloqueada' :
+                        suspended ? 'Sua conta está suspensa' : 'Seu cadastro está em análise',
+                        style: const TextStyle(fontSize: 25, height: 1.17,
+                          color: Color(0xFF083B44), fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 9),
+                      const PrimeText('Acompanhe as solicitações e as atualizações da equipe por aqui.',
+                        style: TextStyle(fontSize: 12, height: 1.55, color: Color(0xFF426E76))),
+                    ]),
+                ),
+              ),
+              const SizedBox(height: 17),
+              if (state.courierProfile['restrictionReason'] != null) ...[
+                Container(padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(color: const Color(0xFFFFF4E8),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFF9E1C6))),
+                  child: PrimeText(state.courierProfile['restrictionReason'].toString())),
+                const SizedBox(height: 14),
+              ],
+              if (requirements.isNotEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(color: const Color(0xFFFFF1DD),
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(color: const Color(0xFFFFDEB3))),
+                  child: Row(children: [
+                    const Icon(Icons.warning_amber_rounded, size: 23, color: Color(0xFFCF840D)),
+                    const SizedBox(width: 10),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      PrimeText(requirements.any((r) => r['status'] == 'OPEN')
+                        ? 'Nova pendência solicitada' : 'Documentação em análise',
+                        style: const TextStyle(color: Color(0xFF985C0C),
+                          fontWeight: FontWeight.w850, fontSize: 13)),
+                      const SizedBox(height: 4),
+                      const PrimeText('Confira abaixo o que a equipe precisa que você envie.',
+                        style: TextStyle(color: Color(0xFF95734B), fontSize: 11, height: 1.45)),
+                    ])),
+                  ]),
+                ),
+                const SizedBox(height: 14),
+              ],
+              if (requirements.isEmpty)
+                Container(padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: const Color(0xFFE0EAEF))),
+                  child: const PrimeText('Nenhuma documentação adicional foi solicitada no momento.')),
+              for (final requirement in requirements)
+                _RequirementCard(key: ValueKey(requirement['id']),
+                  requirement: requirement, canReply: !blocked && !suspended),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SupportPage())),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: Colors.white, foregroundColor: const Color(0xFF0A444B),
+                  side: const BorderSide(color: Color(0xFFBBD1D9)),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13))),
+                icon: const Icon(Icons.headset_mic_outlined),
+                label: const PrimeText('Falar com o suporte',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              ),
+              const SizedBox(height: 10),
+              Center(child: TextButton.icon(
+                onPressed: () async {
+                  try { await state.refreshCourier(); }
+                  catch (_) {
+                    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: PrimeText('Não foi possível atualizar. Tente novamente.')));
+                  }
+                },
+                icon: const Icon(Icons.refresh_rounded, size: 17),
+                label: const PrimeText('Atualizar situação',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+              )),
+            ]),
+          ))],
+        ),
+      ),
     );
   }
+
 }
 
 class _RequirementCard extends StatefulWidget {
