@@ -7,6 +7,7 @@ import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/motorcycle_catalog.dart';
 import 'courier_preflight_page.dart';
+import 'courier_certificate_attachment.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key, required this.role});
@@ -15,6 +16,7 @@ class RegistrationPage extends StatefulWidget {
 }
 class _RegistrationPageState extends State<RegistrationPage> {
   final forms=List.generate(6, (_)=>GlobalKey<FormState>()); int step=0; bool accepted=false,obscure=true; bool courierPreflightComplete=false;
+  CourierCertificateSelection? criminalRecordCertificate;
   final Map<String,String?> remoteError={};
   final Map<String,bool> checking={};
   final Map<String,int> validationTicket={};
@@ -317,6 +319,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           ),
                           child: Column(
                             children: [
+                              if (courier && step == 3)
+                                CourierCertificateAttachment(
+                                  value: criminalRecordCertificate,
+                                  onChanged: (value) => setState(() {
+                                    criminalRecordCertificate = value;
+                                    ctl('criminalRecordUploadToken').text =
+                                        value?.uploadToken ?? '';
+                                  }),
+                                ),
                               ...groups[step].map(field),
                               if (courier &&
                                   step == 3 &&
@@ -902,6 +913,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
     if (!(form.currentState?.validate() ?? false)) return;
     if(checking.values.any((v)=>v)){await _showInfo('Verificando dados','Aguarde a conclusão das validações antes de continuar.',AppIcons.hourglass_top_rounded);return;}
     if(remoteError.values.any((v)=>v?.isNotEmpty ?? false))return;
+    if (courier && step == 3 && criminalRecordCertificate == null) {
+      await _showInfo(
+        'Anexe sua certidão',
+        'Selecione a certidão de antecedentes criminais em PDF antes de continuar.',
+        AppIcons.shield_outlined,
+      );
+      return;
+    }
     if(courier&&step==3&&(ctl('vehicleType').text.isEmpty||ctl('vehicleBrand').text.isEmpty||ctl('vehicleModel').text.isEmpty)){await _showInfo('Complete o veículo','Selecione tipo, marca e modelo antes de continuar.',AppIcons.two_wheeler_rounded);return;}
     if (step < groups.length - 1) {
       setState(() => step++);
