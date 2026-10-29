@@ -7,11 +7,15 @@ import {
   Param,
   Post,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { BootstrapAdminDto } from './dto/bootstrap-admin.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
+import { CourierCertificateStorage } from './courier-certificate-storage.js';
 import {
   ForgotPasswordDto,
   ResetPasswordDto,
@@ -42,6 +46,16 @@ export class AuthController {
   @Post('bootstrap-admin')
   bootstrapAdmin(@Body() body: BootstrapAdminDto) {
     return this.authService.bootstrapAdmin(body);
+  }
+
+  @Post('courier-certificate')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: CourierCertificateStorage.maxBytes },
+    }),
+  )
+  stageCourierCertificate(@UploadedFile() file?: any) {
+    return CourierCertificateStorage.stage(file);
   }
 
   @Post('register')
