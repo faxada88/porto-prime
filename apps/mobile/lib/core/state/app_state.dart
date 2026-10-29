@@ -48,6 +48,7 @@ class AppState extends ChangeNotifier {
   List<dynamic> courierOffers=[];
   int _courierOperationsEpoch=0;
   Future<void>? _courierOperationsFuture;
+  Future<void>? _onlineSwitchFuture;
   Future<void>? _deliveryAction;
   bool courierOnline=false;
   bool courierHighDemand=false;
@@ -656,9 +657,32 @@ class AppState extends ChangeNotifier {
     ]);
     if(!isCourier || user?['id']!=accountId || epoch!=_courierOperationsEpoch)return;
     final presence=Map<String,dynamic>.from(results[0] as Map);
+    final currentDelivery=results[1]==null
+        ? null : Map<String,dynamic>.from(results[1] as Map);
+    // A restored server session is not permission to receive new jobs.
+    // Never leave this device online after GPS, notifications or the
+    // Android foreground-service grant has been lost.
+    if(presence['isOnline']==true && currentDelivery==null &&
+        !await CourierOfferAlerts.readyForOnline()){
+      try{
+        await api.request('PATCH','/orders/courier/online',
+            body:{'online':false});
+      }catch(_){}
+      if(!isCourier || user?['id']!=accountId ||
+          epoch!=_courierOperationsEpoch)return;
+      courierOnline=false;
+      courierPresenceStatus='OFFLINE';
+      courierDelivery=null;
+      courierOffers=[];
+      await CourierOfferAlerts.offline().catchError((_) {});
+      notifyListeners();
+      return;
+    }
+    if(!isCourier || user?['id']!=accountId ||
+        epoch!=_courierOperationsEpoch)return;
     courierPresenceStatus=(presence['presenceStatus']??'OFFLINE').toString();
     courierOnline=presence['isOnline']==true;
-    courierDelivery=results[1]==null?null:Map<String,dynamic>.from(results[1] as Map);
+    courierDelivery=currentDelivery;
     courierOffers=List<dynamic>.from(results[2] as List);
     if(courierOnline){
       unawaited(CourierOfferAlerts.online().catchError((_) {}));
@@ -765,6 +789,25 @@ class AppState extends ChangeNotifier {
     final nextPresence =
         (result['presenceStatus'] ?? 'OFFLINE').toString();
     final nextOnline = result['isOnline'] == true;
+    // Heartbeats must not restore an online status after the operating
+    // system has revoked any of the required permissions.
+    if(nextOnline && courierDelivery==null &&
+        !await CourierOfferAlerts.readyForOnline()){
+      try{
+        await api.request('PATCH','/orders/courier/online',
+            body:{'online':false});
+      }catch(_){}
+      if(!isCourier || user?['id']!=accountId || courierRestricted ||
+          availabilityEpoch!=_courierOperationsEpoch)return;
+      courierOnline=false;
+      courierPresenceStatus='OFFLINE';
+      courierOffers=[];
+      await CourierOfferAlerts.offline().catchError((_) {});
+      notifyListeners();
+      return;
+    }
+    if(!isCourier || user?['id']!=accountId || courierRestricted ||
+        availabilityEpoch!=_courierOperationsEpoch)return;
     final changed =
         nextPresence != courierPresenceStatus || nextOnline != courierOnline;
     courierPresenceStatus = nextPresence;
@@ -776,26 +819,66 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<void> setCourierOnline(bool online) async {
-    final accountId = user?['id'];
-    if (!isCourier || courierRestricted) return;
-    if (online && !await CourierOfferAlerts.prepareOnline()) return;
-    if (!isCourier || user?['id'] != accountId || courierRestricted) return;
+  /// One guarded online/offline transition at a time. Both the dashboard
+  /// toggle and the profile switch use this same permission gate.
+  Future<void> setCourierOnline(bool online) {
+    final running=_onlineSwitchFuture;
+    if(running!=null)return running;
+    final transition=_setCourierOnlineChecked(online);
+    _onlineSwitchFuture=transition;
+    void clear(){
+      if(identical(_onlineSwitchFuture,transition))_onlineSwitchFuture=null;
+    }
+    transition.then<void>((_)=>clear(),onError:(Object _,StackTrace __)=>clear());
+    return transition;
+  }
+
+  Future<void> _setCourierOnlineChecked(bool online) async {
+    final accountId=user?['id'];
+    if(!isCourier || courierRestricted)return;
+
+    // It is forbidden to tell the backend this motoboy is online before
+    // the OS has authorized every mandatory operating permission.
+    if(online){
+      final authorized=await CourierOfferAlerts.prepareOnline();
+      if(!authorized || !await CourierOfferAlerts.readyForOnline()){
+        await CourierOfferAlerts.offline().catchError((_) {});
+        return; // Still OFFLINE; never sends online:true to NestJS.
+      }
+    }
+    if(!isCourier || user?['id']!=accountId || courierRestricted){
+      if(online)await CourierOfferAlerts.offline().catchError((_) {});
+      return;
+    }
+
     ++_courierOperationsEpoch;
-    final result=Map<String,dynamic>.from(
-      await api.request(
-        'PATCH',
-        '/orders/courier/online',
-        body:{'online':online},
-      ),
-    );
-    if (!isCourier || user?['id'] != accountId || courierRestricted) return;
-    courierPresenceStatus=(result['presenceStatus']??'OFFLINE').toString();
-    courierOnline=result['isOnline']==true;
-    if(courierOnline)unawaited(CourierOfferAlerts.online().catchError((_) {}));
-    else unawaited(CourierOfferAlerts.offline().catchError((_) {}));
-    notifyListeners();
-    unawaited(refreshCourierOperations().catchError((_) {}));
+    try{
+      final result=Map<String,dynamic>.from(
+        await api.request(
+          'PATCH',
+          '/orders/courier/online',
+          body:{'online':online},
+        ),
+      );
+      if(!isCourier || user?['id']!=accountId || courierRestricted){
+        if(online)await CourierOfferAlerts.offline().catchError((_) {});
+        return;
+      }
+      courierPresenceStatus=(result['presenceStatus']??'OFFLINE').toString();
+      courierOnline=result['isOnline']==true;
+      if(online && !courierOnline){
+        await CourierOfferAlerts.offline().catchError((_) {});
+        throw StateError('O servidor não confirmou sua disponibilidade.');
+      }
+      if(!courierOnline){
+        await CourierOfferAlerts.offline().catchError((_) {});
+      }
+      notifyListeners();
+      unawaited(refreshCourierOperations().catchError((_) {}));
+    }catch(_){
+      if(online)await CourierOfferAlerts.offline().catchError((_) {});
+      rethrow;
+    }
   }
 
   Future<void> acceptDelivery(String id) async {
