@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { createHash, randomBytes } from 'node:crypto';
 import {
   mkdir,
+  readdir,
   rename,
   rm,
   stat,
@@ -56,6 +57,28 @@ export class CourierCertificateStorage {
     );
   }
 
+  private static async cleanupExpiredStaged() {
+    await mkdir(this.stagedDir(), { recursive: true });
+    const names = await readdir(this.stagedDir()).catch(() => []);
+    const cutoff = Date.now() - this.stageTtlMs;
+
+    await Promise.all(
+      names
+        .filter((name) => name.endsWith('.pdf'))
+        .map(async (name) => {
+          const path = join(this.stagedDir(), name);
+          try {
+            const info = await stat(path);
+            if (info.mtimeMs < cutoff) {
+              await rm(path, { force: true });
+            }
+          } catch {
+            // Arquivo temporario desapareceu durante a limpeza.
+          }
+        }),
+    );
+  }
+
   static async stage(file?: UploadedPdf) {
     const bytes = file?.buffer;
     const size = Number(file?.size ?? bytes?.length ?? 0);
@@ -80,7 +103,7 @@ export class CourierCertificateStorage {
       );
     }
 
-    await mkdir(this.stagedDir(), { recursive: true });
+    await this.cleanupExpiredStaged();
 
     const issuedAt = Date.now();
     const token =
