@@ -690,7 +690,11 @@ class AppState extends ChangeNotifier {
       if(offer!=null)unawaited(CourierOfferAlerts.show(offer).catchError((_) {}));
       else unawaited(CourierOfferAlerts.dismiss().catchError((_) {}));
     }else{
-      unawaited(CourierOfferAlerts.offline().catchError((_) {}));
+      // Do not cancel the permission setup while the switch is still
+      // awaiting the user's authorization for ONLINE.
+      if(_onlineSwitchFuture==null){
+        unawaited(CourierOfferAlerts.offline().catchError((_) {}));
+      }
     }
     unawaited(CourierRouteTracker.instance.sync(courierDelivery));
     notifyListeners();
