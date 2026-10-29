@@ -20,6 +20,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { BootstrapAdminDto } from './dto/bootstrap-admin.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
+import { CourierCertificateStorage } from './courier-certificate-storage.js';
 import {
   ForgotPasswordDto,
   ResetPasswordDto,
@@ -392,11 +393,37 @@ export class AuthService {
       data.role === UserRole.COURIER ||
       data.role === UserRole.PARTNER;
 
-    const onboardingData = data.profileData
-      ? (data.profileData as Prisma.InputJsonObject)
-      : undefined;
+    const profileData: Record<string, unknown> = data.profileData
+      ? { ...data.profileData }
+      : {};
 
-    const user = await this.prisma.user.create({
+    let certificateFile:
+      | Awaited<ReturnType<typeof CourierCertificateStorage.consume>>
+      | null = null;
+
+    if (data.role === UserRole.COURIER) {
+      const uploadToken = profileData['criminalRecordUploadToken'];
+      if (!uploadToken) {
+        throw new BadRequestException(
+          'Anexe a certidão de antecedentes criminais em PDF',
+        );
+      }
+
+      certificateFile =
+        await CourierCertificateStorage.consume(uploadToken);
+      delete profileData['criminalRecordUploadToken'];
+      profileData['criminalRecordCertificate'] =
+        certificateFile.metadata;
+    }
+
+    const onboardingData =
+      Object.keys(profileData).length > 0
+        ? (profileData as Prisma.InputJsonObject)
+        : undefined;
+
+    let user;
+    try {
+      user = await this.prisma.user.create({
       data: {
         name: data.name.trim(),
         email,
@@ -444,6 +471,12 @@ export class AuthService {
             : undefined,
       },
     });
+    } catch (error) {
+      await CourierCertificateStorage.rollback(
+        certificateFile?.absolutePath,
+      );
+      throw error;
+    }
 
     return this.publicUser(user);
   }
