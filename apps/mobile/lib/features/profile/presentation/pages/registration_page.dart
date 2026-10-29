@@ -6,6 +6,7 @@ import '../../../../core/state/app_state.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/motorcycle_catalog.dart';
+import 'courier_preflight_page.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key, required this.role});
@@ -13,7 +14,7 @@ class RegistrationPage extends StatefulWidget {
   @override State<RegistrationPage> createState()=>_RegistrationPageState();
 }
 class _RegistrationPageState extends State<RegistrationPage> {
-  final forms=List.generate(6, (_)=>GlobalKey<FormState>()); int step=0; bool accepted=false,obscure=true;
+  final forms=List.generate(6, (_)=>GlobalKey<FormState>()); int step=0; bool accepted=false,obscure=true; bool courierPreflightComplete=false;
   final Map<String,String?> remoteError={};
   final Map<String,bool> checking={};
   final Map<String,int> validationTicket={};
@@ -50,6 +51,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
   @override
   Widget build(BuildContext context) {
+    if (courier && !courierPreflightComplete) {
+      return CourierPreflightPage(
+        onClose: () => Navigator.pop(context),
+        onReady: () => setState(() => courierPreflightComplete = true),
+      );
+    }
     final total = groups.length;
     final accent = customer
         ? AppColors.ocean
@@ -101,9 +108,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     children: [
                       IconButton(
                         tooltip: step == 0 ? 'Fechar' : 'Voltar',
-                        onPressed: () => step == 0
-                            ? Navigator.pop(context)
-                            : setState(() => step--),
+                        onPressed: () {
+                          if (step == 0) {
+                            if (courier) {
+                              setState(() => courierPreflightComplete = false);
+                            } else {
+                              Navigator.pop(context);
+                            }
+                          } else {
+                            setState(() => step--);
+                          }
+                        },
                         icon: Icon(
                           step == 0
                               ? AppIcons.close_rounded
