@@ -15,10 +15,14 @@ if ($hadWidget) { Copy-Item $widget "$backup\animation.dart" }
 try {
   $code = [IO.File]::ReadAllText($splash)
   if (!$code.Contains('=> const PrimeLaunchAnimation();')) {
-    $pattern = '(?s)  @override\s+Widget build\(BuildContext context\)\s*=>.*?\r?\n  \);\s*\r?\n\}\s*$'
+    # Replace only the method declaration; retain its existing body untouched.
+    # This supports both => expressions and { return ...; } implementations.
+    $pattern = '\bWidget\s+build\s*\(\s*BuildContext\s+(\w+)\s*\)'
     $rx = [regex]::new($pattern)
-    if (!$rx.IsMatch($code)) { throw 'Splash local diferente do esperado. Atualizacao interrompida para preservar a inicializacao.' }
-    $code = $rx.Replace($code, "  @override`n  Widget build(BuildContext context) => const PrimeLaunchAnimation();`n}`n")
+    if ($rx.Matches($code).Count -ne 1 -or $code.Contains('_portoPreviousSplashBuild')) {
+      throw 'Nao foi possivel identificar um unico build da splash. Arquivos preservados.'
+    }
+    $code = $rx.Replace($code, 'Widget build(BuildContext context) => const PrimeLaunchAnimation();' + "`n`n  " + 'Widget _portoPreviousSplashBuild(BuildContext $1)', 1)
     if (!$code.Contains("import 'prime_launch_animation.dart';")) {
       $code = "import 'prime_launch_animation.dart';`n" + $code
     }
@@ -48,3 +52,4 @@ try {
   elseif (Test-Path $widget) { Remove-Item $widget }
   throw
 }
+
