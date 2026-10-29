@@ -38,8 +38,6 @@ class CourierCertificateAttachment extends StatefulWidget {
 class _CourierCertificateAttachmentState
     extends State<CourierCertificateAttachment> {
   static const _accent = Color(0xFFF0A93A);
-  static const _accentSoft = Color(0xFFFFF1D5);
-
   bool uploading = false;
   String? error;
 
@@ -60,19 +58,16 @@ class _CourierCertificateAttachmentState
     });
 
     try {
-      final result = await FilePicker.platform.pickFiles(
-        allowMultiple: false,
+      final file = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: const ['pdf'],
-        withData: true,
       );
 
-      if (result == null) return;
+      if (file == null) return;
 
-      final file = result.files.single;
-      final bytes = file.bytes;
+      final bytes = await file.readAsBytes();
 
-      if (bytes == null || bytes.isEmpty) {
+      if (bytes.isEmpty) {
         throw Exception('Não foi possível ler este PDF.');
       }
       if (bytes.length > 5 * 1024 * 1024) {
