@@ -1,3 +1,4 @@
+import '../widgets/delivery_completed_view.dart';
 import '../../../../core/utils/print_order_number.dart';
 import '../../../../core/localization/prime_localization.dart';
 import '../widgets/live_delivery_map.dart';
@@ -28,6 +29,7 @@ class OrderTrackingPage extends StatefulWidget {
 
 class _OrderTrackingPageState extends State<OrderTrackingPage> {
   Timer? timer;
+  bool _showDeliveredDetails = false;
 
   @override
   void initState() {
@@ -86,6 +88,22 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
       }
 
       final status = current['status'].toString();
+      if (status == 'DELIVERED' && !_showDeliveredDetails) {
+        return DeliveryCompletedView(
+          deliveredAt: current['deliveredAt']?.toString(),
+          onBack: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              AppNav.instance.home();
+            }
+          },
+          onHelp: () => Navigator.of(context).push(MaterialPageRoute(
+            settings: RouteSettings(name: '/delivery-chat/${widget.orderId}'),
+            builder: (_) => DeliveryChatPage(orderId: widget.orderId))),
+          onDetails: () => setState(() => _showDeliveredDetails = true),
+        );
+      }
       final step = _step(status);
       final courier = current['courier'];
       final allItems = (current['items'] as List?) ?? const [];

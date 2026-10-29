@@ -17,6 +17,10 @@ class AppLanguage extends ChangeNotifier {
   SharedPreferences? _preferences;
 
   static const Map<String, Map<String, String>> _curated = {
+"Ajuda": {"es":"Ayuda","en":"Help"},
+"Ver detalhes do pedido": {"es":"Ver detalles del pedido","en":"View order details"},
+"Pedido entregue às": {"es":"Pedido entregado a las","en":"Order delivered at"},
+"Seu pedido foi entregue": {"es":"Tu pedido ha sido entregado","en":"Your order has been delivered"},
 "Conta bloqueada": {"es": "Cuenta bloqueada", "en": "Account blocked"},
 "Conta suspensa": {"es": "Cuenta suspendida", "en": "Account suspended"},
 "Vamos regularizar sua conta": {"es": "Vamos a regularizar tu cuenta", "en": "Let’s get your account ready"},
