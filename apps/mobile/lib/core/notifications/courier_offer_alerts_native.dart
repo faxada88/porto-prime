@@ -258,6 +258,8 @@ Future<bool> _prepareOnline() async {
     // must be granted BEFORE the ONLINE API call. A refusal fails closed.
     if (Platform.isAndroid && !await _backgroundReady()) {
       if (!await _startShiftBeforeOnline()) {
+        // Revert any partially started service before rejecting ONLINE.
+        await offline();
         await _showPermissionIssue(
           context,
           title: 'Execução em segundo plano obrigatória',
