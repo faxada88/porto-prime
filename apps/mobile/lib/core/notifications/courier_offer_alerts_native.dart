@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_background/flutter_background.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../navigation/app_nav.dart';
 import 'delivery_offer_sound.dart';
@@ -15,9 +16,7 @@ final FlutterLocalNotificationsPlugin _notifications =
 const _channelId = 'porto_prime_courier_offers_2026';
 const _notificationId = 8911;
 Future<void>? _initializing;
-Future<void>? _activating;
 bool _active = false;
-bool _attemptedThisShift = false;
 int _shiftGeneration = 0;
 String? _visibleOfferId;
 Timer? _expiryTimer;
@@ -50,55 +49,257 @@ Future<void> _initializeOnce() async {
 
 bool _iosPermissionGranted = false;
 Future<bool>? _permissionFlow;
-Future<bool> prepareOnline() => _permissionFlow ??= _prepareOnline().whenComplete(() => _permissionFlow = null);
-Future<bool> _prepareOnline() async {
-  if (!Platform.isAndroid && !Platform.isIOS) return true;
-  if (Platform.isIOS && _iosPermissionGranted) return true;
+
+/// The Admin/API must never see ONLINE until all operational permissions have
+/// been confirmed on this device. Never request permissions on reconnect,
+/// heartbeat or after the server has already accepted the online transition.
+Future<bool> prepareOnline() =>
+    _permissionFlow ??= _prepareOnline().whenComplete(() => _permissionFlow = null);
+
+bool _locationAllowed(LocationPermission permission) =>
+    permission == LocationPermission.whileInUse ||
+    permission == LocationPermission.always;
+
+Future<bool> _locationReady() async {
+  if (!await Geolocator.isLocationServiceEnabled()) return false;
+  if (!_locationAllowed(await Geolocator.checkPermission())) return false;
+  return await Geolocator.getLocationAccuracy() ==
+      LocationAccuracyStatus.precise;
+}
+
+Future<bool> _notificationsReady() async {
   await _initialize();
-  final android = _notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-  if (await android?.areNotificationsEnabled() == true) return true;
+  if (Platform.isAndroid) {
+    final android = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    return await android?.areNotificationsEnabled() == true;
+  }
+  if (Platform.isIOS) return _iosPermissionGranted;
+  return false;
+}
+
+Future<bool> _backgroundReady() async {
+  if (!Platform.isAndroid) return true;
+  if (!_active || !FlutterBackground.isBackgroundExecutionEnabled) return false;
+  try {
+    return await FlutterBackground.hasPermissions;
+  } catch (_) {
+    return false;
+  }
+}
+
+/// Passive verification, without any system permission prompts. Also used
+/// when recovering an online session so a stale server status is not trusted.
+Future<bool> readyForOnline() async {
+  if (!Platform.isAndroid && !Platform.isIOS) return false;
+  try {
+    if (!await _locationReady()) return false;
+    if (!await _notificationsReady()) return false;
+    return await _backgroundReady();
+  } catch (_) {
+    return false;
+  }
+}
+
+Future<bool> _confirmStart(BuildContext context) async {
+  return await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Antes de ficar online'),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Para receber entregas com segurança, o Porto Prime precisa das seguintes autorizações:'),
+              SizedBox(height: 18),
+              Row(children: [
+                Icon(Icons.my_location_rounded, color: Color(0xFF09816D)),
+                SizedBox(width: 10),
+                Expanded(child: Text('GPS ligado e localização precisa')),
+              ]),
+              SizedBox(height: 12),
+              Row(children: [
+                Icon(Icons.notifications_active_rounded, color: Color(0xFF09816D)),
+                SizedBox(width: 10),
+                Expanded(child: Text('Notificações de novas entregas')),
+              ]),
+              SizedBox(height: 12),
+              Row(children: [
+                Icon(Icons.battery_saver_rounded, color: Color(0xFF09816D)),
+                SizedBox(width: 10),
+                Expanded(child: Text('Execução em segundo plano enquanto estiver online')),
+              ]),
+              SizedBox(height: 18),
+              Text('Se recusar alguma autorização, você permanecerá OFFLINE. Som e avisos na tela bloqueada também dependem das configurações do Android.'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Agora não'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Autorizar e continuar'),
+            ),
+          ],
+        ),
+      ) ==
+      true;
+}
+
+Future<void> _showPermissionIssue(
+  BuildContext context, {
+  required String title,
+  required String message,
+  Future<bool> Function()? openSettings,
+}) async {
+  if (!context.mounted) return;
+  final open = await showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(title),
+      content: Text('$message\n\nO motoboy continuará OFFLINE até autorizar.'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Continuar offline'),
+        ),
+        if (openSettings != null)
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Abrir configurações'),
+          ),
+      ],
+    ),
+  );
+  if (open == true && openSettings != null) {
+    try {
+      await openSettings();
+    } catch (_) {
+      // On returning to the app the courier may tap ONLINE to recheck.
+    }
+  }
+}
+
+Future<bool> _prepareOnline() async {
+  if (!Platform.isAndroid && !Platform.isIOS) return false;
+  if (await readyForOnline()) return true;
+
   final context = AppNav.instance.rootNavigatorKey.currentContext;
   if (context == null || !context.mounted) return false;
-  final proceed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
-    title: const Text('Não perca uma entrega'),
-    content: const Text('Autorize as notificações para receber novas entregas. Nas configurações do aparelho, mantenha o som e os avisos na tela bloqueada ativados. O modo silencioso e Não Perturbe podem silenciar os alertas.'),
-    actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Agora não')),
-      FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Autorizar notificações'))],
-  ));
-  if (proceed != true) return false;
-  final granted = Platform.isAndroid ? await android?.requestNotificationsPermission() == true : await _notifications.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(alert: true, sound: true, badge: true) == true;
-  if (!granted && context.mounted) {
-    await showDialog<void>(context: context, builder: (context) => AlertDialog(
-      title: const Text('Ative as notificações'),
-      content: const Text('Abra Configurações > Aplicativos > Porto Prime > Notificações e permita os avisos. Ative também som e tela bloqueada. Depois volte e toque em Ficar online.'),
-      actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Entendi'))],
-    ));
-  }
-  if (Platform.isIOS) _iosPermissionGranted = granted;
-  return granted;
-}
+  if (!await _confirmStart(context)) return false;
 
-/// Start only when the motoboy explicitly chooses ONLINE. The ongoing
-/// foreground service keeps the already authenticated Socket.IO isolate
-/// receiving offers while Android's screen is locked.
-Future<void> online() async {
-  if (!Platform.isAndroid) return;
-  if (_active || _attemptedThisShift) return;
-  if (_activating != null) return _activating!;
-  _attemptedThisShift = true;
-  final generation = ++_shiftGeneration;
-  _activating = _startShift(generation);
   try {
-    await _activating!;
-  } finally {
-    _activating = null;
-  }
-}
+    // 1. Location is obligatory before the backend even receives ONLINE.
+    if (!await Geolocator.isLocationServiceEnabled()) {
+      await _showPermissionIssue(
+        context,
+        title: 'Ative o GPS',
+        message: 'Ligue a localização do aparelho para receber corridas. Depois volte ao Porto Prime e toque em Ficar online.',
+        openSettings: Geolocator.openLocationSettings,
+      );
+      return false;
+    }
 
-Future<void> _startShift(int generation) async {
-  try {
+    var location = await Geolocator.checkPermission();
+    if (location == LocationPermission.denied) {
+      location = await Geolocator.requestPermission();
+    }
+    if (!_locationAllowed(location)) {
+      await _showPermissionIssue(
+        context,
+        title: 'Localização obrigatória',
+        message: 'Permita ao Porto Prime acessar sua localização durante o uso do aplicativo.',
+        openSettings: Geolocator.openAppSettings,
+      );
+      return false;
+    }
+    if (await Geolocator.getLocationAccuracy() !=
+        LocationAccuracyStatus.precise) {
+      await _showPermissionIssue(
+        context,
+        title: 'Ative a localização precisa',
+        message: 'O acesso aproximado não é suficiente para localizar retiradas e entregas. Nas permissões do aplicativo, ative Usar local exato.',
+        openSettings: Geolocator.openAppSettings,
+      );
+      return false;
+    }
+
+    // 2. Request local notification permission BEFORE going online.
     await _initialize();
-    final enabled = await FlutterBackground.initialize(
+    if (!await _notificationsReady()) {
+      bool granted = false;
+      if (Platform.isAndroid) {
+        final android = _notifications.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+        granted = await android?.requestNotificationsPermission() == true;
+      } else if (Platform.isIOS) {
+        final ios = _notifications.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
+        granted = await ios?.requestPermissions(
+              alert: true, sound: true, badge: true) == true;
+        _iosPermissionGranted = granted;
+      }
+      if (!granted || !await _notificationsReady()) {
+        await _showPermissionIssue(
+          context,
+          title: 'Notificações obrigatórias',
+          message: 'Habilite as notificações do Porto Prime para receber ofertas imediatamente. Ative também o som e os avisos na tela bloqueada nas configurações do aparelho.',
+          openSettings: Geolocator.openAppSettings,
+        );
+        return false;
+      }
+    }
+
+    // 3. Android foreground service and battery optimization authorization
+    // must be granted BEFORE the ONLINE API call. A refusal fails closed.
+    if (Platform.isAndroid && !await _backgroundReady()) {
+      if (!await _startShiftBeforeOnline()) {
+        await _showPermissionIssue(
+          context,
+          title: 'Execução em segundo plano obrigatória',
+          message: 'Autorize o funcionamento em segundo plano e a permissão de bateria solicitada pelo Android. Isso permite receber ofertas com a tela bloqueada. Depois volte e toque em Ficar online.',
+          openSettings: Geolocator.openAppSettings,
+        );
+        return false;
+      }
+    }
+
+    // Final check after all dialogs: the server is still OFFLINE here.
+    if (!await readyForOnline()) {
+      await offline();
+      await _showPermissionIssue(
+        context,
+        title: 'Autorização incompleta',
+        message: 'Confirme GPS ligado, localização precisa, notificações e execução em segundo plano antes de ficar online.',
+        openSettings: Geolocator.openAppSettings,
+      );
+      return false;
+    }
+    return true;
+  } catch (error) {
+    await offline();
+    if (kDebugMode) {
+      debugPrint('Porto Prime: online permissions not ready: $error');
+    }
+    await _showPermissionIssue(
+      context,
+      title: 'Não foi possível validar as permissões',
+      message: 'O aparelho não confirmou todas as autorizações necessárias. Confira as permissões do Porto Prime e tente novamente.',
+      openSettings: Geolocator.openAppSettings,
+    );
+    return false;
+  }
+}
+
+Future<bool> _startShiftBeforeOnline() async {
+  if (!Platform.isAndroid) return true;
+  final generation = ++_shiftGeneration;
+  try {
+    final initialized = await FlutterBackground.initialize(
       androidConfig: FlutterBackgroundAndroidConfig(
         notificationTitle: 'Porto Prime · Motoboy online',
         notificationText: 'Aguardando ofertas de entrega',
@@ -106,25 +307,32 @@ Future<void> _startShift(int generation) async {
         enableWifiLock: false,
       ),
     );
-    if (!enabled) return;
+    if (!initialized || generation != _shiftGeneration) return false;
     final started = await FlutterBackground.enableBackgroundExecution();
-    if (generation == _shiftGeneration) {
-      _active = started;
-    } else if (started) {
+    if (!started) return false;
+    if (generation != _shiftGeneration) {
       await FlutterBackground.disableBackgroundExecution();
+      return false;
     }
-  } catch (e) {
-    if (kDebugMode) debugPrint('Porto Prime: foreground service not started: $e');
-    // A denied system permission never changes the courier's online state.
-    // In that case the in-app WebSocket alert still works while the app runs.
+    _active = true;
+    return await _backgroundReady();
+  } catch (error) {
+    if (kDebugMode) debugPrint('Porto Prime: background permission denied: $error');
+    return false;
   }
 }
 
+/// No permissions are requested here. All authorization work must be done
+/// by prepareOnline() before PATCH /orders/courier/online is submitted.
+Future<void> online() async {}
+
 Future<void> offline() async {
-  if (Platform.isIOS) { await dismissOffer(); return; }
+  if (Platform.isIOS) {
+    await dismissOffer();
+    return;
+  }
   if (!Platform.isAndroid) return;
   ++_shiftGeneration;
-  _attemptedThisShift = false;
   _active = false;
   await dismissOffer();
   try {
