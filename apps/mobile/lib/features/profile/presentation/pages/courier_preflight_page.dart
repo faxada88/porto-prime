@@ -421,6 +421,20 @@ class _CourierPreflightPageState extends State<CourierPreflightPage> {
     }
   }
 
+  void _toggleAll() {
+    setState(() {
+      if (_ready) {
+        _checked.clear();
+        _hasRecentCertificate = false;
+        return;
+      }
+      _hasRecentCertificate = false;
+      _checked
+        ..clear()
+        ..addAll(const [0, 1, 2, 3, 4]);
+    });
+  }
+
   void _toggle(int index) {
     if (index == 3 && _hasRecentCertificate) return;
     setState(() {
@@ -656,6 +670,35 @@ class _CourierPreflightPageState extends State<CourierPreflightPage> {
                       ),
                       child: Column(
                         children: [
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: Text(
+                                  'Documentos necessários',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                              TextButton.icon(
+                                onPressed: _toggleAll,
+                                icon: Icon(
+                                  _ready
+                                      ? AppIcons.close_rounded
+                                      : AppIcons.check_circle_rounded,
+                                  size: 17,
+                                ),
+                                label: Text(
+                                  _ready ? 'Desmarcar todos' : 'Marcar todos',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
                           for (var index = 0; index < _items.length; index++) ...[
                             _checkCard(
                               icon: _items[index].icon,
