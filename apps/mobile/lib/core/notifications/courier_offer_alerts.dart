@@ -6,6 +6,7 @@ class CourierOfferAlerts {
   CourierOfferAlerts._();
 
   static Future<bool> prepareOnline() => platform.prepareOnline();
+  static Future<bool> readyForOnline() => platform.readyForOnline();
 
   static Future<void> online() => platform.online();
   static Future<void> offline() => platform.offline();
