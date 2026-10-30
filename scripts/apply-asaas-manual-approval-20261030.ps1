@@ -377,7 +377,7 @@ $feedback = Replace-Once $feedback 'letterSpacing: -1, color: courierGreen)),' '
 $feedback = Replace-Once $feedback 'color: const Color(0xFFEEF7F4),' 'color: paid ? const Color(0xFFEEF7F4) : failed ? const Color(0xFFFFF0ED) : const Color(0xFFFFF6E7),' 'color: paid ? const Color(0xFFEEF7F4)' 'fundo da etiqueta conforme estado'
 $feedback = Replace-Once $feedback 'const TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700,' 'TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700,' '' 'texto dinamico da etiqueta Pix'
 $feedback = Replace-Once $feedback 'color: courierGreen)))),' 'color: accent)))),' 'color: accent))))' 'cor da etiqueta conforme estado'
-$feedback = Replace-RegexOnce $feedback "const PrimeText\('Acompanhe as atualiza[^']*', textAlign: TextAlign\\.center," 'PrimeText(message, textAlign: TextAlign.center,' 'PrimeText(message, textAlign:' 'mensagem explicativa conforme status'
+$feedback = Replace-RegexOnce $feedback "const PrimeText\('Acompanhe as atualiza[^']*', textAlign: TextAlign\.center," 'PrimeText(message, textAlign: TextAlign.center,' 'PrimeText(message, textAlign:' 'mensagem explicativa conforme status'
 $files['apps/mobile/lib/features/courier/presentation/widgets/courier_withdrawal_feedback.dart'] = $feedback
 
 $courierPage = $files['apps/mobile/lib/features/courier/presentation/pages/courier_page.dart']
