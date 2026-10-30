@@ -72,7 +72,7 @@ $alreadyApplied =
   $files['apps/mobile/lib/features/courier/presentation/pages/courier_page.dart'].Contains('PIX APROVADO')
 if ($alreadyApplied) {
   Write-Host 'O fluxo de aprovacao Asaas ja esta aplicado. Nenhum arquivo foi alterado.' -ForegroundColor Green
-  exit 0
+  return
 }
 
 
