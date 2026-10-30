@@ -441,803 +441,133 @@ class _CourierPreflightPageState extends State<CourierPreflightPage> {
     );
   }
 
-  Widget _progressHero() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 18, 18),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            AppColors.ocean900,
-            AppColors.ocean800,
-            AppColors.ocean700,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: AppShadows.elevated,
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -34,
-            top: -42,
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: .055),
-              ),
-            ),
-          ),
-          Positioned(
-            right: 38,
-            bottom: -64,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _accent.withValues(alpha: .11),
-              ),
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: .1),
-                      borderRadius: BorderRadius.circular(99),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: .12),
-                      ),
-                    ),
-                    child: const Text(
-                      'PREPARAÇÃO INTELIGENTE',
-                      style: TextStyle(
-                        color: AppColors.ocean300,
-                        fontSize: 8,
-                        letterSpacing: .95,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    width: 56,
-                    height: 56,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: .09),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: .13),
-                      ),
-                    ),
-                    child: Text(
-                      '$_completedCount/5',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              const Text(
-                'Chegue pronto.\nCadastre uma vez.',
-                style: TextStyle(
-                  fontSize: 31,
-                  height: 1.01,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -1.15,
-                ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Organize tudo antes de começar e evite interromper sua candidatura no meio do caminho.',
-                style: TextStyle(
-                  fontSize: 11.5,
-                  height: 1.5,
-                  color: Color(0xFFD5E5E1),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 18),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(99),
-                child: LinearProgressIndicator(
-                  value: _progress,
-                  minHeight: 7,
-                  backgroundColor: Colors.white.withValues(alpha: .12),
-                  valueColor: const AlwaysStoppedAnimation<Color>(_accent),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Text(
-                    _ready
-                        ? 'Tudo pronto para começar'
-                        : '$_completedCount de 5 itens confirmados',
-                    style: TextStyle(
-                      fontSize: 9.5,
-                      color: _ready ? AppColors.ocean300 : Colors.white70,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (_ready)
-                    const Icon(
-                      AppIcons.check_circle_rounded,
-                      color: AppColors.ocean300,
-                      size: 18,
-                    ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _standardCard({
-    required int index,
-    required String order,
-  }) {
+  Widget _checkRow(int index) {
     final item = _items[index];
-    final selected = _checked.contains(index);
-    final disabled = index == 3 && _hasRecentCertificate;
-
-    return AnimatedOpacity(
-      duration: AppMotion.standard,
-      opacity: disabled ? .42 : 1,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: disabled ? null : () => _toggle(index),
-          borderRadius: BorderRadius.circular(22),
-          child: AnimatedContainer(
-            duration: AppMotion.standard,
-            curve: AppMotion.curve,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: selected ? AppColors.surfaceOcean : Colors.white,
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(
-                color: selected
-                    ? AppColors.ocean300
-                    : AppColors.stroke,
-                width: selected ? 1.3 : 1,
-              ),
-              boxShadow: selected ? AppShadows.soft : null,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    AnimatedContainer(
-                      duration: AppMotion.standard,
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? AppColors.ocean100
-                            : AppColors.surfaceMuted,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(
-                        item.icon,
-                        color: selected
-                            ? AppColors.ocean700
-                            : const Color(0xFF9A6419),
-                        size: 22,
-                      ),
-                    ),
-                    Positioned(
-                      left: -4,
-                      top: -5,
-                      child: Container(
-                        width: 20,
-                        height: 20,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? AppColors.ocean800
-                              : AppColors.ink,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 2,
-                          ),
-                        ),
-                        child: Text(
-                          order,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 7.5,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 13),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        disabled
-                            ? 'Nova certidão não necessária'
-                            : item.title,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          height: 1.18,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.ink,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        disabled
-                            ? 'Você confirmou uma certidão emitida há menos de 90 dias.'
-                            : item.detail,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          height: 1.43,
-                          color: AppColors.muted,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                AnimatedContainer(
-                  duration: AppMotion.standard,
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? AppColors.ocean800
-                        : Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: selected
-                          ? AppColors.ocean800
-                          : AppColors.strokeStrong,
-                    ),
-                  ),
-                  child: selected
-                      ? const Icon(
-                          AppIcons.check_rounded,
-                          color: Colors.white,
-                          size: 18,
-                        )
-                      : disabled
-                          ? const Icon(
-                              AppIcons.close_rounded,
-                              color: AppColors.subtle,
-                              size: 15,
-                            )
-                          : null,
-                ),
-              ],
-            ),
-          ),
-        ),
+    return CheckboxListTile(
+      value: _checked.contains(index),
+      onChanged: (_) => _toggle(index),
+      controlAffinity: ListTileControlAffinity.trailing,
+      activeColor: const Color(0xFF073E43),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      title: Text(item.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Text(item.detail, style: const TextStyle(fontSize: 13, height: 1.4)),
       ),
     );
   }
 
-  Widget _certificateChoice() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFFBF3), Color(0xFFFFF5E3)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget _certificateSection() {
+    return ExpansionTile(
+      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      title: const Text('Certidão de antecedentes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Text(_hasRecentCertificate ? 'Certidão válida confirmada' : _checked.contains(3) ? 'Emissão de nova certidão selecionada' : 'Escolha uma opção', style: const TextStyle(fontSize: 13)),
+      ),
+      leading: Icon(_certificateReady ? Icons.check_circle : Icons.description_outlined,
+        color: _certificateReady ? const Color(0xFF073E43) : AppColors.muted),
+      children: [
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          value: _hasRecentCertificate,
+          onChanged: (_) => _confirmRecentCertificate(),
+          title: const Text('Já tenho uma certidão válida'),
+          subtitle: const Text('Emitida há menos de 90 dias.'),
+          activeColor: const Color(0xFF073E43),
         ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: _accent.withValues(alpha: .22),
+        CheckboxListTile(
+          contentPadding: EdgeInsets.zero,
+          value: _checked.contains(3),
+          onChanged: _hasRecentCertificate ? null : (_) => _toggle(3),
+          title: const Text('Preciso emitir uma nova'),
+          activeColor: const Color(0xFF073E43),
         ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(
-                    color: _accent.withValues(alpha: .18),
-                  ),
-                ),
-                child: const Icon(
-                  AppIcons.shield_rounded,
-                  color: Color(0xFF9A6419),
-                  size: 21,
-                ),
-              ),
-              const SizedBox(width: 11),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Já possui uma certidão válida?',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.ink,
-                      ),
-                    ),
-                    SizedBox(height: 3),
-                    Text(
-                      'Você pode usar uma certidão emitida há menos de 90 dias.',
-                      style: TextStyle(
-                        fontSize: 9.7,
-                        height: 1.4,
-                        color: AppColors.muted,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: _hasRecentCertificate ? null : _openFederalCertificate,
+            icon: const Icon(Icons.open_in_new, size: 18),
+            label: const Text('Abrir site da Polícia Federal'),
           ),
-          const SizedBox(height: 13),
-          Material(
-            color: _hasRecentCertificate
-                ? AppColors.ocean800
-                : Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            child: InkWell(
-              onTap: _confirmRecentCertificate,
-              borderRadius: BorderRadius.circular(18),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 13,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: _hasRecentCertificate
-                        ? AppColors.ocean800
-                        : _accent.withValues(alpha: .26),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      _hasRecentCertificate
-                          ? AppIcons.check_circle_rounded
-                          : AppIcons.shield_outlined,
-                      color: _hasRecentCertificate
-                          ? Colors.white
-                          : const Color(0xFF9A6419),
-                      size: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        _hasRecentCertificate
-                            ? 'Certidão válida confirmada'
-                            : 'Já tenho uma certidão com menos de 90 dias',
-                        style: TextStyle(
-                          color: _hasRecentCertificate
-                              ? Colors.white
-                              : AppColors.ink,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                    Icon(
-                      AppIcons.chevron_right_rounded,
-                      size: 18,
-                      color: _hasRecentCertificate
-                          ? Colors.white
-                          : AppColors.muted,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _certificateTools() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceOcean,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.ocean100),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              const Icon(
-                AppIcons.verified_user_rounded,
-                color: AppColors.ocean700,
-                size: 21,
-              ),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Text(
-                  'Central da certidão',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.ink,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-                child: const Text(
-                  'OFICIAL',
-                  style: TextStyle(
-                    fontSize: 7.5,
-                    color: AppColors.ocean700,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: .75,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Se precisar, emita pelo portal oficial da Polícia Federal ou abra o checklist compacto para tirar um print.',
-            style: TextStyle(
-              fontSize: 10,
-              height: 1.45,
-              color: AppColors.muted,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 13),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: FilledButton.icon(
-              onPressed: _hasRecentCertificate
-                  ? null
-                  : _openFederalCertificate,
-              icon: const Icon(AppIcons.externalLink, size: 17),
-              label: Text(
-                _hasRecentCertificate
-                    ? 'Certidão válida já confirmada'
-                    : 'Emitir certidão oficial',
-                style: const TextStyle(fontWeight: FontWeight.w900),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: OutlinedButton.icon(
-              onPressed: _showScreenshotChecklist,
-              icon: const Icon(AppIcons.fact_check_rounded, size: 17),
-              label: const Text(
-                'Abrir versão para print',
-                style: TextStyle(fontWeight: FontWeight.w900),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.canvas,
+      backgroundColor: const Color(0xFFF7F9F9),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF7F9F9),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(onPressed: widget.onClose, tooltip: 'Fechar', icon: const Icon(Icons.close)),
+        title: const Text('Cadastro de motoboy', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+      ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-              child: Row(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.stroke),
-                    ),
-                    child: IconButton(
-                      tooltip: 'Fechar',
-                      onPressed: widget.onClose,
-                      icon: const Icon(AppIcons.close_rounded, size: 20),
-                    ),
-                  ),
-                  const SizedBox(width: 11),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: _accentSoft,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: const Icon(
-                      AppIcons.two_wheeler_rounded,
-                      color: Color(0xFF9A6419),
-                      size: 21,
-                    ),
-                  ),
-                  const SizedBox(width: 11),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Cadastro de motoboy',
-                          style: TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.ink,
-                            letterSpacing: -.2,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'PREPARAÇÃO • ANTES DO CPF',
-                          style: TextStyle(
-                            fontSize: 8,
-                            color: AppColors.muted,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: .85,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 18, 16, 26),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        top: false,
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+              children: [
+                const Text('Vamos começar', style: TextStyle(fontSize: 28, height: 1.15, fontWeight: FontWeight.w700, color: Color(0xFF073E43))),
+                const SizedBox(height: 10),
+                const Text('Separe os documentos e confirme os itens abaixo.', style: TextStyle(fontSize: 15, height: 1.5, color: AppColors.muted)),
+                const SizedBox(height: 20),
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 16,
                   children: [
-                    _progressHero(),
-                    const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'O que você precisa',
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.ink,
-                                  letterSpacing: -.3,
-                                ),
-                              ),
-                              SizedBox(height: 3),
-                              Text(
-                                'Confirme os itens que já estão prontos.',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.muted,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        TextButton.icon(
-                          onPressed: _toggleAll,
-                          icon: Icon(
-                            _ready
-                                ? AppIcons.close_rounded
-                                : AppIcons.check_circle_rounded,
-                            size: 17,
-                          ),
-                          label: Text(
-                            _ready ? 'Desmarcar' : 'Marcar todos',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 10.5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    _standardCard(index: 0, order: '01'),
-                    const SizedBox(height: 10),
-                    _standardCard(index: 1, order: '02'),
-                    const SizedBox(height: 10),
-                    _standardCard(index: 2, order: '03'),
-                    const SizedBox(height: 10),
-                    _standardCard(index: 3, order: '04'),
-                    const SizedBox(height: 10),
-                    _certificateChoice(),
-                    const SizedBox(height: 10),
-                    _standardCard(index: 4, order: '05'),
-                    const SizedBox(height: 16),
-                    _certificateTools(),
-                    const SizedBox(height: 14),
-                    const Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          AppIcons.info_outline_rounded,
-                          color: AppColors.subtle,
-                          size: 16,
-                        ),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Marcar um item significa apenas que você está com ele em mãos. A candidatura ainda passa pela análise da equipe Porto Prime.',
-                            style: TextStyle(
-                              fontSize: 9.3,
-                              height: 1.45,
-                              color: AppColors.muted,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    Text('$_completedCount de 5 prontos', style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF073E43))),
+                    TextButton(onPressed: _toggleAll, child: Text(_ready ? 'Desmarcar todos' : 'Marcar todos')),
                   ],
                 ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-              decoration: BoxDecoration(
-                color: AppColors.canvas,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.ocean900.withValues(alpha: .06),
-                    blurRadius: 20,
-                    offset: const Offset(0, -8),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: AnimatedContainer(
-                  duration: AppMotion.standard,
-                  width: double.infinity,
-                  height: 62,
-                  decoration: BoxDecoration(
-                    gradient: _ready
-                        ? const LinearGradient(
-                            colors: [
-                              AppColors.ocean900,
-                              AppColors.ocean700,
-                            ],
-                          )
-                        : null,
-                    color: _ready ? null : AppColors.surfaceMuted,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: _ready ? AppShadows.soft : null,
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: _ready ? widget.onReady : null,
-                      borderRadius: BorderRadius.circular(20),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 18),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: _ready
-                                    ? Colors.white.withValues(alpha: .12)
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(13),
-                              ),
-                              child: Icon(
-                                _ready
-                                    ? AppIcons.arrow_forward_rounded
-                                    : AppIcons.fact_check_rounded,
-                                color: _ready
-                                    ? Colors.white
-                                    : AppColors.subtle,
-                                size: 19,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _ready
-                                        ? 'Começar meu cadastro'
-                                        : '$_completedCount de 5 itens prontos',
-                                    style: TextStyle(
-                                      color: _ready
-                                          ? Colors.white
-                                          : AppColors.subtle,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    _ready
-                                        ? 'Tudo conferido. Vamos para o CPF.'
-                                        : 'Confirme todos os itens para avançar.',
-                                    style: TextStyle(
-                                      color: _ready
-                                          ? Colors.white70
-                                          : AppColors.subtle,
-                                      fontSize: 8.8,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (_ready)
-                              const Icon(
-                                AppIcons.chevron_right_rounded,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(value: _progress, minHeight: 4, color: const Color(0xFF073E43), backgroundColor: const Color(0xFFE1EAEA)),
                 ),
-              ),
+                const SizedBox(height: 16),
+                Container(
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFDCE6E6))),
+                  child: Column(children: [
+                    _checkRow(0),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                    _checkRow(1),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                    _checkRow(2),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                    _certificateSection(),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                    _checkRow(4),
+                  ]),
+                ),
+                const SizedBox(height: 16),
+                const Text('Seus documentos serão conferidos pela nossa equipe após o cadastro.', style: TextStyle(fontSize: 13, height: 1.5, color: AppColors.muted)),
+                const SizedBox(height: 20),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF073E43),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(54),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  onPressed: _ready ? widget.onReady : null,
+                  child: const Text('Começar cadastro', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(height: 8),
+                TextButton(onPressed: _showScreenshotChecklist, child: const Text('Checklist para salvar')),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
