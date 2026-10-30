@@ -246,17 +246,17 @@ $files['apps/api/src/wallet/finance.service.ts'] = $finance
 # Painel: um clique aprova o saque; o estado final vem do Asaas.
 $panel = $files['apps/admin/src/app/finance-panel.tsx']
 $panel = Replace-Once $panel "const [operation,setOperation]=useState<'credit'|'withdraw'|'status'|null>(null),[form,setForm]=useState<Row>({}),[saving,setSaving]=useState(false),[formError,setFormError]=useState(''),[revision,setRevision]=useState(0);" "const [operation,setOperation]=useState<'credit'|'withdraw'|'status'|null>(null),[form,setForm]=useState<Row>({}),[saving,setSaving]=useState(false),[formError,setFormError]=useState(''),[revision,setRevision]=useState(0);\n const [asaasBusyId,setAsaasBusyId]=useState('');" 'asaasBusyId' 'estado de envio da aprovacao Asaas'
-$panelHelpers = @'
+$panelHelpers = U @'
  const asaasLabel=(w:Row)=>{
   const p=w.asaasPayout;
   if(!p)return 'Aguardando aprovacao do administrador';
   const state=String(p.state||'').toUpperCase();
   const provider=String(p.providerStatus||'').toUpperCase();
   if(state==='AWAITING_ADMIN'||(state==='QUEUED'&&provider!=='ADMIN_APPROVED'))return 'Aguardando aprovacao do administrador';
-  if(state==='QUEUED')return 'Aprovado · aguardando envio ao Asaas';
+  if(state==='QUEUED')return 'Aprovado \u00b7 aguardando envio ao Asaas';
   if(state==='SENDING')return 'Enviando Pix ao Asaas';
-  if(state==='SENT')return 'Pix enviado · aguardando confirmacao';
-  if(state==='UNKNOWN')return 'Envio sem confirmacao · conciliacao necessaria';
+  if(state==='SENT')return 'Pix enviado \u00b7 aguardando confirmacao';
+  if(state==='UNKNOWN')return 'Envio sem confirmacao \u00b7 conciliacao necessaria';
   if(state==='DONE')return 'Pix aprovado e concluido';
   if(state==='FAILED')return 'Pix nao concluido pelo Asaas';
   if(state==='CANCELLED')return 'Saque cancelado';
@@ -283,13 +283,13 @@ $panelHelpers = @'
 '@
 $panel = Replace-Once $panel " const status=(w:Row,next:string)=>{setForm({...w,nextStatus:next,reason:'',reference:'',receiptUrl:''});setFormError('');setOperation('status')};" (" const status=(w:Row,next:string)=>{setForm({...w,nextStatus:next,reason:'',reference:'',receiptUrl:''});setFormError('');setOperation('status')};" + [Environment]::NewLine + $panelHelpers) 'const asaasLabel=' 'acoes auxiliares de aprovacao e conciliacao'
 $oldActions = " const actions=(w:Row)=><div className=\"financeRowActions\">{w.status==='PENDING'&&<button onClick={()=>status(w,'PROCESSING')}>Processar</button>}{w.status==='PROCESSING'&&<button onClick={()=>status(w,'PAID')}><Check size={14}/>Confirmar pagamento</button>}{['PENDING','PROCESSING'].includes(w.status)&&<button className=\"secondary\" onClick={()=>status(w,'REJECTED')}>Rejeitar</button>}</div>;"
-$newActions = @'
+$newActions = U @'
  const actions=(w:Row)=>{
   if(w.kind==='COURIER'){
    const p=w.asaasPayout,state=String(p?.state||'').toUpperCase(),provider=String(p?.providerStatus||'').toUpperCase();
    const awaiting=['PENDING','PROCESSING'].includes(w.status)&&(!p||state==='AWAITING_ADMIN'||(state==='QUEUED'&&provider!=='ADMIN_APPROVED'));
    if(awaiting)return <div className="financeRowActions financeAsaasActions"><span className="financeAsaasMeta">Aguardando aprovacao do administrador</span><button type="button" disabled={asaasBusyId===w.id} onClick={()=>void approveAsaas(w)}>{asaasBusyId===w.id?'Enviando...':'Aprovar saque Pix'}</button>{w.status==='PENDING'&&<button type="button" className="secondary" onClick={()=>status(w,'REJECTED')}>Rejeitar</button>}</div>;
-   return <div className="financeRowActions financeAsaasActions"><span className="financeAsaasMeta">{asaasLabel(w)}{p?.transferId?' · ID '+p.transferId:''}{p?.lastError?' · '+p.lastError:''}</span>{p?.transferId&&['SENT','UNKNOWN'].includes(state)&&<button type="button" className="secondary" disabled={asaasBusyId===w.id} onClick={()=>void reconcileAsaas(w)}>Sincronizar Asaas</button>}</div>;
+   return <div className="financeRowActions financeAsaasActions"><span className="financeAsaasMeta">{asaasLabel(w)}{p?.transferId?' \u00b7 ID '+p.transferId:''}{p?.lastError?' \u00b7 '+p.lastError:''}</span>{p?.transferId&&['SENT','UNKNOWN'].includes(state)&&<button type="button" className="secondary" disabled={asaasBusyId===w.id} onClick={()=>void reconcileAsaas(w)}>Sincronizar Asaas</button>}</div>;
   }
   return <div className="financeRowActions">{w.status==='PENDING'&&<button onClick={()=>status(w,'PROCESSING')}>Processar</button>}{w.status==='PROCESSING'&&<button onClick={()=>status(w,'PAID')}><Check size={14}/>Confirmar pagamento</button>}{['PENDING','PROCESSING'].includes(w.status)&&<button className="secondary" onClick={()=>status(w,'REJECTED')}>Rejeitar</button>}</div>;
  };
@@ -318,7 +318,7 @@ $oldFeedbackBuild = @'
     final acknowledged = courierWithdrawalAcknowledged(widget.status);
     final title = switch (widget.status) {
       'PENDING' => 'Boa! Saque solicitado',
-      'PROCESSING' => 'Seu saque está em processamento',
+      'PROCESSING' => 'Seu saque est\u00e1 em processamento',
       'PAID' => 'Saque pago!',
       _ => 'Confira seu saque',
     };
@@ -364,7 +364,7 @@ $feedback = Replace-Once $feedback 'letterSpacing: -1, color: courierGreen)),' '
 $feedback = Replace-Once $feedback 'color: const Color(0xFFEEF7F4),' 'color: paid ? const Color(0xFFEEF7F4) : failed ? const Color(0xFFFFF0ED) : const Color(0xFFFFF6E7),' 'color: paid ? const Color(0xFFEEF7F4)' 'fundo da etiqueta conforme estado'
 $feedback = Replace-Once $feedback 'const TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700,' 'TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700,' 'TextStyle(fontSize: 12' 'texto dinamico da etiqueta Pix'
 $feedback = Replace-Once $feedback 'color: courierGreen)))),' 'color: accent)))),' 'color: accent))))' 'cor da etiqueta conforme estado'
-$feedback = Replace-RegexOnce $feedback "const PrimeText\\('Acompanhe as atualiza[^']*', textAlign: TextAlign\\.center," 'PrimeText(message, textAlign: TextAlign.center,' 'PrimeText(message, textAlign:' 'mensagem explicativa conforme status'
+$feedback = Replace-RegexOnce $feedback "const PrimeText\('Acompanhe as atualiza[^']*', textAlign: TextAlign\\.center," 'PrimeText(message, textAlign: TextAlign.center,' 'PrimeText(message, textAlign:' 'mensagem explicativa conforme status'
 $files['apps/mobile/lib/features/courier/presentation/widgets/courier_withdrawal_feedback.dart'] = $feedback
 
 $courierPage = $files['apps/mobile/lib/features/courier/presentation/pages/courier_page.dart']
