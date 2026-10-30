@@ -28,6 +28,19 @@ function Replace-Once([string]$Content, [string]$Old, [string]$New, [string]$Mar
   if ($newline -eq "`r`n") { $updated = $updated.Replace("`n", "`r`n") }
   return $updated
 }
+function Replace-RegexOnce([string]$Content, [string]$Pattern, [string]$New, [string]$Marker, [string]$Label) {
+  # Usa marcadores ASCII para tolerar acentos antigos corrompidos no arquivo Flutter.
+  $newline = if ($Content.Contains("`r`n")) { "`r`n" } else { "`n" }
+  $contentLf = $Content.Replace("`r`n", "`n")
+  $newLf = $New.Replace("`r`n", "`n")
+  if ($contentLf.Contains($Marker)) { return $Content }
+  $matches = [regex]::Matches($contentLf, $Pattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+  if ($matches.Count -ne 1) { throw "Checkpoint de seguranca: esperava 1 ocorrencia de '$Label', encontrei $($matches.Count). Nenhum arquivo foi gravado." }
+  $match = $matches[0]
+  $updated = $contentLf.Substring(0, $match.Index) + $newLf + $contentLf.Substring($match.Index + $match.Length)
+  if ($newline -eq "`r`n") { $updated = $updated.Replace("`n", "`r`n") }
+  return $updated
+}
 $changes = [ordered]@{}
 
 # API: expor o estado Asaas no historico e disparar o envio imediatamente.
@@ -230,7 +243,8 @@ $newBuild = @'
             ? 'O valor reservado foi devolvido à sua carteira.'
             : 'O saque foi recebido. O pagamento só será confirmado quando o Asaas concluir o Pix.';
 '@
-$feedback = Replace-Once $feedback $oldBuild $newBuild 'final paid = widget.status' 'mensagens do modal de saque'
+$newBuild = $newBuild + "    final amount = widget.amount;"
+$feedback = Replace-RegexOnce $feedback '    final acknowledged = courierWithdrawalAcknowledged\(widget\.status\);.*?    final amount = widget\.amount;' $newBuild 'final paid = widget.status' 'mensagens do modal de saque'
 $feedback = Replace-Once $feedback "style: const TextStyle(fontSize: 34, height: 1.15, fontWeight: FontWeight.w800," "style: TextStyle(fontSize: 34, height: 1.15, fontWeight: FontWeight.w800," "style: TextStyle(fontSize: 34" "valor do modal com cor dinamica"
 $feedback = Replace-Once $feedback "style: const TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700," "style: TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700," "style: TextStyle(fontSize: 12" "etiqueta do modal com cor dinamica"
 $feedback = Replace-Once $feedback 'decoration: const BoxDecoration(shape: BoxShape.circle,' 'decoration: BoxDecoration(shape: BoxShape.circle,' 'gradient: RadialGradient(colors: paid ?' 'container dinamico do modal'
@@ -240,7 +254,8 @@ $feedback = Replace-Once $feedback 'child: Icon(acknowledged ? Icons.check_round
 $feedback = Replace-Once $feedback 'letterSpacing: -1, color: courierGreen)),' 'letterSpacing: -1, color: accent)),' 'letterSpacing: -1, color: accent' 'valor com cor do estado'
 $feedback = Replace-Once $feedback 'decoration: BoxDecoration(color: const Color(0xFFEEF7F4),' 'decoration: BoxDecoration(color: paid ? const Color(0xFFEEF7F4) : failed ? const Color(0xFFFFF0ED) : const Color(0xFFFFF6E7),' 'color: paid ? const Color(0xFFEEF7F4)' 'etiqueta por estado'
 $feedback = Replace-Once $feedback 'color: courierGreen)))),' 'color: accent)))),' 'color: accent))))' 'texto da etiqueta por estado'
-$feedback = Replace-Once $feedback "const PrimeText('Acompanhe as atualizações na carteira.', textAlign: TextAlign.center," 'PrimeText(message, textAlign: TextAlign.center,' 'PrimeText(message, textAlign:' 'orientacao contextual do saque'
+$feedback = Replace-RegexOnce $feedback "const PrimeText\('Acompanhe as atualiza[^']*', textAlign: TextAlign\.center," 'PrimeText(message, textAlign: TextAlign.center,' 'PrimeText(message, textAlign:' 'orientacao contextual do saque'
+$feedback = Replace-RegexOnce $feedback "child: const PrimeText\('Voltar[^']*', textAlign: TextAlign\.center," "child: const PrimeText('Voltar à carteira', textAlign: TextAlign.center," "Voltar à carteira" 'texto correto do botao de retorno'
 $changes['apps/mobile/lib/features/courier/presentation/widgets/courier_withdrawal_feedback.dart'] = $feedback
 
 # MOBILE: associar a reserva do extrato ao saque correspondente.
