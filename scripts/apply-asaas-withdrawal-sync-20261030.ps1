@@ -82,6 +82,16 @@ $changes['apps/api/src/wallet/wallet.service.ts'] = $wallet
 
 # API: informar bloqueio do provedor sem concluir nem estornar indevidamente.
 $asaas = Read-RepoFile 'apps/api/src/wallet/asaas-payout.service.ts'
+$oldUnknown = @'
+      await this.db.asaasPayout.updateMany({ where: { withdrawalId: id, state: 'SENDING' }, data: { state: 'UNKNOWN', lastError: 'Envio sem confirmacao. Conciliar antes de qualquer nova tentativa.' } });
+'@
+$newUnknown = @'
+      await this.db.asaasPayout.updateMany({ where: { withdrawalId: id, state: 'SENDING' }, data: { state: 'UNKNOWN', lastError: 'Envio sem confirmacao. Conciliar antes de qualquer nova tentativa.' } });
+      const pendingWithdrawal = await this.db.withdrawal.findUnique({ where: { id }, select: { courierId: true } });
+      if (pendingWithdrawal?.courierId) await this.notify(pendingWithdrawal.courierId);
+'@
+$asaas = Replace-Once $asaas $oldUnknown $newUnknown 'pendingWithdrawal?.courierId' 'notificacao de envio sem confirmacao'
+
 $oldBlocked = "lastError: failed ? 'Transferencia nao concluida pelo Asaas.' : null"
 $newBlocked = "lastError: failed ? 'Transferencia nao concluida pelo Asaas.' : state === 'BLOCKED' ? 'Transferencia bloqueada pelo Asaas. Verifique a autorizacao no painel do provedor.' : null"
 $asaas = Replace-Once $asaas $oldBlocked $newBlocked 'Verifique a autorizacao no painel do provedor' 'mensagem de bloqueio Asaas'
