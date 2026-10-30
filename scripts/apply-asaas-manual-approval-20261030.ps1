@@ -211,7 +211,7 @@ $files['apps/api/src/wallet/asaas-payout.controller.ts'] = $controller
 
 # Solicitacao do motoboy reserva o saldo e aguarda aprovacao.
 $wallet = $files['apps/api/src/wallet/wallet.service.ts']
-$wallet = Replace-Once $wallet "status: automatic ? 'PROCESSING' : 'PENDING'," "status: 'PENDING'," "state: 'AWAITING_ADMIN'" 'saque inicia aguardando aprovacao'
+$wallet = Replace-Once $wallet "status: automatic ? 'PROCESSING' : 'PENDING'," "status: 'PENDING'," 'providerStatus: null' 'saque inicia aguardando aprovacao'
 $oldCreatePayout = @'
       if (automatic) await (tx as any).asaasPayout.create({ data: { withdrawalId, requestKey: courier.id + ':' + requestId } });
 '@
