@@ -211,7 +211,7 @@ $files['apps/api/src/wallet/asaas-payout.controller.ts'] = $controller
 
 # Solicitacao do motoboy reserva o saldo e aguarda aprovacao.
 $wallet = $files['apps/api/src/wallet/wallet.service.ts']
-$wallet = Replace-Once $wallet "status: automatic ? 'PROCESSING' : 'PENDING'," "status: 'PENDING'," 'providerStatus: null' 'saque inicia aguardando aprovacao'
+$wallet = Replace-Once $wallet "status: automatic ? 'PROCESSING' : 'PENDING'," "status: 'PENDING'," '' 'saque inicia aguardando aprovacao'
 $oldCreatePayout = @'
       if (automatic) await (tx as any).asaasPayout.create({ data: { withdrawalId, requestKey: courier.id + ':' + requestId } });
 '@
@@ -300,7 +300,7 @@ $panel = Replace-Once $panel " const status=(w:Row,next:string)=>{setForm({...w,
 $oldActions = @'
  const actions=(w:Row)=><div className="financeRowActions">{w.status==='PENDING'&&<button onClick={()=>status(w,'PROCESSING')}>Processar</button>}{w.status==='PROCESSING'&&<button onClick={()=>status(w,'PAID')}><Check size={14}/>Confirmar pagamento</button>}{['PENDING','PROCESSING'].includes(w.status)&&<button className="secondary" onClick={()=>status(w,'REJECTED')}>Rejeitar</button>}</div>;
 '@
-$oldActions = $oldActions.TrimEnd([char]13, [char]10)
+$oldActions = $oldActions.TrimEnd([char[]]@([char]13, [char]10))
 $newActions = U @'
  const actions=(w:Row)=>{
   if(w.kind==='COURIER'){
