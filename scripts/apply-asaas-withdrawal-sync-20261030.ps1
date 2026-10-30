@@ -146,7 +146,7 @@ $oldActions = @'
 $newActions = @'
  const actions=(w:Row)=>{
   const payout=w.asaasPayout||asaasFor(w.id);
-  if(payout)return <div className="financeRowActions financeAsaasActions"><span className="financeAsaasMeta">{asaasLabel(payout)}{payout.lastError?' · '+payout.lastError:''}</span>{payout.transferId&&<button type="button" className="secondary" onClick={()=>void reconcileAsaas(payout.transferId)}>Sincronizar Asaas</button>}</div>;
+  if(payout)return <div className="financeRowActions financeAsaasActions"><span className="financeAsaasMeta">{asaasLabel(payout)}{payout.updatedAt?' · Atualizado '+when(payout.updatedAt):''}{payout.transferId?' · ID '+payout.transferId:'' }{payout.lastError?' · '+payout.lastError:''}</span>{payout.transferId&&<button type="button" className="secondary" onClick={()=>void reconcileAsaas(payout.transferId)}>Sincronizar Asaas</button>}</div>;
   if(!asaasReady)return <div className="financeRowActions"><span className="financeAsaasMeta">Consultando integracao Asaas. Acoes manuais bloqueadas por seguranca.</span></div>;
   return <div className="financeRowActions">{w.status==='PENDING'&&<button onClick={()=>status(w,'PROCESSING')}>Processar</button>}{w.status==='PROCESSING'&&<button onClick={()=>status(w,'PAID')}><Check size={14}/>Confirmar pagamento</button>}{['PENDING','PROCESSING'].includes(w.status)&&<button className="secondary" onClick={()=>status(w,'REJECTED')}>Rejeitar</button>}</div>;
  };
