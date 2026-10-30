@@ -63,6 +63,19 @@ $paths = @(
 $files = @{}
 foreach ($path in $paths) { $files[$path] = Read-RepoFile $path }
 
+$alreadyApplied =
+  $files['apps/api/src/wallet/asaas-payout.service.ts'].Contains('async approve(id: string') -and
+  $files['apps/api/src/wallet/asaas-payout.controller.ts'].Contains("@Post('withdrawals/:id/approve')") -and
+  $files['apps/api/src/wallet/wallet.service.ts'].Contains("state: 'AWAITING_ADMIN'") -and
+  $files['apps/api/src/wallet/finance.service.ts'].Contains('asaasPayout:true') -and
+  $files['apps/admin/src/app/finance-panel.tsx'].Contains('Aprovar saque Pix') -and
+  $files['apps/mobile/lib/features/courier/presentation/pages/courier_page.dart'].Contains('PIX APROVADO')
+if ($alreadyApplied) {
+  Write-Host 'O fluxo de aprovacao Asaas ja esta aplicado. Nenhum arquivo foi alterado.' -ForegroundColor Green
+  exit 0
+}
+
+
 if (-not $files['apps/api/prisma/schema.prisma'].Contains('model AsaasPayout')) {
   throw 'O schema local ainda nao possui model AsaasPayout. Atualizacao cancelada sem gravar arquivos.'
 }
@@ -108,7 +121,7 @@ $asaas = Replace-Once $asaas "where: { withdrawalId: id, state: 'QUEUED' }" "whe
 $asaas = Replace-Once $asaas "p.environment !== 'sandbox'" "p.environment !== this.environment()" "p.environment !== this.environment()" 'validacao do ambiente da transferencia'
 $asaas = Replace-Once $asaas "environment: 'sandbox'" "environment: this.environment()" "environment: this.environment()" 'diagnostico com ambiente real'
 $asaas = Replace-Once $asaas 'Solicitacao recusada pelo Asaas. Confira saldo, chave Pix e autorizacoes no sandbox.' 'Solicitacao recusada pelo Asaas. Confira saldo, chave Pix e autorizacoes da conta.' 'autorizacoes da conta.' 'mensagem de recusa independente do ambiente'
-$asaas = Replace-Once $asaas 'Solicitacao recusada pelo Asaas. Confira saldo, chave e autorizacoes no sandbox.' 'Solicitacao recusada pelo Asaas. Confira saldo, chave e autorizacoes da conta.' 'autorizacoes da conta.' 'erro de recusa independente do ambiente'
+$asaas = Replace-Once $asaas 'Solicitacao recusada pelo Asaas. Confira saldo, chave e autorizacoes no sandbox.' 'Solicitacao recusada pelo Asaas. Confira saldo, chave e autorizacoes da conta.' 'chave e autorizacoes da conta.' 'erro de recusa independente do ambiente'
 
 $approvalMethod = U @'
   async approve(id: string, authorization?: string) {
@@ -196,7 +209,7 @@ $files['apps/api/src/wallet/asaas-payout.controller.ts'] = $controller
 
 # Solicitacao do motoboy reserva o saldo e aguarda aprovacao.
 $wallet = $files['apps/api/src/wallet/wallet.service.ts']
-$wallet = Replace-Once $wallet "status: automatic ? 'PROCESSING' : 'PENDING'," "status: 'PENDING'," "status: 'PENDING'," 'saque inicia aguardando aprovacao'
+$wallet = Replace-Once $wallet "status: automatic ? 'PROCESSING' : 'PENDING'," "status: 'PENDING'," "state: 'AWAITING_ADMIN'" 'saque inicia aguardando aprovacao'
 $oldCreatePayout = @'
       if (automatic) await (tx as any).asaasPayout.create({ data: { withdrawalId, requestKey: courier.id + ':' + requestId } });
 '@
@@ -314,7 +327,7 @@ $files['apps/admin/src/app/finance-workspace.css'] = $css
 $feedback = $files['apps/mobile/lib/features/courier/presentation/widgets/courier_withdrawal_feedback.dart']
 $feedback = Replace-Once $feedback "const ['PENDING', 'PROCESSING', 'PAID'].contains(status)" "const ['PENDING', 'PROCESSING', 'PAID', 'REJECTED', 'CANCELED'].contains(status)" "REJECTED', 'CANCELED" 'modal reconhece saque rejeitado/cancelado'
 $feedback = Replace-Once $feedback "if (_reduceMotion || !courierWithdrawalAcknowledged(widget.status)) {" "if (_reduceMotion || widget.status != 'PAID') {" "widget.status != 'PAID'" 'animacao de sucesso somente apos Pix concluido'
-$oldFeedbackBuild = @'
+$oldFeedbackBuild = U @'
     final acknowledged = courierWithdrawalAcknowledged(widget.status);
     final title = switch (widget.status) {
       'PENDING' => 'Boa! Saque solicitado',
@@ -359,10 +372,10 @@ $newFeedbackBuild = U @'
 '@
 $feedback = Replace-Once $feedback $oldFeedbackBuild $newFeedbackBuild 'final paid = widget.status' 'mensagens de status do saque no aplicativo'
 $feedback = Replace-Once $feedback 'Icon(acknowledged ? Icons.check_rounded : Icons.receipt_long_rounded,' 'Icon(paid ? Icons.check_rounded : failed ? Icons.error_outline_rounded : Icons.hourglass_top_rounded,' 'Icons.hourglass_top_rounded' 'icone nao antecipa confirmacao Pix'
-$feedback = Replace-Once $feedback 'const TextStyle(fontSize: 34, height: 1.15, fontWeight: FontWeight.w800,' 'TextStyle(fontSize: 34, height: 1.15, fontWeight: FontWeight.w800,' 'TextStyle(fontSize: 34' 'valor dinamico no modal Pix'
+$feedback = Replace-Once $feedback 'const TextStyle(fontSize: 34, height: 1.15, fontWeight: FontWeight.w800,' 'TextStyle(fontSize: 34, height: 1.15, fontWeight: FontWeight.w800,' '' 'valor dinamico no modal Pix'
 $feedback = Replace-Once $feedback 'letterSpacing: -1, color: courierGreen)),' 'letterSpacing: -1, color: accent)),' 'letterSpacing: -1, color: accent' 'cor do valor conforme estado'
 $feedback = Replace-Once $feedback 'color: const Color(0xFFEEF7F4),' 'color: paid ? const Color(0xFFEEF7F4) : failed ? const Color(0xFFFFF0ED) : const Color(0xFFFFF6E7),' 'color: paid ? const Color(0xFFEEF7F4)' 'fundo da etiqueta conforme estado'
-$feedback = Replace-Once $feedback 'const TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700,' 'TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700,' 'TextStyle(fontSize: 12' 'texto dinamico da etiqueta Pix'
+$feedback = Replace-Once $feedback 'const TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700,' 'TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700,' '' 'texto dinamico da etiqueta Pix'
 $feedback = Replace-Once $feedback 'color: courierGreen)))),' 'color: accent)))),' 'color: accent))))' 'cor da etiqueta conforme estado'
 $feedback = Replace-RegexOnce $feedback "const PrimeText\('Acompanhe as atualiza[^']*', textAlign: TextAlign\\.center," 'PrimeText(message, textAlign: TextAlign.center,' 'PrimeText(message, textAlign:' 'mensagem explicativa conforme status'
 $files['apps/mobile/lib/features/courier/presentation/widgets/courier_withdrawal_feedback.dart'] = $feedback
