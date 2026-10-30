@@ -515,23 +515,24 @@ String _asaasStatusLabel(Map<String, dynamic>? payout) {
   if (payout == null) return '';
   final provider = (payout['providerStatus'] ?? '').toString().toUpperCase();
   final state = (payout['state'] ?? '').toString().toUpperCase();
-  if (provider.isEmpty) {
-    return switch (state) {
-      'QUEUED' => 'Asaas · aguardando envio',
-      'SENDING' => 'Asaas · enviando solicitação',
-      'UNKNOWN' => 'Asaas · envio sem confirmação',
-      _ => 'Asaas · aguardando confirmação',
-    };
-  }
-  return switch (provider) {
-    'PENDING' => 'Asaas · aguardando processamento',
-    'BANK_PROCESSING' || 'IN_BANK_PROCESSING' => 'Asaas · processamento bancário',
-    'BLOCKED' => 'Asaas · bloqueado, verifique a autorização',
-    'DONE' => 'Asaas · Pix concluído',
-    'FAILED' => 'Asaas · transferência recusada',
-    'CANCELLED' => 'Asaas · transferência cancelada',
-    _ => 'Asaas · ' + provider,
-  };
+  final label = provider.isEmpty
+      ? switch (state) {
+          'QUEUED' => 'Asaas · aguardando envio',
+          'SENDING' => 'Asaas · enviando solicitação',
+          'UNKNOWN' => 'Asaas · envio sem confirmação',
+          _ => 'Asaas · aguardando confirmação',
+        }
+      : switch (provider) {
+          'PENDING' => 'Asaas · aguardando processamento',
+          'BANK_PROCESSING' || 'IN_BANK_PROCESSING' => 'Asaas · processamento bancário',
+          'BLOCKED' => 'Asaas · bloqueado, verifique a autorização',
+          'DONE' => 'Asaas · Pix concluído',
+          'FAILED' => 'Asaas · transferência recusada',
+          'CANCELLED' => 'Asaas · transferência cancelada',
+          _ => 'Asaas · ' + provider,
+        };
+  final lastError = (payout['lastError'] ?? '').toString();
+  return lastError.isEmpty ? label : label + ' · ' + lastError;
 }
 
 String _withdrawalStatus(String value) => switch (value) {
