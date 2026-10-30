@@ -15,12 +15,19 @@ function Read-RepoFile([string]$RelativePath) {
 }
 
 function Replace-Once([string]$Content, [string]$Old, [string]$New, [string]$Marker, [string]$Label) {
-  if ($Content.Contains($Marker)) { return $Content }
-  $count = [regex]::Matches($Content, [regex]::Escape($Old)).Count
+  # Normaliza somente durante a comparacao; preserva o final de linha original ao retornar.
+  $newline = if ($Content.Contains("`r`n")) { "`r`n" } else { "`n" }
+  $contentLf = $Content.Replace("`r`n", "`n")
+  $oldLf = $Old.Replace("`r`n", "`n")
+  $newLf = $New.Replace("`r`n", "`n")
+  $markerLf = $Marker.Replace("`r`n", "`n")
+  if ($contentLf.Contains($markerLf)) { return $Content }
+  $count = [regex]::Matches($contentLf, [regex]::Escape($oldLf)).Count
   if ($count -ne 1) { throw "Checkpoint de seguranca: esperava 1 ocorrencia de '$Label', encontrei $count. Nenhum arquivo foi gravado." }
-  return $Content.Replace($Old, $New)
+  $updated = $contentLf.Replace($oldLf, $newLf)
+  if ($newline -eq "`r`n") { $updated = $updated.Replace("`n", "`r`n") }
+  return $updated
 }
-
 $changes = [ordered]@{}
 
 # API: expor o estado Asaas no historico e disparar o envio imediatamente.
