@@ -68,7 +68,7 @@ foreach ($path in $paths) { $originalFiles[$path] = $files[$path] }
 $alreadyApplied =
   $files['apps/api/src/wallet/asaas-payout.service.ts'].Contains('async approve(id: string') -and
   $files['apps/api/src/wallet/asaas-payout.controller.ts'].Contains("@Post('withdrawals/:id/approve')") -and
-  $files['apps/api/src/wallet/wallet.service.ts'].Contains("state: 'AWAITING_ADMIN'") -and
+  $files['apps/api/src/wallet/wallet.service.ts'].Contains('providerStatus: null') -and
   $files['apps/api/src/wallet/finance.service.ts'].Contains('asaasPayout:true') -and
   $files['apps/admin/src/app/finance-panel.tsx'].Contains('Aprovar saque Pix') -and
   $files['apps/mobile/lib/features/courier/presentation/pages/courier_page.dart'].Contains('PIX APROVADO')
@@ -220,11 +220,11 @@ $newCreatePayout = @'
         withdrawalId,
         requestKey: courier.id + ':' + requestId,
         environment: process.env.ASAAS_ENVIRONMENT === 'production' ? 'production' : 'sandbox',
-        state: 'AWAITING_ADMIN',
+        state: 'QUEUED',
         providerStatus: null,
       } });
 '@
-$wallet = Replace-Once $wallet $oldCreatePayout $newCreatePayout "state: 'AWAITING_ADMIN'" 'saque aguarda aprovacao antes de entrar na fila Asaas'
+$wallet = Replace-Once $wallet $oldCreatePayout $newCreatePayout 'providerStatus: null' 'saque aguarda aprovacao antes de entrar na fila Asaas'
 $files['apps/api/src/wallet/wallet.service.ts'] = $wallet
 
 # A central financeira recebe o estado Asaas e impede baixa manual de saque de motoboy.
@@ -260,14 +260,14 @@ $files['apps/api/src/wallet/finance.service.ts'] = $finance
 
 # Painel: um clique aprova o saque; o estado final vem do Asaas.
 $panel = $files['apps/admin/src/app/finance-panel.tsx']
-$panel = Replace-Once $panel "const [operation,setOperation]=useState<'credit'|'withdraw'|'status'|null>(null),[form,setForm]=useState<Row>({}),[saving,setSaving]=useState(false),[formError,setFormError]=useState(''),[revision,setRevision]=useState(0);" "const [operation,setOperation]=useState<'credit'|'withdraw'|'status'|null>(null),[form,setForm]=useState<Row>({}),[saving,setSaving]=useState(false),[formError,setFormError]=useState(''),[revision,setRevision]=useState(0);\n const [asaasBusyId,setAsaasBusyId]=useState('');" 'asaasBusyId' 'estado de envio da aprovacao Asaas'
+$panel = Replace-Once $panel "const [operation,setOperation]=useState<'credit'|'withdraw'|'status'|null>(null),[form,setForm]=useState<Row>({}),[saving,setSaving]=useState(false),[formError,setFormError]=useState(''),[revision,setRevision]=useState(0);" ("const [operation,setOperation]=useState<'credit'|'withdraw'|'status'|null>(null),[form,setForm]=useState<Row>({}),[saving,setSaving]=useState(false),[formError,setFormError]=useState(''),[revision,setRevision]=useState(0);" + [Environment]::NewLine + " const [asaasBusyId,setAsaasBusyId]=useState('');") 'asaasBusyId' 'estado de envio da aprovacao Asaas'
 $panelHelpers = U @'
  const asaasLabel=(w:Row)=>{
   const p=w.asaasPayout;
   if(!p)return 'Aguardando aprovacao do administrador';
   const state=String(p.state||'').toUpperCase();
   const provider=String(p.providerStatus||'').toUpperCase();
-  if(state==='AWAITING_ADMIN'||(state==='QUEUED'&&provider!=='ADMIN_APPROVED'))return 'Aguardando aprovacao do administrador';
+  if(state==='QUEUED'&&provider!=='ADMIN_APPROVED')return 'Aguardando aprovacao do administrador';
   if(state==='QUEUED')return 'Aprovado \u00b7 aguardando envio ao Asaas';
   if(state==='SENDING')return 'Enviando Pix ao Asaas';
   if(state==='SENT')return 'Pix enviado \u00b7 aguardando confirmacao';
@@ -297,12 +297,15 @@ $panelHelpers = U @'
  };
 '@
 $panel = Replace-Once $panel " const status=(w:Row,next:string)=>{setForm({...w,nextStatus:next,reason:'',reference:'',receiptUrl:''});setFormError('');setOperation('status')};" (" const status=(w:Row,next:string)=>{setForm({...w,nextStatus:next,reason:'',reference:'',receiptUrl:''});setFormError('');setOperation('status')};" + [Environment]::NewLine + $panelHelpers) 'const asaasLabel=' 'acoes auxiliares de aprovacao e conciliacao'
-$oldActions = " const actions=(w:Row)=><div className=\"financeRowActions\">{w.status==='PENDING'&&<button onClick={()=>status(w,'PROCESSING')}>Processar</button>}{w.status==='PROCESSING'&&<button onClick={()=>status(w,'PAID')}><Check size={14}/>Confirmar pagamento</button>}{['PENDING','PROCESSING'].includes(w.status)&&<button className=\"secondary\" onClick={()=>status(w,'REJECTED')}>Rejeitar</button>}</div>;"
+$oldActions = @'
+ const actions=(w:Row)=><div className="financeRowActions">{w.status==='PENDING'&&<button onClick={()=>status(w,'PROCESSING')}>Processar</button>}{w.status==='PROCESSING'&&<button onClick={()=>status(w,'PAID')}><Check size={14}/>Confirmar pagamento</button>}{['PENDING','PROCESSING'].includes(w.status)&&<button className="secondary" onClick={()=>status(w,'REJECTED')}>Rejeitar</button>}</div>;
+'@
+$oldActions = $oldActions.TrimEnd([char]13, [char]10)
 $newActions = U @'
  const actions=(w:Row)=>{
   if(w.kind==='COURIER'){
    const p=w.asaasPayout,state=String(p?.state||'').toUpperCase(),provider=String(p?.providerStatus||'').toUpperCase();
-   const awaiting=['PENDING','PROCESSING'].includes(w.status)&&(!p||state==='AWAITING_ADMIN'||(state==='QUEUED'&&provider!=='ADMIN_APPROVED'));
+   const awaiting=['PENDING','PROCESSING'].includes(w.status)&&(!p||(state==='QUEUED'&&provider!=='ADMIN_APPROVED'));
    if(awaiting)return <div className="financeRowActions financeAsaasActions"><span className="financeAsaasMeta">Aguardando aprovacao do administrador</span><button type="button" disabled={asaasBusyId===w.id} onClick={()=>void approveAsaas(w)}>{asaasBusyId===w.id?'Enviando...':'Aprovar saque Pix'}</button>{w.status==='PENDING'&&<button type="button" className="secondary" onClick={()=>status(w,'REJECTED')}>Rejeitar</button>}</div>;
    return <div className="financeRowActions financeAsaasActions"><span className="financeAsaasMeta">{asaasLabel(w)}{p?.transferId?' \u00b7 ID '+p.transferId:''}{p?.lastError?' \u00b7 '+p.lastError:''}</span>{p?.transferId&&['SENT','UNKNOWN'].includes(state)&&<button type="button" className="secondary" disabled={asaasBusyId===w.id} onClick={()=>void reconcileAsaas(w)}>Sincronizar Asaas</button>}</div>;
   }
@@ -410,7 +413,7 @@ $requiredMarkers = @(
   @('apps/api/src/wallet/asaas-payout.service.ts', 'async approve(id: string'),
   @('apps/api/src/wallet/asaas-payout.service.ts', "providerStatus: 'ADMIN_APPROVED'"),
   @('apps/api/src/wallet/asaas-payout.controller.ts', "@Post('withdrawals/:id/approve')"),
-  @('apps/api/src/wallet/wallet.service.ts', "state: 'AWAITING_ADMIN'"),
+  @('apps/api/src/wallet/wallet.service.ts', 'providerStatus: null'),
   @('apps/api/src/wallet/finance.service.ts', 'asaasPayout:true'),
   @('apps/admin/src/app/finance-panel.tsx', 'Aprovar saque Pix'),
   @('apps/mobile/lib/features/courier/presentation/widgets/courier_withdrawal_feedback.dart', 'final paid = widget.status'),
