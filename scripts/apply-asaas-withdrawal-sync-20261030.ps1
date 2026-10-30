@@ -119,8 +119,8 @@ if (-not $finance.Contains('const reconcileAsaas=')) {
   $anchor = ' const availableRows=overview.rows.filter'
   $start = $finance.IndexOf($anchor)
   if ($start -lt 0) { throw 'Nao encontrei o ponto de insercao do mapa Asaas no FinancePanel. Nenhum arquivo foi gravado.' }
-  $end = $finance.IndexOf([Environment]::NewLine, $start)
-  if ($end -lt 0) { throw 'Linha de availableRows sem terminador esperado. Nenhum arquivo foi gravado.' }
+  $newline = if ($finance.Contains("`r`n")) { "`r`n" } else { "`n" }
+  $end = $finance.IndexOf($newline, $start)
   $helpers = @'
  const asaasFor=(id:any)=>asaasPayouts.find((p:Row)=>p.withdrawalId===id);
  const asaasLabel=(p:Row)=>{
@@ -136,7 +136,8 @@ if (-not $finance.Contains('const reconcileAsaas=')) {
   catch(e:any){setError(displayMessage(e.message))}
  };
 '@
-  $finance = $finance.Insert($end + [Environment]::NewLine.Length, $helpers + [Environment]::NewLine)
+  $helpers = $helpers.Replace("`r`n", "`n").Replace("`n", $newline)
+  $finance = $finance.Insert($end + $newline.Length, $helpers + $newline)
 }
 
 $oldStatus = " const status=(w:Row,next:string)=>{setForm({...w,nextStatus:next,reason:'',reference:'',receiptUrl:''});setFormError('');setOperation('status')};"
