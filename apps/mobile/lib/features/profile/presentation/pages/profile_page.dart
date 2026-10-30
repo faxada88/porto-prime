@@ -1,3 +1,4 @@
+import '../../../../core/navigation/app_nav.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/state/app_state.dart';
@@ -1716,6 +1717,24 @@ Future<void> _auth(BuildContext context) async {
     barrierColor: Colors.black.withValues(alpha: .52),
     builder: (ctx) => _PrimeSheet(
       children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            key: const ValueKey('porto-login-back-home'),
+            onPressed: () {
+              FocusScope.of(ctx).unfocus();
+              Navigator.of(ctx).pop();
+              AppNav.instance.home();
+            },
+            icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 24),
+            label: const Text('Voltar ao início'),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF073E43),
+              minimumSize: const Size(48, 48),
+            ),
+          ),
+        ),
+
         const _SheetBrandHeader(
           icon: AppIcons.lock_person_rounded,
           eyebrow: 'ACESSO SEGURO',
