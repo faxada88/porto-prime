@@ -129,7 +129,9 @@ $oldSubmit = "const submit=async(e:React.FormEvent)=>{e.preventDefault();if(savi
 $newSubmit = "const submit=async(e:React.FormEvent)=>{e.preventDefault();if(operation==='status'&&(!asaasReady||form.asaasPayout||asaasFor(form.id))){setFormError('Saques integrados ao Asaas sao atualizados exclusivamente pela confirmacao do provedor.');return}if(savingRef.current)return;"
 $finance = Replace-Once $finance $oldSubmit $newSubmit 'atualizados exclusivamente pela confirmacao' 'protecao do modal administrativo'
 
-$oldActions = " const actions=(w:Row)=><div className=\"financeRowActions\">{w.status==='PENDING'&&<button onClick={()=>status(w,'PROCESSING')}>Processar</button>}{w.status==='PROCESSING'&&<button onClick={()=>status(w,'PAID')}><Check size={14}/>Confirmar pagamento</button>}{['PENDING','PROCESSING'].includes(w.status)&&<button className=\"secondary\" onClick={()=>status(w,'REJECTED')}>Rejeitar</button>}</div>;"
+$oldActions = @'
+ const actions=(w:Row)=><div className="financeRowActions">{w.status==='PENDING'&&<button onClick={()=>status(w,'PROCESSING')}>Processar</button>}{w.status==='PROCESSING'&&<button onClick={()=>status(w,'PAID')}><Check size={14}/>Confirmar pagamento</button>}{['PENDING','PROCESSING'].includes(w.status)&&<button className="secondary" onClick={()=>status(w,'REJECTED')}>Rejeitar</button>}</div>;
+'@
 $newActions = @'
  const actions=(w:Row)=>{
   const payout=w.asaasPayout||asaasFor(w.id);
@@ -210,6 +212,8 @@ $newBuild = @'
             : 'O saque foi recebido. O pagamento só será confirmado quando o Asaas concluir o Pix.';
 '@
 $feedback = Replace-Once $feedback $oldBuild $newBuild 'final paid = widget.status' 'mensagens do modal de saque'
+$feedback = Replace-Once $feedback "style: const TextStyle(fontSize: 34, height: 1.15, fontWeight: FontWeight.w800," "style: TextStyle(fontSize: 34, height: 1.15, fontWeight: FontWeight.w800," "style: TextStyle(fontSize: 34" "valor do modal com cor dinamica"
+$feedback = Replace-Once $feedback "style: const TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700," "style: TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700," "style: TextStyle(fontSize: 12" "etiqueta do modal com cor dinamica"
 $feedback = Replace-Once $feedback 'gradient: RadialGradient(colors: [Color(0xFFD2F3E9), Color(0xFFF1FAF7)]))' 'gradient: RadialGradient(colors: paid ? [const Color(0xFFD2F3E9), const Color(0xFFF1FAF7)] : failed ? [const Color(0xFFF8DCD7), const Color(0xFFFFF5F2)] : [const Color(0xFFFFE8BD), const Color(0xFFFFFAF0)]))' 'RadialGradient(colors: paid ?' 'cores do estado do saque'
 $feedback = Replace-Once $feedback 'decoration: BoxDecoration(shape: BoxShape.circle, color: courierGreen,' 'decoration: BoxDecoration(shape: BoxShape.circle, color: accent,' 'color: accent,' 'icone sem falso sucesso'
 $feedback = Replace-Once $feedback 'child: Icon(acknowledged ? Icons.check_rounded : Icons.receipt_long_rounded,' 'child: Icon(paid ? Icons.check_rounded : failed ? Icons.error_outline_rounded : Icons.hourglass_top_rounded,' 'Icons.hourglass_top_rounded' 'icone por estado do Pix'
@@ -221,12 +225,13 @@ $changes['apps/mobile/lib/features/courier/presentation/widgets/courier_withdraw
 
 # MOBILE: associar a reserva do extrato ao saque correspondente.
 $courier = Read-RepoFile 'apps/mobile/lib/features/courier/presentation/pages/courier_page.dart'
-$courier = Replace-Once $courier '        ..._ledgerWidgets(ledger),' @'
+$newWalletLedger = @'
         ..._ledgerWidgets(ledger, withdrawals: state.withdrawals
             .whereType<Map>()
             .map((x) => Map<String, dynamic>.from(x))
             .toList()),
-'@ 'withdrawals: state.withdrawals' 'ligacao do extrato ao saque'
+'@
+$courier = Replace-Once $courier '        ..._ledgerWidgets(ledger),' $newWalletLedger 'withdrawals: state.withdrawals' 'ligacao do extrato ao saque'
 
 $oldLedgerMethod = @'
   List<Widget> _ledgerWidgets(List<Map<String, dynamic>> rows) {
@@ -505,7 +510,7 @@ foreach ($relative in $changes.Keys) {
   New-Item -ItemType Directory -Path (Split-Path $backup -Parent) -Force | Out-Null
   Copy-Item -LiteralPath $target -Destination $backup -Force
 }
-$encoding = New-Object System.Text.UTF8Encoding($false)
+$encoding = [System.Text.UTF8Encoding]::new($false)
 foreach ($relative in $changes.Keys) {
   $target = Join-Path $RepoRoot $relative
   [System.IO.File]::WriteAllText($target, [string]$changes[$relative], $encoding)
