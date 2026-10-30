@@ -62,6 +62,8 @@ $paths = @(
 )
 $files = @{}
 foreach ($path in $paths) { $files[$path] = Read-RepoFile $path }
+$originalFiles = @{}
+foreach ($path in $paths) { $originalFiles[$path] = $files[$path] }
 
 $alreadyApplied =
   $files['apps/api/src/wallet/asaas-payout.service.ts'].Contains('async approve(id: string') -and
@@ -420,17 +422,22 @@ foreach ($item in $requiredMarkers) {
   }
 }
 
+$changedPaths = @($paths | Where-Object { $files[$_] -cne $originalFiles[$_] })
+if ($changedPaths.Count -eq 0) {
+  Write-Host 'Nenhuma alteracao necessaria. Nenhum arquivo foi gravado.' -ForegroundColor Green
+  return
+}
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $backupDir = Join-Path $RepoRoot ('.backups/asaas-manual-approval-' + $stamp)
 New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
-foreach ($path in $paths) {
+foreach ($path in $changedPaths) {
   $source = Join-Path $RepoRoot $path
   $backup = Join-Path $backupDir $path
   New-Item -ItemType Directory -Path (Split-Path $backup -Parent) -Force | Out-Null
   Copy-Item $source $backup -Force
 }
 $utf8 = New-Object System.Text.UTF8Encoding($false)
-foreach ($path in $paths) {
+foreach ($path in $changedPaths) {
   [System.IO.File]::WriteAllText((Join-Path $RepoRoot $path), $files[$path], $utf8)
 }
 
