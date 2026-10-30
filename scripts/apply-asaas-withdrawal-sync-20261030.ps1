@@ -134,6 +134,7 @@ if (-not $finance.Contains('const reconcileAsaas=')) {
   if ($start -lt 0) { throw 'Nao encontrei o ponto de insercao do mapa Asaas no FinancePanel. Nenhum arquivo foi gravado.' }
   $newline = if ($finance.Contains("`r`n")) { "`r`n" } else { "`n" }
   $end = $finance.IndexOf($newline, $start)
+  if ($end -lt 0) { throw 'Linha de availableRows sem terminador esperado. Nenhum arquivo foi gravado.' }
   $helpers = @'
  const asaasFor=(id:any)=>asaasPayouts.find((p:Row)=>p.withdrawalId===id);
  const asaasLabel=(p:Row)=>{
@@ -243,7 +244,7 @@ $newBuild = @'
             ? 'O valor reservado foi devolvido à sua carteira.'
             : 'O saque foi recebido. O pagamento só será confirmado quando o Asaas concluir o Pix.';
 '@
-$newBuild = $newBuild + "    final amount = widget.amount;"
+$newBuild = $newBuild.TrimEnd("`r", "`n") + [Environment]::NewLine + "    final amount = widget.amount;"
 $feedback = Replace-RegexOnce $feedback '    final acknowledged = courierWithdrawalAcknowledged\(widget\.status\);.*?    final amount = widget\.amount;' $newBuild 'final paid = widget.status' 'mensagens do modal de saque'
 $feedback = Replace-Once $feedback "style: const TextStyle(fontSize: 34, height: 1.15, fontWeight: FontWeight.w800," "style: TextStyle(fontSize: 34, height: 1.15, fontWeight: FontWeight.w800," "style: TextStyle(fontSize: 34" "valor do modal com cor dinamica"
 $feedback = Replace-Once $feedback "style: const TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700," "style: TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700," "style: TextStyle(fontSize: 12" "etiqueta do modal com cor dinamica"
