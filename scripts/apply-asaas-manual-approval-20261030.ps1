@@ -40,9 +40,9 @@ function Replace-RegexOnce([string]$Content, [string]$Pattern, [string]$New, [st
   $newline = if ($Content.Contains($crlf)) { $crlf } else { $lf }
   $contentLf = $Content.Replace($crlf, $lf)
   $newLf = $New.Replace($crlf, $lf)
-  $matches = [regex]::Matches($contentLf, $Pattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
-  if ($matches.Count -ne 1) { throw "Checkpoint: esperava 1 ocorrencia de '$Label', encontrei $($matches.Count). Nenhum arquivo foi gravado." }
-  $match = $matches[0]
+  $regexMatches = [regex]::Matches($contentLf, $Pattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+  if ($regexMatches.Count -ne 1) { throw "Checkpoint: esperava 1 ocorrencia de '$Label', encontrei $($regexMatches.Count). Nenhum arquivo foi gravado." }
+  $match = $regexMatches[0]
   $updated = $contentLf.Substring(0, $match.Index) + $newLf + $contentLf.Substring($match.Index + $match.Length)
   if ($newline -eq $crlf) { $updated = $updated.Replace($lf, $crlf) }
   return $updated
