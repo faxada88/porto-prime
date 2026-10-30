@@ -85,6 +85,7 @@ $asaas = Read-RepoFile 'apps/api/src/wallet/asaas-payout.service.ts'
 $oldBlocked = "lastError: failed ? 'Transferencia nao concluida pelo Asaas.' : null"
 $newBlocked = "lastError: failed ? 'Transferencia nao concluida pelo Asaas.' : state === 'BLOCKED' ? 'Transferencia bloqueada pelo Asaas. Verifique a autorizacao no painel do provedor.' : null"
 $asaas = Replace-Once $asaas $oldBlocked $newBlocked 'Verifique a autorizacao no painel do provedor' 'mensagem de bloqueio Asaas'
+$asaas = Replace-Once $asaas "take: 100 }) };" "take: 500 }) };" "take: 500 }) };" "ampliar conciliacao para todos os saques ativos"
 $changes['apps/api/src/wallet/asaas-payout.service.ts'] = $asaas
 
 # ADMIN: consultar Asaas, impedir confirmacao/rejeicao manual e oferecer conciliacao segura.
@@ -226,6 +227,39 @@ $changes['apps/mobile/lib/features/courier/presentation/widgets/courier_withdraw
 
 # MOBILE: associar a reserva do extrato ao saque correspondente.
 $courier = Read-RepoFile 'apps/mobile/lib/features/courier/presentation/pages/courier_page.dart'
+$courier = Replace-Once $courier 'class _CourierPageState extends State<CourierPage> {' 'class _CourierPageState extends State<CourierPage> with WidgetsBindingObserver {' 'with WidgetsBindingObserver' 'observer de ciclo de vida'
+$oldCourierInit = @'
+  void initState() {
+    super.initState();
+    AppState.instance.addListener(_syncOfferSound);
+'@
+$newCourierInit = @'
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    AppState.instance.addListener(_syncOfferSound);
+'@
+$courier = Replace-Once $courier $oldCourierInit $newCourierInit 'WidgetsBinding.instance.addObserver(this)' 'atualizacao da carteira ao abrir o app'
+$oldCourierDispose = @'
+  @override
+  void dispose() {
+    AppState.instance.removeListener(_syncOfferSound);
+'@
+$newCourierDispose = @'
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted && AppState.instance.isCourier) {
+      unawaited(AppState.instance.loadWallet().catchError((_) {}));
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    AppState.instance.removeListener(_syncOfferSound);
+'@
+$courier = Replace-Once $courier $oldCourierDispose $newCourierDispose 'didChangeAppLifecycleState(AppLifecycleState state)' 'sincronizacao da carteira ao retornar ao app'
+
 $newWalletLedger = @'
         ..._ledgerWidgets(ledger, withdrawals: state.withdrawals
             .whereType<Map>()
