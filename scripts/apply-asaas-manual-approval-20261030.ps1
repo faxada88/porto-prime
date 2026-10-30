@@ -436,7 +436,7 @@ foreach ($path in $changedPaths) {
   New-Item -ItemType Directory -Path (Split-Path $backup -Parent) -Force | Out-Null
   Copy-Item $source $backup -Force
 }
-$utf8 = New-Object System.Text.UTF8Encoding($false)
+$utf8 = [System.Text.UTF8Encoding]::new($false)
 foreach ($path in $changedPaths) {
   [System.IO.File]::WriteAllText((Join-Path $RepoRoot $path), $files[$path], $utf8)
 }
