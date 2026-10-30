@@ -568,7 +568,7 @@ String _withdrawalStatus(String value) => switch (value) {
       _ => value,
     };
 '@
-$courier = Replace-Once $courier $oldWithdrawalStatus $newWithdrawalStatus 'String _asaasStatusLabel(' 'rotulos dos estados de saque'
+$courier = Replace-RegexOnce $courier 'String _withdrawalStatus\(String value\) => switch \(value\) \{.*?    \};' $newWithdrawalStatus 'String _asaasStatusLabel(' 'rotulos dos estados de saque'
 $changes['apps/mobile/lib/features/courier/presentation/pages/courier_page.dart'] = $courier
 
 # Validar tudo antes de gravar qualquer arquivo.
