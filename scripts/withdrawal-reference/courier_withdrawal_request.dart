@@ -149,14 +149,14 @@ class CourierWithdrawalRequestPanel extends StatelessWidget {
                 style: const TextStyle(fontFamily: 'Manrope', color: ink,
                   fontSize: 17, fontWeight: FontWeight.w700),
                 decoration: field('0,00', Icons.account_balance_wallet_outlined,
-                  prefix: 'R$ ')),
+                  prefix: 'R\$ ')),
               const SizedBox(height: 11),
               ValueListenableBuilder<TextEditingValue>(
                 valueListenable: amountController,
                 builder: (_, value, __) {
                   final options = <(String, double)>[
-                    ('R$ 50,00', 50), ('R$ 100,00', 100),
-                    ('R$ 200,00', 200), ('Máximo', availableBalance),
+                    ('R\$ 50,00', 50), ('R\$ 100,00', 100),
+                    ('R\$ 200,00', 200), ('Máximo', availableBalance),
                   ];
                   return Row(children: [
                     for (var i = 0; i < options.length; i++) ...[
