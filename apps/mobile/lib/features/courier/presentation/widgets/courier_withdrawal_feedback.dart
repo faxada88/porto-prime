@@ -291,7 +291,7 @@ class _StatusEmblem extends StatelessWidget {
           border: Border.all(color: Colors.white, width: 3),
           boxShadow: const [
             BoxShadow(color: Color(0x27006479), blurRadius: 19, offset: Offset(0, 5)),
-          ]),
+          ],
         ),
         child: Icon(paid ? Icons.check_rounded : Icons.hourglass_top_rounded,
           color: Colors.white, size: 45)),
