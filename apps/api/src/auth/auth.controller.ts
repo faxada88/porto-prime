@@ -1,5 +1,6 @@
 import {
   Body,
+  UnauthorizedException,
   Controller,
   Delete,
   Get,
@@ -48,7 +49,13 @@ export class AuthController {
   }
 
   @Post('bootstrap-admin')
-  bootstrapAdmin(@Body() body: BootstrapAdminDto) {
+  bootstrapAdmin(@Body() body: BootstrapAdminDto, @Headers('x-admin-setup-token') token?: string) {
+    if (process.env.NODE_ENV === 'production') {
+      const secret = process.env.ADMIN_SETUP_TOKEN;
+      if (!secret || !token || token !== secret) {
+        throw new UnauthorizedException('Nao autorizado');
+      }
+    }
     return this.authService.bootstrapAdmin(body);
   }
 
